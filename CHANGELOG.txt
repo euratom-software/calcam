@@ -1,0 +1,20 @@
+Project Changelog
+=================
+
+Release 1.0.0 (1 Jan 2017)
+--------------------------
+
+API Changes:
+* <<<List of changes>>>
+
+Fixed:
+* <<<List of changes>>>
+
+New:
+* <<<List of changes>>>
+
+Deprecated:
+* <<<List of changes>>>
+
+Removed:
+* <<<List of changes>>>

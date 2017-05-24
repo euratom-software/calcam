@@ -1,0 +1,3 @@
+The following authors have contributed to the project:
+
+<<<List of Authors>>>

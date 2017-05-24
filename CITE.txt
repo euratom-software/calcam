@@ -1,0 +1,3 @@
+Citing this project in publications:
+
+<<<Please describe how should this project be cited in publications - e.g. does it have an associated paper?>>>
