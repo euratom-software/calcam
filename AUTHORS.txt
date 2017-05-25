@@ -1,3 +1,6 @@
 The following authors have contributed to the project:
 
-<<<List of Authors>>>
+Scott Silburn
+James Harrison
+Mark Smithies
+Alasdair Wynn
