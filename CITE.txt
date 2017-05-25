@@ -1,3 +1,3 @@
 Citing this project in publications:
 
-<<<Please describe how should this project be cited in publications - e.g. does it have an associated paper?>>>
+There are not yet suitable articles to cite when using calcam in publications, so in lieu of this please reference the GitHub URL: https://github.com/euratom-software/calcam/ where possilble.
