@@ -3139,7 +3139,7 @@ class LauncherWindow(qt.QDialog):
         subprocess.Popen([sys.executable,os.path.join(paths.calcampath,'gui.py'),'launch_view_designer'],stdin=None, stdout=self.devnull, stderr=self.devnull)
 
     def open_manual(self):
-        webbrowser.open(os.path.join(paths.calcampath,'docs','UserGuide.pdf'))
+        webbrowser.open(os.path.join(os.path.dirname(paths.calcampath),'docs','UserGuide.pdf'))
 
 
 def start_gui():
