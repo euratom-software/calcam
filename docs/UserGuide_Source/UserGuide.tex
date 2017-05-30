@@ -89,7 +89,7 @@ By default, calcam functions work with display coordinates unless specified othe
 This is the initial, somewhat rough and incomplete version of the Calcam user guide, written by Scott Silburn (\url{scott.silburn@ukaea.uk}). Feedback on both the code and the user guide are welcome. The installation and setup and API documentation sections assume a reasonable familiarity with the Python language.
 
 
-\section{Installation, First Import \& Configuration}
+\section{Getting Started \& Configuration}
 
 \subsection{Hardware Recommendations}
 Since working with Calcam involves interactively working with CAD data, using a system with good OpenGL rendering performance makes the experience much more pleasent. Currently Calcam is only single-threaded, so there is no particular advantage to having more CPU cores. It is recommended to use calcam ``locally'' rather than over a remote connection or on a remote cluster, for 2 reasons: 1) From experience, OpenGL / VTK can be more tricky to get running, and 2) Performance when working with mesh data is typically not very good.
@@ -112,7 +112,7 @@ Typically, VTK is the requirement which causes the most headaches in getting Cal
 
 \subsection{Installation, Importing \& Setup}
 
-Place the calcam directory containing the python files in your location of choice, preferably not in the root of your home directory (usually abbreviated in this document as `\path{~}') since \path{~/calcam} will be used to store user data. It is highly recommended to add the path containg the calcam folder to your \code{PYTHONPATH} environment variable, i.e. if you copy the calcam folder to \path{~/Pythom/calcam}, make sure \path{~/Python} is in your \code{PYTHONPATH}.
+CLone the calcam repository / download and place the directory in your location of choice. It is highly recommended to add the root of the calcam repository to your \code{PYTHONPATH} environment variable if you want to use calcam as a module, i.e. if you copy the calcam repository to \path{~/Pythom/calcam}, make sure \path{~/Python/calcam} is in your \code{PYTHONPATH}.
 
 With your \code{PYTHONPATH} set up correctly, or in Python with the working directory in the same location as the \code{calcam} folder, the calcam module can be imported using \code{import calcam}. The first time calcam is imported by a given user, calcam will create directories for storing calibration input, calibration results and user defined code in your home directory (Usually \path{C:\users\<username>\calcam} on Windows or \path{/home/<username>} on Unix.). Once these have been created and you have checked for any warnings about missing required modules, you can move on to configuring CAD models using the templates provided (see next section).
 
