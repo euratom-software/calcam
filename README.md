@@ -1,17 +1,10 @@
 CalCam
 ------
-A python library for spatial mapping of
-camera diagnostics for fusion experiments.
-
-Licensed under European Union Public Licence v1.1
-For license text and user guide please see docs/ directory.
-
+Python tools for sptatial calibration of camera diagnostics.
 
 Originally written by:  
 Scott Silburn (scott.silburn@ukaea.uk)
+Inspired by IDL code of the same name by James Harrison.
 
-Contributors:
-James Harrison  
-Nick Walkden  
-Alasdair Wynn  
-
+For more authorship information see AUTHORS.txt
+For documentation and user guide see docs/ directory.
