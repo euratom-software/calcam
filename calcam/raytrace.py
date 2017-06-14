@@ -100,12 +100,11 @@ class RayCaster:
                 yl = np.linspace( (binning-1.)/2,float(self.fitresults.transform.y_pixels-1)-(binning-1.)/2,(1+float(self.fitresults.transform.y_pixels-1))/binning)
                 x,y = np.meshgrid(xl,yl)
                 x,y = self.fitresults.transform.original_to_display_coords(x,y)
+            valid_mask = np.ones(x.shape,dtype=bool)
         else:
             if np.shape(x) != np.shape(y):
                 raise ValueError('x and y arrays must be the same shape!')
             valid_mask = np.logical_and(np.isnan(x) == 0 , np.isnan(y) == 0 )
-            x = x[valid_mask]
-            y = y[valid_mask]
             if Coords.lower() == 'original':
                 x,y = self.fitresults.transform.original_to_display_coords(x,y)
 
@@ -113,13 +112,16 @@ class RayCaster:
         Results.ResultType = 'PixelRayCast'
         Results.fullchip = fullchip
         Results.x = np.copy(x)
+        Results.x[valid_mask == 0] = 0
         Results.y = np.copy(y)
+        Results.y[valid_mask == 0] = 0
         Results.transform = self.fitresults.transform
 
-        orig_shape = np.shape(x)
-        x = np.reshape(x,np.size(x),order='F')
-        y = np.reshape(y,np.size(y),order='F')
-        totpx = np.size(x)
+        orig_shape = np.shape(Results.x)
+        Results.x = np.reshape(Results.x,np.size(Results.x),order='F')
+        Results.y = np.reshape(Results.y,np.size(Results.y),order='F')
+        valid_mask = np.reshape(valid_mask,np.size(valid_mask),order='F')
+        totpx = np.size(Results.x)
 
         
 
@@ -136,8 +138,8 @@ class RayCaster:
         cellIDs = vtk.vtkIdList()
 
         # Line of sight directions
-        LOSDir = self.fitresults.get_los_direction(x,y,Coords='Display')
-        Results.ray_start_coords = self.fitresults.get_pupilpos(x,y,Coords='Display')
+        LOSDir = self.fitresults.get_los_direction(Results.x,Results.y,Coords='Display')
+        Results.ray_start_coords = self.fitresults.get_pupilpos(Results.x,Results.y,Coords='Display')
 			
         sys.stdout.write('[Calcam RayCaster] Casting ' + str(np.size(x)) + ' rays: ')
 
@@ -156,6 +158,7 @@ class RayCaster:
 
             if not valid_mask[ind]:
                 Results.ray_end_coords[ind,:] = np.nan
+                Results.ray_start_coords[ind,:] = np.nan
                 continue
 
             # Do the raycast and put the result in the output array
@@ -198,6 +201,9 @@ class RayCaster:
 
         sys.stdout.write('\b' * len(progress_string) + 'Finished in ' + time_string + '             \n')
         sys.stdout.flush()
+
+        Results.x[valid_mask == 0] = np.nan
+        Results.y[valid_mask == 0] = np.nan
 
         Results.ray_end_coords = np.reshape(Results.ray_end_coords,orig_shape + (3,),order='F')
         Results.ray_start_coords = np.reshape(Results.ray_start_coords,orig_shape + (3,),order='F')
@@ -310,7 +316,6 @@ class RayData:
 
         # Work out ray lengths for all raytraced pixels
         RayLength = np.sqrt(np.sum( (self.ray_end_coords - self.ray_start_coords) **2,axis=-1))
-
         # If no x and y given, return them all
         if x is None and y is None:
             if self.fullchip:
@@ -348,7 +353,7 @@ class RayData:
                     deltaY = yflat - y[pointno]
                     deltaR = np.sqrt(deltaX**2 + deltaY**2)
                     if np.nanmin(deltaR) <= PositionTol:
-                        RL[pointno] = RayLength[np.argmin(deltaR)]
+                        RL[pointno] = RayLength[np.nanargmin(deltaR)]
                     else:
                         raise Exception('No ray-traced pixel within PositionTol of requested pixel!')
                 return np.reshape(RL,orig_shape,order='F')
