@@ -29,10 +29,14 @@ Might be expanded / become user-expandable some day.
 
 import cv2
 
+cv2_version = float('.'.join(cv2.__version__.split('.')[:2]))
+cv2_micro_version = int(cv2.__version__.split('.')[2])
+
 class hist_eq():
 
     def __init__(self):
-        pass
+        if cv2_version < 2.4 or (cv2_version == 2.4 and cv2_micro_version < 6):
+          raise Exception('Histogram equalisation requires OpenCV 2.4.6 or newer; you have {:s}'.format(cv2.__version__))
 
     def __call__(self,image):
         im_out = image.copy()

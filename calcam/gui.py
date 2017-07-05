@@ -53,6 +53,8 @@ from coordtransformer import CoordTransformer
 import webbrowser
 import subprocess
 
+cv2_version = float('.'.join(cv2.__version__.split('.')[:2]))
+cv2_micro_version = int(cv2.__version__.split('.')[2])
 
 '''
 We start off with various useful functions which are used across the different GUIs.
@@ -864,6 +866,10 @@ class CalCamWindow(qt.QMainWindow):
         self.chessboard_button.clicked.connect(self.modify_chessboard_constraints)
         self.use_chessboard_checkbox.toggled.connect(self.toggle_chessboard_constraints)
 
+        # If we have an old version of openCV, histo equilisation won't work :(
+        if cv2_version < 2.4 or (cv2_version == 2.4 and cv2_micro_version < 6):
+            self.hist_eq_checkbox.setEnabled(False)
+            self.hist_eq_checkbox.setToolTip('Requires OpenCV 2.4.6 or newer; you have {:s}'.format(cv2.__version__))
 
         # Set up some keyboard shortcuts
         # It is done this way in 3 lines per shortcut to avoid segfaults on some configurations

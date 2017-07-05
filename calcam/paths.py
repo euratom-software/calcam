@@ -58,35 +58,35 @@ virtualcameras = os.path.join(root,'VirtualCameras')
 
 # Check whether these actually exist, and create them if they don't.
 if not os.path.isdir(pointpairs):
-	print('[Calcam Import] Creating user data directory at ' + pointpairs)
+	print('[Calcam Setup] Creating user data directory at ' + pointpairs)
 	os.makedirs(pointpairs)
 
 if not os.path.isdir(fitresults):
-	print('[Calcam Import] Creating user data directory at ' + fitresults)
+	print('[Calcam Setup] Creating user data directory at ' + fitresults)
 	os.makedirs(fitresults)
 
 if not os.path.isdir(raydata):
-	print('[Calcam Import] Creating user data directory at ' + raydata)
+	print('[Calcam Setup] Creating user data directory at ' + raydata)
 	os.makedirs(raydata)
 
 if not os.path.isdir(images):
-	print('[Calcam Import] Creating user data directory at ' + images)	
+	print('[Calcam Setup] Creating user data directory at ' + images)	
 	os.makedirs(images)
 
 if not os.path.isdir(machine_geometry):
-	print('[Calcam Import] Creating user code directory at ' + machine_geometry)
+	print('[Calcam Setup] Creating user code directory at ' + machine_geometry)
 	os.makedirs(machine_geometry)
 
 if not os.path.isdir(image_sources):
-	print('[Calcam Import] Creating user code directory at ' + image_sources)
+	print('[Calcam Setup] Creating user code directory at ' + image_sources)
 	os.makedirs(image_sources)
 
 if not os.path.isdir(rois):
-	print('[Calcam Import] Creating user data directory at ' + rois)
+	print('[Calcam Setup] Creating user data directory at ' + rois)
 	os.makedirs(rois)
 
 if not os.path.isdir(virtualcameras):
-	print('[Calcam Import] Creating user data directory at ' + virtualcameras)
+	print('[Calcam Setup] Creating user data directory at ' + virtualcameras)
 	os.makedirs(virtualcameras)
 
 # Add the user code directories to our python path.

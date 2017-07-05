@@ -111,9 +111,9 @@ class RayCaster:
         Results = RayData()
         Results.ResultType = 'PixelRayCast'
         Results.fullchip = fullchip
-        Results.x = np.copy(x)
+        Results.x = np.copy(x).astype('float')
         Results.x[valid_mask == 0] = 0
-        Results.y = np.copy(y)
+        Results.y = np.copy(y).astype('float')
         Results.y[valid_mask == 0] = 0
         Results.transform = self.fitresults.transform
 

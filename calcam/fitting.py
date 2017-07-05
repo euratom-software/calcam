@@ -345,6 +345,7 @@ class CalibResults:
 
         if not FullChipWithoutDistortion:
 
+                # Calculate FOV by looking at the angle between sight lines at the image extremes
                 ycntr,xcntr = CoM( (self.fieldmask + 1) * (self.fieldmask == field) )
 
                 ycntr = int(np.round(ycntr))
@@ -354,21 +355,16 @@ class CalibResults:
                 fieldpoints = np.argwhere(self.fieldmask[ycntr,:] == field)
 
                 # X FOV
-                vec1 = self.get_los_direction(np.argmin(fieldpoints),ycntr)
-                vec2 = self.get_los_direction(np.argmax(fieldpoints),ycntr)
-
-                fovx = 180*np.arccos(np.dot(vec1,vec2))/3.14159265
+                norm1 = self.normalise(fieldpoints.min()-0.5,ycntr,field=field)
+                norm2 = self.normalise(fieldpoints.max()+0.5,ycntr,field=field)
+                fovx = 180*(np.arctan(norm2[0]) - np.arctan(norm1[0])) / 3.141592635
 
                 fieldpoints = np.argwhere(self.fieldmask[:,xcntr] == field)
 
                 # Y FOV
-                maxind = np.argmax(fieldpoints)
-                minind = np.argmin(fieldpoints)
-
-                vec1 = self.get_los_direction(xcntr,np.argmin(fieldpoints))
-                vec2 = self.get_los_direction(xcntr,np.argmax(fieldpoints))
-
-                fovy = 180*np.arccos(np.dot(vec1,vec2))/3.14159265
+                norm1 = self.normalise(xcntr,fieldpoints.min()-0.5,field=field)
+                norm2 = self.normalise(xcntr,fieldpoints.max()+0.5,field=field)
+                fovy = 180*(np.arctan(norm2[1]) - np.arctan(norm1[1])) / 3.141592635
 
         else:
                 # Find FOV from focal length and number of pixels
@@ -748,6 +744,32 @@ class CalibResults:
         self.transform.pixel_aspectratio = save['transform_pixel_aspect']
         self.transform.set_transform_actions(save['transform_actions'])
         SaveFile.close()
+
+
+
+    def undistort_image(self,image,coords=None):
+        if self.nfields > 1:
+            raise Exception('This feature is not supported for split-FOV images!')
+        im = image.copy()
+        
+        display_shape = self.transform.get_display_shape()
+        if coords is None:
+            coords = 'display'
+            if image.shape[0] != display_shape[1] or image.shape[1] != display_shape[0]:
+                if image.shape[0] == self.transform.y_pixels and image.shape[1] == self.transform.x_pixels:
+                    coords = 'original'
+                else:
+                    raise ValueError('Supplied image is the wrong shape! Expected {:d}x{:d} or {:d}x{:d} pixels.'.format(display_shape[0],display_shape[1],self.transform.x_pixels,self.transform.y_pixels))
+        
+        if coords == 'original':
+            im = self.transform.original_to_display_image(image)
+        
+        im = cv2.undistort(im,self.fit_params[0].cam_matrix,self.fit_params[0].kc)
+
+        if coords == 'original':
+            im = self.transform.display_to_original_image(im)
+
+        return im
 
 
 # Class for storing the calibration results.

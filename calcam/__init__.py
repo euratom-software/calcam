@@ -32,8 +32,6 @@ calcampath = sys.path.append(os.path.dirname(os.path.abspath(inspect.getfile(ins
 if calcampath not in sys.path:
     sys.path.append(calcampath)
 
-version = '1.2'
-
 # List of user-exposed modules which are part of the CalCam package.
 module_list = ['paths','machine_geometry','pointpairs','fitting','roi','render','raytrace','image','gui','geometry_matrix','image_filters']
 
@@ -62,6 +60,3 @@ from pointpairs import PointPairs
 from roi import ROI, ROISet
 from geometry_matrix import RectangularGeometryMatrix
 from gui import start_gui
-
-if int(fitting.cv2.__version__[0]) < 3:
-    print('[Calcam Import] Using OpenCV ' + fitting.cv2.__version__ + '; fisheye model features will not be available (requires OpenCV 3)')
