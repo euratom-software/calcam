@@ -2833,7 +2833,7 @@ class ViewDesignerWindow(qt.QMainWindow):
             virtual_fit_params = [0,cam_matrix,np.zeros([1,4]),rvec,tvec]
 
             self.virtualcamera.fit_params[0] = fitting.FieldFit('perspective',virtual_fit_params)
-            self.virtualcamera.image_display_shape = [x_pixels,y_pixels]
+            self.virtualcamera.image_display_shape = (x_pixels,y_pixels)
             self.virtualcamera.fieldmask = np.zeros([y_pixels,x_pixels],dtype='uint8')
             self.virtualcamera.nfields = 1
             self.virtualcamera.transform = CoordTransformer()
