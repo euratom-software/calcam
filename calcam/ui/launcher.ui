@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>720</width>
-    <height>214</height>
+    <width>774</width>
+    <height>190</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -36,59 +36,73 @@
       <enum>QFrame::Raised</enum>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
-      <item row="0" column="1">
-       <widget class="QPushButton" name="calcam_button">
-        <property name="text">
-         <string>Calibration Tool</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="2">
-       <widget class="QLabel" name="label">
-        <property name="text">
-         <string>Perform calibrations using feature matching between images and CAD.</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="2">
-       <widget class="QLabel" name="label_4">
-        <property name="text">
-         <string>Open the CalCam user guide &amp; API reference</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1">
-       <widget class="QPushButton" name="userguide_button">
-        <property name="text">
-         <string>User Guide</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="2">
-       <widget class="QLabel" name="label_2">
-        <property name="text">
-         <string>View CAD data including plotting ray-traced sight lines, etc.</string>
-        </property>
-       </widget>
-      </item>
       <item row="2" column="1">
-       <widget class="QPushButton" name="view_designer_button">
+       <widget class="QPushButton" name="cad_viewer_button">
         <property name="text">
-         <string>Virtual Calibration Editor</string>
+         <string>CAD Model Viewer</string>
         </property>
        </widget>
       </item>
-      <item row="2" column="2">
+      <item row="1" column="3">
+       <widget class="QLabel" name="label_5">
+        <property name="text">
+         <string>Perform calibrations by manually aligning images and CAD render.</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QPushButton" name="alignment_calib_button">
+        <property name="text">
+         <string>Calibration Tool (Manual Alignment)</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="3">
        <widget class="QLabel" name="label_3">
         <property name="text">
          <string>Create virtual calibrations by manually positioning virtual cameras.</string>
         </property>
        </widget>
       </item>
-      <item row="1" column="1">
-       <widget class="QPushButton" name="cad_viewer_button">
+      <item row="5" column="1">
+       <widget class="QPushButton" name="userguide_button">
         <property name="text">
-         <string>CAD Model Viewer</string>
+         <string>User Guide</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="3">
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>Open the CalCam user guide &amp; API reference</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="3">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Perform calibrations using feature matching between images and CAD (recommended).</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QPushButton" name="calcam_button">
+        <property name="text">
+         <string>Calibration Tool (Point Fitting)</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QPushButton" name="view_designer_button">
+        <property name="text">
+         <string>Virtual Calibration Editor</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="3">
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>View CAD data including plotting ray-traced sight lines, etc.</string>
         </property>
        </widget>
       </item>

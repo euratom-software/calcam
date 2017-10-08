@@ -63,7 +63,7 @@ class Image():
 
 
     # Return VTK image actor and VTK image reiszer objects for this image.
-    def get_vtkobjects(self):
+    def get_vtkobjects(self,opacity=None):
 
         if self.data is None:
             raise Exception('No image data loaded!')
@@ -83,7 +83,10 @@ class Image():
 
         if self.postprocessor is not None:
             Data = self.postprocessor(Data)
-		
+            
+        if opacity is not None:
+            Alpha = np.uint8(np.ones(Data.shape[:2])*opacity*255)
+            Data = np.dstack([Data,Alpha])
         if self.alpha is not None:
             Alpha = np.flipud(self.transform.original_to_display_image(self.alpha))
             Data = np.dstack([Data,Alpha])

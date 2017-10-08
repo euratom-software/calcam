@@ -53,6 +53,9 @@ class CADModel:
     6 = vtkPolyDataMapper
     7 = vtkActor
     8 = Group name
+    9 = vtkFeatureEdges
+    10 = vtkPolyDataMapper for edges
+    11 = vtkActor for edges
     """
     def init_cadmodel(self):
 
@@ -62,10 +65,12 @@ class CADModel:
         self.colourbyfeature = False
 
         self.obb_tree = None
-        
-        self.edge_actor = [None,[]]
 
         self.gui_window = None
+
+        self.edges = False
+
+        self.edge_width = 2
 
         for Feature in self.features:
 
@@ -93,7 +98,7 @@ class CADModel:
                 Feature.append(self.default_colour)
 
             # This is where the vtk objects will go
-            Feature.extend([None,None,None,group])
+            Feature.extend([None,None,None,group,None,None,None])
 
 
     # Make an OBBTree object to do ray casting with this CAD model
@@ -168,7 +173,8 @@ class CADModel:
                 if str.lower(Feature[0]) in features:
                     Feature[3] = True
                     if renderer is not None:
-                        renderer.AddActor(self.get_vtkActors(Feature[0]))
+                        for actor in self.get_vtkActors(Feature[0]):
+                            renderer.AddActor(actor)
 
 
     def enable_only(self,features,renderer=None):
@@ -196,7 +202,8 @@ class CADModel:
                 if str.lower(Feature[0]) in features:
                     Feature[3] = False
                     if renderer is not None:
-                        renderer.RemoveActor(self.get_vtkActors(Feature[0]))
+                        for actor in self.get_vtkActors(Feature[0]):
+                            renderer.RemoveActor(actor)
 
     # Get list of vtkActors
     def get_vtkActors(self,features=None):
@@ -205,15 +212,21 @@ class CADModel:
 
         # If no specific features are given, do them all!
         if features is None:
-            
+            features = []
             for Feature in self.features:
-                # If the feature is enabled...
                 if Feature[3] == True:
-                    # If there's already an actor, just return that
-                    if Feature[7] is not None:
-                        Actors.append(Feature[7])
-                    else:   
-                        # Load the CAD file if it isn't already loaded
+                    features.append(Feature[0])
+
+        elif type(features) == str:
+                features = [features]
+
+        for req_feature in features:
+
+            for Feature in self.features:
+                if str.lower(req_feature) == str.lower(Feature[0]):
+
+                    # Load the CAD file if it isn't already loaded
+                    if Feature[7] is None:
                         if Feature[5] is None:
                             self.load(Feature[0])
 
@@ -222,48 +235,45 @@ class CADModel:
                             Feature[6].SetInput(Feature[5].GetOutput())
                         else:
                             Feature[6].SetInputData(Feature[5].GetOutput())
-
                         Feature[7] = vtk.vtkActor()
                         Feature[7].SetMapper(Feature[6])
+                    
+                    # Make sure the colour and lighing are set appropriately
+                    if self.edges:
+                        Feature[7].GetProperty().SetColor((0,0,0))
+                    else:
                         Feature[7].GetProperty().SetColor(Feature[4])
+                    if self.flatshading:
+                        Feature[7].GetProperty().LightingOff()
 
-                        if self.flatshading:
-                            Feature[7].GetProperty().LightingOff()
+                    # Add the solid body actor to the output actors
+                    Actors.append(Feature[7])
 
-                        Actors.append(Feature[7])
-        else:
+                    # Make the edge actor if it doesn't already exist and is needed
+                    if self.edges:
+                        if Feature[11] is None:
+                            Feature[9] = vtk.vtkFeatureEdges()
+                            Feature[9].ManifoldEdgesOff()
+                            Feature[9].BoundaryEdgesOff()
+                            Feature[9].NonManifoldEdgesOff()
+                            Feature[9].SetFeatureAngle(20)
+                            Feature[9].ColoringOff()
 
-            if type(features) == str:
-                features = [features]
-
-            for req_feature in features:
-
-                for Feature in self.features:
-                    if str.lower(req_feature) == str.lower(Feature[0]):
-                        # If there's already an actor, just return that
-                        if Feature[7] is not None:
-                            Actors.append(Feature[7])
-                        else:   
-                            # Load the CAD file if it isn't already loaded
-                            if Feature[5] is None:
-                                self.load(Feature[0])
-
-                            Feature[6] = vtk.vtkPolyDataMapper()
                             if vtk.VTK_MAJOR_VERSION <= 5:
-                                Feature[6].SetInput(Feature[5].GetOutput())
+                                Feature[9].SetInput(Feature[5].GetOutput())
                             else:
-                                Feature[6].SetInputData(Feature[5].GetOutput())
-                            Feature[7] = vtk.vtkActor()
-                            Feature[7].SetMapper(Feature[6])
-                            Feature[7].GetProperty().SetColor(Feature[4])
+                                Feature[9].SetInputData(Feature[5].GetOutput())
 
-                            if self.flatshading:
-                                Feature[7].GetProperty().LightingOff()
+                            Feature[9].Update()
+                            Feature[10] = vtk.vtkPolyDataMapper()
+                            Feature[10].SetInputConnection(Feature[9].GetOutputPort())
 
-                            Actors.append(Feature[7])
-
-            if len(Actors) == 1:
-                Actors = Actors[0]
+                            Feature[11] = vtk.vtkActor()
+                            Feature[11].SetMapper(Feature[10])
+                            
+                        Feature[11].GetProperty().SetColor(Feature[4])
+                        Feature[11].GetProperty().SetLineWidth(self.edge_width)
+                        Actors.append(Feature[11])
 
         return Actors
 

@@ -3481,3 +3481,223 @@ class ViewDesigner(vtk.vtkInteractorStyleTerrain):
         self.view_target = ( campos[0] + view_dir[0] , campos[1] + view_dir[1] , campos[2] + view_dir[2] )
 
         return self.view_target
+
+
+class ViewAligner(vtk.vtkInteractorStyleTerrain):
+ 
+    def __init__(self,parent=None):
+        # Set callbacks for all the controls
+        self.AddObserver("RightButtonPressEvent",self.rightButtonPress)
+        self.AddObserver("RightButtonReleaseEvent",self.rightButtonRelease)
+        self.AddObserver("MiddleButtonPressEvent",self.middleButtonPress)
+        self.AddObserver("MiddleButtonReleaseEvent",self.middleButtonRelease)
+        self.AddObserver("MouseWheelForwardEvent",self.ZoomIn)
+        self.AddObserver("MouseWheelBackwardEvent",self.ZoomOut)
+        self.Image = None             
+
+    # Do various initial setup things, most of which can't be done at the time of __init__
+    def DoInit(self,ren_3D,gui_window):
+
+        # Get the interactor object
+        self.Interactor = self.GetInteractor()
+
+        # Some other objects from higher up which I need access to
+        self.Window = self.Interactor.GetRenderWindow()
+        self.Renderer = ren_3D
+        self.Camera3D = self.Renderer.GetActiveCamera()
+        self.gui_window = gui_window
+
+        # Add observer for catching window resizing
+        self.Window.AddObserver("ModifiedEvent",self.OnWindowSizeAdjust)
+
+        # Remove some interactor observers which interfere with my controls
+        self.Interactor.RemoveObservers('LeftButtonPressEvent')
+        self.Interactor.RemoveObservers('LeftButtonReleaseEvent')
+
+        # Turn off any VTK responses to keyboard input (all necessary keyboard shortcuts etc are done in Q)
+        self.Interactor.RemoveObservers('KeyPressEvent')
+        self.Interactor.RemoveObservers('CharEvent')
+
+        self.view_target = None
+        self.view_target_dummy = True
+
+        if self.gui_window is not None:
+            self.gui_window.update_viewport_info(self.Camera3D.GetPosition(),self.get_view_target(),self.Camera3D.GetRoll())
+
+        
+    def free_references(self):
+        del self.Interactor
+        del self.Window
+        del self.Renderer
+        del self.Camera3D
+
+    # On the CAD view, middle click + drag to pan
+    def middleButtonPress(self,obj,event):
+        self.Camera3D.SetDistance(0.05)
+        self.OnMiddleButtonDown()
+
+    def middleButtonRelease(self,obj,event):
+        self.OnMiddleButtonUp()
+        if self.gui_window is not None:
+            self.gui_window.update_viewport_info(self.Camera3D.GetPosition(),self.get_view_target(),self.Camera3D.GetRoll())
+        self.gui_window.refresh_vtk()
+
+    # On the CAD view, right click+drag to rotate (usually on left button in this interactorstyle)
+    def rightButtonPress(self,obj,event):
+        self.Camera3D.SetDistance(0.01)
+        self.OnLeftButtonDown()
+
+
+    def rightButtonRelease(self,obj,event):  
+
+        # Since the user probably doesn't intend to roll the camera,
+        # un-roll it automatically after any rotation action.
+
+        self.OnLeftButtonUp()
+        #self.Camera3D.SetRoll(45)
+        if self.gui_window is not None:
+            self.gui_window.update_viewport_info(self.Camera3D.GetPosition(),self.get_view_target(),self.Camera3D.GetRoll())
+
+        self.gui_window.refresh_vtk()
+
+
+    def ZoomIn(self,obj,event):
+
+
+        # Move the camera forward.
+        orig_dist = self.Camera3D.GetDistance()
+        self.Camera3D.SetDistance(0.1)
+        self.Camera3D.Dolly(1.5)
+        self.Camera3D.SetDistance(orig_dist)
+
+
+        if self.gui_window is not None:
+            self.gui_window.update_viewport_info(self.Camera3D.GetPosition(),self.get_view_target(zoom=True),self.Camera3D.GetRoll())
+
+        self.gui_window.refresh_vtk()
+
+
+
+    def ZoomOut(self,obj,event):
+
+        # Move the camera backward.
+        orig_dist = self.Camera3D.GetDistance()
+        self.Camera3D.SetDistance(0.1)
+        self.Camera3D.Dolly(0.75)
+        self.Camera3D.SetDistance(orig_dist)
+
+
+        if self.gui_window is not None:
+            self.gui_window.update_viewport_info(self.Camera3D.GetPosition(),self.get_view_target(zoom=True),self.Camera3D.GetRoll())
+
+        self.gui_window.refresh_vtk()
+
+
+    def get_view_target(self,zoom=False):
+
+        campos = self.Camera3D.GetPosition()
+        view_dir =  self.Camera3D.GetDirectionOfProjection()
+
+        self.view_target = ( campos[0] + view_dir[0] , campos[1] + view_dir[1] , campos[2] + view_dir[2] )
+
+        return self.view_target
+
+
+    def init_image(self,image,opacity,cx=None,cy=None):
+        
+        # Remove current image, if any
+        if self.Image is not None:
+
+            self.Renderer.RemoveActor(self.ImageActor)
+            self.ImageActor = None
+            self.ImageResizer = None
+            self.Image = None
+
+
+        try:
+
+            self.Image = image
+            self.ImageOriginalSize = self.Image.transform.get_display_shape()
+
+            [xpx,ypx] = self.Image.transform.get_display_shape()
+
+            if cx is None or cy is None:
+                cx = xpx/2.
+                cy = ypx/2.
+
+            #self.nFields = np.max(self.Image.fieldmask) + 1
+
+            #self.fieldmask = np.flipud(self.Image.transform.original_to_display_image(self.Image.fieldmask))
+
+            #self.field_names = self.Image.field_names
+
+            self.ImageActor,self.ImageResizer = self.Image.get_vtkobjects(opacity=opacity)
+
+
+            self.WinSize = self.Window.GetSize()
+            winaspect =  float(self.WinSize[0])/float(self.WinSize[1])
+
+
+            ImAspect = float(self.ImageOriginalSize[0])/self.ImageOriginalSize[1]
+
+            newRefSize = [0,0,1]
+
+            # Base new zero size on y dimension
+            newRefSize[0] = self.WinSize[1]*ImAspect
+            newRefSize[1] = self.WinSize[1]
+            self.ZoomRefPos = [((self.WinSize[0] - self.WinSize[1]*ImAspect))/2,0.]
+            self.ZoomRefPos[0] = self.ZoomRefPos[0] - (cx - xpx/2.)*(self.WinSize[1]/float(ypx))
+            self.ZoomRefPos[1] = self.ZoomRefPos[1] + (cy - ypx/2.)*(self.WinSize[1]/float(ypx))            
+
+            self.cx = cx
+            self.cy = cy
+
+            self.ZoomRefSize = tuple(newRefSize)
+            self.ZoomLevel = 1.
+
+            # Set the initial size of the image to fit the window size
+            self.ImageActor.SetPosition(self.ZoomRefPos)
+
+            self.ImageResizer.SetOutputDimensions(int(self.ZoomRefSize[0]*self.ZoomLevel),int(self.ZoomRefSize[1]*self.ZoomLevel),1)
+            self.ImageActor.GetProperty().SetDisplayLocationToForeground()
+
+            self.Renderer.AddActor2D(self.ImageActor)
+            
+            self.gui_window.refresh_vtk()
+        except:
+
+            self.Image = None
+            raise
+
+    # Adjust 2D image size and cursor positions if the window is resized
+    def OnWindowSizeAdjust(self,obg=None,event=None):
+        # This is to stop this function erroneously running before
+        # the interactor starts (apparently that was a thing??)
+        if self.Interactor is not None:
+            if self.Image is not None:
+                self.WinSize = self.Window.GetSize()
+                winaspect =  float(self.WinSize[0])/float(self.WinSize[1])
+
+                ImAspect = float(self.ImageOriginalSize[0])/self.ImageOriginalSize[1]
+
+                newRefSize = [0,0,1]
+
+                [xpx,ypx] = self.Image.transform.get_display_shape()
+
+                # Base new zero size on y dimension
+                newRefSize[0] = self.WinSize[1]*ImAspect
+                newRefSize[1] = self.WinSize[1]
+                self.ZoomRefPos = [((self.WinSize[0] - self.WinSize[1]*ImAspect))/2,0.]
+
+                self.ZoomRefPos[0] = self.ZoomRefPos[0] - (self.cx - xpx/2.)*(self.WinSize[1]/float(ypx))
+                self.ZoomRefPos[1] = self.ZoomRefPos[1] + (self.cy - ypx/2.)*(self.WinSize[1]/float(ypx))  
+
+                self.ZoomRefSize = tuple(newRefSize)
+                self.ZoomLevel = 1.
+
+                # Set the initial size of the image to fit the window size
+                self.ImageActor.SetPosition(self.ZoomRefPos)
+
+                self.ImageResizer.SetOutputDimensions(int(self.ZoomRefSize[0]*self.ZoomLevel),int(self.ZoomRefSize[1]*self.ZoomLevel),1)
+           
+                self.gui_window.refresh_vtk()

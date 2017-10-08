@@ -37,6 +37,7 @@ import pointpairs
 from scipy.ndimage.measurements import center_of_mass as CoM
 import copy
 from scipy.io.netcdf import netcdf_file
+from image import Image as CalCam_Image
 
 opencv_major_version = int(cv2.__version__[0])
 
@@ -154,6 +155,8 @@ class Fitter:
         Results.fitoptions = [self.get_fitflags_strings(i) for i in range(self.nfields)]
         Results.transform = self.transform
         Results.field_names = self.field_names
+        Results.type = 'fit'
+        Results.fit_params = []
 
         for pointpairs in self.pointpairs:
             Results.objectpoints.append(pointpairs.objectpoints)
@@ -266,15 +269,17 @@ class CalibResults:
 
     def __init__(self,SaveName=None):
 
-        self.nfields = 0
-        self.fit_params = []
-        self.image = None
-        self.objectpoints = []
-        self.imagepoints = []
-
         if SaveName is not None:
-                self.load(SaveName)
-
+            self.fit_params = []
+            self.load(SaveName)
+        else:
+            self.nfields = 1
+            self.fit_params = [None]
+            self.image = None
+            self.objectpoints = []
+            self.imagepoints = []
+            self.type = 'manual_alignment'
+            self.fitoptions = []
 
     # Get the camera position in the lab (i.e. CAD model) coordinate system
     # Optional inputs: x_pixels, y_pixels - array-likes containing the X and Y pixel coordinates (floats) you want to know the pupil position for. 
@@ -287,47 +292,47 @@ class CalibResults:
     def get_pupilpos(self,x_pixels=None,y_pixels=None,field=None,Coords='Display'):
 
         if x_pixels is not None or y_pixels is not None:
-                if x_pixels is None or y_pixels is None:
-                    raise ValueError("X pixels and Y pixels must both be specified!")
-                if np.shape(x_pixels) != np.shape(y_pixels):
-                    raise ValueError("X pixels array and Y pixels array must be the same size!")
+            if x_pixels is None or y_pixels is None:
+                raise ValueError("X pixels and Y pixels must both be specified!")
+            if np.shape(x_pixels) != np.shape(y_pixels):
+                raise ValueError("X pixels array and Y pixels array must be the same size!")
 
-                # Flatten everything and create output array        
-                oldshape = np.shape(x_pixels)
+            # Flatten everything and create output array        
+            oldshape = np.shape(x_pixels)
 
-                x_pixels = np.reshape(x_pixels,np.size(x_pixels),order='F')
-                y_pixels = np.reshape(y_pixels,np.size(y_pixels),order='F')
-                out = np.zeros(np.shape(x_pixels) + (3,))
+            x_pixels = np.reshape(x_pixels,np.size(x_pixels),order='F')
+            y_pixels = np.reshape(y_pixels,np.size(y_pixels),order='F')
+            out = np.zeros(np.shape(x_pixels) + (3,))
 
-                # Convert pixel coords if we need to
-                if Coords.lower() == 'original':
-                    x_pixels,y_pixels = self.transform.original_to_display_coords(x_pixels,y_pixels)
+            # Convert pixel coords if we need to
+            if Coords.lower() == 'original':
+                x_pixels,y_pixels = self.transform.original_to_display_coords(x_pixels,y_pixels)
 
-                # Identify which sub-field each pixel is in
-                pointfield = self.fieldmask[y_pixels.round().astype(int),x_pixels.round().astype(int)]
-                if np.size(pointfield) == 1:
-                    pointfield = [pointfield]
+            # Identify which sub-field each pixel is in
+            pointfield = self.fieldmask[y_pixels.round().astype(int),x_pixels.round().astype(int)]
+            if np.size(pointfield) == 1:
+                pointfield = [pointfield]
 
-                for i in range(np.size(x_pixels)):
-                    out[i,:] = self.get_pupilpos(field=pointfield[i])
+            for i in range(np.size(x_pixels)):
+                out[i,:] = self.get_pupilpos(field=pointfield[i])
 
-                return np.reshape(out,oldshape + (3,),order='F')
+            return np.reshape(out,oldshape + (3,),order='F')
 
         else:
         
-                if field is None:
-                    if self.nfields == 1:
-                        field = 0
-                    else:
-                        raise Exception('This calibration has multiple sub-fields; you must specify a pixel location to get_pupilpos!')
+            if field is None:
+                if self.nfields == 1:
+                    field = 0
+                else:
+                    raise Exception('This calibration has multiple sub-fields; you must specify a pixel location to get_pupilpos!')
 
 
-                rotation_matrix = np.matrix(cv2.Rodrigues(self.fit_params[field].rvec)[0])
-                CamPos = np.matrix(self.fit_params[field].tvec)
-                CamPos = - (rotation_matrix.transpose() * CamPos)
-                CamPos = np.array(CamPos)
+            rotation_matrix = np.matrix(cv2.Rodrigues(self.fit_params[field].rvec)[0])
+            CamPos = np.matrix(self.fit_params[field].tvec)
+            CamPos = - (rotation_matrix.transpose() * CamPos)
+            CamPos = np.array(CamPos)
 
-                return np.array([CamPos[0][0],CamPos[1][0],CamPos[2][0]])
+            return np.array([CamPos[0][0],CamPos[1][0],CamPos[2][0]])
 
 
     # Get X and Y field of view of the camera (X and Y being horizontal and vertical of the detector)
@@ -541,12 +546,16 @@ class CalibResults:
                 los_centre = self.get_los_direction(xpx,ypx)
 
                 res = res + '\n---------------------------------------\n'
-                res = res + '   ' + params.model.capitalize() + ' Model Calibration Fit'
-                if self.nfields > 1:
-                    res = res + '\n           Sub-Field #' + str(field)
+                if self.type == 'fit':
+                    res = res + '   ' + params.model.capitalize() + ' Model Calibration Fit'
+                    if self.nfields > 1:
+                        res = res + '\n           Sub-Field #' + str(field)
+                elif self.type == 'manual_alignment':
+                    res = res + '    Manual Alignment Calibration'
                 res = res + '\n---------------------------------------\n\n'
-                res = res + '      RMS re-projection error\n'
-                res = res + "            {:.1f}".format(params.rms_error) + ' pixels.\n\n'
+                if self.type == 'fit':
+                    res = res + '      RMS re-projection error\n'
+                    res = res + "            {:.1f}".format(params.rms_error) + ' pixels.\n\n'
                 res = res + ' Pupil X          = ' + "{: .3f}".format(pupilPos[0]) + ' m.\n'
                 res = res + ' Pupil Y          = ' + "{: .3f}".format(pupilPos[1]) + ' m.\n'
                 res = res + ' Pupil Z          = ' + "{: .3f}".format(pupilPos[2]) + ' m.\n\n'
@@ -575,12 +584,98 @@ class CalibResults:
                     res = res + ' k1 = ' + "{: 2.2e}".format(params.k1) + '  |  k2 = ' + "{: 2.2e}".format(params.k2) + '\n'
                     res = res + ' k3 = ' + "{: 2.2e}".format(params.k3) + '  |  k4 = ' + "{: 2.2e}".format(params.k4) + '\n'
 
-                res = res + ' Fit Options:\n'
-                res = res + ' ' + ', '.join(self.fitoptions[field]) + '\n\n'
+                if self.type == 'fit':
+                    res = res + ' Fit Options:\n'
+                    res = res + ' ' + ', '.join(self.fitoptions[field]) + '\n\n'
                 
                 res = res + '---------------------------------------\n'
 
         return res
+
+    def import_intrinsics(self,fitresults):
+        if fitresults.nfields > 1:
+            raise ValueError('Only non split-field virtual views are currently supported!')
+        fitresults = copy.deepcopy(fitresults)
+
+        if self.fit_params != [None]:
+            tvec = self.fit_params[0].tvec
+            rvec = self.fit_params[0].rvec
+        else:
+            tvec = None
+            rvec = None
+
+        self.fit_params = fitresults.fit_params
+        
+        if tvec is not None and rvec is not None:
+            self.fit_params[0].rvec = rvec
+            self.fit_params[0].tvec = tvec
+
+        self.image_display_shape = fitresults.image_display_shape
+        
+        self.nfields = fitresults.nfields
+        self.field_names = fitresults.field_names
+        self.fieldmask = fitresults.fieldmask
+
+
+    def set_extrinsics(self,campos,camtar=None,view_dir=None,opt_axis = False):
+
+        # For now, point the optical centre at the current view target.
+        # This will be dodgy for intrinsics with very off-centre optical centres.
+        if camtar is not None:
+            w = np.squeeze(np.array(camtar) - np.array(campos))
+        elif view_dir is not None:
+            w = view_dir
+        else:
+            raise ValueError('Either viewing target or view direction must be specified!')
+
+        w = w / np.sqrt(np.sum(w**2))
+
+        # opt_axis specifies whether the input campos or camtar are where we should
+        # point the optical axis or the view centre. By defauly we assume the view centre.
+        # In this case, we need another rotation matrix to rotate from the image centre
+        # view direction (given) to the optical axis direction (stored). This applies for
+        # intrinsics where the perspective centre is not at the the detector centre.
+        if not opt_axis:
+            R = np.zeros([3,3])
+            # Optical axis direction in the camera coordinate system
+            uz = np.array(self.normalise(self.image_display_shape[0]/2.,self.image_display_shape[1]/2.,0) + (1.,))
+            uz = uz / np.sqrt(np.sum(uz**2))
+
+            ux = np.array([1,0,0]) - uz[0]*uz
+            ux = ux / np.sqrt(np.sum(ux**2))
+            uy = np.cross(ux,uz)
+            R[:,0] = ux
+            R[:,1] = -uy
+            R[:,2] = uz
+
+            R = np.matrix(R).T
+
+        else:
+        # If we are pointing the optical axis, set this extra
+        # rotation to be the identity.
+            R = np.matrix([[1,0,0],[0,1,0],[0,0,1]])
+
+        det_plane_unitz = np.array([0,0,1]) - w[2]*w
+        det_plane_unitz = det_plane_unitz / np.sqrt(np.sum(det_plane_unitz**2))
+        det_plane_unitx = np.cross(np.squeeze(w),det_plane_unitz)
+        v = det_plane_unitz
+
+        u = np.cross(w,v)
+
+
+        Rmatrix = np.zeros([3,3])
+        Rmatrix[:,0] = u
+        Rmatrix[:,1] = -v
+        Rmatrix[:,2] = w
+
+        Rmatrix = np.matrix(Rmatrix)
+        Rmatrix = Rmatrix * R
+        campos = np.matrix(campos)
+        if campos.shape[0] < campos.shape[1]:
+            campos = campos.T
+
+        self.fit_params[0].tvec = -Rmatrix.T * campos
+        self.fit_params[0].rvec = -cv2.Rodrigues(Rmatrix)[0]
 
 
     """
@@ -683,7 +778,7 @@ class CalibResults:
                 FitParams.append([field.rms_error,field.cam_matrix,field.kc,[field.rvec],[field.tvec]])
                 model.append(field.model)
         # Shove everything in a nested dictionary
-        SaveDict = {'model':model,'nfields':self.nfields,'field_mask':self.fieldmask,'image_display_shape':self.image_display_shape,'fitoptions':self.fitoptions,'fitparams':FitParams,'transform_pixels':[self.transform.x_pixels,self.transform.y_pixels],'transform_actions':self.transform.transform_actions,'transform_pixel_aspect':self.transform.pixel_aspectratio,'objectpoints':self.objectpoints,'imagepoints':self.imagepoints,'field_names':self.field_names}
+        SaveDict = {'model':model,'nfields':self.nfields,'field_mask':self.fieldmask,'image_display_shape':self.image_display_shape,'fitoptions':self.fitoptions,'fitparams':FitParams,'transform_pixels':[self.transform.x_pixels,self.transform.y_pixels],'transform_actions':self.transform.transform_actions,'transform_pixel_aspect':self.transform.pixel_aspectratio,'objectpoints':self.objectpoints,'imagepoints':self.imagepoints,'field_names':self.field_names,'type':self.type}
 
         # Pickle it!
         pickle.dump(SaveDict,SaveFile,2)
@@ -730,6 +825,11 @@ class CalibResults:
                 for field in range(self.nfields):
                     self.field_names.append('Sub FOV # {:d}'.format(field+1))
 
+        if 'type' in save:
+            self.type = save['type']
+        else:
+            self.type = 'fit'
+
         for field in range(self.nfields):
                 if 'model' in save:
                     if save['model'][field] == 'fisheye' and opencv_major_version < 3:
@@ -748,9 +848,15 @@ class CalibResults:
 
 
     def undistort_image(self,image,coords=None):
+
         if self.nfields > 1:
             raise Exception('This feature is not supported for split-FOV images!')
-        im = image.copy()
+
+        imobj_out = None
+        if isinstance(image,CalCam_Image):
+            imobj_out = copy.deepcopy(image)
+            image = imobj_out.transform.original_to_display_image(imobj_out.data)
+            coords='display'
         
         display_shape = self.transform.get_display_shape()
         if coords is None:
@@ -760,16 +866,22 @@ class CalibResults:
                     coords = 'original'
                 else:
                     raise ValueError('Supplied image is the wrong shape! Expected {:d}x{:d} or {:d}x{:d} pixels.'.format(display_shape[0],display_shape[1],self.transform.x_pixels,self.transform.y_pixels))
-        
+
         if coords == 'original':
             im = self.transform.original_to_display_image(image)
-        
+        else:
+            im = image
+
         im = cv2.undistort(im,self.fit_params[0].cam_matrix,self.fit_params[0].kc)
 
         if coords == 'original':
             im = self.transform.display_to_original_image(im)
 
-        return im
+        if imobj_out is not None:
+            imobj_out.data = imobj_out.transform.display_to_original_image(im)
+            return imobj_out
+        else:
+            return im
 
 
 # Class for storing the calibration results.
@@ -840,85 +952,7 @@ class VirtualCalib(CalibResults):
         return res
 
 
-    def import_intrinsics(self,fitresults):
-        if fitresults.nfields > 1:
-            raise ValueError('Only non split-field virtual views are currently supported!')
-        fitresults = copy.deepcopy(fitresults)
 
-        tvec = self.fit_params[0].tvec
-        rvec = self.fit_params[0].rvec
-
-        self.fit_params = fitresults.fit_params
-        
-        self.fit_params[0].rvec = rvec
-        self.fit_params[0].tvec = tvec
-
-        self.image_display_shape = fitresults.image_display_shape
-        
-        self.nfields = fitresults.nfields
-        self.field_names = fitresults.field_names
-        self.fieldmask = fitresults.fieldmask
-
-
-    def set_extrinsics(self,campos,camtar=None,view_dir=None,opt_axis = False):
-
-        # For now, point the optical centre at the current view target.
-        # This will be dodgy for intrinsics with very off-centre optical centres.
-        if camtar is not None:
-            w = np.squeeze(np.array(camtar) - np.array(campos))
-        elif view_dir is not None:
-            w = view_dir
-        else:
-            raise ValueError('Either viewing target or view direction must be specified!')
-
-        w = w / np.sqrt(np.sum(w**2))
-
-        # opt_axis specifies whether the input campos or camtar are where we should
-        # point the optical axis or the view centre. By defauly we assume the view centre.
-        # In this case, we need another rotation matrix to rotate from the image centre
-        # view direction (given) to the optical axis direction (stored). This applies for
-        # intrinsics where the perspective centre is not at the the detector centre.
-        if not opt_axis:
-            R = np.zeros([3,3])
-            # Optical axis direction in the camera coordinate system
-            uz = np.array(self.normalise(self.image_display_shape[0]/2.,self.image_display_shape[1]/2.,0) + (1.,))
-            uz = uz / np.sqrt(np.sum(uz**2))
-
-            ux = np.array([1,0,0]) - uz[0]*uz
-            ux = ux / np.sqrt(np.sum(ux**2))
-            uy = np.cross(ux,uz)
-            R[:,0] = ux
-            R[:,1] = -uy
-            R[:,2] = uz
-
-            R = np.matrix(R).T
-
-        else:
-        # If we are pointing the optical axis, set this extra
-        # rotation to be the identity.
-            R = np.matix([[1,0,0],[0,1,0],[0,0,1]])
-
-        det_plane_unitz = np.array([0,0,1]) - w[2]*w
-        det_plane_unitz = det_plane_unitz / np.sqrt(np.sum(det_plane_unitz**2))
-        det_plane_unitx = np.cross(np.squeeze(w),det_plane_unitz)
-        v = det_plane_unitz
-
-        u = np.cross(w,v)
-
-
-        Rmatrix = np.zeros([3,3])
-        Rmatrix[:,0] = u
-        Rmatrix[:,1] = -v
-        Rmatrix[:,2] = w
-
-        Rmatrix = np.matrix(Rmatrix)
-        Rmatrix = Rmatrix * R
-        campos = np.matrix(campos)
-        if campos.shape[0] < campos.shape[1]:
-            campos = campos.T
-
-        self.fit_params[0].tvec = -Rmatrix.T * campos
-        self.fit_params[0].rvec = -cv2.Rodrigues(Rmatrix)[0]
 
 
     # Save the fit results for later use. 

@@ -136,19 +136,14 @@ def render_cam_view(CADModel,FitResults,filename=None,oversampling=1,AA=1,Edges=
 
     # Set the model face colour to black if we only want to see edges
     if Edges:
-        # We need the CAD model to be temporarily set to all black. Before we do that, save the colours we started with.
+        CADModel.edges = True
+        CADModel.edge_width = EdgeWidth
+        # If rendering wireframe, set the CAD model colour to the desired edge colour. Before we do that, save the colours we started with.
         oldColours = []
         for Feature in CADModel.features:
             oldColours.append((Feature[4],Feature[0]))
-        CADModel.set_colour((0,0,0))
+        CADModel.set_colour(EdgeColour)
         
-        # Do the fancy edge detection, if that method is requested
-        if str.lower(EdgeMethod) == 'detect':
-            edgeActor = CADModel.get_detected_edges_actor(include_only=include_feature_edges,exclude_features=exclude_feature_edges)
-            edgeActor.GetProperty().SetColor(EdgeColour)
-            edgeActor.GetProperty().SetLineWidth(EdgeWidth)
-
-            renderer.AddActor(edgeActor)
 
     # This whole thing is in a try() except() because it is prone to memory errors, and I need to put the CAD model
     # colour back the way it started if we have a problem.
@@ -157,10 +152,10 @@ def render_cam_view(CADModel,FitResults,filename=None,oversampling=1,AA=1,Edges=
         for Actor in CADModel.get_vtkActors():
             renderer.AddActor(Actor)
             # If doing simple edge render, highlight the edges.
-            if Edges and EdgeMethod.lower() == 'simple':
-                Actor.GetProperty().SetEdgeColor(EdgeColour)
-                Actor.GetProperty().EdgeVisibilityOn()
-                Actor.GetProperty().SetLineWidth(EdgeWidth)
+            #if Edges and EdgeMethod.lower() == 'simple':
+            #    Actor.GetProperty().SetEdgeColor(EdgeColour)
+            #    Actor.GetProperty().EdgeVisibilityOn()
+            #    Actor.GetProperty().SetLineWidth(EdgeWidth)
             
         # Add the ROI if provided
         if ROI is not None:
