@@ -4562,18 +4562,6 @@ class ImageAnalyserWindow(qt.QMainWindow):
 
     def transform_image(self,data):
 
-        # First, back up the point pair locations in original coordinates.
-        x = []
-        y = []
-        # Loop over sub-fields
-        for i in range(len(self.pointpicker.PointPairs.imagepoints)):
-                    # Loop over points
-                    for j in range(len(self.pointpicker.PointPairs.imagepoints[i])):
-                        if self.pointpicker.PointPairs.imagepoints[i][j] is not None:
-                                x.append(self.pointpicker.PointPairs.imagepoints[i][j][0])
-                                y.append(self.pointpicker.PointPairs.imagepoints[i][j][1])
-
-        x,y = self.image.transform.display_to_original_coords(x,y)
 
         if self.sender() is self.im_flipud:
             if len(self.image.transform.transform_actions) > 0:
@@ -4624,29 +4612,27 @@ class ImageAnalyserWindow(qt.QMainWindow):
             self.image.transform.transform_actions = []
             self.image.transform.pixel_aspectratio = 1
 
+        if self.raycaster.fitresults is not None:
+            self.raycaster.fitresults = None
+            self.impos_info.setText('Image position info will appear here.')
+            self.sightline_info.setText('Sightline info will appear here.')
+            self.impos_fieldnames.hide()
+            self.pupil_coords_label.hide()
+            self.calinfo_fieldnames.hide()
+            self.sightline_fieldnames.hide()
+            self.populate_fitresults_list()
+            self.pointpicker.clear_cursors_2D()
+        else:
+            self.populate_fitresults_list()
+
+
         if self.overlay_checkbox.isChecked():
             self.overlay_checkbox.setChecked(False)
 
-        # Transform all the point pairs in to the new coordinates
-        x,y = self.image.transform.original_to_display_coords(x,y)
-        ind = 0
-        # Loop over sub-fields
-        for i in range(len(self.pointpicker.PointPairs.imagepoints)):
-                    # Loop over points
-                    for j in range(len(self.pointpicker.PointPairs.imagepoints[i])):
-                        if self.pointpicker.PointPairs.imagepoints[i][j] is not None:
-                            self.pointpicker.PointPairs.imagepoints[i][j][0] = x[ind]
-                            self.pointpicker.PointPairs.imagepoints[i][j][1] = y[ind]
-                            ind = ind + 1
 
         # Update the image and point pairs
         self.pointpicker.init_image(self.image,hold_position=True)
-        if self.use_chessboard_checkbox.isChecked():
-            self.toggle_chessboard_constraints(True)
-
-        self.pointpicker.UpdateFromPPObject(False) 
         self.update_image_info_string()
-
 
 
 
