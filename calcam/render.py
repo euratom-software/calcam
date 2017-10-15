@@ -281,7 +281,7 @@ def render_cam_view(CADModel,FitResults,filename=None,oversampling=1,AA=1,Edges=
 
             OutputImage[FieldMask == field,:] = im[FieldMask == field,:]
 
-
+        CADModel.edges = False
         if Edges and EdgeMethod.lower() == 'simple':
             for Actor in CADModel.get_vtkActors():
                 Actor.GetProperty().EdgeVisibilityOff()
@@ -308,6 +308,7 @@ def render_cam_view(CADModel,FitResults,filename=None,oversampling=1,AA=1,Edges=
                 print('[Calcam Renderer] Result saved as {:s}'.format(filename))
     except:
         if Edges:
+            CADModel.edges = False
             # Put the colour scheme back to how it was
             for Feature in oldColours:
                 CADModel.set_colour(Feature[0],Feature[1])

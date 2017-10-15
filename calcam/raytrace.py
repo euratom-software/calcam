@@ -47,7 +47,7 @@ Given a CAD model and camera fit, does ray casting.
 """
 class RayCaster:
 	
-    def __init__(self,FitResults = None,CADModel = None):
+    def __init__(self,FitResults = None,CADModel = None,verbose=True):
 		
         # Check that vtk is working.
         if not vtkAvail:
@@ -64,6 +64,7 @@ class RayCaster:
             self.obbtree = None
             self.machine_name = None
 
+        self.verbose = verbose
 
     def set_cadmodel(self,CADModel):
         # Get bounding box tree object
@@ -84,8 +85,6 @@ class RayCaster:
             raise Exception('Camera fit results not set in RayCaster!')
         if self.obbtree is None:
             raise Exception('CAD model not set in RayCaster!')
-
-        n_test_pixels = 100
 
         # If no pixels are specified, do the whole chip at the specified binning level.
         fullchip = False
@@ -140,19 +139,20 @@ class RayCaster:
         # Line of sight directions
         LOSDir = self.fitresults.get_los_direction(Results.x,Results.y,Coords='Display')
         Results.ray_start_coords = self.fitresults.get_pupilpos(Results.x,Results.y,Coords='Display')
-			
-        sys.stdout.write('[Calcam RayCaster] Casting ' + str(np.size(x)) + ' rays: ')
+		
+        if self.verbose:
+            sys.stdout.write('[Calcam RayCaster] Casting ' + str(np.size(x)) + ' rays: ')
 
-        percentdone = 0.
-        percentdonelast = 0
-        pxd = 0
+            percentdone = 0.
+            percentdonelast = 0
+            pxd = 0
 
-        progress_string = '0% done'
-        sys.stdout.write(progress_string)
-        sys.stdout.flush()
+            progress_string = '0% done'
+            sys.stdout.write(progress_string)
+            sys.stdout.flush()
 
-        starttime = time.time()
-        last_upd_time = starttime
+            starttime = time.time()
+            last_upd_time = starttime
 
         for ind in range(np.size(x)):
 
@@ -171,36 +171,38 @@ class RayCaster:
                 Results.ray_end_coords[ind,:] = rayend
 
             # Progress printing stuff
-            pxd = pxd + 1
-            percentdone = np.floor(100*pxd/totpx)
-            # Update every 1% done or 30 seconds, whichever comes sooner...
-            if (percentdone > percentdonelast or (time.time() - last_upd_time) > 30) and ind > 0:
-                last_upd_time = time.time()
-                time_per_step = (time.time() - starttime) / ind
-                est_time = (time_per_step * (np.size(x) - ind))
-                est_time_string = ''
-                if est_time > 3600:
-                    est_time_string = est_time_string + '{0:.0f} hr '.format(np.floor(est_time/3600))
-                if est_time > 60:
-                    est_time_string = est_time_string + '{0:.0f} min '.format((est_time - 3600*np.floor(est_time/3600))/60)
-                else:
-                    est_time_string = '< 1 min '
-                percentdonelast = percentdone
-                sys.stdout.write('\b' * len(progress_string))
-                progress_string = '{0:.0f}% done, '.format(percentdone) + est_time_string + 'remaining...'
-                sys.stdout.write(progress_string)
-                sys.stdout.flush()
+            if self.verbose:
+                pxd = pxd + 1
+                percentdone = np.floor(100*pxd/totpx)
+                # Update every 1% done or 30 seconds, whichever comes sooner...
+                if (percentdone > percentdonelast or (time.time() - last_upd_time) > 30) and ind > 0:
+                    last_upd_time = time.time()
+                    time_per_step = (time.time() - starttime) / ind
+                    est_time = (time_per_step * (np.size(x) - ind))
+                    est_time_string = ''
+                    if est_time > 3600:
+                        est_time_string = est_time_string + '{0:.0f} hr '.format(np.floor(est_time/3600))
+                    if est_time > 60:
+                        est_time_string = est_time_string + '{0:.0f} min '.format((est_time - 3600*np.floor(est_time/3600))/60)
+                    else:
+                        est_time_string = '< 1 min '
+                    percentdonelast = percentdone
+                    sys.stdout.write('\b' * len(progress_string))
+                    progress_string = '{0:.0f}% done, '.format(percentdone) + est_time_string + 'remaining...'
+                    sys.stdout.write(progress_string)
+                    sys.stdout.flush()
 
-        tot_time = time.time() - starttime
-        time_string = ''
-        if tot_time > 3600:
-            time_string = time_string + '{0:.0f} hr '.format(np.floor(tot_time / 3600))
-        if tot_time > 60:
-            time_string = time_string + '{0:.0f} min '.format(np.floor( (tot_time - 3600*np.floor(tot_time / 3600))  / 60))
-        time_string = time_string + '{0:.0f} sec. '.format( tot_time - 60*np.floor(tot_time / 60) )
+        if self.verbose:
+            tot_time = time.time() - starttime
+            time_string = ''
+            if tot_time > 3600:
+                time_string = time_string + '{0:.0f} hr '.format(np.floor(tot_time / 3600))
+            if tot_time > 60:
+                time_string = time_string + '{0:.0f} min '.format(np.floor( (tot_time - 3600*np.floor(tot_time / 3600))  / 60))
+            time_string = time_string + '{0:.0f} sec. '.format( tot_time - 60*np.floor(tot_time / 60) )
 
-        sys.stdout.write('\b' * len(progress_string) + 'Finished in ' + time_string + '             \n')
-        sys.stdout.flush()
+            sys.stdout.write('\b' * len(progress_string) + 'Finished in ' + time_string + '             \n')
+            sys.stdout.flush()
 
         Results.x[valid_mask == 0] = np.nan
         Results.y[valid_mask == 0] = np.nan

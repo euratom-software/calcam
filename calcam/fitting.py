@@ -736,6 +736,8 @@ class CalibResults:
                     # If it's outside the image, leave it as [nan,nan]
                     except (IndexError):
                         continue
+                    if points[i][0][1] < 0 or points[i][0][0] < 0:
+                        continue
 
                     # If it's in another field, leave it as [nan,nan]. Otherwise add it to the output.
                     if pointfield != field:

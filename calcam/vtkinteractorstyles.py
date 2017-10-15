@@ -48,6 +48,7 @@ import raytrace
 import roi
 import matplotlib.path as mplPath
 import matplotlib.cm
+import paths
 
 class PointPairPicker(vtk.vtkInteractorStyleTerrain):
  
@@ -1221,7 +1222,6 @@ class ROIEditor(vtk.vtkInteractorStyleTrackballCamera):
                 self.CursorFocus(pickdata)
 
 
-        print(self.CADmodel.get_position_info(self.Points[self.SelectedPoint][0].GetFocalPoint()).encode(sys.stdout.encoding,errors='replace'))
         self.Window.Render()
 
  
@@ -3145,49 +3145,6 @@ class CADExplorer(vtk.vtkInteractorStyleTerrain):
 
     def get_view_target(self,zoom=False):
 
-        '''
-        #This is very nice, but far too slow for most situations.
-
-        full_pick = True
-
-        if self.view_target is not None and zoom:
-            targetvect = [self.view_target[0] - self.Camera3D.GetPosition()[0], self.view_target[1] - self.Camera3D.GetPosition()[1], self.view_target[2] - self.Camera3D.GetPosition()[2]]
-            camviewdir = self.Camera3D.GetDirectionOfProjection()
-            if (targetvect[0]*camviewdir[0] + targetvect[1]*camviewdir[1] + targetvect[2]*camviewdir[2]) < 0 and not self.view_target_dummy:
-                full_pick = True
-            else:
-                full_pick = False
-
-        if full_pick:
-            WinSize = self.Window.GetSize()
-
-            retval = self.Picker.Pick(WinSize[0]/2,WinSize[1]/2,0,self.Renderer)
-
-            # If something was successfully picked, find out what it was...
-            if retval != 0:
-
-                self.view_target_dummy = False
-                pickedpoints = self.Picker.GetPickedPositions()
-
-                # If more than 1 point is within the picker's tolerance,
-                # use the one closest to the camera (this is most intuitive)
-                npoints = pickedpoints.GetNumberOfPoints()
-                dist_fromcam = []
-                campos = self.Camera3D.GetPosition()
-
-                for i in range(npoints):
-                    point = pickedpoints.GetPoint(i)
-                    dist_fromcam.append(np.sqrt( (campos[0] - point[0])**2 + (campos[1] - point[1])**2 + (campos[2] - point[2])**2 ))
-
-                _, idx = min((val, idx) for (idx, val) in enumerate(dist_fromcam))
-
-                self.view_target = pickedpoints.GetPoint(idx)
-
-            else:
-                self.view_target = self.Camera3D.GetPosition() + self.Camera3D.GetDirectionOfProjection()
-                self.view_target_dummy = True
-
-            '''
 
         campos = self.Camera3D.GetPosition()
         view_dir =  self.Camera3D.GetDirectionOfProjection()
@@ -3203,7 +3160,7 @@ class CADExplorer(vtk.vtkInteractorStyleTerrain):
         raydata = raytrace.RayData(raydata)
 
         if len(raydata.ray_start_coords.shape) == 3:
-            print('In the first case!')
+
             startX = raydata.ray_start_coords[:,:,0]
             startY = raydata.ray_start_coords[:,:,1]
             startZ = raydata.ray_start_coords[:,:,2]
@@ -3701,3 +3658,799 @@ class ViewAligner(vtk.vtkInteractorStyleTerrain):
                 self.ImageResizer.SetOutputDimensions(int(self.ZoomRefSize[0]*self.ZoomLevel),int(self.ZoomRefSize[1]*self.ZoomLevel),1)
            
                 self.gui_window.refresh_vtk()
+
+
+class ImageAnalyser(vtk.vtkInteractorStyleTerrain):
+ 
+    def __init__(self,parent=None):
+        # Set callbacks for all the controls
+        self.AddObserver("LeftButtonPressEvent",self.OnLeftClick)
+        self.AddObserver("RightButtonPressEvent",self.rightButtonPress)
+        self.AddObserver("RightButtonReleaseEvent",self.rightButtonRelease)
+        self.AddObserver("MiddleButtonPressEvent",self.middleButtonPress)
+        self.AddObserver("MiddleButtonReleaseEvent",self.middleButtonRelease)
+        self.AddObserver("MouseWheelForwardEvent",self.ZoomIn)
+        self.AddObserver("MouseWheelBackwardEvent",self.ZoomOut)
+        self.AddObserver("MouseMoveEvent",self.mouse_move)
+
+
+    # Do various initial setup things, most of which can't be done at the time of __init__
+    def DoInit(self,ren_2D,ren_3D,gui_window,raycaster):
+       
+
+        # Get the interactor object
+        self.Interactor = self.GetInteractor()
+
+        # Some other objects from higher up which I need access to
+        self.Window = self.Interactor.GetRenderWindow()
+        self.Renderer = ren_3D
+        self.Renderer_2D = ren_2D
+        self.Camera3D = self.Renderer.GetActiveCamera()
+
+        self.cursor2D = []
+        self.cursor3D = None
+        self.sightlines = []
+
+        self.im_dragging = False
+
+        self.Camera2D = self.Renderer_2D.GetActiveCamera()
+        self.Image = None
+        self.gui_window = gui_window
+
+
+        self.SetAutoAdjustCameraClippingRange(0)
+
+        # Turn off any VTK responses to keyboard input (all necessary keyboard shortcuts etc are done in Q)
+        self.Interactor.RemoveObservers('KeyPressEvent')
+        self.Interactor.RemoveObservers('CharEvent')
+
+        # Add observer for catching window resizing
+        self.Window.AddObserver("ModifiedEvent",self.OnWindowSizeAdjust)
+
+        # Create a picker
+        self.Picker = vtk.vtkCellPicker()
+        self.Interactor.SetPicker(self.Picker)
+
+        # Variables
+        self.overlay_on = False
+        self.fit_overlay_actor = None
+    
+
+        # Create a point placer to find point positions on image view
+        self.ImPointPlacer = vtk.vtkFocalPlanePointPlacer()
+
+        # We will use this for converting from 3D to screen coords.
+        self.CoordTransformer = vtk.vtkCoordinate()
+        self.CoordTransformer.SetCoordinateSystemToWorld()
+
+        
+        
+    def free_references(self):
+        del self.Interactor
+        del self.Window
+        del self.Renderer
+        del self.Renderer_2D
+        del self.Camera3D
+        del self.Camera2D
+        del self.Picker
+
+
+    # Use this image object
+    def init_image(self,image,hold_position=False):
+        
+        # Remove current image, if any
+        if self.Image is not None:
+            if hold_position:
+                oldpos = self.ImageActor.GetPosition()
+                # Don't try to hold position if the image aspect ratio has changed!
+                if abs( self.ImageResizer.GetOutputDimensions()[1]/self.ImageResizer.GetOutputDimensions()[0] -  image.transform.get_display_shape()[1] / image.transform.get_display_shape()[0]) > 1e-6:
+                    hold_position = False
+                
+
+            self.Renderer_2D.RemoveActor(self.ImageActor)
+            self.ImageActor = None
+            self.ImageResizer = None
+            self.Image = None
+        else:
+            hold_position = False
+
+        try:
+
+            self.Image = image
+            self.ImageOriginalSize = self.Image.transform.get_display_shape()
+
+            self.ImageActor,self.ImageResizer = self.Image.get_vtkobjects()
+
+            self.WinSize = self.Window.GetSize()
+            winaspect =  (float(self.WinSize[0])/2)/float(self.WinSize[1])
+
+
+            ImAspect = float(self.ImageOriginalSize[0])/self.ImageOriginalSize[1]
+
+            newRefSize = [0,0,1]
+            if winaspect >= ImAspect:
+                # Base new zero size on y dimension
+                newRefSize[0] = self.WinSize[1]*ImAspect
+                newRefSize[1] = self.WinSize[1]
+                self.ZoomRefPos = (((self.WinSize[0]/2 - self.WinSize[1]*ImAspect))/2,0.)
+                
+            else:
+                # Base new zero size on x dimension
+                newRefSize[0] = self.WinSize[0]/2
+                newRefSize[1] = (self.WinSize[0]/2)/ImAspect
+                self.ZoomRefPos = (0.,(self.WinSize[1] - (self.WinSize[0]/2)/ImAspect)/2)
+
+            self.ZoomRefSize = tuple(newRefSize)
+            if not hold_position:
+                self.ZoomLevel = 1.
+
+            # Set the initial size of the image to fit the window size
+            if hold_position:
+                self.ImageActor.SetPosition(oldpos)
+            else:
+                self.ImageActor.SetPosition(self.ZoomRefPos)
+
+            self.ImageResizer.SetOutputDimensions(int(self.ZoomRefSize[0]*self.ZoomLevel),int(self.ZoomRefSize[1]*self.ZoomLevel),1)
+            self.Renderer_2D.AddActor2D(self.ImageActor)
+            
+            self.Update2DCursorPositions()
+
+            self.gui_window.refresh_vtk()
+        except:
+
+            self.Image = None
+            raise
+
+
+    # On the CAD view, middle click + drag to pan
+    def middleButtonPress(self,obj,event):
+        self.orig_dist = self.Camera3D.GetDistance()
+        self.Camera3D.SetDistance(0.5)
+        if self.ChooseRenderer() == '3D':
+                self.OnMiddleButtonDown()
+        elif self.ChooseRenderer() == '2D':
+            self.im_dragging = True
+
+    def middleButtonRelease(self,obj,event):
+        if self.ChooseRenderer() == '3D':
+            self.OnMiddleButtonUp()
+            self.Camera3D.SetDistance(self.orig_dist)
+            self.gui_window.update_viewport_info(self.Camera3D.GetPosition(),self.get_view_target(),self.Camera3D.GetViewAngle())
+        elif self.ChooseRenderer() == '2D':
+            self.im_dragging = False
+
+    # On the CAD view, right click+drag to rotate (usually on left button in this interactorstyle)
+    def rightButtonPress(self,obj,event):
+        self.orig_dist = self.Camera3D.GetDistance()
+        self.Camera3D.SetDistance(0.01)
+        if self.ChooseRenderer() == '3D':
+            self.OnLeftButtonDown()
+        return
+
+    def rightButtonRelease(self,obj,event):
+        if self.ChooseRenderer() == '3D':
+                self.OnLeftButtonUp()
+                self.Camera3D.SetDistance(self.orig_dist)
+                self.gui_window.update_viewport_info(self.Camera3D.GetPosition(),self.get_view_target(),self.Camera3D.GetViewAngle())    
+        return
+
+
+    # Left click to move a point or add a new point
+    def OnLeftClick(self,obj,event):
+
+        if self.gui_window.raycaster.obbtree is None or self.gui_window.image is None or self.gui_window.raycaster.fitresults is None:
+            return
+
+        clickcoords = self.Interactor.GetEventPosition()
+
+        # If the user clicked on the CAD model...
+        if self.ChooseRenderer() == '3D':
+
+            # These will be the variables we return. If the user clicked in free space they will stay None.
+            picktype = None
+            pickdata = None
+
+            # Do a pick with our picker object
+            
+            retval = self.Picker.Pick(clickcoords[0],clickcoords[1],0,self.Renderer)
+
+            # If something was successfully picked, find out what it was...
+            if retval != 0:
+
+                pickedpoints = self.Picker.GetPickedPositions()
+
+                # If more than 1 point is within the picker's tolerance,
+                # use the one closest to the camera (this is most intuitive)
+                npoints = pickedpoints.GetNumberOfPoints()
+                dist_fromcam = []
+                campos = self.Camera3D.GetPosition()
+
+                for i in range(npoints):
+                    point = pickedpoints.GetPoint(i)
+                    dist_fromcam.append(np.sqrt( (campos[0] - point[0])**2 + (campos[1] - point[1])**2 + (campos[2] - point[2])**2 ))
+
+                _, idx = min((val, idx) for (idx, val) in enumerate(dist_fromcam))
+
+                pickcoords = pickedpoints.GetPoint(idx)
+                coords_3d = pickcoords
+
+                self.update_2D_from_3D(pickcoords)
+
+            else:
+                return
+        # Click on 2D image.
+        else:
+            im_shape = self.gui_window.raycaster.fitresults.transform.get_display_shape()
+            im_coords = self.DisplayToImageCoords(clickcoords)
+            if im_coords[0] < 0 or im_coords[1] < 0 or im_coords[0] > im_shape[0] or im_coords[1] > im_shape[1]:
+                return
+
+            visible = [True] * self.gui_window.raycaster.fitresults.nfields
+            self.clear_cursors_2D()
+            self.place_cursor_2D(im_coords)
+            raydata = self.gui_window.raycaster.raycast_pixels(im_coords[0],im_coords[1])
+            coords_3d = raydata.ray_end_coords
+            if raydata.get_ray_lengths() < self.gui_window.cadmodel.max_ray_length-1e-3:
+                show = True
+            else:
+                show = False
+
+            self.place_cursor_3D(coords_3d,show=show)
+            coords_2d = [[im_coords]]
+
+            if self.gui_window.raycaster.fitresults.nfields > 1:
+                field = self.gui_window.raycaster.fitresults.fieldmask[int(im_coords[1]),int(im_coords[0])]
+                image_pos = self.gui_window.raycaster.fitresults.project_points([coords_3d],CheckVisible=True,VisibilityMargin=2e-3,RayCaster=self.gui_window.raycaster)
+                for i in range(self.gui_window.raycaster.fitresults.nfields):
+                    if i != field and np.all(np.isfinite(image_pos[i][0])):
+                        self.place_cursor_2D(image_pos[i][0])
+                    if not np.all(np.isfinite(image_pos[i][0])):
+                        visible[i] = False
+
+                coords_2d = image_pos
+
+            self.gui_window.update_position_info(coords_2d,coords_3d,visible)
+
+        self.update_sightlines(self.gui_window.show_los_checkbox.isChecked())
+        self.gui_window.refresh_vtk()
+
+        
+
+
+    def update_2D_from_3D(self,coords_3d):
+
+        sightline = False
+        intersection_coords = None
+
+        visible = [False] * self.gui_window.raycaster.fitresults.nfields
+        self.clear_cursors_2D()          
+        # Find where the cursor(s) is/are in 2D.
+        image_pos_nocheck = self.gui_window.raycaster.fitresults.project_points([coords_3d])
+
+        image_pos = self.gui_window.raycaster.fitresults.project_points([coords_3d],CheckVisible=True,VisibilityMargin=2e-3,RayCaster=self.gui_window.raycaster)
+        for i in range(len(image_pos)):
+            if np.any(np.isnan(image_pos_nocheck[i][0])):
+                visible[i] = False
+                continue
+            raydata = self.gui_window.raycaster.raycast_pixels(image_pos_nocheck[i][0][0],image_pos_nocheck[i][0][1])
+            sightline = True
+            visible[i] =True
+            if np.any(np.isnan(image_pos[i][0])):
+                visible[i] = False
+                intersection_coords = raydata.ray_end_coords
+
+            self.place_cursor_2D(image_pos_nocheck[i][0],visible=visible[i])
+                
+
+        self.place_cursor_3D(coords_3d,intersection_coords)
+
+        coords_2d = image_pos_nocheck
+
+        self.gui_window.refresh_vtk()
+
+        self.gui_window.update_position_info(coords_2d,coords_3d,visible)
+
+
+    def place_cursor_3D(self,coords,intersection_coords=None,show=True):
+
+        if intersection_coords is None:
+            intersection_coords = coords
+            visible = True
+        else:
+            visible = False
+
+        if self.cursor3D is None:
+            self.cursor3D = (vtk.vtkCursor3D(),vtk.vtkPolyDataMapper(),vtk.vtkActor())
+
+
+            # Some setup of the cursor
+            self.cursor3D[0].XShadowsOff()
+            self.cursor3D[0].YShadowsOff()
+            self.cursor3D[0].ZShadowsOff()
+            self.cursor3D[0].OutlineOff()
+            self.cursor3D[0].SetTranslationMode(1)
+            # Mapper setup
+            self.cursor3D[1].SetInputConnection(self.cursor3D[0].GetOutputPort())
+            # Actor setup
+            self.cursor3D[2].SetMapper(self.cursor3D[1])
+            # Add new cursor to screen
+            self.Renderer.AddActor(self.cursor3D[2])
+            # Check the visual style is OK.
+            self.Set3DCursorStyle()
+
+
+        # Cursor position and style
+        self.cursor3D[0].SetFocalPoint(coords[0],coords[1],coords[2])
+        self.Set3DCursorStyle(visible=visible)
+
+        if show:
+            self.cursor3D[2].VisibilityOn()
+        else:
+            self.cursor3D[2].VisibilityOff()
+         
+
+
+    def update_sightlines(self,show_sightlines=True):
+
+        visible_linewidth = 3
+        invisible_linewidth = 2
+        line_dash_pattern = 0xf0f0
+
+        for sightline in self.sightlines:
+            self.Renderer.RemoveActor(sightline[2])
+        self.sightlines = []
+
+        if show_sightlines:
+            for field,cursor in enumerate(self.cursor2D):
+                raydata = self.gui_window.raycaster.raycast_pixels(cursor[3][0],cursor[3][1])
+                if raydata.get_ray_lengths() < self.gui_window.cadmodel.max_ray_length-1e-3:
+                    self.sightlines.append((vtk.vtkLineSource(),vtk.vtkPolyDataMapper(),vtk.vtkActor()))
+                    pupilpos = self.gui_window.raycaster.fitresults.get_pupilpos(field=field)
+                    self.sightlines[-1][0].SetPoint1(pupilpos[0],pupilpos[1],pupilpos[2])
+                    self.sightlines[-1][0].SetPoint2(raydata.ray_end_coords[0],raydata.ray_end_coords[1],raydata.ray_end_coords[2])
+                    self.sightlines[-1][1].SetInputConnection(self.sightlines[-1][0].GetOutputPort())
+                    self.sightlines[-1][2].SetMapper(self.sightlines[-1][1])
+                    self.sightlines[-1][2].GetProperty().SetLineWidth(visible_linewidth)
+                    self.Renderer.AddActor(self.sightlines[-1][2])
+
+                    self.sightlines.append((vtk.vtkLineSource(),vtk.vtkPolyDataMapper(),vtk.vtkActor()))
+                    endpos = raydata.ray_end_coords - pupilpos
+                    endpos = endpos / np.sqrt(np.sum(endpos**2))
+                    endpos = pupilpos + self.gui_window.cadmodel.max_ray_length * endpos
+
+                    self.sightlines[-1][0].SetPoint1(endpos[0],endpos[1],endpos[2])
+                    self.sightlines[-1][0].SetPoint2(raydata.ray_end_coords[0],raydata.ray_end_coords[1],raydata.ray_end_coords[2])
+                    self.sightlines[-1][1].SetInputConnection(self.sightlines[-1][0].GetOutputPort())
+                    self.sightlines[-1][2].SetMapper(self.sightlines[-1][1])
+                    self.sightlines[-1][2].GetProperty().SetLineWidth(invisible_linewidth)
+                    self.sightlines[-1][2].GetProperty().SetLineStipplePattern(0xf0f0)
+                    self.sightlines[-1][2].GetProperty().SetLineStippleRepeatFactor(1)
+                    self.Renderer.AddActor(self.sightlines[-1][2])
+
+                else:
+                    self.sightlines.append((vtk.vtkLineSource(),vtk.vtkPolyDataMapper(),vtk.vtkActor()))
+                    pupilpos = self.gui_window.raycaster.fitresults.get_pupilpos(field=field)
+                    self.sightlines[-1][0].SetPoint1(pupilpos[0],pupilpos[1],pupilpos[2])
+                    self.sightlines[-1][0].SetPoint2(raydata.ray_end_coords[0],raydata.ray_end_coords[1],raydata.ray_end_coords[2])
+                    self.sightlines[-1][1].SetInputConnection(self.sightlines[-1][0].GetOutputPort())
+                    self.sightlines[-1][2].SetMapper(self.sightlines[-1][1])
+                    self.sightlines[-1][2].GetProperty().SetLineWidth(invisible_linewidth)
+                    self.sightlines[-1][2].GetProperty().SetLineStipplePattern(0xf0f0)
+                    self.sightlines[-1][2].GetProperty().SetLineStippleRepeatFactor(1)
+                    self.Renderer.AddActor(self.sightlines[-1][2])
+
+        self.gui_window.refresh_vtk()
+
+
+
+    def place_cursor_2D(self,im_coords,visible=True):
+        # Create new cursor, mapper and actor
+        self.cursor2D.append((vtk.vtkCursor3D(),vtk.vtkPolyDataMapper(),vtk.vtkActor(),im_coords,visible))
+        
+        # Some setup of the cursor
+        self.cursor2D[-1][0].XShadowsOff()
+        self.cursor2D[-1][0].YShadowsOff()
+        self.cursor2D[-1][0].ZShadowsOff()
+        self.cursor2D[-1][0].OutlineOff()
+        self.cursor2D[-1][0].SetTranslationMode(1)
+
+        # Work out where to place the cursor
+        worldpos = [0.,0.,0.]
+        self.ImPointPlacer.ComputeWorldPosition(self.Renderer_2D,self.ImageToDisplayCoords(im_coords),worldpos,[0,0,0,0,0,0,0,0,0])
+
+        self.cursor2D[-1][0].SetFocalPoint(worldpos)
+        # Mapper setup
+        self.cursor2D[-1][1].SetInputConnection(self.cursor2D[-1][0].GetOutputPort())
+
+        # Actor setup
+        self.cursor2D[-1][2].SetMapper(self.cursor2D[-1][1])
+
+        # Add new cursor to screen
+        self.Renderer_2D.AddActor(self.cursor2D[-1][2])
+
+        self.Set2DCursorStyle()
+
+
+    def clear_cursors_2D(self):
+        for cursor in self.cursor2D:
+            self.Renderer_2D.RemoveActor(cursor[2])
+        self.cursor2D = []
+        self.update_sightlines()   
+
+
+    def ZoomIn(self,obj,event):
+
+        if self.ChooseRenderer() == '3D':
+
+                # If ctrl + scroll, change the camera FOV
+                if self.Interactor.GetControlKey():
+                    self.Camera3D.SetViewAngle(max(self.Camera3D.GetViewAngle()*0.9,1))
+
+                # Otherwise, move the camera forward.
+                else:
+                    orig_dist = self.Camera3D.GetDistance()
+                    self.Camera3D.SetDistance(0.3)
+                    self.Camera3D.Dolly(1.5)
+                    self.Camera3D.SetDistance(orig_dist)
+
+                # Update cursor sizes depending on their distance from the camera,
+                # so they're all comfortably visible and clickable.
+                self.Set3DCursorStyle()
+                self.gui_window.update_viewport_info(self.Camera3D.GetPosition(),self.get_view_target(),self.Camera3D.GetViewAngle())
+        else:
+                # Zoom in to image keeping the point under the mouse fixed in place
+                zoomcoords = list(self.Interactor.GetEventPosition())
+                # The image renderer only takes up half of the VTK widget size, horizontally.
+                #zoomcoords[0] = zoomcoords[0] - self.WinSize[0]/2.
+
+                zoom_ratio = 1 + 0.2/self.ZoomLevel
+                self.ZoomLevel = self.ZoomLevel + 0.2
+                w = int(self.ZoomRefSize[0]*self.ZoomLevel)
+                h = int(self.ZoomRefSize[1]*self.ZoomLevel)
+
+                self.ImageResizer.SetOutputDimensions(w,h,self.ZoomRefSize[2])
+                
+                oldpos = self.ImageActor.GetPosition()
+                old_deltaX = zoomcoords[0] - oldpos[0]
+                old_deltaY = zoomcoords[1] - oldpos[1]
+
+                new_deltaX = int(old_deltaX * zoom_ratio)
+                new_deltaY = int(old_deltaY * zoom_ratio)
+
+                self.ImageActor.SetPosition(zoomcoords[0] - new_deltaX, zoomcoords[1] - new_deltaY)
+            
+                # Since the point cursors are not tied to the image, we have to update them separately.
+                self.Update2DCursorPositions()
+                
+                if self.fit_overlay_actor is not None:
+                    self.fit_overlay_actor.SetPosition(self.ImageActor.GetPosition())
+                    self.fit_overlay_resizer.SetOutputDimensions(self.ImageResizer.GetOutputDimensions())
+
+        self.gui_window.refresh_vtk()
+
+
+
+    def ZoomOut(self,obj,event):
+
+        if self.ChooseRenderer() == '3D':
+
+                # If ctrl + scroll, change the camera FOV
+                if self.Interactor.GetControlKey():
+                    self.Camera3D.SetViewAngle(min(self.Camera3D.GetViewAngle()*1.1,110.))
+
+                # Otherwise, move the camera backward.
+                else:
+                    orig_dist = self.Camera3D.GetDistance()
+                    self.Camera3D.SetDistance(0.3)
+                    self.Camera3D.Dolly(0.75)
+                    self.Camera3D.SetDistance(orig_dist)
+
+                # Update cursor size 
+                self.Set3DCursorStyle()
+                self.gui_window.update_viewport_info(self.Camera3D.GetPosition(),self.get_view_target(),self.Camera3D.GetViewAngle())
+        else:
+                # Only zoom out until the whole image is visible
+                if self.ZoomLevel > 1.:
+
+                    # Zoom out, centring the image in the window
+                    self.ZoomLevel = self.ZoomLevel - 0.2
+                    w = int(self.ZoomRefSize[0]*self.ZoomLevel)
+                    h = int(self.ZoomRefSize[1]*self.ZoomLevel)
+                
+                    dims_old = self.ImageResizer.GetOutputDimensions()
+                
+                    oldpos = self.ImageActor.GetPosition()
+
+                    oldLHS = float(self.WinSize[0])/4. - float(oldpos[0])
+                    oldBS = float(self.WinSize[1])/2. - float(oldpos[1])
+                    oldTS =  float(dims_old[1] + oldpos[1]) - float(self.WinSize[1]/2.)
+                    oldRHS = float(oldpos[0] + dims_old[0]) - float(self.WinSize[0]/4.)
+
+                    ratio_x = (oldLHS - self.ZoomRefSize[0]/2)/(oldLHS + oldRHS - self.ZoomRefSize[0])
+                    ratio_y = (oldBS - self.ZoomRefSize[1]/2)/(oldBS + oldTS - self.ZoomRefSize[1])
+
+                    newpos_x = oldpos[0] + int( float( dims_old[0] - w ) * ratio_x ) 
+                    newpos_y = oldpos[1] + int( float( dims_old[1] - h ) * ratio_y )
+                
+                    self.ImageResizer.SetOutputDimensions(w,h,self.ZoomRefSize[2])
+                    self.ImageActor.SetPosition([newpos_x,newpos_y])
+                    self.Update2DCursorPositions()
+                    
+                    if self.fit_overlay_actor is not None:
+                        self.fit_overlay_actor.SetPosition(self.ImageActor.GetPosition())
+                        self.fit_overlay_resizer.SetOutputDimensions(self.ImageResizer.GetOutputDimensions())
+
+        self.gui_window.refresh_vtk()
+
+
+
+
+
+    # Function to check if the user is interacting with the CAD or image view
+    def ChooseRenderer(self):
+        coords = self.Interactor.GetEventPosition()
+        poked_renderer = self.Interactor.FindPokedRenderer(coords[0],coords[1])
+        if poked_renderer == self.Renderer_2D:
+                ren_name = '2D'
+        else:
+                ren_name = '3D'
+        return ren_name
+
+
+
+
+
+    # Set the visual style of cursors on the CAD view
+    def Set3DCursorStyle(self,visible=True):
+
+        if self.cursor3D is None:
+            return
+
+        # Cursor appearance settings - mess with this as per your tastes.
+        # The actual size & line width numbers correspond to 3D cursor side length in CAD units for a 75 degree FOV.
+        focus_size = 0.03
+
+        focus_linewidth = 4
+        occluded_linewidth=2
+
+        focus_colour = (0,0.8,0)
+
+
+        # Cursor size scales with camera FOV to maintain size on screen.
+        focus_size = focus_size * (self.Camera3D.GetViewAngle()/75)
+
+        point = self.cursor3D[0].GetFocalPoint()
+        campos = self.Camera3D.GetPosition()
+        dist_to_cam = np.sqrt( (campos[0] - point[0])**2 + (campos[1] - point[1])**2 + (campos[2] - point[2])**2 )
+
+
+        self.cursor3D[0].SetModelBounds([point[0]-focus_size*dist_to_cam,point[0]+focus_size*dist_to_cam,point[1]-focus_size*dist_to_cam,point[1]+focus_size*dist_to_cam,point[2]-focus_size*dist_to_cam,point[2]+focus_size*dist_to_cam])
+        self.cursor3D[2].GetProperty().SetColor(focus_colour)
+        self.cursor3D[2].GetProperty().SetLineWidth(focus_linewidth)
+
+        if visible:
+            self.cursor3D[2].GetProperty().SetLineWidth(focus_linewidth)
+            self.cursor3D[2].GetProperty().SetLineStipplePattern(0xffff)
+        else:
+            self.cursor3D[2].GetProperty().SetLineWidth(occluded_linewidth)
+            self.cursor3D[2].GetProperty().SetLineStipplePattern(0xf0f0)
+            self.cursor3D[2].GetProperty().SetLineStippleRepeatFactor(1)
+
+
+    # Similar to Set3DCursorStyle but for image points
+    def Set2DCursorStyle(self):
+        
+        focus_size = 0.008
+
+        focus_linewidth = 3
+        occluded_linewidth=2
+
+        focus_colour = (0,0.8,0)
+
+        for cursor in self.cursor2D:
+            pos = cursor[0].GetFocalPoint()
+            cursor[0].SetModelBounds([pos[0]-focus_size,pos[0]+focus_size,pos[1]-focus_size,pos[1]+focus_size,pos[2]-focus_size,pos[2]+focus_size])
+            cursor[2].GetProperty().SetColor(focus_colour)
+
+            if cursor[4]:
+                cursor[2].GetProperty().SetLineWidth(focus_linewidth)
+                cursor[2].GetProperty().SetLineStipplePattern(0xffff)
+            else:
+                cursor[2].GetProperty().SetLineWidth(occluded_linewidth)
+                cursor[2].GetProperty().SetLineStipplePattern(0xf0f0)
+                cursor[2].GetProperty().SetLineStippleRepeatFactor(1)
+
+
+
+
+    # Adjust 2D image size and cursor positions if the window is resized
+    def OnWindowSizeAdjust(self,obg=None,event=None):
+        # This is to stop this function erroneously running before
+        # the interactor starts (apparently that was a thing??)
+        if self.Interactor is not None:
+
+                if self.Image is not None:
+                    w_old = int(self.ZoomRefSize[0]*self.ZoomLevel)
+                    h_old = int(self.ZoomRefSize[1]*self.ZoomLevel)
+
+                    newWinSize = self.Window.GetSize()
+                    newImAspect = (float(newWinSize[0])/2)/float(newWinSize[1])
+                    originalImAspect = float(self.ImageOriginalSize[0])/self.ImageOriginalSize[1]
+                    newRefSize = list(self.ZoomRefSize)
+
+                    if newImAspect >= originalImAspect:
+                        # Base new zero size on y dimension
+                        newRefSize[0] = newWinSize[1]*originalImAspect
+                        newRefSize[1] = newWinSize[1]
+                    else:
+                        # Base new zero size on x dimension
+                        newRefSize[0] = newWinSize[0]/2
+                        newRefSize[1] = (newWinSize[0]/2)/originalImAspect
+
+                    self.ZoomRefSize = tuple(newRefSize)
+                
+                    w = int(self.ZoomRefSize[0]*self.ZoomLevel)
+                    h = int(self.ZoomRefSize[1]*self.ZoomLevel)
+
+                    zoom_ratio = float(w) / w_old
+
+                    oldpos = self.ImageActor.GetPosition()
+                    new_deltaX = (self.WinSize[0]/4 - oldpos[0]) * zoom_ratio
+                    new_deltaY = (self.WinSize[1]/2 - oldpos[1]) * zoom_ratio
+                    newpos = [newWinSize[0]/4 - new_deltaX,newWinSize[1]/2 - new_deltaY]
+
+                    self.ImageActor.SetPosition(newpos)
+                    self.ImageResizer.SetOutputDimensions(w,h,self.ZoomRefSize[2])
+                    if self.fit_overlay_actor is not None:
+                        self.fit_overlay_actor.SetPosition(newpos)
+                        self.fit_overlay_resizer.SetOutputDimensions(w,h,self.ZoomRefSize[2])               
+                    
+                    self.WinSize = newWinSize
+                    self.Update2DCursorPositions()
+
+
+
+    
+    # Function to convert display coordinates to pixel coordinates on the camera image
+    def DisplayToImageCoords(self,DisplayCoords):
+
+        impos = self.ImageActor.GetPosition()
+        imsize = self.ImageResizer.GetOutputDimensions()
+        ImCoords = (self.ImageOriginalSize[0] * ( (DisplayCoords[0] -impos[0]) / imsize[0] ) , self.ImageOriginalSize[1] * ( 1-((DisplayCoords[1]-impos[1]) / imsize[1]) ))
+
+        return ImCoords
+
+
+
+    # Function to convert image pixel coordinates to display coordinates
+    def ImageToDisplayCoords(self,ImCoords):
+
+        impos = self.ImageActor.GetPosition()
+        imsize = self.ImageResizer.GetOutputDimensions()
+        DisplayCoords = ( imsize[0] * ImCoords[0]/self.ImageOriginalSize[0] + impos[0] , imsize[1] * (1-ImCoords[1]/self.ImageOriginalSize[1]) + impos[1] )
+
+        return DisplayCoords
+
+
+
+    # Make sure the cursors on the camera image are where they should be
+    def Update2DCursorPositions(self):
+        for cursor in self.cursor2D:
+            DisplayCoords = self.ImageToDisplayCoords(cursor[3])
+            worldpos = [0.,0.,0.]
+            self.ImPointPlacer.ComputeWorldPosition(self.Renderer_2D,DisplayCoords,worldpos,[0,0,0,0,0,0,0,0,0])
+            cursor[0].SetFocalPoint(worldpos)
+
+
+
+
+
+
+    # Add a new point on the image
+    def add_cursor_2D(self,Imcoords):
+
+        field = self.fieldmask[int(Imcoords[1]),int(Imcoords[0])]
+
+        # Create new cursor, mapper and actor
+        self.ImagePoints[self.SelectedPoint][field] = [vtk.vtkCursor3D(),vtk.vtkPolyDataMapper(),vtk.vtkActor(),Imcoords]
+        
+        # Some setup of the cursor
+        self.ImagePoints[self.SelectedPoint][field][0].XShadowsOff()
+        self.ImagePoints[self.SelectedPoint][field][0].YShadowsOff()
+        self.ImagePoints[self.SelectedPoint][field][0].ZShadowsOff()
+        self.ImagePoints[self.SelectedPoint][field][0].OutlineOff()
+        self.ImagePoints[self.SelectedPoint][field][0].SetTranslationMode(1)
+        
+        # Work out where to place the cursor
+        worldpos = [0.,0.,0.]
+        self.ImPointPlacer.ComputeWorldPosition(self.Renderer_2D,self.ImageToDisplayCoords(Imcoords),worldpos,[0,0,0,0,0,0,0,0,0])
+        self.ImagePoints[self.SelectedPoint][field][0].SetFocalPoint(worldpos)
+
+        # Mapper setup
+        self.ImagePoints[self.SelectedPoint][field][1].SetInputConnection(self.ImagePoints[self.SelectedPoint][field][0].GetOutputPort())
+
+        # Actor setup
+        self.ImagePoints[self.SelectedPoint][field][2].SetMapper(self.ImagePoints[self.SelectedPoint][field][1])
+
+        # Add new cursor to screen
+        self.Renderer_2D.AddActor(self.ImagePoints[self.SelectedPoint][field][2])
+
+        self.Set2DCursorStyle(self.SelectedPoint,True)
+
+        self.update_current_point()
+        self.update_n_points()
+
+
+
+
+
+
+
+
+    def set_view_to_fit(self,field=0):
+
+        orig_dist = self.Camera3D.GetDistance()
+        self.Camera3D.SetPosition(self.gui_window.raycaster.fitresults.get_pupilpos(field=field))
+        self.Camera3D.SetFocalPoint(self.gui_window.raycaster.fitresults.get_pupilpos(field=field) + self.gui_window.raycaster.fitresults.get_los_direction(self.ImageOriginalSize[0]/2,self.ImageOriginalSize[1]/2,ForceField=field))
+        self.Camera3D.SetDistance(orig_dist)
+        self.Camera3D.SetViewAngle(self.gui_window.raycaster.fitresults.get_fov(field=field)[1])
+        self.Camera3D.SetViewUp(-1.*self.gui_window.raycaster.fitresults.get_cam_to_lab_rotation(field)[:,1])
+
+        self.Set3DCursorStyle()
+        
+        self.gui_window.refresh_vtk()
+
+
+    def get_view_target(self,zoom=False):
+
+
+        campos = self.Camera3D.GetPosition()
+        view_dir =  self.Camera3D.GetDirectionOfProjection()
+
+        self.view_target = ( campos[0] + view_dir[0] , campos[1] + view_dir[1] , campos[2] + view_dir[2] )
+
+        return self.view_target
+
+
+
+
+
+    def mouse_move(self,obj,event):
+
+        if self.ChooseRenderer() == '3D':
+            self.OnMouseMove()
+        else:
+            if self.im_dragging:
+
+                oldpos = self.ImageActor.GetPosition()
+                dims = self.ImageResizer.GetOutputDimensions()
+
+                lastXYpos = self.Interactor.GetLastEventPosition() 
+                xypos = self.Interactor.GetEventPosition()
+
+                deltaX = xypos[0] - lastXYpos[0]
+                deltaY = xypos[1] - lastXYpos[1]
+
+                if self.ZoomLevel == 1:
+                    newY = oldpos[1]
+                    newX = oldpos[0]
+                else:
+                    newY = oldpos[1] + deltaY
+                    newX = oldpos[0] + deltaX
+
+                if oldpos[0] <= 0:
+                    newX = min(0,newX)
+                if oldpos[1] <= 0:
+                    newY = min(0,newY)
+                if oldpos[0] + dims[0] >= self.WinSize[0] / 2:
+                    newX = int(max(newX, self.WinSize[0]/2 - dims[0]))
+                if oldpos[1] + dims[1] >= self.WinSize[1]:
+                    newY = int(max(newY, self.WinSize[1] - dims[1]))
+
+                self.ImageActor.SetPosition(newX, newY)
+                self.Update2DCursorPositions()
+
+                if self.fit_overlay_actor is not None:
+                    self.fit_overlay_actor.SetPosition(newX, newY)              
+
+                self.gui_window.refresh_vtk(im_only=True)

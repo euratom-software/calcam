@@ -40,6 +40,7 @@ import fitting
 import image
 import cv2
 import pointpairs
+import raytrace
 import render
 import gc
 import traceback
@@ -2218,6 +2219,14 @@ def start_alignment_calib():
     return app.exec_()
 
 
+# Convenience function for starting  CalCam to do image analysis.
+# This is the one the user should call.
+def start_image_analysis():
+
+    app = qt.QApplication(sys.argv)
+    ImageAnalyserWindow(app)
+    return app.exec_()
+
 
 class SplitFieldDialog(qt.QDialog):
 
@@ -3977,6 +3986,850 @@ class AlignmentCalibWindow(qt.QMainWindow):
             dialog.exec_()
 
 
+# Main calcam window class for actually creating calibrations.
+class ImageAnalyserWindow(qt.QMainWindow):
+ 
+    def __init__(self, app, parent = None):
+
+        # GUI initialisation
+        qt.QMainWindow.__init__(self, parent)
+        qt.uic.loadUi(os.path.join(paths.ui,'image_analyser.ui'), self)
+
+        self.setWindowIcon(qt.QIcon(os.path.join(paths.calcampath,'ui','calcam.png')))
+
+        self.app = app
+
+        # See how big the screen is and open the window at an appropriate size
+        desktopinfo = self.app.desktop()
+        available_space = desktopinfo.availableGeometry(self)
+        self.screensize = (available_space.width(),available_space.height())
+        # Open the window with same aspect ratio as the screen, and no fewer than 500px tall.
+        win_height = max(500,min(780,0.75*available_space.height()))
+        win_width = win_height * available_space.width() / available_space.height() 
+        self.resize(win_width,win_height)
+
+        # Set up nice exception handling
+        sys.excepthook = lambda *ex: show_exception_box(self,*ex)
+
+        # Start up with no CAD model
+        self.cadmodel = None
+
+        # We'll be needing a ray caster!
+        self.raycaster = raytrace.RayCaster(verbose=False)
+
+        # Set up VTK
+        self.qvtkWidget = qt.QVTKRenderWindowInteractor(self.vtkframe)
+        self.vtkframe.layout().addWidget(self.qvtkWidget)
+        self.pointpicker = vtkinteractorstyles.ImageAnalyser()
+        self.qvtkWidget.SetInteractorStyle(self.pointpicker)
+        self.renderer_cad = vtk.vtkRenderer()
+        self.renderer_cad.SetBackground(0,0,0)
+        self.renderer_cad.SetViewport(0.5,0,1,1)
+        self.renderer_im = vtk.vtkRenderer()
+        self.renderer_im.SetBackground(0,0,0)
+        self.renderer_im.SetViewport(0,0,0.5,1)
+        self.qvtkWidget.GetRenderWindow().AddRenderer(self.renderer_cad)
+        self.qvtkWidget.GetRenderWindow().AddRenderer(self.renderer_im)
+        self.vtkInteractor = self.qvtkWidget.GetRenderWindow().GetInteractor()
+        self.camera = self.renderer_cad.GetActiveCamera()
+        self.any_points = False
+        self.pointpairs_changed = False
+        self.fit_changed = False
+
+        # Populate CAD model list
+        self.model_list = machine_geometry.get_available_models()
+        self.model_name.addItems(sorted(self.model_list.keys()))
+        self.model_name.setCurrentIndex(-1)
+        self.load_model_button.setEnabled(0)
+
+
+        # Disable image transform buttons if we have no image
+        self.image_settings.hide()
+
+        #self.tabWidget.setTabEnabled(1,False)
+        self.tabWidget.setTabEnabled(2,False)
+        self.tabWidget.setTabEnabled(3,False)
+
+        #self.overlay_oversampling_combobox.setCurrentIndex(2)
+        #self.overlay_combobox_options = [0.25, 0.5, 1., 2., 4.]
+
+        # Callbacks for GUI elements
+        self.image_sources_list.currentIndexChanged.connect(self.build_imload_gui)
+        self.enable_all_button.clicked.connect(self.mass_toggle_model)
+        self.disable_all_button.clicked.connect(self.mass_toggle_model)
+        self.viewlist.itemClicked.connect(self.change_cad_view)
+        self.camX.valueChanged.connect(self.change_cad_view)
+        self.camY.valueChanged.connect(self.change_cad_view)
+        self.camZ.valueChanged.connect(self.change_cad_view)
+        self.tarX.valueChanged.connect(self.change_cad_view)
+        self.tarY.valueChanged.connect(self.change_cad_view)
+        self.tarZ.valueChanged.connect(self.change_cad_view)
+        self.camFOV.valueChanged.connect(self.change_cad_view)
+        self.load_model_button.clicked.connect(self.load_model)
+        self.model_name.currentIndexChanged.connect(self.populate_model_variants)
+        self.feature_tree.itemChanged.connect(self.update_checked_features)
+        self.load_image_button.clicked.connect(self.load_image)
+        self.im_flipud.clicked.connect(self.transform_image)
+        self.im_fliplr.clicked.connect(self.transform_image)
+        self.im_rotate_button.clicked.connect(self.transform_image)
+        self.im_reset.clicked.connect(self.transform_image)
+        self.im_y_stretch_button.clicked.connect(self.transform_image)
+        self.fitresults_name_box.currentIndexChanged.connect(self.load_calibresults)
+        self.show_los_checkbox.toggled.connect(self.pointpicker.update_sightlines)
+        self.hist_eq_checkbox.stateChanged.connect(self.toggle_hist_eq)
+        self.overlay_checkbox.toggled.connect(self.toggle_overlay)
+        self.set_viewport_to_calib.clicked.connect(self.pointpicker.set_view_to_fit)
+
+        self.pupil_coords_label.hide()
+        self.calinfo_fieldnames.hide()
+
+        # If we have an old version of openCV, histo equilisation won't work :(
+        if cv2_version < 2.4 or (cv2_version == 2.4 and cv2_micro_version < 6):
+            self.hist_eq_checkbox.setEnabled(False)
+            self.hist_eq_checkbox.setToolTip('Requires OpenCV 2.4.6 or newer; you have {:s}'.format(cv2.__version__))
+
+
+        # Populate image sources list and tweak GUI layout for image loading.
+        self.imload_inputs = []
+
+        self.image_load_options.layout().setColumnMinimumWidth(0,100)
+        for imsource in image.image_sources:
+            self.image_sources_list.addItem(imsource.gui_display_name)
+        self.image_sources_list.setCurrentIndex(0)
+
+        self.impos_fieldnames.hide()
+        self.sightline_fieldnames.hide()
+        self.calib_info.hide()
+
+        # Start the GUI!
+        self.show()
+        self.pointpicker.DoInit(self.renderer_im,self.renderer_cad,self,self.raycaster)
+        self.vtkInteractor.Initialize()
+
+        # Warn the user if we don't have any CAD models
+        if self.model_list == {}:
+            raise UserWarning('No machine CAD model definitions were found. To define some, see the example in:<br>' + paths.machine_geometry)
+
+
+    def update_position_info(self,coords_2d,coords_3d,visible):
+
+
+        cadinfo_str = self.cadmodel.get_position_info(coords_3d)
+
+        sightline_info_string = ''
+
+        iminfo_str = ''
+
+        sightline_fieldnames_str = ''
+
+        impos_fieldnames_str = ''
+
+        for field_index in range(self.raycaster.fitresults.nfields):
+
+            prefix = ' '
+
+            if field_index > 0:
+                prefix = prefix + '<br>'
+     
+
+            sightline_exists = False
+
+            
+            impos_fieldnames_str = impos_fieldnames_str + prefix + '[' + self.raycaster.fitresults.field_names[field_index] + ']&nbsp;'
+
+            if np.any(np.isnan(coords_2d[field_index][0])):
+                iminfo_str = iminfo_str + prefix +  'Cursor outside field of view.'
+            elif not visible[field_index]:
+                iminfo_str = iminfo_str + prefix + 'Cursor hidden from view.'
+            else:
+                iminfo_str = iminfo_str + prefix + '( {:.0f} , {:.0f} ) px'.format(coords_2d[field_index][0][0],coords_2d[field_index][0][1])
+                sightline_exists = True
+ 
+
+            sightline_fieldnames_str = sightline_fieldnames_str + prefix*2 + '[' + self.raycaster.fitresults.field_names[field_index] + ']&nbsp;'
+            if sightline_exists:
+                sightline_fieldnames_str = sightline_fieldnames_str + '<br>'
+                sightline = coords_3d - self.raycaster.fitresults.get_pupilpos(field=field_index)
+                sdir = sightline / np.sqrt(np.sum(sightline**2))
+
+                sightline_info_string = sightline_info_string + prefix*2 + 'Direction X,Y,Z: ( {:.3f} , {:.3f} , {:.3f} )<br>'.format(sdir[0],sdir[1],sdir[2])
+                if np.sqrt(np.sum(sightline**2)) < (self.cadmodel.max_ray_length-1e-3):
+                    sightline_info_string = sightline_info_string  +'Distance to camera: {:.3f} m'.format(np.sqrt(np.sum(sightline**2)))
+                else:
+                    sightline_info_string = sightline_info_string + 'Sight line does not inersect CAD model.'
+                    cadinfo_str = 'Sight line does not intersect CAD model.'
+            else:
+                sightline_info_string = sightline_info_string + prefix*2 + 'No line-of-sight to cursor'
+
+        if self.raycaster.fitresults.nfields > 1:
+            self.impos_fieldnames.setText(impos_fieldnames_str)
+            self.impos_fieldnames.show()
+            self.sightline_fieldnames.setText(sightline_fieldnames_str)
+            self.sightline_fieldnames.show()
+        else:
+            self.impos_fieldnames.hide()
+            self.sightline_fieldnames.hide()
+
+        self.impos_info.setText(iminfo_str)
+        self.sightline_info.setText(sightline_info_string)
+        self.cadpos_info.setText(cadinfo_str)
+
+
+    def change_cad_view(self,view_item,init=False):
+
+        if self.sender() is self.viewlist:
+            if view_item.isDisabled() or view_item is self.views_root_results or view_item is self.views_root_synthetic or view_item is self.views_root_model:
+                return
+
+        if self.sender() is self.viewlist or init:
+ 
+            if view_item.parent() is self.views_root_model:
+
+                self.cadmodel.set_default_view(str(view_item.text(0)))
+
+                # Set to that view
+                self.camera.SetViewAngle(self.cadmodel.cam_fov_default)
+                self.camera.SetPosition(self.cadmodel.cam_pos_default)
+                self.camera.SetFocalPoint(self.cadmodel.cam_target_default)
+                self.camera.SetViewUp(0,0,1)
+
+            elif view_item.parent() is self.views_root_results or self.views_root_synthetic:
+
+                if view_item.parent() is self.views_root_results:
+                    view = fitting.CalibResults(str(view_item.text(0)))
+                else:
+                    view = fitting.VirtualCalib(str(view_item.text(0)))
+
+                if view.nfields > 1:
+                    view_item.setExpanded(not view_item.isExpanded())
+                    return
+
+                self.camera.SetPosition(view.get_pupilpos())
+                self.camera.SetFocalPoint(view.get_pupilpos() + view.get_los_direction(view.image_display_shape[0]/2,view.image_display_shape[1]/2))
+                self.camera.SetViewAngle(view.get_fov()[1])
+                self.camera.SetViewUp(-1.*view.get_cam_to_lab_rotation()[:,1])
+
+            elif view_item.parent() in self.views_results:
+                view = fitting.CalibResults(str(view_item.parent().text(0)))
+                subfield = view.field_names.index(str(view_item.text(0)))
+
+                self.camera.SetPosition(view.get_pupilpos(field=subfield))
+                self.camera.SetFocalPoint(view.get_pupilpos(field=subfield) + view.get_los_direction(view.image_display_shape[0]/2,view.image_display_shape[1]/2))
+                self.camera.SetViewAngle(view.get_fov(field=subfield)[1])
+                self.camera.SetViewUp(-1.*view.get_cam_to_lab_rotation(field=subfield)[:,1])              
+
+        else:
+            self.camera.SetPosition((self.camX.value(),self.camY.value(),self.camZ.value()))
+            self.camera.SetFocalPoint((self.tarX.value(),self.tarY.value(),self.tarZ.value()))
+            self.camera.SetViewAngle(self.camFOV.value())
+
+        self.update_viewport_info(self.camera.GetPosition(),self.camera.GetFocalPoint(),self.camera.GetViewAngle())
+
+        self.refresh_vtk()
+
+
+
+    def populate_model_variants(self):
+
+        model = self.model_list[str(self.model_name.currentText())]
+        self.model_variant.clear()
+        self.model_variant.addItems(model[1])
+        self.model_variant.setCurrentIndex(model[2])
+        self.load_model_button.setEnabled(1)
+
+    def change_overlay_oversampling(self):
+
+        if self.overlay_checkbox.isChecked():
+            self.toggle_overlay(False)
+            self.pointpicker.fit_overlay_actor = None
+            self.toggle_overlay(True)
+        else:
+            self.pointpicker.fit_overlay_actor = None
+
+
+    def update_checked_features(self,item):
+
+            if self.overlay_checkbox.isChecked():
+                self.overlay_checkbox.setChecked(False)
+            self.pointpicker.fit_overlay_actor = None
+            self.feature_tree.blockSignals(True)
+            self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
+            changed_feature = str(item.text(0))
+            if changed_feature in self.group_items:
+                feature = changed_feature
+                changed_feature = []
+                for i in range(self.group_items[feature].childCount()):
+                    changed_feature.append(str(self.group_items[feature].child(i).text(0)))
+                    self.group_items[feature].child(i).setCheckState(0,self.group_items[feature].checkState(0))
+                    if self.group_items[feature].checkState(0) == qt.Qt.Checked:
+                        self.group_items[feature].child(i).setFlags(qt.Qt.ItemIsSelectable | qt.Qt.ItemIsUserCheckable | qt.Qt.ItemIsEnabled)
+                    else:
+                        self.group_items[feature].child(i).setFlags(qt.Qt.ItemIsUserCheckable | qt.Qt.ItemIsEnabled)
+            else:
+                changed_feature = [changed_feature]
+                feature = item.parent()
+                if feature is not self.treeitem_machine:
+                    checkstates = []
+                    for i in range(feature.childCount()):
+                        checkstates.append(feature.child(i).checkState(0))
+
+                    if len(list(set(checkstates))) > 1:
+                        feature.setCheckState(0,qt.Qt.PartiallyChecked)
+                        feature.setFlags(qt.Qt.ItemIsSelectable | qt.Qt.ItemIsUserCheckable | qt.Qt.ItemIsEnabled)
+                    else:
+                        feature.setCheckState(0,checkstates[0])
+                        if checkstates[0] == qt.Qt.Checked:
+                            feature.setFlags(qt.Qt.ItemIsSelectable | qt.Qt.ItemIsUserCheckable | qt.Qt.ItemIsEnabled)
+                        else:
+                            feature.setFlags(qt.Qt.ItemIsUserCheckable | qt.Qt.ItemIsEnabled)
+
+            if item.checkState(0) == qt.Qt.Checked:
+                item.setFlags(qt.Qt.ItemIsSelectable | qt.Qt.ItemIsUserCheckable | qt.Qt.ItemIsEnabled)
+                self.cadmodel.enable_features(changed_feature,self.renderer_cad)
+            else:
+                item.setFlags(qt.Qt.ItemIsUserCheckable | qt.Qt.ItemIsEnabled)
+                self.cadmodel.disable_features(changed_feature,self.renderer_cad)
+
+            self.statusbar.showMessage('Updating bounding box tree...')
+            self.raycaster.set_cadmodel(self.cadmodel)
+            self.statusbar.clearMessage()
+            self.app.restoreOverrideCursor()
+            self.refresh_vtk()
+            self.feature_tree.blockSignals(False)
+
+
+
+
+    def load_model(self):
+        self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
+        model = self.model_list[str(self.model_name.currentText())]
+
+        # Dispose of the old model
+        if self.cadmodel is not None:
+            
+            old_machine_name = self.cadmodel.machine_name
+            old_enabled_features = self.cadmodel.get_enabled_features()
+
+            for actor in self.cadmodel.get_vtkActors():
+                self.renderer_cad.RemoveActor(actor)
+            
+            del self.cadmodel
+            self.tabWidget.setTabEnabled(2,True)
+        else:
+            old_machine_name = None
+
+        # Create a new one
+        exec('self.cadmodel = machine_geometry.' + model[0] + '("' + str(self.model_variant.currentText()) + '")')
+        self.cadmodel.link_gui_window(self)
+
+        if not self.cad_auto_load.isChecked():
+            if self.cadmodel.machine_name == old_machine_name:
+                self.cadmodel.enable_only(old_enabled_features)
+            else:
+                for feature in self.cadmodel.features:
+                    self.cadmodel.disable_features(feature[0])
+
+
+        for actor in self.cadmodel.get_vtkActors():
+            self.renderer_cad.AddActor(actor)
+
+        self.statusbar.showMessage('Generating CAD bounding box tree...')
+        self.raycaster.set_cadmodel(self.cadmodel)
+
+        self.statusbar.showMessage('Setting up CAD model...')
+
+        # Initialise the CAD model setup GUI
+        init_model_settings(self)
+
+        # Initialise other lists of things
+        init_viewports_list(self)
+
+
+        # Set selected CAD view to the model's default, if the machine has been changed (i.e. changing model variant will maintain the viewport)
+        self.viewlist.clearSelection()
+        if self.cadmodel.machine_name != old_machine_name:
+            if old_machine_name is not None:
+                self.pointpicker.place_cursor_3D([0,0,0],show=False)
+                self.pointpicker.clear_cursors_2D()
+            for i in range(self.views_root_model.childCount()):
+                if str(self.views_root_model.child(i).text(0)) == self.cadmodel.default_view_name:
+                    self.viewlist.setCurrentItem(self.views_root_model.child(i))
+                    self.change_cad_view(self.views_root_model.child(i),init=True)
+
+        if self.raycaster.fitresults is not None:
+            self.overlay_checkbox.setEnabled(True)
+
+
+        self.tabWidget.setTabEnabled(2,True)
+        self.enable_all_button.setEnabled(1)
+        self.disable_all_button.setEnabled(1)
+        self.app.restoreOverrideCursor()
+        self.statusbar.clearMessage()
+        self.refresh_vtk()
+
+
+
+
+    def mass_toggle_model(self):
+        self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
+        if self.sender() is self.enable_all_button:
+            for i in range(self.treeitem_machine.childCount()):
+               self.treeitem_machine.child(i).setCheckState(0,qt.Qt.Checked)
+        elif self.sender() is self.disable_all_button:
+            for i in range(self.treeitem_machine.childCount()):
+                self.treeitem_machine.child(i).setCheckState(0,qt.Qt.Unchecked)
+        self.app.restoreOverrideCursor()
+
+
+    def update_viewport_info(self,campos,camtar,fov):
+
+        self.camX.blockSignals(True)
+        self.camY.blockSignals(True)
+        self.camZ.blockSignals(True)
+        self.tarX.blockSignals(True)
+        self.tarY.blockSignals(True)
+        self.tarZ.blockSignals(True)
+        self.camFOV.blockSignals(True)
+
+        self.camX.setValue(campos[0])
+        self.camY.setValue(campos[1])
+        self.camZ.setValue(campos[2])
+        self.tarX.setValue(camtar[0])
+        self.tarY.setValue(camtar[1])
+        self.tarZ.setValue(camtar[2])
+        self.camFOV.setValue(fov)
+
+        self.camX.blockSignals(False)
+        self.camY.blockSignals(False)
+        self.camZ.blockSignals(False)
+        self.tarX.blockSignals(False)
+        self.tarY.blockSignals(False)
+        self.tarZ.blockSignals(False)
+        self.camFOV.blockSignals(False)
+
+
+
+
+    def refresh_vtk(self,im_only=False):
+        if not im_only:
+            self.renderer_cad.Render()
+        self.renderer_im.Render()
+        self.qvtkWidget.update()
+
+
+    def load_image(self,init_image=None):
+
+        self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
+        self.statusbar.showMessage('Loading image...')
+
+        # Gather up the required input arguments from the image load gui
+        imload_options = []
+        for option in self.imload_inputs:
+            imload_options.append(option[1]())
+            if qt.qt_ver == 4:
+                if type(imload_options[-1]) == qt.QString:
+                    imload_options[-1] = str(imload_options[-1])
+
+        newim = self.imsource(*imload_options)
+
+        self.image_settings.hide()
+        if self.overlay_checkbox.isChecked():
+            self.overlay_checkbox.setChecked(False)
+        self.pointpicker.fit_overlay_actor = None
+        self.tabWidget.setTabEnabled(3,False)
+
+        existing_im_names = paths.get_save_list('Images')
+        if newim.name in existing_im_names:
+            testim = image.Image(newim.name)
+            if not np.all(newim.data == testim.data):
+                i = 0
+                new_name = newim.name
+                while new_name in existing_im_names:
+                    i = i + 1
+                    new_name = newim.name + '({:d})'.format(i)
+                newim.name = new_name
+
+        self.image = newim
+
+        self.image_settings.show()
+        self.hist_eq_checkbox.setCheckState(qt.Qt.Unchecked)
+        self.pointpicker.init_image(self.image)
+
+        if self.raycaster.fitresults is not None:
+            self.raycaster.fitresults = None
+            self.impos_info.setText('Image position info will appear here.')
+            self.sightline_info.setText('Sightline info will appear here.')
+            self.impos_fieldnames.hide()
+            self.pupil_coords_label.hide()
+            self.calinfo_fieldnames.hide()
+            self.sightline_fieldnames.hide()
+            self.populate_fitresults_list()
+            self.pointpicker.clear_cursors_2D()
+        else:
+            self.populate_fitresults_list()
+
+        self.tabWidget.setTabEnabled(3,True)
+        self.update_image_info_string()
+        self.app.restoreOverrideCursor()
+        self.statusbar.clearMessage()
+
+
+    def populate_fitresults_list(self):
+        res_list = []
+        for res_save in paths.get_save_list('FitResults'):
+            try:
+                res = fitting.CalibResults(res_save)
+                if np.all(res.transform.get_display_shape() == self.image.transform.get_display_shape()):
+                    res_list.append(res_save)
+            except:
+                pass
+
+        self.fitresults_name_box.blockSignals(True)
+        self.fitresults_name_box.clear()
+        self.fitresults_name_box.addItems(res_list)
+        self.fitresults_name_box.setCurrentIndex(-1)
+        self.fitresults_name_box.blockSignals(False)
+
+    def load_calibresults(self):
+        res = fitting.CalibResults(str(self.fitresults_name_box.currentText()))
+        self.raycaster.set_calibration(res)
+        if self.overlay_checkbox.isChecked():
+            self.overlay_checkbox.setChecked(False)
+        self.pointpicker.fit_overlay_actor = None
+        
+        pupilpos_str = ''
+        fieldnames_str = ''
+        for field in range(res.nfields):
+            pupilpos = res.get_pupilpos(field=field)
+            if field > 0:
+                prefix = '<br>'
+            else:
+                prefix = ''
+            fieldnames_str = fieldnames_str + prefix + '[{:s}]&nbsp;'.format(res.field_names[field])
+            pupilpos_str = pupilpos_str + prefix + '( {:.3f} , {:.3f} , {:.3f} ) m'.format(pupilpos[0],pupilpos[1],pupilpos[2])
+
+        self.calinfo_fieldnames.setText(fieldnames_str)
+        self.pupil_coords_label.setText(pupilpos_str)
+        if res.nfields > 1:
+            self.calinfo_fieldnames.show()
+        else:
+            self.calinfo_fieldnames.hide()
+        self.pupil_coords_label.show()
+        
+        self.calib_info.show()
+        if self.cadmodel is not None:
+            self.set_viewport_to_calib.setEnabled(True)
+            self.overlay_checkbox.setEnabled(True)
+
+        if self.pointpicker.cursor3D is not None:
+            self.pointpicker.update_2D_from_3D(self.pointpicker.cursor3D[0].GetFocalPoint())
+
+    def update_image_info_string(self):
+
+        if np.any(self.image.transform.get_display_shape() != list(self.image.data.shape[1::-1])):
+            info_str = '{0:d} x {1:d} pixels ({2:.1f} MP) [ As Displayed ]<br>{3:d} x {4:d} pixels ({5:.1f} MP) [ Raw Data ]<br>'.format(self.image.transform.get_display_shape()[0],self.image.transform.get_display_shape()[1],np.prod(self.image.transform.get_display_shape()) / 1e6 ,self.image.data.shape[1],self.image.data.shape[0],np.prod(self.image.data.shape[:2]) / 1e6 )
+        else:
+            info_str = '{0:d} x {1:d} pixels ({2:.1f} MP)<br>'.format(self.image.transform.get_display_shape()[0],self.image.transform.get_display_shape()[1],np.prod(self.image.transform.get_display_shape()) / 1e6 )
+        
+        if len(self.image.data.shape) == 2:
+            info_str = info_str + 'Monochrome'
+        elif len(self.image.data.shape) == 3 and self.image.data.shape[2] == 3:
+            info_str = info_str + 'RGB Colour'
+        elif len(self.image.data.shape) == 3 and self.image.data.shape[2] == 3:
+            info_str = info_str + 'RGB Colour'
+
+        self.image_info.setText(info_str)
+
+
+    def browse_for_file(self):
+
+        for i,option in enumerate(self.imload_inputs):
+            if self.sender() in option[0]:
+                filename_filter = self.imsource.gui_inputs[i]['filter']
+                target_textbox = option[0][2]
+
+
+        filedialog = qt.QFileDialog(self)
+        filedialog.setAcceptMode(0)
+        filedialog.setFileMode(1)
+        filedialog.setWindowTitle('Select File')
+        filedialog.setNameFilter(filename_filter)
+        filedialog.setLabelText(3,'Select')
+        filedialog.exec_()
+        if filedialog.result() == 1:
+            target_textbox.setText(str(filedialog.selectedFiles()[0]))
+
+
+    def transform_image(self,data):
+
+        # First, back up the point pair locations in original coordinates.
+        x = []
+        y = []
+        # Loop over sub-fields
+        for i in range(len(self.pointpicker.PointPairs.imagepoints)):
+                    # Loop over points
+                    for j in range(len(self.pointpicker.PointPairs.imagepoints[i])):
+                        if self.pointpicker.PointPairs.imagepoints[i][j] is not None:
+                                x.append(self.pointpicker.PointPairs.imagepoints[i][j][0])
+                                y.append(self.pointpicker.PointPairs.imagepoints[i][j][1])
+
+        x,y = self.image.transform.display_to_original_coords(x,y)
+
+        if self.sender() is self.im_flipud:
+            if len(self.image.transform.transform_actions) > 0:
+                if self.image.transform.transform_actions[-1] == 'flip_up_down':
+                    del self.image.transform.transform_actions[-1]
+                else:
+                    self.image.transform.transform_actions.append('flip_up_down')
+            else:
+                self.image.transform.transform_actions.append('flip_up_down')
+
+        elif self.sender() is self.im_fliplr:
+            if len(self.image.transform.transform_actions) > 0:
+                if self.image.transform.transform_actions[-1] == 'flip_left_right':
+                    del self.image.transform.transform_actions[-1]
+                else:
+                    self.image.transform.transform_actions.append('flip_left_right')
+            else:
+                self.image.transform.transform_actions.append('flip_left_right')
+
+        elif self.sender() is self.im_rotate_button:
+            if len(self.image.transform.transform_actions) > 0:
+                if 'rotate_clockwise' in self.image.transform.transform_actions[-1]:
+                    current_angle = int(self.image.transform.transform_actions[-1].split('_')[2])
+                    del self.image.transform.transform_actions[-1]
+                    new_angle = self.im_rotate_angle.value()
+                    total_angle = current_angle + new_angle
+                    if total_angle > 270:
+                        total_angle = total_angle - 360
+
+                    if new_angle > 0:
+                        self.image.transform.transform_actions.append('rotate_clockwise_' + str(total_angle))
+                else:
+                    self.image.transform.transform_actions.append('rotate_clockwise_' + str(self.im_rotate_angle.value()))
+            else:
+                self.image.transform.transform_actions.append('rotate_clockwise_' + str(self.im_rotate_angle.value()))
+
+        elif self.sender() is self.im_y_stretch_button:
+            sideways = False
+            for action in self.image.transform.transform_actions:
+                if action.lower() in ['rotate_clockwise_90','rotate_clockwise_270']:
+                    sideways = not sideways
+            if sideways:
+                self.image.transform.pixel_aspectratio = self.image.transform.pixel_aspectratio/self.im_y_stretch_factor.value()
+            else:
+                self.image.transform.pixel_aspectratio = self.image.transform.pixel_aspectratio*self.im_y_stretch_factor.value()
+
+        elif self.sender() is self.im_reset:
+            self.image.transform.transform_actions = []
+            self.image.transform.pixel_aspectratio = 1
+
+        if self.overlay_checkbox.isChecked():
+            self.overlay_checkbox.setChecked(False)
+
+        # Transform all the point pairs in to the new coordinates
+        x,y = self.image.transform.original_to_display_coords(x,y)
+        ind = 0
+        # Loop over sub-fields
+        for i in range(len(self.pointpicker.PointPairs.imagepoints)):
+                    # Loop over points
+                    for j in range(len(self.pointpicker.PointPairs.imagepoints[i])):
+                        if self.pointpicker.PointPairs.imagepoints[i][j] is not None:
+                            self.pointpicker.PointPairs.imagepoints[i][j][0] = x[ind]
+                            self.pointpicker.PointPairs.imagepoints[i][j][1] = y[ind]
+                            ind = ind + 1
+
+        # Update the image and point pairs
+        self.pointpicker.init_image(self.image,hold_position=True)
+        if self.use_chessboard_checkbox.isChecked():
+            self.toggle_chessboard_constraints(True)
+
+        self.pointpicker.UpdateFromPPObject(False) 
+        self.update_image_info_string()
+
+
+
+
+
+
+    def toggle_overlay(self,show):
+
+        if show:
+
+            if self.pointpicker.fit_overlay_actor is None:
+
+                oversampling = 1.#self.overlay_combobox_options[self.overlay_oversampling_combobox.currentIndex()]
+                self.statusbar.showMessage('Rendering wireframe overlay...')
+                self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
+                self.app.processEvents()
+                try:
+                    OverlayImage = image.from_array(render.render_cam_view(self.cadmodel,self.raycaster.fitresults,Edges=True,Transparency=True,Verbose=False,EdgeColour=(0,0,1),oversampling=oversampling,ScreenSize=self.screensize))
+
+                    self.pointpicker.fit_overlay_actor,self.pointpicker.fit_overlay_resizer = OverlayImage.get_vtkobjects()
+
+                    self.pointpicker.fit_overlay_actor.SetPosition(self.pointpicker.ImageActor.GetPosition())
+                    self.pointpicker.fit_overlay_resizer.SetOutputDimensions(self.pointpicker.ImageResizer.GetOutputDimensions())
+                    self.pointpicker.Renderer_2D.AddActor(self.pointpicker.fit_overlay_actor)
+
+                    self.refresh_vtk()
+                        
+
+                except MemoryError:
+                    self.pointpicker.fit_overlay_actor = None
+                    dialog = qt.QMessageBox(self)
+                    dialog.setStandardButtons(qt.QMessageBox.Ok)
+                    dialog.setWindowTitle('Calcam - Memory Error')
+                    dialog.setTextFormat(qt.Qt.RichText)
+                    dialog.setText('Insufficient memory to render wireframe overlay.')
+                    text = 'Try using a lower resolution setting for the overlay.'
+                    if sys.maxsize < 2**32:
+                        text = text + ' Switching to 64-bit python is highly recommended when working with large data.'
+                    dialog.setInformativeText(text)
+                    dialog.setIcon(qt.QMessageBox.Warning)
+                    dialog.exec_()
+                    self.overlay_checkbox.setChecked(False) 
+                
+                except:
+                    self.pointpicker.fit_overlay_actor = None
+                    self.statusbar.clearMessage()
+                    self.overlay_checkbox.setChecked(False) 
+                    self.app.restoreOverrideCursor()
+                    raise
+
+
+                self.statusbar.clearMessage()
+                self.app.restoreOverrideCursor()
+
+            else:
+
+                self.pointpicker.Renderer_2D.AddActor(self.pointpicker.fit_overlay_actor)
+                self.refresh_vtk()
+
+        else:
+            
+            self.pointpicker.Renderer_2D.RemoveActor(self.pointpicker.fit_overlay_actor)
+            self.refresh_vtk()   
+
+
+
+
+    def update_cad_status(self,message):
+
+        if message is not None:
+            self.statusbar.showMessage(message)
+            self.app.processEvents()
+        else:
+            self.statusbar.clearMessage()
+            self.app.processEvents()
+
+
+    def toggle_hist_eq(self,check_state):
+
+        # Enable / disable adaptive histogram equalisation
+        if check_state == qt.Qt.Checked:
+            self.image.postprocessor = image_filters.hist_eq()
+        else:
+            self.image.postprocessor = None
+
+        self.pointpicker.init_image(self.image,hold_position=True)
+
+
+
+
+    def build_imload_gui(self,index):
+
+        layout = self.image_load_options.layout()
+        for widgets,_ in self.imload_inputs:
+            for widget in widgets:
+                layout.removeWidget(widget)
+                widget.close()
+
+        #layout = qt.QGridLayout(self.image_load_options)
+        self.imsource = image.image_sources[index]
+
+        self.imload_inputs = []
+
+        row = 0
+        for option in self.imsource.gui_inputs:
+
+            labelwidget = qt.QLabel(option['label'] + ':')
+            layout.addWidget(labelwidget,row,0)
+
+            if option['type'] == 'filename':
+                button = qt.QPushButton('Browse...')
+                button.clicked.connect(self.browse_for_file)
+                button.setMaximumWidth(80)
+                layout.addWidget(button,row+1,1)
+                fname = qt.QLineEdit()
+                if 'default' in option:
+                    fname.setText(option['default'])
+                layout.addWidget(fname,row,1)
+                self.imload_inputs.append( ([labelwidget,button,fname],fname.text ) )
+                row = row + 2
+            elif option['type'] == 'float':
+                valbox = qt.QDoubleSpinBox()
+                valbox.setButtonSymbols(qt.QAbstractSpinBox.NoButtons)
+                if 'limits' in option:
+                    valbox.setMinimum(option['limits'][0])
+                    valbox.setMaximum(option['limits'][1])
+                if 'default' in option:
+                    valbox.setValue(option['default'])
+                if 'decimals' in option:
+                    valbox.setDecimals(option['decimals'])
+                layout.addWidget(valbox,row,1)
+                self.imload_inputs.append( ([labelwidget,valbox],valbox.value ) )
+                row = row + 1
+            elif option['type'] == 'int':
+                valbox = qt.QSpinBox()
+                valbox.setButtonSymbols(qt.QAbstractSpinBox.NoButtons)
+                if 'limits' in option:
+                    valbox.setMinimum(option['limits'][0])
+                    valbox.setMaximum(option['limits'][1])
+                if 'default' in option:
+                    valbox.setValue(option['default'])
+                layout.addWidget(valbox,row,1)
+                self.imload_inputs.append( ([labelwidget,valbox],valbox.value ) )
+                row = row + 1
+            elif option['type'] == 'string':
+                ted = qt.QLineEdit()
+                if 'default' in option:
+                    ted.setText(option['default'])
+                layout.addWidget(ted,row,1)
+                self.imload_inputs.append( ([labelwidget,ted],ted.text ) )
+                row = row + 1
+            elif option['type'] == 'bool':
+                checkbox = qt.QCheckBox()
+                if 'default' in option:
+                    checkbox.setChecked(option['default'])
+                layout.addWidget(checkbox,row,1)
+                self.imload_inputs.append( ([labelwidget,checkbox],checkbox.isChecked ) )
+                row = row + 1
+            elif option['type'] == 'choice':
+                cb = qt.QComboBox()
+                set_ind = -1
+                for i,it in enumerate(option['choices']):
+                    cb.addItem(it)
+                    if 'default' in option:
+                        if option['default'] == it:
+                            set_ind = i
+                cb.setCurrentIndex(set_ind)
+                layout.addWidget(cb,row,1)
+                self.imload_inputs.append( ([labelwidget,cb],cb.currentText) )
+                row = row + 1
+
+ 
+
+
+    def update_pixel_size(self):
+        if self.pixel_size_checkbox.isChecked():
+            self.image.pixel_size = self.pixel_size_box.value() / 1e6
+        else:
+            self.image.pixel_size = None
+
+
+
+
+
 
 # Class for the window
 class LauncherWindow(qt.QDialog):
@@ -4001,6 +4854,7 @@ class LauncherWindow(qt.QDialog):
         self.cad_viewer_button.clicked.connect(self.launch_cad_viewer)
         self.view_designer_button.clicked.connect(self.launch_view_designer)
         self.userguide_button.clicked.connect(self.open_manual)
+        self.image_analysis_button.clicked.connect(self.launch_image_analysis)
 
         # Open the window!
         self.show()
@@ -4022,6 +4876,8 @@ class LauncherWindow(qt.QDialog):
     def open_manual(self):
         webbrowser.open(os.path.join(os.path.dirname(paths.calcampath),'docs','UserGuide.pdf'))
 
+    def launch_image_analysis(self):
+        subprocess.Popen([sys.executable,os.path.join(paths.calcampath,'gui.py'),'launch_image_analysis'],stdin=None, stdout=self.devnull, stderr=self.devnull)
 
 def start_gui():
     app = qt.QApplication([''])
@@ -4039,6 +4895,8 @@ if __name__ == '__main__':
             start_view_designer()
         elif sys.argv[1].lower() == 'launch_alignment_calib':
             start_alignment_calib()
+        elif sys.argv[1].lower() == 'launch_image_analysis':
+            start_image_analysis()
         else:
             start_gui()     
     else:

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>774</width>
-    <height>190</height>
+    <height>212</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -36,20 +36,6 @@
       <enum>QFrame::Raised</enum>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
-      <item row="2" column="1">
-       <widget class="QPushButton" name="cad_viewer_button">
-        <property name="text">
-         <string>CAD Model Viewer</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="3">
-       <widget class="QLabel" name="label_5">
-        <property name="text">
-         <string>Perform calibrations by manually aligning images and CAD render.</string>
-        </property>
-       </widget>
-      </item>
       <item row="1" column="1">
        <widget class="QPushButton" name="alignment_calib_button">
         <property name="text">
@@ -64,17 +50,17 @@
         </property>
        </widget>
       </item>
-      <item row="5" column="1">
-       <widget class="QPushButton" name="userguide_button">
+      <item row="2" column="1">
+       <widget class="QPushButton" name="cad_viewer_button">
         <property name="text">
-         <string>User Guide</string>
+         <string>CAD Model Viewer</string>
         </property>
        </widget>
       </item>
-      <item row="5" column="3">
-       <widget class="QLabel" name="label_4">
+      <item row="1" column="3">
+       <widget class="QLabel" name="label_5">
         <property name="text">
-         <string>Open the CalCam user guide &amp; API reference</string>
+         <string>Perform calibrations by manually aligning images and CAD render.</string>
         </property>
        </widget>
       </item>
@@ -85,10 +71,31 @@
         </property>
        </widget>
       </item>
+      <item row="6" column="3">
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>Open the CalCam user guide &amp; API reference</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="1">
+       <widget class="QPushButton" name="userguide_button">
+        <property name="text">
+         <string>User Guide</string>
+        </property>
+       </widget>
+      </item>
       <item row="0" column="1">
        <widget class="QPushButton" name="calcam_button">
         <property name="text">
          <string>Calibration Tool (Point Fitting)</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="3">
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>View CAD data including plotting ray-traced sight lines, etc.</string>
         </property>
        </widget>
       </item>
@@ -99,10 +106,17 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="3">
-       <widget class="QLabel" name="label_2">
+      <item row="5" column="3">
+       <widget class="QLabel" name="label_6">
         <property name="text">
-         <string>View CAD data including plotting ray-traced sight lines, etc.</string>
+         <string>Use a saved calibration to map between image and lab coordinates.</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1">
+       <widget class="QPushButton" name="image_analysis_button">
+        <property name="text">
+         <string>Image Analyser</string>
         </property>
        </widget>
       </item>
