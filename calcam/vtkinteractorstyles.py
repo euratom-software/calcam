@@ -3888,9 +3888,9 @@ class ImageAnalyser(vtk.vtkInteractorStyleTerrain):
             visible = [True] * self.gui_window.raycaster.fitresults.nfields
             self.clear_cursors_2D()
             self.place_cursor_2D(im_coords)
-            raydata = self.gui_window.raycaster.raycast_pixels(im_coords[0],im_coords[1])
-            coords_3d = raydata.ray_end_coords
-            if raydata.get_ray_lengths() < self.gui_window.cadmodel.max_ray_length-1e-3:
+            raydata = self.gui_window.raycaster.raycast_pixels([im_coords[0]],[im_coords[1]])
+            coords_3d = raydata.ray_end_coords[0]
+            if raydata.get_ray_lengths()[0] < self.gui_window.cadmodel.max_ray_length-1e-3:
                 show = True
             else:
                 show = False
@@ -3932,12 +3932,12 @@ class ImageAnalyser(vtk.vtkInteractorStyleTerrain):
             if np.any(np.isnan(image_pos_nocheck[i][0])):
                 visible[i] = False
                 continue
-            raydata = self.gui_window.raycaster.raycast_pixels(image_pos_nocheck[i][0][0],image_pos_nocheck[i][0][1])
+            raydata = self.gui_window.raycaster.raycast_pixels([image_pos_nocheck[i][0][0]],[image_pos_nocheck[i][0][1]])
             sightline = True
             visible[i] =True
             if np.any(np.isnan(image_pos[i][0])):
                 visible[i] = False
-                intersection_coords = raydata.ray_end_coords
+                intersection_coords = raydata.ray_end_coords[0]
 
             self.place_cursor_2D(image_pos_nocheck[i][0],visible=visible[i])
                 
@@ -4002,24 +4002,24 @@ class ImageAnalyser(vtk.vtkInteractorStyleTerrain):
 
         if show_sightlines:
             for field,cursor in enumerate(self.cursor2D):
-                raydata = self.gui_window.raycaster.raycast_pixels(cursor[3][0],cursor[3][1])
-                if raydata.get_ray_lengths() < self.gui_window.cadmodel.max_ray_length-1e-3:
+                raydata = self.gui_window.raycaster.raycast_pixels([cursor[3][0]],[cursor[3][1]])
+                if raydata.get_ray_lengths()[0] < self.gui_window.cadmodel.max_ray_length-1e-3:
                     self.sightlines.append((vtk.vtkLineSource(),vtk.vtkPolyDataMapper(),vtk.vtkActor()))
                     pupilpos = self.gui_window.raycaster.fitresults.get_pupilpos(field=field)
                     self.sightlines[-1][0].SetPoint1(pupilpos[0],pupilpos[1],pupilpos[2])
-                    self.sightlines[-1][0].SetPoint2(raydata.ray_end_coords[0],raydata.ray_end_coords[1],raydata.ray_end_coords[2])
+                    self.sightlines[-1][0].SetPoint2(raydata.ray_end_coords[0][0],raydata.ray_end_coords[0][1],raydata.ray_end_coords[0][2])
                     self.sightlines[-1][1].SetInputConnection(self.sightlines[-1][0].GetOutputPort())
                     self.sightlines[-1][2].SetMapper(self.sightlines[-1][1])
                     self.sightlines[-1][2].GetProperty().SetLineWidth(visible_linewidth)
                     self.Renderer.AddActor(self.sightlines[-1][2])
 
                     self.sightlines.append((vtk.vtkLineSource(),vtk.vtkPolyDataMapper(),vtk.vtkActor()))
-                    endpos = raydata.ray_end_coords - pupilpos
+                    endpos = raydata.ray_end_coords[0] - pupilpos
                     endpos = endpos / np.sqrt(np.sum(endpos**2))
                     endpos = pupilpos + self.gui_window.cadmodel.max_ray_length * endpos
 
                     self.sightlines[-1][0].SetPoint1(endpos[0],endpos[1],endpos[2])
-                    self.sightlines[-1][0].SetPoint2(raydata.ray_end_coords[0],raydata.ray_end_coords[1],raydata.ray_end_coords[2])
+                    self.sightlines[-1][0].SetPoint2(raydata.ray_end_coords[0][0],raydata.ray_end_coords[0][1],raydata.ray_end_coords[0][2])
                     self.sightlines[-1][1].SetInputConnection(self.sightlines[-1][0].GetOutputPort())
                     self.sightlines[-1][2].SetMapper(self.sightlines[-1][1])
                     self.sightlines[-1][2].GetProperty().SetLineWidth(invisible_linewidth)
@@ -4031,7 +4031,7 @@ class ImageAnalyser(vtk.vtkInteractorStyleTerrain):
                     self.sightlines.append((vtk.vtkLineSource(),vtk.vtkPolyDataMapper(),vtk.vtkActor()))
                     pupilpos = self.gui_window.raycaster.fitresults.get_pupilpos(field=field)
                     self.sightlines[-1][0].SetPoint1(pupilpos[0],pupilpos[1],pupilpos[2])
-                    self.sightlines[-1][0].SetPoint2(raydata.ray_end_coords[0],raydata.ray_end_coords[1],raydata.ray_end_coords[2])
+                    self.sightlines[-1][0].SetPoint2(raydata.ray_end_coords[0][0],raydata.ray_end_coords[0][1],raydata.ray_end_coords[0][2])
                     self.sightlines[-1][1].SetInputConnection(self.sightlines[-1][0].GetOutputPort())
                     self.sightlines[-1][2].SetMapper(self.sightlines[-1][1])
                     self.sightlines[-1][2].GetProperty().SetLineWidth(invisible_linewidth)
@@ -4379,11 +4379,6 @@ class ImageAnalyser(vtk.vtkInteractorStyleTerrain):
 
         self.update_current_point()
         self.update_n_points()
-
-
-
-
-
 
 
 
