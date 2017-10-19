@@ -3479,7 +3479,7 @@ class ViewAligner(vtk.vtkInteractorStyleTerrain):
         self.view_target_dummy = True
 
         if self.gui_window is not None:
-            self.gui_window.update_viewport_info(self.Camera3D.GetPosition(),self.get_view_target(),self.Camera3D.GetRoll())
+            self.gui_window.update_viewport_info(self.Camera3D.GetPosition(),self.get_view_target(),self.Camera3D.GetViewUp())
 
         
     def free_references(self):
@@ -3496,7 +3496,7 @@ class ViewAligner(vtk.vtkInteractorStyleTerrain):
     def middleButtonRelease(self,obj,event):
         self.OnMiddleButtonUp()
         if self.gui_window is not None:
-            self.gui_window.update_viewport_info(self.Camera3D.GetPosition(),self.get_view_target(),self.Camera3D.GetRoll())
+            self.gui_window.update_viewport_info(self.Camera3D.GetPosition(),self.get_view_target(),self.Camera3D.GetViewUp())
         self.gui_window.refresh_vtk()
 
     # On the CAD view, right click+drag to rotate (usually on left button in this interactorstyle)
@@ -3513,7 +3513,7 @@ class ViewAligner(vtk.vtkInteractorStyleTerrain):
         self.OnLeftButtonUp()
         #self.Camera3D.SetRoll(45)
         if self.gui_window is not None:
-            self.gui_window.update_viewport_info(self.Camera3D.GetPosition(),self.get_view_target(),self.Camera3D.GetRoll())
+            self.gui_window.update_viewport_info(self.Camera3D.GetPosition(),self.get_view_target(),self.Camera3D.GetViewUp())
 
         self.gui_window.refresh_vtk()
 
@@ -3529,7 +3529,7 @@ class ViewAligner(vtk.vtkInteractorStyleTerrain):
 
 
         if self.gui_window is not None:
-            self.gui_window.update_viewport_info(self.Camera3D.GetPosition(),self.get_view_target(zoom=True),self.Camera3D.GetRoll())
+            self.gui_window.update_viewport_info(self.Camera3D.GetPosition(),self.get_view_target(zoom=True),self.Camera3D.GetViewUp())
 
         self.gui_window.refresh_vtk()
 
@@ -3545,7 +3545,7 @@ class ViewAligner(vtk.vtkInteractorStyleTerrain):
 
 
         if self.gui_window is not None:
-            self.gui_window.update_viewport_info(self.Camera3D.GetPosition(),self.get_view_target(zoom=True),self.Camera3D.GetRoll())
+            self.gui_window.update_viewport_info(self.Camera3D.GetPosition(),self.get_view_target(zoom=True),self.Camera3D.GetViewUp())
 
         self.gui_window.refresh_vtk()
 
@@ -3660,7 +3660,7 @@ class ViewAligner(vtk.vtkInteractorStyleTerrain):
                 self.gui_window.refresh_vtk()
 
 
-class ImageAnalyser(vtk.vtkInteractorStyleTerrain):
+class ImageAnalyser(vtk.vtkInteractorStyleTrackballCamera):
  
     def __init__(self,parent=None):
         # Set callbacks for all the controls

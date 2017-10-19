@@ -3235,8 +3235,6 @@ class AlignmentCalibWindow(qt.QMainWindow):
             self.image_sources_list.addItem(imsource.gui_display_name)
         self.image_sources_list.setCurrentIndex(0)
 
-        self.base_cam_roll = 0.
-
         # Start the GUI!
         self.show()
         self.viewdesigner.DoInit(self.renderer,self)
@@ -3271,9 +3269,7 @@ class AlignmentCalibWindow(qt.QMainWindow):
                 # Set to that view
                 self.camera.SetPosition(self.cadmodel.cam_pos_default)
                 self.camera.SetFocalPoint(self.cadmodel.cam_target_default)
-                #self.camera.SetRoll(0)
                 self.camera.SetViewUp(0,0,1)
-                self.base_cam_roll = self.camera.GetRoll()
 
             except:
                 try:
@@ -3283,7 +3279,6 @@ class AlignmentCalibWindow(qt.QMainWindow):
                     Cx = view.fit_params[0].cam_matrix[0,2]
                     Cy = view.fit_params[0].cam_matrix[1,2]
                     self.camera.SetFocalPoint(view.get_pupilpos() + view.get_los_direction(Cx,Cy,ForceField=0))
-                    self.camera.SetRoll(0)
                     self.camera.SetViewUp(-1.*view.get_cam_to_lab_rotation()[:,1])
                 except:
                     self.viewlist.setCurrentIndex(0)
@@ -3291,9 +3286,21 @@ class AlignmentCalibWindow(qt.QMainWindow):
         else:
             self.camera.SetPosition((self.camX.value(),self.camY.value(),self.camZ.value()))
             self.camera.SetFocalPoint((self.tarX.value(),self.tarY.value(),self.tarZ.value()))
-            self.camera.SetRoll(self.camRoll.value()+self.base_cam_roll)
 
-        self.update_viewport_info(self.camera.GetPosition(),self.camera.GetFocalPoint(),self.camera.GetRoll())
+            # View up vector is in the plane whos normal is the view direction,
+            # and the angle between the up vector and the projection of Z on that plane is the camera roll.
+            view_direction = self.camera.GetDirectionOfProjection()
+            if np.abs(view_direction[2]) < 0.99:
+                z_projection = np.array([ -view_direction[0]*view_direction[2], -view_direction[1]*view_direction[2],1-view_direction[2]**2 ])
+            else:
+                z_projection = np.array([ 1.-view_direction[0]**2, -view_direction[0]*view_direction[1],-view_direction[2]*view_direction[0]])
+            upvec = rotate_3D(z_projection,view_direction,self.camRoll.value())
+            self.camera.SetViewUp(upvec)
+            roll = self.camera.GetRoll()
+            self.camera.SetViewUp(0,0,1)
+            self.camera.SetRoll(roll)
+
+        self.update_viewport_info(self.camera.GetPosition(),self.camera.GetFocalPoint(),self.camera.GetViewUp())
 
         self.refresh_vtk()
 
@@ -3822,7 +3829,8 @@ class AlignmentCalibWindow(qt.QMainWindow):
         else:
             self.cadview_header.show()
 
-    def update_viewport_info(self,campos,camtar,camroll):
+    def update_viewport_info(self,campos,camtar,upvec):
+
 
         self.camX.blockSignals(True)
         self.camY.blockSignals(True)
@@ -3839,7 +3847,23 @@ class AlignmentCalibWindow(qt.QMainWindow):
         self.tarX.setValue(camtar[0])
         self.tarY.setValue(camtar[1])
         self.tarZ.setValue(camtar[2])
-        self.camRoll.setValue(camroll-self.base_cam_roll)
+
+        view_direction = np.array(camtar) - np.array(campos)
+        view_direction = view_direction / np.sqrt(np.sum(view_direction**2))
+        if np.abs(view_direction[2]) < 0.99:
+            print('Z ref')
+            z_projection = np.array([ -view_direction[0]*view_direction[2], -view_direction[1]*view_direction[2],1-view_direction[2]**2 ])
+        else:
+            print('X ref')
+            z_projection = np.array([ 1.-view_direction[0]**2, -view_direction[0]*view_direction[1],-view_direction[2]*view_direction[0]])
+
+        h_projection = np.cross(z_projection,view_direction)
+        h_projection = h_projection / np.sqrt(np.sum(h_projection**2))
+        z_projection = z_projection / np.sqrt(np.sum(z_projection**2))
+        x = np.dot(upvec,z_projection)
+        y = np.dot(upvec,h_projection)
+        cam_roll = - np.arctan2(y,x) * 180 / 3.14159
+        self.camRoll.setValue(cam_roll)
 
         self.camX.blockSignals(False)
         self.camY.blockSignals(False)
@@ -4869,6 +4893,37 @@ def start_gui():
     app = qt.QApplication([''])
     window = LauncherWindow(app)   
     window.exec_()
+
+
+# Rotate a given point about the given axis by the given angle
+def rotate_3D(vect,axis,angle):
+
+    vect = np.array(vect)
+    vect_ = np.matrix(np.zeros([3,1]))
+    vect_[0,0] = vect[0]
+    vect_[1,0] = vect[1]
+    vect_[2,0] = vect[2]
+    axis = np.array(axis)
+
+    # Put angle in radians
+    angle = angle * 3.14159 / 180.
+
+    # Make sure the axis is normalised
+    axis = axis / np.sqrt(np.sum(axis**2))
+
+    # Make a rotation matrix!
+    R = np.matrix(np.zeros([3,3]))
+    R[0,0] = np.cos(angle) + axis[0]**2*(1 - np.cos(angle))
+    R[0,1] = axis[0]*axis[1]*(1 - np.cos(angle)) - axis[2]*np.sin(angle)
+    R[0,2] = axis[0]*axis[2]*(1 - np.cos(angle)) + axis[1]*np.sin(angle)
+    R[1,0] = axis[1]*axis[0]*(1 - np.cos(angle)) + axis[2]*np.sin(angle)
+    R[1,1] = np.cos(angle) + axis[1]**2*(1 - np.cos(angle))
+    R[1,2] = axis[1]*axis[2]*(1 - np.cos(angle)) - axis[0]*np.sin(angle)
+    R[2,0] = axis[2]*axis[0]*(1 - np.cos(angle)) - axis[1]*np.sin(angle)
+    R[2,1] = axis[2]*axis[1]*(1 - np.cos(angle)) + axis[0]*np.sin(angle)
+    R[2,2] = np.cos(angle) + axis[2]**2*(1 - np.cos(angle))
+
+    return np.array( R * vect_)
 
 
 if __name__ == '__main__':
