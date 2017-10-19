@@ -3102,7 +3102,17 @@ class ViewDesignerWindow(qt.QMainWindow):
         campos = np.matrix([[self.camX.value()],[self.camY.value()],[self.camZ.value()]])
         camtar = np.matrix([[self.tarX.value()],[self.tarY.value()],[self.tarZ.value()]])
 
-        self.virtualcamera.set_extrinsics(campos,camtar = camtar)
+        # We need to pass the view up direction to set_exirtinsics, but it isn't kept up-to-date by
+        # the VTK camera. So here we explicitly ask for it to be updated then pass the correct
+        # version to set_extrinsics, but then reset it back to what it was, to avoid ruining 
+        # the mouse interaction.
+        cam_roll = self.camera.GetRoll()
+        self.camera.OrthogonalizeViewUp()
+        upvec = np.array(self.camera.GetViewUp())
+        self.camera.SetViewUp(0,0,1)
+        self.camera.SetRoll(cam_roll)
+
+        self.virtualcamera.set_extrinsics(campos,upvec,camtar = camtar)
 
         # Now save!
         try:
@@ -3338,92 +3348,6 @@ class AlignmentCalibWindow(qt.QMainWindow):
         if filedialog.result() == 1:
             target_textbox.setText(str(filedialog.selectedFiles()[0]))
 
-    def transform_image(self,data):
-
-        # First, back up the point pair locations in original coordinates.
-        x = []
-        y = []
-        # Loop over sub-fields
-        for i in range(len(self.pointpicker.PointPairs.imagepoints)):
-                    # Loop over points
-                    for j in range(len(self.pointpicker.PointPairs.imagepoints[i])):
-                        if self.pointpicker.PointPairs.imagepoints[i][j] is not None:
-                                x.append(self.pointpicker.PointPairs.imagepoints[i][j][0])
-                                y.append(self.pointpicker.PointPairs.imagepoints[i][j][1])
-
-        x,y = self.image.transform.display_to_original_coords(x,y)
-
-        if self.sender() is self.im_flipud:
-            if len(self.image.transform.transform_actions) > 0:
-                if self.image.transform.transform_actions[-1] == 'flip_up_down':
-                    del self.image.transform.transform_actions[-1]
-                else:
-                    self.image.transform.transform_actions.append('flip_up_down')
-            else:
-                self.image.transform.transform_actions.append('flip_up_down')
-
-        elif self.sender() is self.im_fliplr:
-            if len(self.image.transform.transform_actions) > 0:
-                if self.image.transform.transform_actions[-1] == 'flip_left_right':
-                    del self.image.transform.transform_actions[-1]
-                else:
-                    self.image.transform.transform_actions.append('flip_left_right')
-            else:
-                self.image.transform.transform_actions.append('flip_left_right')
-
-        elif self.sender() is self.im_rotate_button:
-            if len(self.image.transform.transform_actions) > 0:
-                if 'rotate_clockwise' in self.image.transform.transform_actions[-1]:
-                    current_angle = int(self.image.transform.transform_actions[-1].split('_')[2])
-                    del self.image.transform.transform_actions[-1]
-                    new_angle = self.im_rotate_angle.value()
-                    total_angle = current_angle + new_angle
-                    if total_angle > 270:
-                        total_angle = total_angle - 360
-
-                    if new_angle > 0:
-                        self.image.transform.transform_actions.append('rotate_clockwise_' + str(total_angle))
-                else:
-                    self.image.transform.transform_actions.append('rotate_clockwise_' + str(self.im_rotate_angle.value()))
-            else:
-                self.image.transform.transform_actions.append('rotate_clockwise_' + str(self.im_rotate_angle.value()))
-
-        elif self.sender() is self.im_y_stretch_button:
-            sideways = False
-            for action in self.image.transform.transform_actions:
-                if action.lower() in ['rotate_clockwise_90','rotate_clockwise_270']:
-                    sideways = not sideways
-            if sideways:
-                self.image.transform.pixel_aspectratio = self.image.transform.pixel_aspectratio/self.im_y_stretch_factor.value()
-            else:
-                self.image.transform.pixel_aspectratio = self.image.transform.pixel_aspectratio*self.im_y_stretch_factor.value()
-
-        elif self.sender() is self.im_reset:
-            self.image.transform.transform_actions = []
-            self.image.transform.pixel_aspectratio = 1
-
-        if self.overlay_checkbox.isChecked():
-            self.overlay_checkbox.setChecked(False)
-
-        # Transform all the point pairs in to the new coordinates
-        x,y = self.image.transform.original_to_display_coords(x,y)
-        ind = 0
-        # Loop over sub-fields
-        for i in range(len(self.pointpicker.PointPairs.imagepoints)):
-                    # Loop over points
-                    for j in range(len(self.pointpicker.PointPairs.imagepoints[i])):
-                        if self.pointpicker.PointPairs.imagepoints[i][j] is not None:
-                            self.pointpicker.PointPairs.imagepoints[i][j][0] = x[ind]
-                            self.pointpicker.PointPairs.imagepoints[i][j][1] = y[ind]
-                            ind = ind + 1
-
-        # Update the image and point pairs
-        self.pointpicker.init_image(self.image,hold_position=True)
-        if self.use_chessboard_checkbox.isChecked():
-            self.toggle_chessboard_constraints(True)
-
-        self.pointpicker.UpdateFromPPObject(False) 
-        self.update_image_info_string()
 
     def build_imload_gui(self,index):
 
@@ -3590,6 +3514,7 @@ class AlignmentCalibWindow(qt.QMainWindow):
                     pass
             self.load_intrinsics_combobox.setCurrentIndex(0)
         self.update_intrinsics(redraw=False)
+        self.virtualcamera.transform = self.image.transform
 
 
     def update_intrinsics(self,redraw=True):
@@ -3644,9 +3569,6 @@ class AlignmentCalibWindow(qt.QMainWindow):
             self.virtualcamera.image_display_shape = (x_pixels,y_pixels)
             self.virtualcamera.fieldmask = np.zeros([y_pixels,x_pixels],dtype='uint8')
             self.virtualcamera.nfields = 1
-            self.virtualcamera.transform = CoordTransformer()
-            self.virtualcamera.transform.x_pixels = x_pixels
-            self.virtualcamera.transform.y_pixels = y_pixels
             self.virtualcamera.field_names = ['Image']
             self.current_intrinsics_combobox = self.pinhole_intrinsics
             self.image = self.image_original
@@ -3674,6 +3596,7 @@ class AlignmentCalibWindow(qt.QMainWindow):
 
         self.current_intrinsics_combobox.setChecked(True)
         self.camera.SetViewAngle(self.virtualcamera.get_fov(FullChipWithoutDistortion=True)[1])
+
         if redraw:
             self.refresh_vtk()
 
@@ -3851,10 +3774,8 @@ class AlignmentCalibWindow(qt.QMainWindow):
         view_direction = np.array(camtar) - np.array(campos)
         view_direction = view_direction / np.sqrt(np.sum(view_direction**2))
         if np.abs(view_direction[2]) < 0.99:
-            print('Z ref')
             z_projection = np.array([ -view_direction[0]*view_direction[2], -view_direction[1]*view_direction[2],1-view_direction[2]**2 ])
         else:
-            print('X ref')
             z_projection = np.array([ 1.-view_direction[0]**2, -view_direction[0]*view_direction[1],-view_direction[2]*view_direction[0]])
 
         h_projection = np.cross(z_projection,view_direction)
@@ -3962,7 +3883,8 @@ class AlignmentCalibWindow(qt.QMainWindow):
             self.image.transform.transform_actions = []
             self.image.transform.pixel_aspectratio = 1
 
-
+        self.virtualcamera.transform = self.image.transform
+        self.image_original.transform = self.image.transform
 
         # Update the image and point pairs
         cx = self.virtualcamera.fit_params[0].cam_matrix[0,2]
@@ -3984,7 +3906,17 @@ class AlignmentCalibWindow(qt.QMainWindow):
         campos = np.matrix([[self.camX.value()],[self.camY.value()],[self.camZ.value()]])
         camtar = np.matrix([[self.tarX.value()],[self.tarY.value()],[self.tarZ.value()]])
 
-        self.virtualcamera.set_extrinsics(campos,camtar = camtar,opt_axis=True)
+        # We need to pass the view up direction to set_exirtinsics, but it isn't kept up-to-date by
+        # the VTK camera. So here we explicitly ask for it to be updated then pass the correct
+        # version to set_extrinsics, but then reset it back to what it was, to avoid ruining 
+        # the mouse interaction.
+        cam_roll = self.camera.GetRoll()
+        self.camera.OrthogonalizeViewUp()
+        upvec = np.array(self.camera.GetViewUp())
+        self.camera.SetViewUp(0,0,1)
+        self.camera.SetRoll(cam_roll)
+
+        self.virtualcamera.set_extrinsics(campos,upvec,camtar = camtar,opt_axis=True)
 
         # Now save!
         try:

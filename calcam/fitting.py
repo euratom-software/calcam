@@ -617,10 +617,9 @@ class CalibResults:
         self.fieldmask = fitresults.fieldmask
 
 
-    def set_extrinsics(self,campos,camtar=None,view_dir=None,opt_axis = False):
+    def set_extrinsics(self,campos,upvec,camtar=None,view_dir=None,opt_axis = False):
 
-        # For now, point the optical centre at the current view target.
-        # This will be dodgy for intrinsics with very off-centre optical centres.
+
         if camtar is not None:
             w = np.squeeze(np.array(camtar) - np.array(campos))
         elif view_dir is not None:
@@ -629,6 +628,8 @@ class CalibResults:
             raise ValueError('Either viewing target or view direction must be specified!')
 
         w = w / np.sqrt(np.sum(w**2))
+        v = upvec / np.sqrt(np.sum(upvec**2))
+
 
         # opt_axis specifies whether the input campos or camtar are where we should
         # point the optical axis or the view centre. By defauly we assume the view centre.
@@ -655,20 +656,16 @@ class CalibResults:
         # rotation to be the identity.
             R = np.matrix([[1,0,0],[0,1,0],[0,0,1]])
 
-        det_plane_unitz = np.array([0,0,1]) - w[2]*w
-        det_plane_unitz = det_plane_unitz / np.sqrt(np.sum(det_plane_unitz**2))
-        det_plane_unitx = np.cross(np.squeeze(w),det_plane_unitz)
-        v = det_plane_unitz
 
         u = np.cross(w,v)
-
 
         Rmatrix = np.zeros([3,3])
         Rmatrix[:,0] = u
         Rmatrix[:,1] = -v
         Rmatrix[:,2] = w
-
         Rmatrix = np.matrix(Rmatrix)
+
+
         Rmatrix = Rmatrix * R
         campos = np.matrix(campos)
         if campos.shape[0] < campos.shape[1]:
@@ -1076,4 +1073,3 @@ class FieldFit:
             self.k2 = self.kc[1]
             self.k3 = self.kc[2]
             self.k4 = self.kc[3]
-    
