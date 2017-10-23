@@ -30,7 +30,7 @@ Might be expanded / become user-expandable some day.
 import cv2
 
 cv2_version = float('.'.join(cv2.__version__.split('.')[:2]))
-cv2_micro_version = int(cv2.__version__.split('.')[2])
+cv2_micro_version = int(cv2.__version__.split('.')[2].split('-')[0])
 
 class hist_eq():
 

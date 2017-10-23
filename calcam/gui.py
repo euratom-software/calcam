@@ -55,7 +55,7 @@ import webbrowser
 import subprocess
 
 cv2_version = float('.'.join(cv2.__version__.split('.')[:2]))
-cv2_micro_version = int(cv2.__version__.split('.')[2])
+cv2_micro_version = int(cv2.__version__.split('.')[2].split('-')[0])
 
 '''
 We start off with various useful functions which are used across the different GUIs.
@@ -1167,8 +1167,10 @@ class CalCamWindow(qt.QMainWindow):
         # Get a copy of the current image's field mask, if there is one
         if self.pointpicker.Image is not None:
             old_fieldmask = self.pointpicker.Image.fieldmask.copy()
+            old_shape = self.pointpicker.Image.transform.get_display_shape()
         else:
             old_fieldmask = np.zeros(1)
+            old_shape = None
 
         self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
         self.statusbar.showMessage('Loading image...')
@@ -1198,7 +1200,10 @@ class CalCamWindow(qt.QMainWindow):
                     new_name = newim.name + '({:d})'.format(i)
                 newim.name = new_name
 
-        if (newim.fieldmask.shape != old_fieldmask.shape) or (newim.fieldmask.max() != old_fieldmask.max()):
+        if old_shape is None:
+            old_shape = newim.transform.get_display_shape()
+
+        if newim.transform.get_display_shape()  != old_shape or (newim.fieldmask.max() != old_fieldmask.max()):
             self.pointpicker.clear_all()
             self.use_chessboard_checkbox.setChecked(False)
             self.chessboard_pointpairs = None
@@ -1548,6 +1553,7 @@ class CalCamWindow(qt.QMainWindow):
 
         self.pointpicker.UpdateFromPPObject(False) 
         self.update_image_info_string()
+        self.populate_pointpairs_list()
 
     def load_pointpairs(self):
         self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
