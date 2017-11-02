@@ -3228,6 +3228,8 @@ class AlignmentCalibWindow(qt.QMainWindow):
         self.pinhole_intrinsics.clicked.connect(self.update_intrinsics)
         self.load_intrinsics_combobox.currentIndexChanged.connect(self.update_intrinsics)
         self.focal_length_box.valueChanged.connect(self.update_intrinsics)
+        self.cx_box.valueChanged.connect(self.update_intrinsics)
+        self.cy_box.valueChanged.connect(self.update_intrinsics)
         self.pixel_size_box.valueChanged.connect(self.update_intrinsics)
         self.save_button.clicked.connect(self.save)
         self.load_chessboard_button.clicked.connect(self.update_chessboard_intrinsics)
@@ -3508,6 +3510,8 @@ class AlignmentCalibWindow(qt.QMainWindow):
         self.tabWidget.setTabEnabled(2,True)
 
         if reset_intrinsics:
+            self.cx_box.setValue(self.image.transform.get_display_shape()[0]/2)
+            self.cy_box.setValue(self.image.transform.get_display_shape()[1]/2)
             self.pinhole_intrinsics.setChecked(True)
             self.load_intrinsics_combobox.clear()
             # Populate intrinsics list
@@ -3529,6 +3533,8 @@ class AlignmentCalibWindow(qt.QMainWindow):
             self.load_chessboard_button.setEnabled(False)
             self.load_intrinsics_combobox.setEnabled(True)
             self.focal_length_box.setEnabled(False)
+            self.cx_box.setEnabled(False)
+            self.cy_box.setEnabled(False)
             try:
                 res = fitting.CalibResults(str(self.load_intrinsics_combobox.currentText()))
                 self.virtualcamera.import_intrinsics(res)
@@ -3550,6 +3556,8 @@ class AlignmentCalibWindow(qt.QMainWindow):
             self.load_chessboard_button.setEnabled(False)
             self.load_intrinsics_combobox.setEnabled(False)
             self.focal_length_box.setEnabled(True)
+            self.cx_box.setEnabled(True)
+            self.cy_box.setEnabled(True)
 
             x_pixels = self.image.transform.get_display_shape()[0]
             y_pixels = self.image.transform.get_display_shape()[1]
@@ -3563,8 +3571,8 @@ class AlignmentCalibWindow(qt.QMainWindow):
             cam_matrix[0,0] = focal_length
             cam_matrix[1,1] = focal_length
             cam_matrix[2,2] = 1.
-            cam_matrix[0,2] = x_pixels/2.
-            cam_matrix[1,2] = y_pixels/2.
+            cam_matrix[0,2] = self.cx_box.value()
+            cam_matrix[1,2] = self.cy_box.value()
 
             rvec = np.zeros([1,3])
             tvec = np.zeros([1,3])
@@ -3578,7 +3586,7 @@ class AlignmentCalibWindow(qt.QMainWindow):
             self.virtualcamera.field_names = ['Image']
             self.current_intrinsics_combobox = self.pinhole_intrinsics
             self.image = self.image_original
-            self.viewdesigner.init_image(self.image,opacity=self.im_opacity_slider.value() / 10.)
+            self.viewdesigner.init_image(self.image,opacity=self.im_opacity_slider.value() / 10.,cx=self.cx_box.value(),cy=self.cy_box.value())
 
         elif self.chessboard_intrinsics.isChecked():
 
@@ -3839,6 +3847,7 @@ class AlignmentCalibWindow(qt.QMainWindow):
 
     def transform_image(self,data):
 
+        c_orig = self.image.transform.display_to_original_coords(self.cx_box.value(),self.cy_box.value())
 
         if self.sender() is self.im_flipud:
             if len(self.image.transform.transform_actions) > 0:
@@ -3848,6 +3857,7 @@ class AlignmentCalibWindow(qt.QMainWindow):
                     self.image.transform.transform_actions.append('flip_up_down')
             else:
                 self.image.transform.transform_actions.append('flip_up_down')
+
 
         elif self.sender() is self.im_fliplr:
             if len(self.image.transform.transform_actions) > 0:
@@ -3884,7 +3894,7 @@ class AlignmentCalibWindow(qt.QMainWindow):
                 self.image.transform.pixel_aspectratio = self.image.transform.pixel_aspectratio/self.im_y_stretch_factor.value()
             else:
                 self.image.transform.pixel_aspectratio = self.image.transform.pixel_aspectratio*self.im_y_stretch_factor.value()
-
+            
         elif self.sender() is self.im_reset:
             self.image.transform.transform_actions = []
             self.image.transform.pixel_aspectratio = 1
@@ -3892,10 +3902,13 @@ class AlignmentCalibWindow(qt.QMainWindow):
         self.virtualcamera.transform = self.image.transform
         self.image_original.transform = self.image.transform
 
+
+        c_new = self.image.transform.original_to_display_coords(c_orig[0],c_orig[1])
+        self.cx_box.setValue(c_new[0])
+        self.cy_box.setValue(c_new[1])
+        
         # Update the image and point pairs
-        cx = self.virtualcamera.fit_params[0].cam_matrix[0,2]
-        cy = self.virtualcamera.fit_params[0].cam_matrix[1,2]
-        self.viewdesigner.init_image(self.image,opacity=self.im_opacity_slider.value() / 10.,cx=cx,cy=cy)
+        self.viewdesigner.init_image(self.image,opacity=self.im_opacity_slider.value() / 10.,cx=c_new[0],cy=c_new[1])
 
         self.update_image_info_string()
 
@@ -4533,7 +4546,7 @@ class ImageAnalyserWindow(qt.QMainWindow):
                     self.image.transform.transform_actions.append('flip_up_down')
             else:
                 self.image.transform.transform_actions.append('flip_up_down')
-
+            
         elif self.sender() is self.im_fliplr:
             if len(self.image.transform.transform_actions) > 0:
                 if self.image.transform.transform_actions[-1] == 'flip_left_right':
