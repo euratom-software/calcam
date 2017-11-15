@@ -686,6 +686,7 @@ class CalibResults:
     CheckVisible - whether to check if the points are occluded by features in the CAD model or not. If true, either RayData or RayCaster must also be provided.
                    If set to True, the pixel coordinates of points which are not visible to the camera (i.e. hidden behind something) are returned as NaN.
                    Default False, slows the calculation down a lot.
+    OutOfFrame - whether to return coordinates for points outside the edges of the sensor. Only works for single field images.
     RayData - Calcam raydata object, used if CheckVisible is true
     RayCaster - Calcam raycaster object, used if CheckVisible is true. Takes priority over RayData if both are specified.
     VisibilityMargin - this is a margin of error to allow when checking visibilty. I use this somewhere but I can't remember where.
@@ -696,7 +697,7 @@ class CalibResults:
     For simple images without a split field of view, this is a one-element list where output[0] has the pixel coords in it.
     Points not visible to the camera (off the image edge, or occluded and CheckVisible is enabled) get [nan,nan] returned for their coordinates.
     """
-    def project_points(self,ObjPoints,CheckVisible=False,RayData=None,RayCaster=None,VisibilityMargin=0,Coords='Display'):
+    def project_points(self,ObjPoints,CheckVisible=False,OutOfFrame=False,RayData=None,RayCaster=None,VisibilityMargin=0,Coords='Display'):
 
         models = []
         for field in self.fit_params:
@@ -706,6 +707,10 @@ class CalibResults:
 
         if RayData is None and RayCaster is None and CheckVisible:
                 raise Exception('To check point visibility either a RayData or RayCaster object is required!')
+
+        if OutOfFrame and self.nfields > 1:
+            raise Exception('Cannot return coordinates for out-of-frame points since this fit has multiple sub-fields!')
+
 
         # Check the input points are in a suitable format
         if np.ndim(ObjPoints) < 3:
@@ -729,14 +734,20 @@ class CalibResults:
                 PupilPos = self.get_pupilpos(field=field)
 
                 for i in range(len(ObjPoints[0])):
-                    # Check which part of the image the projected point is in
-                    try:
-                        pointfield = self.fieldmask[points[i][0][1].round().astype(int),points[i][0][0].round().astype(int)]
-                    # If it's outside the image, leave it as [nan,nan]
-                    except (IndexError):
-                        continue
-                    if points[i][0][1] < 0 or points[i][0][0] < 0:
-                        continue
+
+                    # If we only have 1 sub-field and want points even outside the FoV, we have to set the field number
+                    # manually instead of looking in fieldmask, which can produce IndexErrors.
+                    if OutOfFrame and field == 0:
+                        pointfield = 0
+                    else:
+                        # Check which part of the image the projected point is in
+                        try:
+                            pointfield = self.fieldmask[points[i][0][1].round().astype(int),points[i][0][0].round().astype(int)]
+                        # If it's outside the image, leave it as [nan,nan]
+                        except (IndexError):
+                            continue
+                        if points[i][0][1] < 0 or points[i][0][0] < 0:
+                            continue
 
                     # If it's in another field, leave it as [nan,nan]. Otherwise add it to the output.
                     if pointfield != field:
