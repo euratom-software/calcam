@@ -26,12 +26,8 @@ Written by Scott Silburn
 2015-05-17
 """
 
-try:
-    import vtk
-    vtkAvail=True
-except:
-    vtkAvail=False
 
+import vtk
 import numpy as np
 import time
 import sys
@@ -40,6 +36,13 @@ import paths
 from scipy.io.netcdf import netcdf_file
 import coordtransformer
 
+try:
+   from raysect.optical import World, Vector3D, Point3D
+   from raysect.core.ray import Ray
+   from raysect.primitive.mesh import import_stl, import_obj
+   use_raysect=True
+except:
+   use_raysect=False
 
 """ 
 Ray Caster class.
@@ -49,9 +52,6 @@ class RayCaster:
 	
     def __init__(self,FitResults = None,CADModel = None,verbose=True):
 		
-        # Check that vtk is working.
-        if not vtkAvail:
-            raise Exception('vtk library is not available; cannot create RayCaster object without it.')
 
         if FitResults is not None:
             self.fitresults = FitResults
@@ -61,18 +61,40 @@ class RayCaster:
         if CADModel is not None:
             self.set_cadmodel(CADModel)
         else:
+            self.raysect_world = None
             self.obbtree = None
             self.machine_name = None
 
         self.verbose = verbose
 
+
     def set_cadmodel(self,CADModel):
-        # Get bounding box tree object
-        self.obbtree = CADModel.get_obb_tree()
         # CAD model name
         self.machine_name = CADModel.machine_name
         # Ray length to use
         self.max_ray_length = CADModel.max_ray_length	
+                    
+        # If using raysect, create a raysect world and load the model
+        if use_raysect:
+            self.raysect_world = World()
+            if self.verbose:
+                print('Loading CAD mesh files in to RaySect...')
+            for feature in CADModel.features:
+                if feature[3] == True:
+                    if feature[1].endswith('stl'):
+                        import_stl(CADModel.filepath + feature[1],parent=self.raysect_world,scaling=CADModel.units,name=feature[0])
+                    elif feature[1].endswith('obj'):
+                        import_obj(CADModel.filepath + feature[1],parent=self.raysect_world,scaling=CADModel.units,name=feature[0])
+            if self.verbose:            
+                print(' -> Done.')          
+        else:
+            if self.verbose:
+                print('Getting CAD mesh bounding box tree...')
+            # Get bounding box tree object
+            self.obbtree = CADModel.get_obb_tree()
+            if self.verbose:
+                print(' -> Done.')
+
 
 
     def set_calibration(self,FitResults):	
@@ -83,7 +105,7 @@ class RayCaster:
 
         if self.fitresults is None:
             raise Exception('Camera fit results not set in RayCaster!')
-        if self.obbtree is None:
+        if self.obbtree is None and self.raysect_world is None:
             raise Exception('CAD model not set in RayCaster!')
 
         # If no pixels are specified, do the whole chip at the specified binning level.
@@ -122,7 +144,6 @@ class RayCaster:
         valid_mask = np.reshape(valid_mask,np.size(valid_mask),order='F')
         totpx = np.size(Results.x)
 
-        
 
         # New results object to store results
         if fullchip:
@@ -132,16 +153,13 @@ class RayCaster:
 
         Results.ray_end_coords = np.ndarray([np.size(x),3])
 
-        # Some vtk objects to store temporary results
-        points = vtk.vtkPoints()
-        cellIDs = vtk.vtkIdList()
-
         # Line of sight directions
         LOSDir = self.fitresults.get_los_direction(Results.x,Results.y,Coords='Display')
         Results.ray_start_coords = self.fitresults.get_pupilpos(Results.x,Results.y,Coords='Display')
+
 		
         if self.verbose:
-            sys.stdout.write('[Calcam RayCaster] Casting ' + str(np.size(x)) + ' rays: ')
+            sys.stdout.write('[Calcam RayCaster] Casting ' + str(np.size(x)) + ' rays using {:s}: '.format('RaySect' if use_raysect else 'VTK'))
 
             percentdone = 0.
             percentdonelast = 0
@@ -154,43 +172,90 @@ class RayCaster:
             starttime = time.time()
             last_upd_time = starttime
 
-        for ind in range(np.size(x)):
 
-            if not valid_mask[ind]:
-                Results.ray_end_coords[ind,:] = np.nan
-                Results.ray_start_coords[ind,:] = np.nan
-                continue
+        if use_raysect:
+            for ind in range(np.size(x)):
+                if not valid_mask[ind]:
+                    Results.ray_end_coords[ind,:] = np.nan
+                    Results.ray_start_coords[ind,:] = np.nan
+                    continue
+                
+                # Do the raycast and put the result in the output array  
+                origin = Point3D(Results.ray_start_coords[ind][0],Results.ray_start_coords[ind][1],Results.ray_start_coords[ind][2])
+                direction = Vector3D(LOSDir[ind][0],LOSDir[ind][1],LOSDir[ind][2])
+                intersection = self.raysect_world.hit(Ray(origin,direction))
+                
+                if intersection is not None:
+                    hit_coords = intersection.hit_point.transform(intersection.primitive_to_world)
+                    Results.ray_end_coords[ind,0] = hit_coords.x
+                    Results.ray_end_coords[ind,1] = hit_coords.y
+                    Results.ray_end_coords[ind,2] = hit_coords.z
+                else:
+                    Results.ray_end_coords[ind,:] = Results.ray_start_coords[ind] + self.max_ray_length * LOSDir[ind]
 
-            # Do the raycast and put the result in the output array
-            rayend = Results.ray_start_coords[ind] + self.max_ray_length * LOSDir[ind]
-            retval = self.obbtree.IntersectWithLine(Results.ray_start_coords[ind],rayend,points,cellIDs)
-
-            if abs(retval) > 0:
-                Results.ray_end_coords[ind,:] = points.GetPoint(0)
-            else:
-                Results.ray_end_coords[ind,:] = rayend
-
-            # Progress printing stuff
-            if self.verbose:
-                pxd = pxd + 1
-                percentdone = np.floor(100*pxd/totpx)
-                # Update every 1% done or 30 seconds, whichever comes sooner...
-                if (percentdone > percentdonelast or (time.time() - last_upd_time) > 30) and ind > 0:
-                    last_upd_time = time.time()
-                    time_per_step = (time.time() - starttime) / ind
-                    est_time = (time_per_step * (np.size(x) - ind))
-                    est_time_string = ''
-                    if est_time > 3600:
-                        est_time_string = est_time_string + '{0:.0f} hr '.format(np.floor(est_time/3600))
-                    if est_time > 60:
-                        est_time_string = est_time_string + '{0:.0f} min '.format((est_time - 3600*np.floor(est_time/3600))/60)
-                    else:
-                        est_time_string = '< 1 min '
-                    percentdonelast = percentdone
-                    sys.stdout.write('\b' * len(progress_string))
-                    progress_string = '{0:.0f}% done, '.format(percentdone) + est_time_string + 'remaining...'
-                    sys.stdout.write(progress_string)
-                    sys.stdout.flush()
+                # Progress printing stuff
+                if self.verbose:
+                    pxd = pxd + 1
+                    percentdone = np.floor(100*pxd/totpx)
+                    # Update every 1% done or 30 seconds, whichever comes sooner...
+                    if (percentdone > percentdonelast or (time.time() - last_upd_time) > 30) and ind > 0:
+                        last_upd_time = time.time()
+                        time_per_step = (time.time() - starttime) / ind
+                        est_time = (time_per_step * (np.size(x) - ind))
+                        est_time_string = ''
+                        if est_time > 3600:
+                            est_time_string = est_time_string + '{0:.0f} hr '.format(np.floor(est_time/3600))
+                        if est_time > 60:
+                            est_time_string = est_time_string + '{0:.0f} min '.format((est_time - 3600*np.floor(est_time/3600))/60)
+                        else:
+                            est_time_string = '< 1 min '
+                        percentdonelast = percentdone
+                        sys.stdout.write('\b' * len(progress_string))
+                        progress_string = '{0:.0f}% done, '.format(percentdone) + est_time_string + 'remaining...'
+                        sys.stdout.write(progress_string)
+                        sys.stdout.flush() 
+                       
+        else:
+            # Some vtk objects to store temporary results
+            points = vtk.vtkPoints()
+            cellIDs = vtk.vtkIdList()
+            for ind in range(np.size(x)):
+    
+                if not valid_mask[ind]:
+                    Results.ray_end_coords[ind,:] = np.nan
+                    Results.ray_start_coords[ind,:] = np.nan
+                    continue
+    
+                # Do the raycast and put the result in the output array
+                rayend = Results.ray_start_coords[ind] + self.max_ray_length * LOSDir[ind]
+                retval = self.obbtree.IntersectWithLine(Results.ray_start_coords[ind],rayend,points,cellIDs)
+    
+                if abs(retval) > 0:
+                    Results.ray_end_coords[ind,:] = points.GetPoint(0)
+                else:
+                    Results.ray_end_coords[ind,:] = rayend
+    
+                # Progress printing stuff
+                if self.verbose:
+                    pxd = pxd + 1
+                    percentdone = np.floor(100*pxd/totpx)
+                    # Update every 1% done or 30 seconds, whichever comes sooner...
+                    if (percentdone > percentdonelast or (time.time() - last_upd_time) > 30) and ind > 0:
+                        last_upd_time = time.time()
+                        time_per_step = (time.time() - starttime) / ind
+                        est_time = (time_per_step * (np.size(x) - ind))
+                        est_time_string = ''
+                        if est_time > 3600:
+                            est_time_string = est_time_string + '{0:.0f} hr '.format(np.floor(est_time/3600))
+                        if est_time > 60:
+                            est_time_string = est_time_string + '{0:.0f} min '.format((est_time - 3600*np.floor(est_time/3600))/60)
+                        else:
+                            est_time_string = '< 1 min '
+                        percentdonelast = percentdone
+                        sys.stdout.write('\b' * len(progress_string))
+                        progress_string = '{0:.0f}% done, '.format(percentdone) + est_time_string + 'remaining...'
+                        sys.stdout.write(progress_string)
+                        sys.stdout.flush()
 
         if self.verbose:
             tot_time = time.time() - starttime
@@ -209,6 +274,8 @@ class RayCaster:
 
         Results.ray_end_coords = np.reshape(Results.ray_end_coords,orig_shape + (3,),order='F')
         Results.ray_start_coords = np.reshape(Results.ray_start_coords,orig_shape + (3,),order='F')
+        Results.x = np.reshape(Results.x,orig_shape,order='F')
+        Results.y = np.reshape(Results.y,orig_shape,order='F')
 
         return Results
 
