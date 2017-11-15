@@ -3686,7 +3686,7 @@ class ImageAnalyser(vtk.vtkInteractorStyleTrackballCamera):
         self.Renderer = ren_3D
         self.Renderer_2D = ren_2D
         self.Camera3D = self.Renderer.GetActiveCamera()
-
+        self.flyto3d = False
         self.cursor2D = []
         self.cursor3D = None
         self.sightlines = []
@@ -3910,7 +3910,8 @@ class ImageAnalyser(vtk.vtkInteractorStyleTrackballCamera):
                 coords_2d = image_pos
 
             self.gui_window.update_position_info(coords_2d,coords_3d,visible)
-
+        if self.flyto3d:
+            self.Interactor.FlyTo(self.Renderer,coords_3d)
         self.update_sightlines(self.gui_window.show_los_checkbox.isChecked())
         self.gui_window.refresh_vtk()
 
@@ -3988,6 +3989,20 @@ class ImageAnalyser(vtk.vtkInteractorStyleTrackballCamera):
         else:
             self.cursor3D[2].VisibilityOff()
          
+
+    def set_view_to_cursor3d(self):
+        if self.cursor3D is not None:
+            cursorpos = np.array(self.cursor3D[0].GetFocalPoint())
+            pupilpos = np.array(self.gui_window.raycaster.fitresults.get_pupilpos(field=0))
+            campos = (cursorpos - pupilpos)
+            campos = campos / np.sqrt(np.sum(campos**2))
+            campos = cursorpos - campos
+            self.Camera3D.SetPosition(campos)
+            self.Camera3D.SetFocalPoint(cursorpos)
+            self.Camera3D.SetViewAngle(20)
+            self.Camera3D.SetViewUp(0,0,1)
+            self.Set3DCursorStyle()
+            self.gui_window.refresh_vtk()
 
 
     def update_sightlines(self,show_sightlines=True):
@@ -4081,7 +4096,7 @@ class ImageAnalyser(vtk.vtkInteractorStyleTrackballCamera):
     def ZoomIn(self,obj,event):
 
         if self.ChooseRenderer() == '3D':
-
+                im_only = False
                 # If ctrl + scroll, change the camera FOV
                 if self.Interactor.GetControlKey():
                     self.Camera3D.SetViewAngle(max(self.Camera3D.GetViewAngle()*0.9,1))
@@ -4098,6 +4113,7 @@ class ImageAnalyser(vtk.vtkInteractorStyleTrackballCamera):
                 self.Set3DCursorStyle()
                 self.gui_window.update_viewport_info(self.Camera3D.GetPosition(),self.get_view_target(),self.Camera3D.GetViewAngle())
         else:
+                im_only = True
                 # Zoom in to image keeping the point under the mouse fixed in place
                 zoomcoords = list(self.Interactor.GetEventPosition())
                 # The image renderer only takes up half of the VTK widget size, horizontally.
@@ -4126,13 +4142,14 @@ class ImageAnalyser(vtk.vtkInteractorStyleTrackballCamera):
                     self.fit_overlay_actor.SetPosition(self.ImageActor.GetPosition())
                     self.fit_overlay_resizer.SetOutputDimensions(self.ImageResizer.GetOutputDimensions())
 
-        self.gui_window.refresh_vtk()
+        self.gui_window.refresh_vtk(im_only)
 
 
 
     def ZoomOut(self,obj,event):
 
         if self.ChooseRenderer() == '3D':
+                im_only = False
 
                 # If ctrl + scroll, change the camera FOV
                 if self.Interactor.GetControlKey():
@@ -4149,6 +4166,7 @@ class ImageAnalyser(vtk.vtkInteractorStyleTrackballCamera):
                 self.Set3DCursorStyle()
                 self.gui_window.update_viewport_info(self.Camera3D.GetPosition(),self.get_view_target(),self.Camera3D.GetViewAngle())
         else:
+                im_only = True
                 # Only zoom out until the whole image is visible
                 if self.ZoomLevel > 1.:
 
@@ -4180,7 +4198,7 @@ class ImageAnalyser(vtk.vtkInteractorStyleTrackballCamera):
                         self.fit_overlay_actor.SetPosition(self.ImageActor.GetPosition())
                         self.fit_overlay_resizer.SetOutputDimensions(self.ImageResizer.GetOutputDimensions())
 
-        self.gui_window.refresh_vtk()
+        self.gui_window.refresh_vtk(im_only)
 
 
 
@@ -4388,7 +4406,16 @@ class ImageAnalyser(vtk.vtkInteractorStyleTrackballCamera):
         self.Camera3D.SetPosition(self.gui_window.raycaster.fitresults.get_pupilpos(field=field))
         self.Camera3D.SetFocalPoint(self.gui_window.raycaster.fitresults.get_pupilpos(field=field) + self.gui_window.raycaster.fitresults.get_los_direction(self.ImageOriginalSize[0]/2,self.ImageOriginalSize[1]/2,ForceField=field))
         self.Camera3D.SetDistance(orig_dist)
-        self.Camera3D.SetViewAngle(self.gui_window.raycaster.fitresults.get_fov(field=field)[1])
+        
+        im_aspect = float(self.Image.transform.get_display_shape()[0])/float(self.Image.transform.get_display_shape()[1])
+        win_aspect = float(self.WinSize[0]/2.)/float(self.WinSize[1])
+        if im_aspect > win_aspect:
+            self.Camera3D.UseHorizontalViewAngleOn()
+            self.Camera3D.SetViewAngle(self.gui_window.raycaster.fitresults.get_fov(field=field)[0])
+        else:
+            self.Camera3D.UseHorizontalViewAngleOff()
+            self.Camera3D.SetViewAngle(self.gui_window.raycaster.fitresults.get_fov(field=field)[1])
+        
         self.Camera3D.SetViewUp(-1.*self.gui_window.raycaster.fitresults.get_cam_to_lab_rotation(field)[:,1])
 
         self.Set3DCursorStyle()
