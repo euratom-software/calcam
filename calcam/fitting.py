@@ -280,6 +280,7 @@ class CalibResults:
             self.imagepoints = []
             self.type = 'manual_alignment'
             self.fitoptions = []
+            self.transform = None
 
     # Get the camera position in the lab (i.e. CAD model) coordinate system
     # Optional inputs: x_pixels, y_pixels - array-likes containing the X and Y pixel coordinates (floats) you want to know the pupil position for. 

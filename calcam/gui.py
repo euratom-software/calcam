@@ -3491,14 +3491,18 @@ class AlignmentCalibWindow(qt.QMainWindow):
 
         self.image_original = newim
 
-        if self.pinhole_intrinsics.isChecked() == False:
-            if self.virtualcamera.transform.x_pixels == self.image_original.transform.x_pixels and self.virtualcamera.transform.y_pixels == self.image_original.transform.y_pixels:
+        if self.virtualcamera.transform is None:
+            reset_intrinsics = True
+            self.image = self.image_original             
+        elif self.virtualcamera.transform.x_pixels == self.image_original.transform.x_pixels and self.virtualcamera.transform.y_pixels == self.image_original.transform.y_pixels:
+            if self.pinhole_intrinsics.isChecked() == False:
                 self.image = self.virtualcamera.undistort_image(self.image_original)
             else:
-                reset_intrinsics = True
                 self.image = self.image_original
         else:
-            self.image = self.image_original
+            reset_intrinsics = True
+            self.image = self.image_original 
+
 
         self.image_settings.show()
         self.hist_eq_checkbox.setCheckState(qt.Qt.Unchecked)
@@ -3520,9 +3524,14 @@ class AlignmentCalibWindow(qt.QMainWindow):
                     res = fitting.CalibResults(resname)
                     if res.nfields == 1 and res.transform.get_display_shape() == self.image_original.transform.get_display_shape():
                         self.load_intrinsics_combobox.addItem(resname)
-                except:
+                except Exception as e:
                     pass
             self.load_intrinsics_combobox.setCurrentIndex(0)
+            if self.load_intrinsics_combobox.count() > 0:
+                self.calcam_intrinsics.setEnabled(True)
+            else:
+                self.calcam_intrinsics.setEnabled(False)
+
         self.update_intrinsics(redraw=False)
         self.virtualcamera.transform = self.image.transform
 
@@ -3549,6 +3558,8 @@ class AlignmentCalibWindow(qt.QMainWindow):
                 self.focal_length_box.setValue(f*self.pixel_size_box.value()/1000)
             else:
                 self.focal_length_box.setValue(f)
+            self.cx_box.setValue(cx)
+            self.cy_box.setValue(cy)
 
             self.viewdesigner.init_image(self.image,opacity=self.im_opacity_slider.value() / 10.,cx=cx,cy=cy)
         
@@ -3607,7 +3618,12 @@ class AlignmentCalibWindow(qt.QMainWindow):
                 self.focal_length_box.setValue(f*self.pixel_size_box.value()/1000)
             else:
                 self.focal_length_box.setValue(f)
-
+            self.cx_box.setValue(cx)
+            self.cy_box.setValue(cy)
+            self.focal_length_box.setEnabled(False)
+            self.cx_box.setEnabled(False)
+            self.cy_box.setEnabled(False)
+            
         self.current_intrinsics_combobox.setChecked(True)
         self.camera.SetViewAngle(self.virtualcamera.get_fov(FullChipWithoutDistortion=True)[1])
 
