@@ -78,23 +78,29 @@ class RayCaster:
         if use_raysect:
             self.raysect_world = World()
             if self.verbose:
-                print('Loading CAD mesh files in to RaySect...')
+                sys.stdout.write('[Calcam RayCaster] Loading CAD mesh files in to RaySect...')
+                sys.stdout.flush()
             for feature in CADModel.features:
                 if feature[3] == True:
-                    if feature[1].endswith('stl'):
-                        import_stl(CADModel.filepath + feature[1],parent=self.raysect_world,scaling=CADModel.units,name=feature[0])
-                    elif feature[1].endswith('obj'):
-                        import_obj(CADModel.filepath + feature[1],parent=self.raysect_world,scaling=CADModel.units,name=feature[0])
-            if self.verbose:            
-                print(' -> Done.')          
+                    try:
+                        if feature[1].endswith('stl'):
+                            import_stl(CADModel.filepath + feature[1],parent=self.raysect_world,scaling=CADModel.units,name=feature[0])
+                        elif feature[1].endswith('obj'):
+                            import_obj(CADModel.filepath + feature[1],parent=self.raysect_world,scaling=CADModel.units,name=feature[0])
+                    except Exception as e:
+                        raise Exception('Error loading {:s}: {:s}'.format(feature[1],str(e)))
+            if self.verbose:
+                sys.stdout.write('Done.\n')
+                sys.stdout.flush()
         else:
             if self.verbose:
-                print('Getting CAD mesh bounding box tree...')
+                sys.stdout.write('[Calcam RayCaster] Getting CAD mesh bounding box tree...')
+                sys.stdout.flush()
             # Get bounding box tree object
             self.obbtree = CADModel.get_obb_tree()
             if self.verbose:
-                print(' -> Done.')
-
+                sys.stdout.write('Done.\n')
+                sys.stdout.flush()
 
 
     def set_calibration(self,FitResults):	
