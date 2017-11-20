@@ -35,6 +35,7 @@ import sys
 import inspect
 import shutil
 import socket
+import difflib
 
 # The CalCam user data directory goes in the user's homedir
 homedir = os.path.expanduser('~')
@@ -58,36 +59,36 @@ virtualcameras = os.path.join(root,'VirtualCameras')
 
 # Check whether these actually exist, and create them if they don't.
 if not os.path.isdir(pointpairs):
-	print('[Calcam Setup] Creating user data directory at ' + pointpairs)
-	os.makedirs(pointpairs)
+    print('[Calcam Setup] Creating user data directory at ' + pointpairs)
+    os.makedirs(pointpairs)
 
 if not os.path.isdir(fitresults):
-	print('[Calcam Setup] Creating user data directory at ' + fitresults)
-	os.makedirs(fitresults)
+    print('[Calcam Setup] Creating user data directory at ' + fitresults)
+    os.makedirs(fitresults)
 
 if not os.path.isdir(raydata):
-	print('[Calcam Setup] Creating user data directory at ' + raydata)
-	os.makedirs(raydata)
+    print('[Calcam Setup] Creating user data directory at ' + raydata)
+    os.makedirs(raydata)
 
 if not os.path.isdir(images):
-	print('[Calcam Setup] Creating user data directory at ' + images)	
-	os.makedirs(images)
+    print('[Calcam Setup] Creating user data directory at ' + images)	
+    os.makedirs(images)
 
 if not os.path.isdir(machine_geometry):
-	print('[Calcam Setup] Creating user code directory at ' + machine_geometry)
-	os.makedirs(machine_geometry)
+    print('[Calcam Setup] Creating user code directory at ' + machine_geometry)
+    os.makedirs(machine_geometry)
 
 if not os.path.isdir(image_sources):
-	print('[Calcam Setup] Creating user code directory at ' + image_sources)
-	os.makedirs(image_sources)
+    print('[Calcam Setup] Creating user code directory at ' + image_sources)
+    os.makedirs(image_sources)
 
 if not os.path.isdir(rois):
-	print('[Calcam Setup] Creating user data directory at ' + rois)
-	os.makedirs(rois)
+    print('[Calcam Setup] Creating user data directory at ' + rois)
+    os.makedirs(rois)
 
 if not os.path.isdir(virtualcameras):
-	print('[Calcam Setup] Creating user data directory at ' + virtualcameras)
-	os.makedirs(virtualcameras)
+    print('[Calcam Setup] Creating user data directory at ' + virtualcameras)
+    os.makedirs(virtualcameras)
 
 # Add the user code directories to our python path.
 sys.path.append(machine_geometry)
@@ -95,54 +96,65 @@ sys.path.append(image_sources)
 
 def get_save_list(save_type):
 
-	if save_type == 'PointPairs':
-		extension = '.csv'
-		location = pointpairs
-	elif save_type == 'FitResults':
-		extension = '.pickle'
-		location = fitresults
-	elif save_type == 'RayData':
-		extension = '.nc'
-		location = raydata
-	elif save_type == 'Images':
-		extension = '.nc'
-		location = images
-	elif save_type == 'ROIs':
-		extension = '.csv'
-		location = rois
-	elif save_type == 'VirtualCameras':
-		extension = '.pickle'
-		location = virtualcameras
-	else:
-		raise Exception('Cannot list unknown item type ' + save_type)
+    if save_type == 'PointPairs':
+        extensions = ['.csv']
+        location = pointpairs
+    elif save_type == 'FitResults':
+        extensions = ['.pickle','.csv']
+        location = fitresults
+    elif save_type == 'RayData':
+        extensions = ['.nc']
+        location = raydata
+    elif save_type == 'Images':
+        extensions = ['.nc']
+        location = images
+    elif save_type == 'ROIs':
+        extensions = ['.csv']
+        location = rois
+    elif save_type == 'VirtualCameras':
+        extensions = ['.pickle']
+        location = virtualcameras
+    else:
+        raise Exception('Cannot list unknown item type ' + save_type)
 
-	filelist = os.listdir(location)
+    filelist = os.listdir(location)
 
-	if save_type != 'ROIs':
-		save_name_list = []
-		for filename in filelist:
-			if filename.lower().endswith(extension):
-				save_name_list.append(filename.replace(extension,''))
-	else:
-		save_name_list = []
+    if save_type != 'ROIs':
+        save_name_list = []
+        for filename in filelist:
+            for extension in extensions:
+                if filename.lower().endswith(extension):
+                    save_name_list.append(filename.replace(extension,''))
+    else:
+        save_name_list = []
 
-		for filename in filelist:
+        for filename in filelist:
 
-			if filename.lower().endswith(extension):
-				save_name_list.append((filename.replace(extension,''),None))
+            if os.path.isfile(os.path.join(location,filename)):
+                for extension in extensions:
+                    if filename.lower().endswith(extension):
+                        save_name_list.append((filename.replace(extension,''),None))
 
-			elif os.path.isdir(os.path.join(location,filename)):
-				save_name_list.append((filename,None))
-				filelist2 = os.listdir(os.path.join(location,filename))
-				for filename2 in filelist2:
-					if filename2.lower().endswith(extension):
-						save_name_list.append((filename2.replace(extension,''),filename))
+            elif os.path.isdir(os.path.join(location,filename)):
+                save_name_list.append((filename,None))
+                filelist2 = os.listdir(os.path.join(location,filename))
+                for filename2 in filelist2:
+                    if os.path.isfile(os.path.join(location,filename,filename2)):
+                        for extension in extensions:
+                            if filename2.lower().endswith(extension):
+                                save_name_list.append((filename2.replace(extension,''),filename))
 
-					elif os.path.isdir(os.path.join(location,filename,filename2)):
-						save_name_list.append((filename2,filename))
-						filelist3 = os.listdir(os.path.join(location,filename,filename2))
-						for filename3 in filelist3:
-							if filename3.lower().endswith(extension):
-								save_name_list.append((filename3.replace(extension,''),filename2))
+                    elif os.path.isdir(os.path.join(location,filename,filename2)):
+                        save_name_list.append((filename2,filename))
+                        filelist3 = os.listdir(os.path.join(location,filename,filename2))
+                        for filename3 in filelist3:
+                            for extension in extensions:
+                                if filename3.lower().endswith(extension):
+                                    save_name_list.append((filename3.replace(extension,''),filename2))
 
-	return save_name_list
+    return save_name_list
+    
+    
+def get_nearest_names(save_type,name):
+    possibilities = get_save_list(save_type)
+    return difflib.get_close_matches(name,possibilities)

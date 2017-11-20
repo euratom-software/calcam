@@ -801,9 +801,18 @@ class CalibResults:
     # Input: SaveName, string to identify saved retults.
     def load(self,SaveName):
 
-        # File to load from
-        SaveFile = open(os.path.join(paths.fitresults,SaveName + '.pickle'),'rb')
-
+        # File to load from - prioritise new .pickle format, but still supports ye old CSVs.
+        if os.path.isfile(os.path.join(paths.fitresults,SaveName + '.pickle')):
+            SaveFile = open(os.path.join(paths.fitresults,SaveName + '.pickle'),'rb')
+        elif os.path.isfile(os.path.join(paths.fitresults,SaveName + '.csv')):
+            self.load_old(SaveName)
+            return
+        else:
+            nearest_saves = paths.get_nearest_names('FitResults',SaveName)
+            if len(nearest_saves) == 0:
+                raise Exception('Save "{:s}" not found!'.format(SaveName))
+            else:
+                raise Exception('Save "{:s}" not found! Did you mean {:s}?'.format(SaveName,'"' + '" or "'.join(nearest_saves) + '"'))
         try:
             save = pickle.load(SaveFile)
         except:
@@ -859,6 +868,127 @@ class CalibResults:
         SaveFile.close()
 
 
+    # Load saved fit results.
+    # Input: SaveName, string to identify saved retults.
+    def load_old(self,SaveName):
+
+
+        import csv
+        # File to load from
+        SaveFile = open(os.path.join(paths.fitresults,SaveName + '.csv'),'r')
+
+        # Temporary storage...
+        cmat = np.zeros((3,3))
+        tvec = np.zeros((3,1))
+        rvec = np.zeros((3,1))
+        dist_vec = np.zeros((1,5))
+        pixels_x = 0
+        pixels_y = 0
+        maxk = 0
+
+        csvreader = csv.reader(SaveFile)
+
+        # Skip header row
+        csvreader.next()
+
+        for row in csvreader:
+            # Read the RMS error
+            if row[0] == "RMS_error":
+                rms_error = float(row[1])
+            # Read the camera matrix
+            if row[0] == "Camera_Matrix[0 0]":
+                cmat[0][0] = float(row[1])
+            if row[0] == "Camera_Matrix[0 1]":
+                cmat[0][1] = float(row[1])
+            if row[0] == "Camera_Matrix[0 2]":
+                cmat[0][2] = float(row[1])
+            if row[0] == "Camera_Matrix[1 0]":
+                cmat[1][0] = float(row[1])
+            if row[0] == "Camera_Matrix[1 1]":
+                cmat[1][1] = float(row[1])
+            if row[0] == "Camera_Matrix[1 2]":
+                cmat[1][2] = float(row[1])
+            if row[0] == "Camera_Matrix[2 0]":
+                cmat[2][0] = float(row[1])
+            if row[0] == "Camera_Matrix[2 1]":
+                cmat[2][1] = float(row[1])
+            if row[0] == "Camera_Matrix[2 2]":
+                cmat[2][2] = float(row[1])
+            # Read the translation vector
+            if row[0] == "Translation_vector[0]":
+                tvec[0][0] = float(row[1])
+            if row[0] == "Translation_vector[1]":
+                tvec[1][0] = float(row[1])
+            if row[0] == "Translation_vector[2]":
+                tvec[2][0] = float(row[1])
+            # Read the rotation vector
+            if row[0] == "Rotation_vector[0]":
+                rvec[0][0] = float(row[1])
+            if row[0] == "Rotation_vector[1]":
+                rvec[1][0] = float(row[1])
+            if row[0] == "Rotation_vector[2]":
+                rvec[2][0] = float(row[1])
+            # Read the distortion coefficients
+            if row[0] == "K1":
+                k1 = float(row[1])
+            if row[0] == "K2":
+                k2 = float(row[1])
+            if row[0] == "K3":
+                k3 = float(row[1])
+                maxk = max([3,maxk])
+            if row[0] == "K4":
+                k4 = float(row[1])
+                maxk = max([4,maxk])
+            if row[0] == "K5":
+                k5 = float(row[1])
+                maxk = max([5,maxk])
+            if row[0] == "K6":
+                k6 = float(row[1])
+                maxk = max([6,maxk])
+            if row[0] == "P1":
+                p1 = float(row[1])
+            if row[0] == "P2":
+                p2 = float(row[1])
+            if row[0] == "Num_x_pixels":
+                pixels_x = int(row[1])
+            if row[0] == "Num_y_pixels":
+                pixels_y = int(row[1])
+        # Close the file
+        SaveFile.close()
+
+
+        # Make distortion vector
+        dist_vec = np.zeros((1,maxk+2))
+        dist_vec[0][0] = k1
+        dist_vec[0][1] = k2
+        dist_vec[0][2] = p1
+        dist_vec[0][3] = p2
+        dist_vec[0][4] = k3
+        if maxk == 4:
+            dist_vec[0][5] = k4
+        if maxk == 5:
+            dist_vec[0][5] = k4
+            dist_vec[0][6] = k5
+        if maxk == 6:
+            dist_vec[0][5] = k4
+            dist_vec[0][6] = k5
+            dist_vec[0][7] = k6
+
+
+        self.nfields = 1
+        self.fieldmask = np.zeros([pixels_y,pixels_x],dtype='int')
+        self.image_display_shape = (pixels_x,pixels_y)
+        self.fitoptions = [['Unknown']]
+        self.field_names = ['Image']
+        self.objectpoints = None
+        self.imagepoints = None
+        self.type = 'fit'
+        self.fit_params.append(FieldFit('perspective',[rms_error,cmat,dist_vec,[rvec],[tvec]] ,from_save=True))
+        self.transform = CoordTransformer()
+        self.transform.x_pixels = pixels_x
+        self.transform.y_pixels = pixels_y
+        self.transform.pixel_aspectratio = 1.
+        
 
     def undistort_image(self,image,coords=None):
 
