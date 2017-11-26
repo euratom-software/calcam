@@ -38,8 +38,10 @@ from scipy.ndimage.measurements import center_of_mass as CoM
 import copy
 from scipy.io.netcdf import netcdf_file
 from image import Image as CalCam_Image
+from pointpairs import PointPairs
 
 opencv_major_version = int(cv2.__version__[0])
+
 
 
 # The 'fitter' class 
@@ -130,6 +132,41 @@ class Fitter:
 
 
         return Output
+
+    def set_fitflags_strings(self,fitflags_strings):
+
+        if len(fitflags_strings) != self.nfields:
+            raise ValueError('Number of fit flag string lists provided is different to number of fields!')
+
+        # Start off with resetting everything
+        self.fixaspectratio = [False] * self.nfields
+        self.fixk1 = [False] * self.nfields
+        self.fixk2 = [False] * self.nfields
+        self.fixk3 = [False] * self.nfields
+        self.fixk4 = [False] * self.nfields
+        self.fixskew = [True] * self.nfields
+        self.disabletangentialdist=[False] * self.nfields
+        self.fixcc = [False] * self.nfields
+
+        # Set fit flags based on provided strings
+        for field in range(self.nfields):
+            for string in fitflags_strings[field]:
+                if string == 'Fix Fx = Fy':
+                    self.fixaspectratio[field] = True
+                elif string.startswith('Fix CC at'):
+                    coords = string.split('(')[1].split(')')[0].split(',')
+                    self.fix_cc(True,field=field,Cx = float(coords[0]),Cy = float(coords[1]))
+                elif string == 'Disable Tangential Distortion':
+                    self.disabletangentialdist[field] = True
+                elif string == 'Disable k1':
+                    self.fixk1[field] = True
+                elif string == 'Disable k2':
+                    self.fixk2[field] = True
+                elif string == 'Disable k3':
+                    self.fixk3[field] = True
+                elif string == 'Disable k4':
+                    self.fixk4[field] = True
+
 
 
     def fix_cc(self,fix,field=0,Cx=None,Cy=None):
@@ -1217,3 +1254,84 @@ class FieldFit:
             self.k2 = self.kc[1]
             self.k3 = self.kc[2]
             self.k4 = self.kc[3]
+
+
+def update_calibration(calibration,new_image,old_image = None,region_size=None,debug=False):
+    
+    if calibration.nfields > 1:
+        raise Exception('Cannot do this for images with more than one sub-field yet!')
+
+    if old_image is None:
+        old_image = calibration.Image
+
+    if old_image is None:
+        raise Exception('No old image provided and calibration does not have an image stored with it!')
+
+    if new_image.transform.get_display_shape() != old_image.transform.get_display_shape():
+        raise Exception('New image is a different shape to the original one! New and old images must be the same shape.')
+
+
+    if region_size is None:
+        region_size = int(np.round(np.mean(new_image.transform.get_display_shape()) / 15) )
+
+    old_image_data = old_image.transform.original_to_display_image(old_image.data).sum(axis=2).astype('float64')
+    new_image_data = new_image.transform.original_to_display_image(new_image.data).sum(axis=2).astype('float64')
+
+    # Create a new point pairs object which will contain the updated points,
+    # and copy the CAD coordinates straight over.
+    new_pointpairs = PointPairs()
+    new_pointpairs.set_image(new_image)
+    new_pointpairs.objectpoints = calibration.objectpoints[0]
+
+    if debug:
+        import matplotlib.pyplot as plt
+
+    # Update points based on the old and new images...
+    # Loop over every point pair
+    for pointpair in calibration.imagepoints[0]:
+        new_pointpairs.imagepoints.append([])
+        # Loop over each image sub field
+        for point in pointpair:
+            if point is None:
+                new_pointpairs.imagepoints[-1].append(None)
+            else:
+                # Take pieces of each image centred at the point and +- region_size
+                int_coords = np.round(point).astype('int')
+
+                top = max(0,int_coords[1]-region_size)
+                bot = min(new_image_data.shape[0],int_coords[1]+region_size)
+                left = max(0,int_coords[0]-region_size)
+                right = min(new_image_data.shape[1],int_coords[0]+region_size)
+
+                new_image_sample = new_image_data[top:bot,left:right]
+                old_image_sample = old_image_data[top:bot,left:right]
+
+
+                shift = cv2.phaseCorrelate(old_image_sample,new_image_sample)
+
+                if debug:
+                    plt.imshow(new_image_sample,cmap='gray')
+                    ox = point[0] - left
+                    oy = point[1] - top
+                    plt.plot([ox+shift[0]],[oy+shift[1]],'o')
+                    plt.title('New')
+                    plt.figure()
+                    plt.imshow(old_image_sample,cmap='gray')
+                    plt.plot([ox],[oy],'o')
+                    plt.title('Old')
+                    plt.show()
+
+                # Add the shifted point to the new point pairs
+                new_pointpairs.imagepoints[-1].append([point[0]+shift[0],point[1]+shift[1]])
+
+    # Now we need to do the fit, so make a new fitter and set it up with options copied from the existing calibration
+    fitter = Fitter()
+    fitter.set_PointPairs(new_pointpairs)
+    for field in range(calibration.nfields):
+        fitter.set_model(calibration.fit_params[field].model,field=field)
+    fitter.set_fitflags_strings(calibration.fitoptions)
+
+    # Do the new fit and return it!
+    new_calibration = fitter.do_fit()
+
+    return new_calibration

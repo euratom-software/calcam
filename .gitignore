@@ -1,2 +1,6 @@
 *.pyc
 *.py~
+*.aux
+*.log
+*.synctex.gz
+*.toc
