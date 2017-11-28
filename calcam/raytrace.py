@@ -52,7 +52,8 @@ class RayCaster:
 	
     def __init__(self,FitResults = None,CADModel = None,verbose=True):
 		
-
+        self.verbose = verbose
+        
         if FitResults is not None:
             self.fitresults = FitResults
         else:
@@ -65,7 +66,7 @@ class RayCaster:
             self.obbtree = None
             self.machine_name = None
 
-        self.verbose = verbose
+        
 
 
     def set_cadmodel(self,CADModel):
