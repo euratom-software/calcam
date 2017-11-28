@@ -541,19 +541,29 @@ class CalibResults:
     # IMPORTANT: There is much room for efficiency improvement in the Raysect / calcam interface
     # and this was written quickly to get some work on the go.
     # SO: THIS OUTPUT FORMAT SHOULD NOT BE RELIED UPON TO STAY THE SAME IN FUTURE VERSIONS!
-    def export_sightlines(self,filename,x_pixels=None,y_pixels=None,Coords='Display'):
+    def export_sightlines(self,filename,x_pixels=None,y_pixels=None,Coords='Display',binning=1):
 
         if not filename.endswith('.nc'):
             filename = filename + '.nc'
-
+            
+        if x_pixels is None or y_pixels is None:
+            if Coords.lower() == 'display':
+                xl = np.linspace( (binning-1.)/2,float(self.image_display_shape[0]-1)-(binning-1.)/2,(1+float(self.image_display_shape[0]-1))/binning)
+                yl = np.linspace( (binning-1.)/2,float(self.image_display_shape[1]-1)-(binning-1.)/2,(1+float(self.image_display_shape[1]-1))/binning)
+                x_pixels,y_pixels = np.meshgrid(xl,yl)
+            elif Coords.lower() == 'original':
+                xl = np.linspace( (binning-1.)/2,float(self.transform.x_pixels-1)-(binning-1.)/2,(1+float(self.transform.x_pixels-1))/binning)
+                yl = np.linspace( (binning-1.)/2,float(self.transform.y_pixels-1)-(binning-1.)/2,(1+float(self.transform.y_pixels-1))/binning)
+                x_pixels,y_pixels = np.meshgrid(xl,yl)
+            del xl, yl
         
-        if Coords.lower() == 'display' and (x_pixels is None or y_pixels is None):
-            x_pixels,y_pixels = np.meshgrid(np.linspace(0,self.image_display_shape[0]-1,self.image_display_shape[0]),np.linspace(0,self.image_display_shape[1]-1,self.image_display_shape[1]))
-        elif Coords.lower() == 'original':
-            if x_pixels is None or y_pixels is None:
-                shape = [self.transform.x_pixels,self.transform.y_pixels]
-                x_pixels,y_pixels = np.meshgrid(np.linspace(0,shape[0]-1,shape[0]),np.linspace(0,shape[1]-1,shape[1]))
+        if Coords.lower() == 'original':
             x_pixels,y_pixels = self.transform.original_to_display_coords(x_pixels,y_pixels)
+        
+        # To make the image come out from RaySect in the intended orientation,
+        # we have to transpose the coordinates here.
+        x_pixels = x_pixels.transpose()
+        y_pixels = y_pixels.transpose()
 
         origins = self.get_pupilpos(x_pixels,y_pixels)
         endpoints = self.get_los_direction(x_pixels,y_pixels) + origins
