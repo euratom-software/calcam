@@ -1,6 +1,7 @@
-The following authors have contributed to the project:
+The following people have contributed to the project:
 
 Scott Silburn
 James Harrison
 Mark Smithies
 Alasdair Wynn
+Jordan Cavalier
