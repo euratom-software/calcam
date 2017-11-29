@@ -63,7 +63,7 @@ class RayCaster:
             self.set_cadmodel(CADModel)
         else:
             self.raysect_world = None
-            self.obbtree = None
+            self.vtkCellLocator = None
             self.machine_name = None
 
         
@@ -95,10 +95,10 @@ class RayCaster:
                 sys.stdout.flush()
         else:
             if self.verbose:
-                sys.stdout.write('[Calcam RayCaster] Getting CAD mesh bounding box tree...')
+                sys.stdout.write('[Calcam RayCaster] Getting CAD mesh octree...')
                 sys.stdout.flush()
             # Get bounding box tree object
-            self.obbtree = CADModel.get_obb_tree()
+            self.vtkCellLocator = CADModel.get_vtkCellLocator()
             if self.verbose:
                 sys.stdout.write('Done.\n')
                 sys.stdout.flush()
@@ -112,7 +112,7 @@ class RayCaster:
 
         if self.fitresults is None:
             raise Exception('Camera fit results not set in RayCaster!')
-        if self.obbtree is None and self.raysect_world is None:
+        if self.vtkCellLocator is None and self.raysect_world is None:
             raise Exception('CAD model not set in RayCaster!')
 
         # If no pixels are specified, do the whole chip at the specified binning level.
@@ -226,6 +226,11 @@ class RayCaster:
             # Some vtk objects to store temporary results
             points = vtk.vtkPoints()
             cellIDs = vtk.vtkIdList()
+            t = vtk.mutable(0)
+            pos = np.zeros(3)
+            coords = np.zeros(3)
+            subid = vtk.mutable(0)
+
             for ind in range(np.size(x)):
     
                 if not valid_mask[ind]:
@@ -235,10 +240,10 @@ class RayCaster:
     
                 # Do the raycast and put the result in the output array
                 rayend = Results.ray_start_coords[ind] + self.max_ray_length * LOSDir[ind]
-                retval = self.obbtree.IntersectWithLine(Results.ray_start_coords[ind],rayend,points,cellIDs)
-    
+                retval = self.vtkCellLocator.IntersectWithLine(Results.ray_start_coords[ind],rayend,1.e-6,t,pos,coords,subid)
+  
                 if abs(retval) > 0:
-                    Results.ray_end_coords[ind,:] = points.GetPoint(0)
+                    Results.ray_end_coords[ind,:] = pos[:]
                 else:
                     Results.ray_end_coords[ind,:] = rayend
     

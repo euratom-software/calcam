@@ -64,7 +64,7 @@ class CADModel:
 
         self.colourbyfeature = False
 
-        self.obb_tree = None
+        self.vtkCellLocator = None
 
         self.gui_window = None
 
@@ -116,6 +116,21 @@ class CADModel:
 
 
         return self.obb_tree
+
+    # Make an OBBTree object to do ray casting with this CAD model
+    def get_vtkCellLocator(self):
+
+        if len(self.get_enabled_features()) == 0:
+            return None
+
+        if self.vtkCellLocator is None:
+            self.vtkCellLocator = vtk.vtkCellLocator()
+            self.vtkCellLocator.SetTolerance(1e-6)
+
+            self.vtkCellLocator.SetDataSet(self.get_combined_geometry())
+            self.vtkCellLocator.BuildLocator()
+
+        return self.vtkCellLocator
 
     # Load CAD files from disk
     def load(self,features=None):
