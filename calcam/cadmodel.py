@@ -101,23 +101,8 @@ class CADModel:
             Feature.extend([None,None,None,group,None,None,None])
 
 
-    # Make an OBBTree object to do ray casting with this CAD model
-    def get_obb_tree(self):
 
-        if len(self.get_enabled_features()) == 0:
-            return None
-
-        if self.obb_tree is None:
-            self.obb_tree = vtk.vtkOBBTree()
-            self.obb_tree.SetTolerance(1e-6)
-
-            self.obb_tree.SetDataSet(self.get_combined_geometry())
-            self.obb_tree.BuildLocator()
-
-
-        return self.obb_tree
-
-    # Make an OBBTree object to do ray casting with this CAD model
+    # Make a vtkCellLocator object to do ray casting with this CAD model
     def get_vtkCellLocator(self):
 
         if len(self.get_enabled_features()) == 0:
@@ -189,7 +174,7 @@ class CADModel:
 
             for Feature in self.features:
                 if str.lower(Feature[0]) in features:
-                    self.obb_tree = None
+                    self.vtkCellLocator = None
                     Feature[3] = True
                     if renderer is not None:
                         for actor in self.get_vtkActors(Feature[0]):
@@ -206,7 +191,7 @@ class CADModel:
             for Feature in self.features:
                 if str.lower(Feature[0]) in features:
                     self.enable_features(Feature[0],renderer)
-                    self.obb_tree = None
+                    self.vtkCellLocator = None
                 else:
                     self.disable_features(Feature[0],renderer)
 
@@ -220,7 +205,7 @@ class CADModel:
 
             for Feature in self.features:
                 if str.lower(Feature[0]) in features:
-                    self.obb_tree = None
+                    self.vtkCellLocator = None
                     Feature[3] = False
                     if renderer is not None:
                         for actor in self.get_vtkActors(Feature[0]):

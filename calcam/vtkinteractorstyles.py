@@ -3838,7 +3838,7 @@ class ImageAnalyser(vtk.vtkInteractorStyleTrackballCamera):
     # Left click to move a point or add a new point
     def OnLeftClick(self,obj,event):
 
-        if self.gui_window.raycaster.obbtree is None or self.gui_window.image is None or self.gui_window.raycaster.fitresults is None:
+        if self.gui_window.raycaster.vtkCellLocator is None or self.gui_window.image is None or self.gui_window.raycaster.fitresults is None:
             return
 
         clickcoords = self.Interactor.GetEventPosition()
