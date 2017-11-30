@@ -36,6 +36,7 @@ import os
 import paths
 from scipy.io.netcdf import netcdf_file
 import coordtransformer
+import random
 
 
 """ 
@@ -72,7 +73,7 @@ class RayCaster:
         self.vtkCellLocator = CADModel.get_vtkCellLocator()
 
         if self.verbose:
-            print('[Calcam RayCaster] Done.')
+            print('[Calcam RayCaster] Done.'.format(self.machine_name))
 
     def set_calibration(self,FitResults):	
         self.fitresults = FitResults
@@ -148,7 +149,14 @@ class RayCaster:
 
         starttime = time.time()
         etime_printed = False
-        for ind in range(np.size(x)):
+        n_done = 0
+        
+        # We will do the ray casting in a random order,
+        # purely to get better time remaining estimation.
+        inds = list(range(np.size(x)))
+        random.shuffle(inds)
+        
+        for ind in inds:
 
             if not valid_mask[ind]:
                 Results.ray_end_coords[ind,:] = np.nan
@@ -164,19 +172,23 @@ class RayCaster:
             else:
                 Results.ray_end_coords[ind,:] = rayend
 
+            n_done = n_done + 1
             # Progress printing stuff
             if self.verbose and not etime_printed:
                 if time.time() - starttime > 10:
-                    est_time = (time.time() - starttime) / ind * np.size(x)
-                    est_time_string = ''
-                    if est_time > 3600:
-                        est_time_string = est_time_string + '{0:.0f} hr '.format(np.floor(est_time/3600))
-                    if est_time > 60:
-                        est_time_string = est_time_string + '{0:.0f} min '.format((est_time - 3600*np.floor(est_time/3600))/60)
-                    else:
-                        est_time_string = '< 1 min '
+                    est_time = (time.time() - starttime) / n_done * np.size(x)
+                    if est_time > 15:
+                        est_time_string = ''
+                        if est_time > 3600:
+                            est_time_string = est_time_string + '{:.0f} hr '.format(np.floor(est_time/3600))
+                        if est_time > 600:
+                            est_time_string = est_time_string + '{:.0f} min.'.format((est_time - 3600*np.floor(est_time/3600))/60)
+                        elif est_time > 60:
+                            est_time_string = est_time_string + '{:.0f} min {:.0f} sec.'.format(np.floor(est_time/60),est_time % 60)
+                        else:
+                            est_time_string ='{:.0f} sec.'.format(est_time)
 
-                    print('[Calcam RayCaster] Estimated time to complete: ' + est_time_string)
+                        print('[Calcam RayCaster] Estimated calculation time: ' + est_time_string)
                     etime_printed = True
 
         if self.verbose:
@@ -188,7 +200,7 @@ class RayCaster:
                 time_string = time_string + '{0:.0f} min '.format(np.floor( (tot_time - 3600*np.floor(tot_time / 3600))  / 60))
             time_string = time_string + '{0:.0f} sec. '.format( tot_time - 60*np.floor(tot_time / 60) )
 
-            print('[Calcam RayCaster] Done in ' + time_string)
+            print('[Calcam RayCaster] Finished casting {:d} rays in '.format(np.size(x)) + time_string)
 
         Results.x[valid_mask == 0] = np.nan
         Results.y[valid_mask == 0] = np.nan
