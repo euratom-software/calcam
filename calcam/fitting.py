@@ -1319,6 +1319,11 @@ def update_calibration(calibration,new_image,old_image = None,region_size=None,d
 
                 shift = cv2.phaseCorrelate(old_image_sample,new_image_sample)
 
+                # In OpenCV2 phaseCorrelate just returns the image shift;
+                # for later versions it also returns the value of the correlation maximum.
+                if opencv_major_version > 2:
+                    shift = shift[0]
+
                 if debug:
                     plt.imshow(new_image_sample,cmap='gray')
                     ox = point[0] - left
