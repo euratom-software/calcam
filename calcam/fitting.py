@@ -1266,7 +1266,7 @@ class FieldFit:
             self.k4 = self.kc[3]
 
 
-def update_calibration(calibration,new_image,old_image = None,region_size=None,debug=False):
+def update_calibration(calibration,new_image,old_image = None,region_size=None,debug=False,display=False):
     
     if calibration.nfields > 1:
         raise Exception('Cannot do this for images with more than one sub-field yet!')
@@ -1282,7 +1282,7 @@ def update_calibration(calibration,new_image,old_image = None,region_size=None,d
 
 
     if region_size is None:
-        region_size = int(np.round(np.mean(new_image.transform.get_display_shape()) / 15) )
+        region_size = int(np.round(np.mean(new_image.transform.get_display_shape()) / 20) )
 
     old_image_data = old_image.transform.original_to_display_image(old_image.data).sum(axis=2).astype('float64')
     new_image_data = new_image.transform.original_to_display_image(new_image.data).sum(axis=2).astype('float64')
@@ -1293,7 +1293,7 @@ def update_calibration(calibration,new_image,old_image = None,region_size=None,d
     new_pointpairs.set_image(new_image)
     new_pointpairs.objectpoints = calibration.objectpoints[0]
 
-    if debug:
+    if debug or display:
         import matplotlib.pyplot as plt
 
     # Update points based on the old and new images...
@@ -1313,8 +1313,8 @@ def update_calibration(calibration,new_image,old_image = None,region_size=None,d
                 left = max(0,int_coords[0]-region_size)
                 right = min(new_image_data.shape[1],int_coords[0]+region_size)
 
-                new_image_sample = new_image_data[top:bot,left:right]
-                old_image_sample = old_image_data[top:bot,left:right]
+                new_image_sample = np.diff(new_image_data[top:bot,left:right])
+                old_image_sample = np.diff(old_image_data[top:bot,left:right])
 
 
                 shift = cv2.phaseCorrelate(old_image_sample,new_image_sample)
@@ -1348,5 +1348,33 @@ def update_calibration(calibration,new_image,old_image = None,region_size=None,d
 
     # Do the new fit and return it!
     new_calibration = fitter.do_fit()
+
+
+    if display:
+        ax = plt.subplot(121)
+        plt.imshow(old_image_data,cmap='gray')
+        for pointpair in calibration.imagepoints[0]:
+            # Loop over each image sub field
+            for point in pointpair:
+                if point is not None:
+                    plt.plot(point[0],point[1],'bo')
+                    plt.plot([point[0]-region_size,point[0]-region_size,point[0]+region_size,point[0]+region_size,point[0]-region_size],[point[1]+region_size,point[1]-region_size,point[1]-region_size,point[1]+region_size,point[1]+region_size],'g')
+        plt.title('Old image and calib points')
+        plt.subplot(122,sharex=ax,sharey=ax)
+        plt.imshow(new_image_data,cmap='gray')
+        for pointpair in new_calibration.imagepoints[0]:
+            # Loop over each image sub field
+            for point in pointpair:
+                if point is not None:
+                    plt.plot(point[0],point[1],'bo')
+        for pointpair in calibration.imagepoints[0]:
+            # Loop over each image sub field
+            for point in pointpair:
+                if point is not None:
+                    #plt.plot(point[0],point[1],'o',color=(0.5,0.5,0.5),alpha=0.5)
+                    plt.plot([point[0]-region_size,point[0]-region_size,point[0]+region_size,point[0]+region_size,point[0]-region_size],[point[1]+region_size,point[1]-region_size,point[1]-region_size,point[1]+region_size,point[1]+region_size],'g')
+
+        plt.title('New image and updated calib points')
+        plt.show()
 
     return new_calibration
