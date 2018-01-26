@@ -1533,6 +1533,10 @@ class CalCamWindow(qt.QMainWindow):
 
         if self.overlay_checkbox.isChecked():
             self.overlay_checkbox.setChecked(False)
+        self.pointpicker.fit_overlay_actor = None
+
+        if self.fitted_points_checkbox.isChecked():
+        	self.fitted_points_checkbox.setChecked(False)
 
         # Transform all the point pairs in to the new coordinates
         x,y = self.image.transform.original_to_display_coords(x,y)
@@ -1554,6 +1558,8 @@ class CalCamWindow(qt.QMainWindow):
         self.pointpicker.UpdateFromPPObject(False) 
         self.update_image_info_string()
         self.populate_pointpairs_list()
+        self.rebuild_image_gui()
+        self.save_fit_button.setEnabled(False)
 
     def load_pointpairs(self):
         self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))

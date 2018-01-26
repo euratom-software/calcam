@@ -1,24 +1,4 @@
-'''
-* Copyright 2015-2017 European Atomic Energy Community (EURATOM)
-*
-* Licensed under the EUPL, Version 1.1 or - as soon they
-  will be approved by the European Commission - subsequent
-  versions of the EUPL (the "Licence");
-* You may not use this work except in compliance with the
-  Licence.
-* You may obtain a copy of the Licence at:
-*
-* https://joinup.ec.europa.eu/software/page/eupl
-*
-* Unless required by applicable law or agreed to in
-  writing, software distributed under the Licence is
-  distributed on an "AS IS" basis,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
-  express or implied.
-* See the Licence for the specific language governing
-  permissions and limitations under the Licence.
-'''
-
+# -*- coding: utf-8 -*-
 
 """
 Loads in Rays from CalCam Ray tracing data.
@@ -34,19 +14,43 @@ over every cell 4 times! Loop over each R and z line and find intercepts with
 these and there positions. Then 10 by 5 grid has only 15 calculations rather 
 than 4*10*5=200!!
 
-Author: Mark Smithies & James Harrison
-Last Updated: 15/11/16
+Authors: Mark Smithies & James Harrison
+Last Updated: 6th Jan 2018
 """
 
 #import os
 import numpy as np
-import matplotlib.pyplot as plt
-import pickle
 import sys
+#import matplotlib.pyplot as plt
+#import pickle
 #import pupynere
 #import cv2
 
+def print_progress(iteration, total, prefix='', suffix='', decimals=1, bar_length=100):
+    """
+    Call in a loop to create terminal progress bar
+
+    @params:
+        iteration   - Required  : current iteration (Int)
+        total       - Required  : total iterations (Int)
+        prefix      - Optional  : prefix string (Str)
+        suffix      - Optional  : suffix string (Str)
+        decimals    - Optional  : positive number of decimals in percent complete (Int)
+        bar_length  - Optional  : character length of bar (Int)
+    """
+    str_format = "{0:." + str(decimals) + "f}"
+    percents = str_format.format(100 * (iteration / float(total)))
+    filled_length = int(round(bar_length * iteration / float(total)))
+    bar = '█' * filled_length + '-' * (bar_length - filled_length)
+
+    sys.stdout.write('\r%s |%s| %s%s %s' % (prefix, bar, percents, '%', suffix)),
+
+    if iteration == total:
+        sys.stdout.write('\n')
+    sys.stdout.flush()
+
 class RectangularGeometryMatrix:
+    
     def __init__(self,Rmin=None,Rmax=None,Zmin=None,Zmax=None,nR=None,nZ=None,
                  filename=None,RayData=None):
 
@@ -79,7 +83,9 @@ class RectangularGeometryMatrix:
             self.LoadGeometryMatrix(filename)
             
     def _SimpleGrid(self):
-                
+        """Calculates a simple 2D radial and vertical mesh containing evenly
+        spaced points"""
+               
         nodes_r = np.linspace(self.Rmin,self.Rmax,self.nR)
         nodes_z = np.linspace(self.Zmin,self.Zmax,self.nZ)
         
@@ -88,65 +94,22 @@ class RectangularGeometryMatrix:
         return Rgrid.flatten(), Zgrid.flatten()
       
     def _FindRayPath(self,x,y,EndPos,Origin):
-          """Use pixel position x and y to find start and end coordinates of ray.
-          Return x and y values along the ray. This can be used to plot ray in x-y
-          space for debugging purposes if needed."""
+        """Use pixel position x and y to find start and end coordinates of ray.
+        Return x and y values along the ray. This can be used to plot ray in x-y
+        space for debugging purposes if needed."""
           
-          chord_x_values = np.linspace(Origin[0], EndPos[0], 100)
-          chord_y_values = np.linspace(Origin[1], EndPos[1], 100)
-          return chord_x_values, chord_y_values
+        chord_x_values = np.linspace(Origin[0], EndPos[0], 100)
+        chord_y_values = np.linspace(Origin[1], EndPos[1], 100)
+        return chord_x_values, chord_y_values
 
     def _FindRz(self,x,y,t,Origin,DirectionVector):
         """Given a ray defined by pixel x-y, and a length along the ray t, 
         position in R-z space is returned. Used to plot rays in Rz space
         which can be used for debugging purposes."""
         
-        # TODO: Get the origin and direction from x, y!
         R = np.sqrt( (Origin[0] + t*DirectionVector[0])**2 + (Origin[1] + t*DirectionVector[1])**2)
         z = Origin[2] + t*DirectionVector[2]
-        return R, z
-
-    def PlotRz(self,x,y,RayLen,Origin,DirectionVector,RValues,ZValues):
-        """For given ray, plot its path through R-z space. Also overplots
-        chosen mesh onto Rz space by calling function PlotMesh(). Used for
-        debugging purposes."""
-        
-        # Todo: Get the origin and direction from x, y!
-        ChordPoints = 100
-        t = np.linspace(0, RayLen,ChordPoints)
-        R = np.zeros(ChordPoints)
-        z = np.zeros(ChordPoints)
-        for i in range(len(t)):
-            R[i], z[i] = self._FindRz(x,y,t[i],Origin,DirectionVector)    
-        plt.plot(R, z)
-        plt.xlabel("R")
-        plt.ylabel("z")
-        self._PlotMesh(RValues,ZValues)
-    
-    def PlotMesh(self):
-        "What it says on the tin really"
-        plt.plot(self.Rgrid, self.Zgrid, 'rx')
-        self._PlotChamber()
-        plt.show()
-
-    def _PlotChamber(self):
-        wall_r = [3.2900,3.1990,3.1940,3.0600,3.0110,2.9630,2.9070,2.8880,2.8860,2.8900,2.9000, \
-              2.8840,2.8810,2.8980,2.9870,2.9460,2.8700,2.8340,2.8140,2.7000,2.5760,2.5550, \
-              2.5500,2.5220,2.5240,2.4370,2.4060,2.4180,2.4210,2.3980,2.4080,2.4130,2.4130, \
-              2.4050,2.3600,2.2950,2.2940,2.2000,2.1390,2.0810,1.9120,1.8210,1.8080,1.8860, \
-              1.9040,1.9160,2.0580,2.1190,2.1780,2.2430,2.3810,2.5750,2.8840,2.9750,3.1490, \
-              3.3000,3.3980,3.4770,3.5620,3.6400,3.6410,3.7430,3.8240,3.8855,3.8925,3.8480, \
-              3.7160,3.5780,3.3590,3.3090,3.2940,3.2900]
-        
-        wall_z = [-1.1520,-1.2090,-1.2140,-1.2980,-1.3350,-1.3350,-1.3830,-1.4230,-1.4760,-1.4980, \
-              -1.5100,-1.5820,-1.6190,-1.6820,-1.7460,-1.7450,-1.7130,-1.7080,-1.6860,-1.6510, \
-              -1.6140,-1.6490,-1.6670,-1.7030,-1.7100,-1.7110,-1.6900,-1.6490,-1.6020,-1.5160, \
-              -1.5040,-1.4740,-1.4290,-1.3860,-1.3340,-1.3340,-1.3200,-1.2440,-1.0970,-0.9580, \
-              -0.5130,-0.0230,0.4260,1.0730,1.1710,1.2320,1.6030,1.7230,1.8390,1.8940,1.9670, \
-              2.0160,1.9760,1.9410,1.8160,1.7110,1.6430,1.5720,1.4950,1.4250,1.2830,1.0700, \
-              0.8290,0.4950,0.2410,-0.0960,-0.4980,-0.7530,-1.0310,-1.0800,-1.1110,-1.1520]   
-        plt.plot(wall_r,wall_z,'g')
-    
+        return R, z    
     
     def _GetCellCorners(self,index):
         """Given cell index, this function returns the R and z values
@@ -277,7 +240,7 @@ class RectangularGeometryMatrix:
     def _ShowProgress(self,y,ypixels):
       
         update = False
-        progress_string = "\r[CalcGeometryMatrix] Progress: "
+        progress_string = "\r[Calcam CalcGeometryMatrix] Progress: "
         
         if y==int(ypixels/10):
             
@@ -315,7 +278,7 @@ class RectangularGeometryMatrix:
     # Start of main code which calculates geometry matrix given set of rays
     # and inversion mesh
     #-------------------------------------------------------------------------
-    def CalcGeometryMatrix(self,filename=None):
+    def CalcGeometryMatrix(self,filename=None,fill_frac=0.03):
         
         LinePoints = [0,0]
         LinePoints[0] = self.nR
@@ -340,21 +303,23 @@ class RectangularGeometryMatrix:
         TotalRays = ypixels*xpixels
         TotalInversionCells = int(RCells*ZCells)
         #CellInterceptFrequency = np.zeros(TotalInversionCells)
-        maxcells = 0.1*TotalRays*TotalInversionCells
-        LMatrixRows = np.zeros(maxcells,dtype='float32')
-        LMatrixColumns = np.zeros(maxcells,dtype='float32')
+        maxcells = fill_frac*TotalRays*TotalInversionCells
+        LMatrixRows = np.zeros(maxcells,dtype='int32')
+        LMatrixColumns = np.zeros(maxcells,dtype='int32')
         LMatrixValues = np.zeros(maxcells,dtype='float32')
         LMatrixShape = np.zeros(2)
         LMatrixShape[0] = TotalRays
         LMatrixShape[1] = TotalInversionCells
         self.LMatrixShape = LMatrixShape        
         
+        sys.stdout.write('[Calcam geometry matrix] Starting geometry matrix calculation.\n')
         # Loop over all rays
         Count=0
         for y in np.arange(ypixels):
             for x in np.arange(xpixels):
                 if x==0:
-                    self._ShowProgress(y,ypixels)
+                    print_progress(y,ypixels,'',' Complete', bar_length=50)
+                    
                 RayIndex = x + y*xpixels
                 # Find Direction Vector for this ray
                 EndPos = RayEndPoints[y][x]
@@ -495,48 +460,579 @@ class RectangularGeometryMatrix:
         else:
             self.SaveGeometryMatrix()
             
-        sys.stdout.write('\rGeometry matrix calculation complete.\n')
+        sys.stdout.write('\r[Calcam geometry_matrix] Geometry matrix calculation complete.\n')
         sys.stdout.flush()
-            
-    def SaveGeometryMatrix(self,filename='geo_matrix'):
-      
-        if ((self.LMatrixColumns is not None) &
-          (self.LMatrixRows is not None) &
-          (self.LMatrixValues is not None)):
     
-            np.savez_compressed(filename, \
-                columns = self.LMatrixColumns,\
-                rows = self.LMatrixRows,\
-                values = self.LMatrixValues,\
-                shape = self.LMatrixShape, \
-                grid_rmin = self.Rmin,\
-                grid_rmax = self.Rmax,\
-                grid_nr = self.nR,\
-                grid_zmin = self.Zmin,\
-                grid_zmax = self.Zmax,\
-                grid_nz = self.nZ,\
-                gridtype = 'RectangularGeometryMatrix')
+    def calcRaysPerCell(self):
+        """Returns the number of rays intersecting elements of the inversion mesh"""        
+        
+        if self.LMatrixShape is None:
+            raise Exception('[Calcam geometry_matrix] Geometry matrix has not been calculated.')
+        
+        cellfreq = np.zeros(self.LMatrixShape[1])
+    
+        for i in np.arange(self.LMatrixShape[1]):
+            cellfreq[i] = np.sum((self.LMatrixColumns == i)*1.0)
+
+        return cellfreq
             
-    def LoadGeometryMatrix(self,filename=None):
+    def SaveGeometryMatrix(self,filename='geo_matrix',npformat=False,matformat=False):
+        """Save a geometry matrix from a numpy or Matlab .mat file"""
+
+        validGM = (self.LMatrixColumns is not None) & \
+                  (self.LMatrixRows is not None) & \
+                  (self.LMatrixValues is not None)
+      
+        if validGM:
+    
+            if npformat is True:
+            
+                np.savez_compressed(filename, \
+                    columns = self.LMatrixColumns,\
+                    rows = self.LMatrixRows,\
+                    values = self.LMatrixValues,\
+                    shape = self.LMatrixShape, \
+                    grid_rmin = self.Rmin,\
+                    grid_rmax = self.Rmax,\
+                    grid_nr = self.nR,\
+                    grid_zmin = self.Zmin,\
+                    grid_zmax = self.Zmax,\
+                    grid_nz = self.nZ,\
+                    gridtype = 'RectangularGeometryMatrix')
+                                
+            if matformat is True:
+                from scipy.io import savemat
+                
+                savemat(filename, \
+                        mdict={'columns':   self.LMatrixColumns,\
+                               'rows':      self.LMatrixRows,\
+                               'values':    self.LMatrixValues,\
+                               'shape':     self.LMatrixShape, \
+                               'grid_rmin': self.Rmin,\
+                               'grid_rmax': self.Rmax,\
+                               'grid_nr':   self.nR,\
+                               'grid_zmin': self.Zmin,\
+                               'grid_zmax': self.Zmax,\
+                               'grid_nz':   self.nZ,\
+                               'gridtype':  'RectangularGeometryMatrix'})
+            
+    def LoadGeometryMatrix(self,filename=None,npformat=True,matformat=False):
+        """Load a geometry matrix from a numpy or Matlab .mat file"""
+        
+        if (filename is not None):
+            if npformat is True:
+                dat = np.load(filename+'.npz')
+                self.LMatrixRows = dat['rows']
+                self.LMatrixColumns = dat['columns']
+                self.LMatrixValues = dat['values']
+                self.LMatrixShape = dat['shape']
+                self.Rmin = dat['grid_rmin']
+                self.Rmax = dat['grid_rmax']
+                self.nR = dat['grid_nr']
+                self.Zmin = dat['grid_zmin']
+                self.Zmax = dat['grid_zmax']
+                self.nZ = dat['grid_nz']
+            if matformat is True:
+                from scipy.io import loadmat
+                dat = loadmat(filename+'.mat')
+                self.LMatrixRows = dat['rows']
+                self.LMatrixColumns = dat['columns']
+                self.LMatrixValues = dat['values']
+                self.LMatrixShape = dat['shape']
+                self.Rmin = dat['grid_rmin']
+                self.Rmax = dat['grid_rmax']
+                self.nR = dat['grid_nr']
+                self.Zmin = dat['grid_zmin']
+                self.Zmax = dat['grid_zmax']
+                self.nZ = dat['grid_nz']
+        else:
+            raise Exception('[Calcam geometry_matrix] Specify file name.')
+
+class TriangularGeometryMatrix:
+    def __init__(self,wall_r=None,wall_z=None,cut_start_r=None,cut_end_r=None, \
+                 cut_start_z=None,cut_end_z=None,holes_r=None,holes_z=None,\
+                 tri_area=0.0005,tridir=None,filename=None,RayData=None):
+                     
+        from numpy import arange, loadtxt, array
+        from numpy import int as npint
+        import subprocess
+        import os
+        
+        self.RayData = RayData
         
         if filename is None:
-            raise Exception('LoadGeometryMatrix: no file name provided.')
             
-        f = open(filename,'rb')
-        try:
-            dat = pickle.load(f)
-        except:
-            f.seek(0)
-            dat = pickle.load(f,encoding='latin1')
-        f.close()
-        self.LMatrixRows    = dat[0]
-        self.LMatrixColumns = dat[1]
-        self.LMatrixValues  = dat[2]
-        self.LMatrixShape   = dat[3]
-        self.Rmin           = dat[4][0]
-        self.Rmax           = dat[4][1]
-        self.nR             = dat[4][2]
-        self.Zmin           = dat[5][0]
-        self.Zmax           = dat[5][1]
-        self.nZ             = dat[5][2]
-        self.RayData        = dat[6]
+            inputfile = 'tri_input'
+            
+            # Write the wall data to a triangle input file
+            f = open(tridir+inputfile+'.poly','w')
+            f.write(str(len(wall_r)+len(cut_start_r)*2)+'  2  1  0\n')
+            for i in arange(len(wall_r)):
+                f.write('{:<3d}{:10.4f}{:10.4f}\n'.format(i+1,wall_r[i],wall_z[i]))
+                
+            # write the cuts to the input file
+            if (cut_start_r is not None) and (cut_end_r is not None) and \
+               (cut_start_z is not None) and (cut_end_z is not None):
+                ctr = len(wall_r)
+                for i in arange(len(cut_start_r)):
+                    f.write('{:<3d}{:10.4f}{:10.4f}\n'.format(ctr+i+1,cut_start_r[i],cut_start_z[i]))
+                    ctr = ctr+1
+                    f.write('{:<3d}{:10.4f}{:10.4f}\n'.format(ctr+i+1,cut_end_r[i],cut_end_z[i]))
+            
+                # write the polygon connection to the input file    
+                f.write(str(len(wall_r)+len(cut_start_r)-1)+' 0\n')
+                for i in arange(len(wall_r)-1):
+                    f.write('{:<3d}{:4d}{:4d}\n'.format(i+1,i+1,i+2))
+                    
+                # write the cut lines to the input file
+                ctr = len(wall_r)-1
+                for i in arange(len(cut_start_r)):
+                    f.write('{:<3d}{:4d}{:4d}\n'.format(ctr+i+1,ctr+i+2,ctr+i+3))
+                    ctr = ctr+1
+                
+            if (holes_r is not None) and (holes_z is not None):
+                # Write the holes
+                f.write('{:<2d}\n'.format(len(holes_r)))
+                for i in arange(len(holes_r)):
+                    f.write('{:<2d}{:10.4f}{:10.4f}\n'.format(i+1,holes_r[i],holes_z[i]))
+                    
+            # Done :-)
+            f.close()
+                
+            area = '{:f}'.format(tri_area)
+            
+            # Call triangle
+            if tridir is None:
+                # Get the current directory
+                subprocess.call('triangle -pqa'+area+' '+inputfile,shell=True)
+            else:
+                wrkdir = os.getcwd()
+                os.chdir(tridir)
+                subprocess.call(tridir+'triangle -pqa'+area+' '+inputfile,shell=True)
+                os.chdir(wrkdir)
+        
+            elefile = inputfile+'.1.ele'
+            nodefile = inputfile+'.1.node'
+            
+            elements = array(loadtxt(tridir+elefile,skiprows=1),dtype=npint)
+            nodes = loadtxt(tridir+nodefile,skiprows=1)
+            
+            self.tri_x = nodes[:,1]
+            self.tri_y = nodes[:,2]
+            self.tri_nodes = elements[:,1:4]-1
+            
+        else:
+            self.LoadGeometryMatrix(filename)
+        
+    def fsign (self,p1x, p1y, p2x, p2y, p3x, p3y):
+    
+        return (p1x - p3x) * (p2y - p3y) - (p2x - p3x) * (p1y - p3y);
+    
+    
+    def PointInTriangle (self,ptx, pty, v1x, v1y, v2x, v2y, v3x, v3y):
+        """Determines whether at point (ptx,pty) is enclosed by the vertices
+        (v1x,v1y) (v2x,v2y) (v3x,v3y)"""
+    
+        b1 = self.fsign(ptx, pty, v1x, v1y, v2x, v2y) < 0.0
+        b2 = self.fsign(ptx, pty, v2x, v2y, v3x, v3y) < 0.0
+        b3 = self.fsign(ptx, pty, v3x, v3y, v1x, v1y) < 0.0
+    
+        return ((b1 == b2) & (b2 == b3))
+        
+    def ray_point_dist_2d(self,line_start_x,line_start_y,line_end_x,line_end_y,pt_x,pt_y):
+        """Calculates the distance along a line, defined by start and end points,
+        and an arbitrary point (assumed to be along the line)"""
+    
+        line_dir_x = line_end_x-line_start_x
+        line_dir_y = line_end_y-line_start_y
+    
+        ts1 = np.sqrt((pt_x-line_start_x)**2+(pt_y-line_start_y)**2) / \
+              np.sqrt((line_end_x-line_start_x)**2+(line_end_y-line_start_y)**2)
+                       
+        # Check the sign is correct
+        ts1 = ts1*np.sign((pt_x-line_start_x)*line_dir_x+(pt_y-line_start_y)*line_dir_y)
+        
+        return ts1
+        
+        
+    def ray_line_intersect(self,ray_start,ray_dir,line_start,line_end):
+        """Calculates the intersection between a 3D line of sight and a 2D 
+        line defined in 2D cylindrical polar coordinates (R,Z)"""
+        
+        from numpy import sqrt,zeros,nan,where
+        
+        # Initialise parametric ray coefficients
+        pax = ray_start[0]
+        pay = ray_start[1]
+        paz = ray_start[2]
+        dpx = ray_dir[0]
+        dpy = ray_dir[1]
+        dpz = ray_dir[2]
+
+        # Initialise parametric line coefficients
+        lar = line_start[:,0]
+        laz = line_start[:,1]
+        dlr = line_end[:,0]-line_start[:,0]
+        dlz = line_end[:,1]-line_start[:,1]
+
+        a = -dlz**2*dpx**2 - dlz**2*dpy**2 + dlr**2*dpz**2
+        b = 2*dlr*dlz*dpz*lar - 2*dlr**2*dpz*laz - 2*dlz**2*dpx*pax - 2*dlz**2*dpy*pay + 2*dlr**2*dpz*paz
+        c = (dlz**2*lar**2 - 2*dlr*dlz*lar*laz + dlr**2*laz**2 - dlz**2*pax**2 - dlz**2*pay**2 + 2*dlr*dlz*lar*paz - 2*dlr**2*laz*paz + dlr**2*paz**2)
+        
+        tp0 = zeros((len(a)))*nan
+        tl0 = zeros((len(a)))*nan
+        tp1 = zeros((len(a)))*nan
+        tl1 = zeros((len(a)))*nan
+
+        d = b*b - 4*a*c
+
+        # d < 0 means imaginary solution and hence no intersections, ignore this case
+
+        # d > 0 means two real solutions and hence two intersections
+
+        indx = where((d > 0) & (b < 0))
+        if len(indx) > 0:
+            q = -0.5 * (b[indx] - sqrt(d[indx]))
+            tp0[indx] = q/a[indx]
+            tl0[indx] = (-laz[indx] + paz + dpz * tp0[indx])/dlz[indx]
+            tp1[indx] = c[indx] / q
+            tl1[indx] = (-laz[indx] + paz + dpz * tp1[indx])/dlz[indx]
+        
+        indx = where((d > 0) & (b > 0))
+        if len(indx) > 0:
+            q = -0.5 * (b[indx] + sqrt(d[indx]))
+            tp0[indx] = q/a[indx]
+            tl0[indx] = (-laz[indx] + paz + dpz * tp0[indx])/dlz[indx]
+            tp1[indx] = c[indx] / q
+            tl1[indx] = (-laz[indx] + paz + dpz * tp1[indx])/dlz[indx]
+            
+        indx = where((d == 0) & (b < 0))
+        if len(indx) > 0:
+            q = -0.5 * (b[indx] - sqrt(d[indx]))
+            tp0[indx] = q / a[indx]
+            tl0[indx] = (-laz[indx] + paz + dpz * tp0[indx])/dlz[indx]
+            
+        indx = where((d == 0) & (b > 0))
+        if len(indx) > 0:
+            q = -0.5 * (b[indx] + sqrt(d[indx]))
+            tp0[indx] = q / a[indx]
+            tl0[indx] = (-laz[indx] + paz + dpz * tp0[indx])/dlz[indx]
+            
+        indx = where(dlz == 0)
+        if len(indx) > 0:
+            tp0[indx] = (-paz + laz[indx])/dpz
+            hitr      = sqrt((pax+tp0[indx]*dpx)**2+(pay+tp0[indx]*dpy)**2)
+            tl0[indx] = (-lar[indx] + hitr)/dlr[indx]
+            
+        return tl0, tp0, tl1, tp1
+        
+        
+    def calc_tri_geomat(self,ray_orig,ray_dir,raylen,tri_start1,tri_end1,\
+                        tri_start2,tri_end2,tri_start3,tri_end3,eps=1.0E-3):
+        """Calculates each element of the geometry matrix by calculating the
+        path a line of sight passes through a triangle, called by 
+        CalcGeometryMatrix"""
+        
+        from numpy import where, arange, ndarray, array, sort, sqrt, isfinite, \
+                          argmin, abs
+        
+        
+        hit1 = self.ray_line_intersect(ray_orig,ray_dir,tri_start1,tri_end1)
+        hit2 = self.ray_line_intersect(ray_orig,ray_dir,tri_start2,tri_end2)
+        hit3 = self.ray_line_intersect(ray_orig,ray_dir,tri_start3,tri_end3)
+
+        indx1 = ((hit1[0] > 0.0) & (hit1[0] < 1.0) & (hit1[1] > 0.0) & (hit1[1] < raylen))
+        indx2 = ((hit1[2] > 0.0) & (hit1[2] < 1.0) & (hit1[3] > 0.0) & (hit1[3] < raylen))
+                
+        indx3 = ((hit2[0] > 0.0) & (hit2[0] < 1.0) & (hit2[1] > 0.0) & (hit2[1] < raylen))
+        indx4 = ((hit2[2] > 0.0) & (hit2[2] < 1.0) & (hit2[3] > 0.0) & (hit2[3] < raylen))
+        
+        indx5 = ((hit3[0] > 0.0) & (hit3[0] < 1.0) & (hit3[1] > 0.0) & (hit3[1] < raylen))
+        indx6 = ((hit3[2] > 0.0) & (hit3[2] < 1.0) & (hit3[3] > 0.0) & (hit3[3] < raylen))
+        
+        # Calculate the number of hits of the ray with each side of the triangle
+        n_hits = indx1*1.0+indx2*1.0+indx3*1.0+indx4*1.0+indx5*1.0+indx6*1.0
+        
+        # Find the triangles the ray has intersected
+        indx = where(n_hits > 0)
+        
+        # Store the indices of the triangles hit and the path length within them
+        cellindx = ndarray(len(indx[0]))
+        celllen  = ndarray(len(indx[0]))
+        thits = np.zeros(6)
+        
+        for i in arange(len(indx[0])):
+            index = indx[0][i]
+            
+            thit = array([hit1[1][index],hit1[3][index],hit2[1][index],hit2[3][index],\
+                             hit3[1][index],hit3[3][index]])
+                             
+            thits = array([hit1[0][index],hit1[2][index],hit2[0][index],hit2[2][index],hit3[0][index],hit3[2][index]])
+        
+            thit = array([hit1[1][index],hit1[3][index],hit2[1][index],hit2[3][index],hit3[1][index],hit3[3][index]])        
+        
+            rayxhit = ray_orig[0]+thit*ray_dir[0]
+            rayyhit = ray_orig[1]+thit*ray_dir[1]
+            rayzhit = ray_orig[2]+thit*ray_dir[2]
+            rayrhit = np.sqrt(rayxhit**2+rayyhit**2)
+        
+            tmp = ((thits > 0.0) & (thits < 1.0) & (thit > 0) & (thit < raylen))*1.0
+        
+            # Keep a tally of valid hits
+            thitr = thit*tmp                     
+            thitr[thitr <= 0.0] = 1.0E4
+            thitr[thitr > raylen] = 1.0E4
+            thitr = sort(thitr)
+                             
+            if n_hits[index] == 1:
+                # Check if ray ended in cell
+                rayxhit = ray_orig[0]+raylen*ray_dir[0]
+                rayyhit = ray_orig[1]+raylen*ray_dir[1]
+                rayzhit = ray_orig[2]+raylen*ray_dir[2]
+                rayrhit = sqrt(rayxhit**2+rayyhit**2)
+                endtri = self.PointInTriangle(rayrhit,rayzhit,tri_start1[index,0],tri_start1[index,1],\
+                                              tri_start2[index,0],tri_start2[index,1],tri_start3[index,0],\
+                                              tri_start3[index,1])
+                # 1 hit, checking if ray ended in triangle
+                if endtri == True:
+                    # yep, ray ended in triangle
+                    cell_len = raylen-thitr[0]
+                else:
+                    # nope, ray didnt end in triangle, triggering an error
+                    
+                    # Keep track of invalid hits
+                    tmp = ((thits < 0.0) | (thits > 1.0))*1.0
+                    thiti = thits*tmp
+                    thiti[thiti == 0.0] = 1.0E4
+                    thiti[~isfinite(thiti)] = 1.0E4
+    
+                    idx1 = argmin(abs(thiti))
+                    idx2 = argmin(abs(1.0-thiti))
+                    if abs(thits[idx1]) < abs(1.0-thits[idx2]):
+                        idx = idx1
+                    else:
+                        idx = idx2
+                    
+                    cell_len = abs(thitr[0]-thit[idx])
+                    
+            if n_hits[index] == 2:
+                cell_len = thitr[1]-thitr[0]
+            
+            if n_hits[index] == 3:
+                # Check if ray ended in cell
+                rayxhit = ray_orig[0]+raylen*ray_dir[0]
+                rayyhit = ray_orig[1]+raylen*ray_dir[1]
+                rayzhit = ray_orig[2]+raylen*ray_dir[2]
+                rayrhit = sqrt(rayxhit**2+rayyhit**2)
+                endtri = self.PointInTriangle(rayrhit,rayzhit,tri_start1[index,0],tri_start1[index,1],\
+                                              tri_start2[index,0],tri_start2[index,1],tri_start3[index,0],\
+                                              tri_start3[index,1])
+                # 3 hits, checking if ray ended in triangle
+                if endtri == True:
+                    # yep, ray ended in triangle
+                    cell_len = (raylen-thitr[2])+(thitr[1]-thitr[0])
+                else:
+                    # nope, ray didnt end in triangle - this could be due either
+                    # there being two intersections near a vertex and one elsewhere
+                    # or the valid intersections and the 4th just missed
+                    
+                    # Keep track of invalid hits
+                    tmp = ((thits < 0.0) | (thits > 1.0))*1.0
+                    thiti = thits*tmp
+                    idx = np.where(thiti > 1.0)
+                    thiti[idx] = thiti[idx]-1.0
+                    thiti[thiti == 0.0] = 1.0E4
+                    thiti[~isfinite(thiti)] = 1.0E4
+                    
+                    if np.min(abs(thiti)) < 0.1:
+                        # Probably just missed a valid hit, find the closest
+                        # invalid hit and use this
+                        idx = argmin(abs(thiti))
+                    
+                        tmp = array([thit[idx],thitr[2],thitr[1],thitr[0]])
+                        tmp = sort(tmp)
+                
+                        cell_len = (tmp[3]-tmp[2])+(tmp[1]-tmp[0])
+                    else:
+                        # Picked up a false positive, probably near a vertex,
+                        # Just take the highest difference in path length between
+                        # one intersection and the next
+                        cell_len = np.max(np.diff(thitr[0:3]))
+                        
+            if n_hits[index] == 4:
+                cell_len = (thitr[3]-thitr[2])+(thitr[1]-thitr[0])
+                
+            if n_hits[index] == 5:
+                # Check if ray ended in cell
+                rayxhit = ray_orig[0]+raylen*ray_dir[0]
+                rayyhit = ray_orig[1]+raylen*ray_dir[1]
+                rayzhit = ray_orig[2]+raylen*ray_dir[2]
+                rayrhit = sqrt(rayxhit**2+rayyhit**2)
+                endtri = self.PointInTriangle(rayrhit,rayzhit,tri_start1[index,0],tri_start1[index,1],\
+                                              tri_start2[index,0],tri_start2[index,1],tri_start3[index,0],\
+                                              tri_start3[index,1])
+                # 5 hits, checking if ray ended in triangle
+                if endtri == True:
+                    # yep, ray ended in triangle
+                    cell_len = (raylen-thitr[4])+(thitr[3]-thitr[2])+(thitr[1]-thitr[0])
+                else:
+                    # nope, ray didnt end in triangle - this could be due either
+                    # there being two intersections near a vertex and one elsewhere
+                    # or the valid intersections and the 6th just missed
+                    
+                    # Keep track of invalid hits
+                    tmp = ((thits < 0.0) | (thits > 1.0))*1.0
+                    thiti = thits*tmp
+                    idx = np.where(thiti > 1.0)
+                    thiti[idx] = thiti[idx]-1.0
+                    thiti[thiti == 0.0] = 1.0E4
+                    thiti[~isfinite(thiti)] = 1.0E4
+                    
+                    # Probably just missed a valid hit, find the closest
+                    # invalid hit and use this
+                    idx = argmin(abs(thiti))
+                    
+                    tmp = array([thit[idx],thitr[2],thitr[1],thitr[0]])
+                    tmp = sort(tmp)
+                
+                    cell_len = (tmp[5]-tmp[4])+(tmp[3]-tmp[2])+(tmp[1]-tmp[0])
+                
+            if n_hits[index] == 6:
+                cell_len = (thitr[5]-thitr[4])+(thitr[3]-thitr[2])+(thitr[1]-thitr[0])
+        
+            cellindx[i] = index
+            celllen[i] = cell_len
+        
+        return cellindx, celllen
+        
+    def CalcGeometryMatrix(self,filename=None,fill_frac=0.1):
+        """Calculate the geometry matrix"""
+    
+        from numpy import shape, zeros, arange, sqrt, vstack
+        
+        #raydata = calcam.RayData('89346d_400-408_2005_low')
+        tmp = shape(self.RayData.ray_start_coords)
+        xpixels = tmp[1]
+        ypixels = tmp[0]
+        
+        TotalRays = ypixels*xpixels
+        TotalInversionCells = len(self.tri_nodes)
+        maxcells = fill_frac*TotalRays*TotalInversionCells
+        LMatrixRows = zeros(maxcells,dtype='int32')
+        LMatrixColumns = zeros(maxcells,dtype='int32')
+        LMatrixValues = zeros(maxcells,dtype='float32')
+        self.LMatrixShape = zeros(2)
+        self.LMatrixShape[0] = TotalRays
+        self.LMatrixShape[1] = TotalInversionCells
+        
+        tri_start1 = vstack((self.tri_x[self.tri_nodes[:,0]],self.tri_y[self.tri_nodes[:,0]])).transpose()
+        tri_end1   = vstack((self.tri_x[self.tri_nodes[:,1]],self.tri_y[self.tri_nodes[:,1]])).transpose()
+        
+        tri_start2 = vstack((self.tri_x[self.tri_nodes[:,1]],self.tri_y[self.tri_nodes[:,1]])).transpose()
+        tri_end2   = vstack((self.tri_x[self.tri_nodes[:,2]],self.tri_y[self.tri_nodes[:,2]])).transpose()
+        
+        tri_start3 = vstack((self.tri_x[self.tri_nodes[:,2]],self.tri_y[self.tri_nodes[:,2]])).transpose()
+        tri_end3   = vstack((self.tri_x[self.tri_nodes[:,0]],self.tri_y[self.tri_nodes[:,0]])).transpose()
+        
+        # Loop over all rays
+        sys.stdout.write('[Calcam geometry matrix] Starting geometry matrix calculation.\n')
+        Count=0
+        for y in arange(ypixels):
+            for x in arange(xpixels):
+                if x == 0:
+                    print_progress(y,ypixels,'',' Complete', bar_length=50)
+                    
+                RayIndex = x + y*xpixels
+                # Find Direction Vector for this ray
+                Origin = self.RayData.ray_start_coords[y][x]
+                EndPos = self.RayData.ray_end_coords[y][x]
+                RayLen = sqrt((Origin[0]-EndPos[0])**2+(Origin[1]-EndPos[1])**2+(Origin[2]-EndPos[2])**2)
+                DirectionVector = (EndPos - Origin)/RayLen
+        
+                gm_cellindex, gm_celllen = self.calc_tri_geomat(Origin,DirectionVector,RayLen,tri_start1,tri_end1,tri_start2,tri_end2,tri_start3,tri_end3)
+        
+                nel = len(gm_cellindex)        
+                LMatrixRows[Count:Count+nel] = zeros(len(gm_cellindex))+RayIndex
+                LMatrixColumns[Count:Count+nel] = gm_cellindex
+                LMatrixValues[Count:Count+nel] = gm_celllen
+                
+                Count = Count+nel
+                
+        self.LMatrixRows = LMatrixRows[0:Count]
+        self.LMatrixColumns = LMatrixColumns[0:Count]
+        self.LMatrixValues = LMatrixValues[0:Count]
+        sys.stdout.write('[Calcam geometry_matrix] Geometry matrix calculation complete.\n')
+        
+        if filename is not None:
+            self.SaveGeometryMatrix(filename=filename)
+            
+    def calcRaysPerCell(self):
+        """Returns the number of rays intersecting elements of the inversion mesh"""        
+        
+        if self.LMatrixShape is None:
+            raise Exception('[Calcam geometry_matrix] Geometry matrix has not been calculated.')
+        
+        cellfreq = np.zeros(self.LMatrixShape[1])
+    
+        for i in np.arange(self.LMatrixShape[1]):
+            cellfreq[i] = np.sum((self.LMatrixColumns == i)*1.0)
+
+        return cellfreq
+            
+    def SaveGeometryMatrix(self,filename='geo_matrix',npformat=True,matformat=False):
+        """Save a geometry matrix from a numpy or Matlab .mat file"""
+      
+        if npformat is True:
+        
+            if ((self.LMatrixColumns is not None) &
+                (self.LMatrixRows is not None) &
+                (self.LMatrixValues is not None)):
+    
+                np.savez_compressed(filename, \
+                    columns   = self.LMatrixColumns,\
+                    rows      = self.LMatrixRows,\
+                    values    = self.LMatrixValues,\
+                    shape     = self.LMatrixShape, \
+                    tri_x     = self.tri_x, \
+                    tri_y     = self.tri_y, \
+                    tri_nodes = self.tri_nodes, \
+                    gridtype  = 'TriangularGeometryMatrix')
+                            
+        if matformat is True:
+            from scipy.io import savemat
+            
+            savemat(filename, \
+                    mdict={'columns':   self.LMatrixColumns,\
+                           'rows':      self.LMatrixRows,\
+                           'values':    self.LMatrixValues,\
+                           'shape':     self.LMatrixShape, \
+                           'tri_x':     self.tri_x, \
+                           'tri_y':     self.tri_y, \
+                           'tri_nodes': self.tri_nodes, \
+                           'gridtype':  'TriangularGeometryMatrix'})
+                
+    def LoadGeometryMatrix(self,filename=None,npformat=True,matformat=False):
+        """Load a geometry matrix from a numpy or Matlab .mat file"""
+      
+        if (filename is not None):
+            if npformat is True:
+                dat = np.load(filename+'.npz')
+                self.LMatrixColumns = dat['columns']
+                self.LMatrixRows    = dat['rows']
+                self.LMatrixValues  = dat['values']
+                self.LMatrixShape   = dat['shape']
+                self.tri_x          = dat['tri_x']
+                self.tri_y          = dat['tri_y']
+                self.tri_nodes      = dat['tri_nodes']
+            if matformat is True:
+                from scipy.io import loadmat
+                dat = loadmat(filename+'.mat')
+                self.LMatrixColumns = dat['columns']
+                self.LMatrixRows    = dat['rows']
+                self.LMatrixValues  = dat['values']
+                self.LMatrixShape   = dat['shape']
+                self.tri_x          = dat['tri_x']
+                self.tri_y          = dat['tri_y']
+                self.tri_nodes      = dat['tri_nodes']
+        else:
+            raise Exception('[Calcam geometry_matrix] Specify file name.')

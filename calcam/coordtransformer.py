@@ -71,7 +71,7 @@ class CoordTransformer:
 	# Returns: data_out - numpy ndarray containing the image in display coordinates.
 	def original_to_display_image(self,image,skip_resize=False,binning=1):
 
-		if image.shape[1] != self.x_pixels/binning or (image.shape[0] != self.y_pixels/binning and skip_resize == False) or (image.shape[0] != self.y_pixels*self.pixel_aspectratio/binning and skip_resize == True):
+		if image.shape[1] != self.x_pixels//binning or (image.shape[0] != self.y_pixels//binning and skip_resize == False) or (image.shape[0] != self.y_pixels*self.pixel_aspectratio//binning and skip_resize == True):
 			raise Exception('This image is the wrong size!')
 
 		data_out = image.copy()
@@ -101,7 +101,7 @@ class CoordTransformer:
 	# Returns: data_out - numpy ndarray containing the image in original coordinates.
 	def display_to_original_image(self,image, skip_resize=False,binning=1):
 
-		if image.shape[0] != self.get_display_shape()[1]/binning or image.shape[1] != self.get_display_shape()[0]/binning:
+		if image.shape[0] != self.get_display_shape()[1]//binning or image.shape[1] != self.get_display_shape()[0]//binning:
 			raise Exception('This image is the wrong size!')
 
 		data_out = image.copy()
@@ -119,7 +119,7 @@ class CoordTransformer:
 				data_out = np.rot90(data_out,k=3)
 				
 		if not skip_resize:
-			data_out = cv2.resize(data_out,(self.x_pixels/binning,self.y_pixels/binning),interpolation=cv2.INTER_NEAREST)
+			data_out = cv2.resize(data_out,(self.x_pixels//binning,self.y_pixels//binning),interpolation=cv2.INTER_NEAREST)
 
 		return data_out
 
