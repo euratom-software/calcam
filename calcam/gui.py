@@ -1915,7 +1915,7 @@ class CalCamWindow(qt.QMainWindow):
             if dialog.result() == 1:
                 self.pointpairs_save_name = dialog.name
                 del dialog
-                self.image.save()          
+                self.image.save()
                 self.pointpicker.PointPairs.save(self.pointpairs_save_name)
                 self.pointpairs_changed = False
                 if confirm:
@@ -3517,8 +3517,16 @@ class AlignmentCalibWindow(qt.QMainWindow):
             self.cx_box.setValue(self.image.transform.get_display_shape()[0]/2)
             self.cy_box.setValue(self.image.transform.get_display_shape()[1]/2)
             self.pinhole_intrinsics.setChecked(True)
-            self.load_intrinsics_combobox.clear()
+            self.populate_intrinsics_list()
+
+        self.update_intrinsics(redraw=False)
+        self.virtualcamera.transform = self.image.transform
+
+
+    def populate_intrinsics_list(self):
+
             # Populate intrinsics list
+            self.load_intrinsics_combobox.clear()
             for resname in paths.get_save_list('FitResults'):
                 try:
                     res = fitting.CalibResults(resname)
@@ -3530,10 +3538,7 @@ class AlignmentCalibWindow(qt.QMainWindow):
             if self.load_intrinsics_combobox.count() > 0:
                 self.calcam_intrinsics.setEnabled(True)
             else:
-                self.calcam_intrinsics.setEnabled(False)
-
-        self.update_intrinsics(redraw=False)
-        self.virtualcamera.transform = self.image.transform
+                self.calcam_intrinsics.setEnabled(False)  
 
 
     def update_intrinsics(self,redraw=True):
@@ -3927,6 +3932,7 @@ class AlignmentCalibWindow(qt.QMainWindow):
         self.viewdesigner.init_image(self.image,opacity=self.im_opacity_slider.value() / 10.,cx=c_new[0],cy=c_new[1])
 
         self.update_image_info_string()
+        self.populate_intrinsics_list()
 
 
     def closeEvent(self,event):

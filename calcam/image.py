@@ -51,7 +51,6 @@ class Image():
         self.clim = None
         self.fieldmask = None
         self.n_fields = 0
-        self.pixel_aspectratio = None
         self.name = None
         self.transform = CoordTransformer()
         self.postprocessor = None
@@ -168,7 +167,7 @@ class Image():
         clim[:] = self.clim
 
         pixaspect = f.createVariable('pixel_aspect_ratio','f4',())
-        pixaspect.assignValue(self.pixel_aspectratio)
+        pixaspect.assignValue(self.transform.pixel_aspectratio)
 
         data.units = 'DL'
         clim.units = 'DL'
@@ -176,6 +175,7 @@ class Image():
 
         f.close()
 		
+
 
     # Load an image previously saved using Image.save() in to this image instance.
     # Inputs: loadname - string to identify saved image.
@@ -200,7 +200,7 @@ class Image():
             self.fieldmask = f.variables['fieldmask'].data.astype('int8')
             clim = f.variables['calcam_clim'].data.astype('uint64')
             self.clim = np.uint8(clim * scale_factor)
-            self.pixel_aspectratio = f.variables['pixel_aspect_ratio'].data.astype('float32')
+            self.transform.pixel_aspectratio = f.variables['pixel_aspect_ratio'].data.astype('float32')
 
         else:
             # If the data is already saved as 8 bit ints, we can carry on happily :)
@@ -211,7 +211,7 @@ class Image():
                 self.alpha = None
             self.fieldmask = f.variables['fieldmask'].data.astype('uint8')
             self.clim = f.variables['calcam_clim'].data.astype('uint8')
-            self.pixel_aspectratio = f.variables['pixel_aspect_ratio'].data.astype('float32')
+            self.transform.pixel_aspectratio = f.variables['pixel_aspect_ratio'].data.astype('float32')
 
         try:
             self.pixel_size = f.variables['pixel_size'].data.astype('float32')
@@ -234,7 +234,6 @@ class Image():
         self.transform.set_transform_actions(eval(f.image_transform_actions))
         self.transform.x_pixels = self.data.shape[1]
         self.transform.y_pixels = self.data.shape[0]
-        self.transform.pixel_aspectratio = self.pixel_aspectratio
 
         f.close()
 		
@@ -336,7 +335,6 @@ def from_array(Array,pixel_aspectratio=1,transform_actions=None,image_name='New 
     NewImage.fieldmask = np.zeros(np.shape(NewImage.data)[0:2],dtype='int8')
 
     NewImage.pixel_size = pixel_size
-    NewImage.pixel_aspectratio = pixel_aspectratio
     NewImage.transform.pixel_aspectratio = pixel_aspectratio
 
     NewImage.transform.x_pixels = Array.shape[1]

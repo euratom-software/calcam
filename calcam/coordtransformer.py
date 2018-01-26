@@ -48,7 +48,7 @@ class CoordTransformer:
 		self.x_pixels = None
 		self.y_pixels = None
 
-		self.pixel_aspectratio = 1
+		self.pixel_aspectratio = 1.
 
 	# Define the actions to perform on an image to change it from original to display coordinates.
 	# Input: transform_actions: a list of strings, specifying image transform actions, in the order
