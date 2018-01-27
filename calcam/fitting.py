@@ -364,9 +364,8 @@ class CalibResults:
                 else:
                     raise Exception('This calibration has multiple sub-fields; you must specify a pixel location to get_pupilpos!')
 
-
-            rotation_matrix = np.matrix(cv2.Rodrigues(self.fit_params[field].rvec)[0])
-            CamPos = np.matrix(self.fit_params[field].tvec)
+            rotation_matrix = np.matrix(cv2.Rodrigues(self.fit_params[int(field)].rvec)[0])
+            CamPos = np.matrix(self.fit_params[int(field)].tvec)
             CamPos = - (rotation_matrix.transpose() * CamPos)
             CamPos = np.array(CamPos)
 

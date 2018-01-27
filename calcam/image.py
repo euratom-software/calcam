@@ -219,10 +219,17 @@ class Image():
             self.pixel_size = None
 
         self.name = f.image_name
+
+        if type(self.name) is bytes:
+            self.name = self.name.decode('utf-8')
+
         self.n_fields = np.max(self.fieldmask) + 1
 
         try:
-            self.field_names = str(f.field_names).split(',')
+            fns = f.field_names
+            if type(fns) is bytes:
+                fns = fns.decode('utf-8')
+            self.field_names = fns.split(',')
         except AttributeError:
             if self.n_fields == 1:
                 self.field_names = ['Image']

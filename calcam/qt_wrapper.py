@@ -27,38 +27,40 @@ PyQt 4 or 5.
 """
 
 try:
-	from PyQt5.QtCore import *
-	from PyQt5.QtGui import *
-	from PyQt5.QtWidgets import *
-	from PyQt5.QtWidgets import QTreeWidgetItem as QTreeWidgetItem_class
-	from PyQt5 import uic
-	qt_ver = 5
+    from PyQt5.QtCore import *
+    from PyQt5.QtGui import *
+    from PyQt5.QtWidgets import *
+    from PyQt5.QtWidgets import QTreeWidgetItem as QTreeWidgetItem_class
+    from PyQt5 import uic
+    qt_ver = 5
 except:
-	from PyQt4.QtCore import *
-	from PyQt4.QtGui import *
-	from PyQt4.QtGui import QTreeWidgetItem as QTreeWidgetItem_class
-	from PyQt4 import uic
-	qt_ver = 4
+    from PyQt4.QtCore import *
+    from PyQt4.QtGui import *
+    from PyQt4.QtGui import QTreeWidgetItem as QTreeWidgetItem_class
+    from PyQt4 import uic
+    qt_ver = 4
 
+try:
+    QString
+except:
+    QString = str
+
+try:
+    if qt_ver == 4:
+        from vtk.qt4.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
+    else:
+        from vtk.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
+except:
+    raise ImportError('VTK Qt module could not be imported. Check your VTK library has been built with Qt support.')
 
 # Here's a function which creates a new instance of QTreeWidgetItem,
 # which will work in either PyQt4 or 5. For PyQt4 we have to make string list
 # arguments in to QStringLists.
 def QTreeWidgetItem(*args):
-	if qt_ver == 4:
-		for i in range(len(args)):
-			if type(args[i]) == str:
-				args[i] = self.QStringList(args[i])
+    if qt_ver == 4:
+        for i in range(len(args)):
+            if type(args[i]) == str:
+                args[i] = self.QStringList(args[i])
 
-	return QTreeWidgetItem_class(*args)
-
-
-
-try:
-	if qt_ver == 4:
-		from vtk.qt4.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
-	else:
-		from vtk.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
-except:
-	raise ImportError('VTK Qt module could not be imported. Check your VTK library has been built with Qt support.')
+    return QTreeWidgetItem_class(*args)
 

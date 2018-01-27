@@ -1212,9 +1212,9 @@ class CalCamWindow(qt.QMainWindow):
             self.use_chessboard_checkbox.setChecked(False)
 
         self.image = newim
+
         if self.overlay_checkbox.isChecked():
             self.overlay_checkbox.setChecked(False)
-
 
         self.pointpairs_save_name = self.image.name
         self.fit_save_name = self.image.name
@@ -1234,7 +1234,11 @@ class CalCamWindow(qt.QMainWindow):
     def populate_pointpairs_list(self):
         pp_list = []
         for pp_save in paths.get_save_list('PointPairs'):
-            pp = pointpairs.PointPairs(pp_save)
+
+            try:
+                pp = pointpairs.PointPairs(pp_save)
+            except:
+                continue
             if pp.n_fields == self.image.n_fields:
                 if pp.image is None:
                     pp_list.append(pp_save)
@@ -1819,7 +1823,7 @@ class CalCamWindow(qt.QMainWindow):
 
         self.n_pointpairs_text.setText(n_pairs_string)
 
-        if n_pairs > 5:
+        if n_pairs > 5 or (n_pairs > 2 and self.use_chessboard_checkbox.isChecked()):
             self.fit_button.setEnabled(True)
         else:
             self.fit_button.setEnabled(False)
@@ -1936,6 +1940,7 @@ class CalCamWindow(qt.QMainWindow):
                 return 0
 
         except Exception as err:
+            raise
             dialog = qt.QMessageBox(self)
             dialog.setStandardButtons(qt.QMessageBox.Ok)
             dialog.setWindowTitle('Calcam - Save Error')

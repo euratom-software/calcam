@@ -52,7 +52,7 @@ class mr_fusion(CADModel):
         # You shouldn't need to edit this. It's only up here because, for exmple, later on the list of CAD filenames etc
         # could depend on model variant if you wanted, so it's nice to validate it beforehand.
         if model_variant not in self.model_variants:
-            raise ValueError('Unknown ' + self.model_name + ' model variant "' + model_variant + '"')
+            raise ValueError('Unknown ' + self.machine_name + ' model variant "' + model_variant + '"')
         self.model_variant = model_variant
 
         # Default colour to render the model in the format (R,G,B), where RGB go from 0 to 1.
