@@ -862,7 +862,6 @@ class CalCamWindow(qt.QMainWindow):
         self.pointpairs_load_name.currentIndexChanged.connect(self.update_load_pp_button_status)
         self.pixel_size_checkbox.toggled.connect(self.update_fitopts_gui)
         self.pixel_size_box.valueChanged.connect(self.update_pixel_size)
-        self.overlay_oversampling_combobox.currentIndexChanged.connect(self.change_overlay_oversampling)
         self.toggle_controls_button.clicked.connect(self.toggle_controls)
         self.chessboard_button.clicked.connect(self.modify_chessboard_constraints)
         self.use_chessboard_checkbox.toggled.connect(self.toggle_chessboard_constraints)
@@ -965,6 +964,11 @@ class CalCamWindow(qt.QMainWindow):
             self.camera.SetPosition((self.camX.value(),self.camY.value(),self.camZ.value()))
             self.camera.SetFocalPoint((self.tarX.value(),self.tarY.value(),self.tarZ.value()))
             self.camera.SetViewAngle(self.camFOV.value())
+
+
+        for i in range(len(self.pointpicker.ObjectPoints)):
+            if self.pointpicker.ObjectPoints[i] is not None:
+                self.pointpicker.Set3DCursorStyle(i,self.pointpicker.SelectedPoint == i,self.pointpicker.ImagePoints[i].count(None) < self.pointpicker.nFields)
 
         self.update_viewport_info(self.camera.GetPosition(),self.camera.GetFocalPoint(),self.camera.GetViewAngle())
 
@@ -1749,18 +1753,17 @@ class CalCamWindow(qt.QMainWindow):
 
             if self.pointpicker.fit_overlay_actor is None:
 
-                oversampling = self.overlay_combobox_options[self.overlay_oversampling_combobox.currentIndex()]
+                oversampling = 1.
                 self.statusbar.showMessage('Rendering wireframe overlay...')
                 self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
                 self.app.processEvents()
                 try:
                     OverlayImage = image.from_array(render.render_cam_view(self.cadmodel,self.pointpicker.FitResults,Edges=True,Transparency=True,Verbose=False,EdgeColour=(0,0,1),oversampling=oversampling,ScreenSize=self.screensize))
 
-                    self.pointpicker.fit_overlay_actor,self.pointpicker.fit_overlay_resizer = OverlayImage.get_vtkobjects()
+                    self.pointpicker.fit_overlay_actor = OverlayImage.get_vtkActor()
 
-                    self.pointpicker.fit_overlay_actor.SetPosition(self.pointpicker.ImageActor.GetPosition())
-                    self.pointpicker.fit_overlay_resizer.SetOutputDimensions(self.pointpicker.ImageResizer.GetOutputDimensions())
                     self.pointpicker.Renderer_2D.AddActor(self.pointpicker.fit_overlay_actor)
+                    self.pointpicker.fit_overlay_actor.SetPosition(0.,0.,0.05)
 
                     self.fitted_points_checkbox.setChecked(False)
                     self.refresh_vtk()
@@ -4877,6 +4880,7 @@ def start_gui():
     app = qt.QApplication([''])
     window = LauncherWindow(app)   
     window.exec_()
+
 
 
 # Rotate a given point about the given axis by the given angle
