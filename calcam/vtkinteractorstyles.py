@@ -80,6 +80,7 @@ class PointPairPicker(vtk.vtkInteractorStyleTerrain):
         self.im_dragging = False
 
         self.Camera2D = self.Renderer_2D.GetActiveCamera()
+        self.Camera2D.ParallelProjectionOn()
         self.Image = None
         self.gui_window = gui_window
         self.field_names = ['Image']
@@ -164,7 +165,7 @@ class PointPairPicker(vtk.vtkInteractorStyleTerrain):
 
             self.field_names = self.Image.field_names
 
-            self.ImageActor,self.ImageResizer = self.Image.get_vtkobjects()
+            self.ImageActor = self.Image.get_vtkActor()
 
 
             self.WinSize = self.Window.GetSize()
@@ -173,34 +174,34 @@ class PointPairPicker(vtk.vtkInteractorStyleTerrain):
 
             ImAspect = float(self.ImageOriginalSize[0])/self.ImageOriginalSize[1]
 
-            newRefSize = [0,0,1]
-            if winaspect >= ImAspect:
-                # Base new zero size on y dimension
-                newRefSize[0] = self.WinSize[1]*ImAspect
-                newRefSize[1] = self.WinSize[1]
-                self.ZoomRefPos = (((self.WinSize[0]/2 - self.WinSize[1]*ImAspect))/2,0.)
-                
-            else:
-                # Base new zero size on x dimension
-                newRefSize[0] = self.WinSize[0]/2
-                newRefSize[1] = (self.WinSize[0]/2)/ImAspect
-                self.ZoomRefPos = (0.,(self.WinSize[1] - (self.WinSize[0]/2)/ImAspect)/2)
 
-            self.ZoomRefSize = tuple(newRefSize)
-            if not hold_position:
-                self.ZoomLevel = 1.
-
-            # Set the initial size of the image to fit the window size
-            if hold_position:
-                self.ImageActor.SetPosition(oldpos)
-            else:
-                self.ImageActor.SetPosition(self.ZoomRefPos)
-
-            self.ImageResizer.SetOutputDimensions(int(self.ZoomRefSize[0]*self.ZoomLevel),int(self.ZoomRefSize[1]*self.ZoomLevel),1)
+            #self.ImageResizer.SetOutputDimensions(int(self.ZoomRefSize[0]*self.ZoomLevel),int(self.ZoomRefSize[1]*self.ZoomLevel),1)
             self.Renderer_2D.AddActor2D(self.ImageActor)
-            
-            
-            self.Update2DCursorPositions()
+
+
+            bounds = self.ImageActor.GetBounds()
+            xc = bounds[0] + bounds[1] / 2
+            yc = bounds[2] + bounds[3] / 2
+            ye = bounds[3] - bounds[2]
+            xe = bounds[1] - bounds[0]
+
+            self.zoom_ref_cc = (xc,yc)
+
+            im_aspect = xe / ye
+
+            if winaspect >= im_aspect:
+                # Base new zero size on y dimension
+                self.zoom_ref_scale = 0.5*ye
+            else:
+                self.zoom_ref_scale = 0.5*xe/winaspect
+
+
+            if not hold_position:
+                # 
+                self.ZoomLevel = 1.                
+                self.Camera2D.SetParallelScale(self.zoom_ref_scale)
+                self.Camera2D.SetPosition(xc,yc,1.)
+                self.Camera2D.SetFocalPoint(xc,yc,0.)
             
             self.PointPairs.set_image(self.Image)
             self.Fitter.set_PointPairs(self.PointPairs)
@@ -399,33 +400,42 @@ class PointPairPicker(vtk.vtkInteractorStyleTerrain):
                         self.Set3DCursorStyle(i,self.SelectedPoint == i,self.ImagePoints[i].count(None) < self.nFields)
                 self.gui_window.update_viewport_info(self.Camera3D.GetPosition(),self.get_view_target(),self.Camera3D.GetViewAngle())
         else:
-                # Zoom in to image keeping the point under the mouse fixed in place
+
+                # Re-position the image camera to keep the image point under the mouse pointer fixed when zooming
+
+
+                zoom_ratio = 1 + 0.2/self.ZoomLevel                 # The zoom ratio we will have
+
+                # Current camera position and scale
+                campos = self.Camera2D.GetPosition()
+                camscale = self.Camera2D.GetParallelScale() * 2.
+
+
+                # Where is the zoom target in world coordinates?
+
+                # Zoom coordinates in window pixels
                 zoomcoords = list(self.Interactor.GetEventPosition())
-                # The image renderer only takes up half of the VTK widget size, horizontally.
                 zoomcoords[0] = zoomcoords[0] - self.WinSize[0]/2.
 
-                zoom_ratio = 1 + 0.2/self.ZoomLevel
+                # Position of current centre from to where we're zooming
+                zoomcoords = ( (zoomcoords[0] - (self.WinSize[0]/4.))/(self.WinSize[0]/2.) * camscale * (float(self.WinSize[0])/2.)/float(self.WinSize[1]) + campos[0],
+                               (zoomcoords[1] - self.WinSize[1]/2.)/self.WinSize[1] * camscale + campos[1] )
+
+                # Vector from zoom point to current camera centre
+                zoomvec = ( campos[0] - zoomcoords[0] , campos[1] - zoomcoords[1] )
+
+                # Now we move the camera along the line bwteen the current camera centre and zoom position
+                newxc = zoomvec[0]/zoom_ratio + zoomcoords[0]
+                newyc = zoomvec[1]/zoom_ratio + zoomcoords[1]
+
+                # Actually move the camera
+                self.Camera2D.SetPosition((newxc,newyc,1.))
+                self.Camera2D.SetFocalPoint((newxc,newyc,0.))
+
+                # Actually zoom in.
                 self.ZoomLevel = self.ZoomLevel + 0.2
-                w = int(self.ZoomRefSize[0]*self.ZoomLevel)
-                h = int(self.ZoomRefSize[1]*self.ZoomLevel)
-
-                self.ImageResizer.SetOutputDimensions(w,h,self.ZoomRefSize[2])
-                
-                oldpos = self.ImageActor.GetPosition()
-                old_deltaX = zoomcoords[0] - oldpos[0]
-                old_deltaY = zoomcoords[1] - oldpos[1]
-
-                new_deltaX = int(old_deltaX * zoom_ratio)
-                new_deltaY = int(old_deltaY * zoom_ratio)
-
-                self.ImageActor.SetPosition(zoomcoords[0] - new_deltaX, zoomcoords[1] - new_deltaY)
-            
-                # Since the point cursors are not tied to the image, we have to update them separately.
-                self.Update2DCursorPositions()
-                
-                if self.fit_overlay_actor is not None:
-                    self.fit_overlay_actor.SetPosition(self.ImageActor.GetPosition())
-                    self.fit_overlay_resizer.SetOutputDimensions(self.ImageResizer.GetOutputDimensions())
+                self.Camera2D.SetParallelScale(self.zoom_ref_scale / self.ZoomLevel)
+                self.update_im_cursorstyles()
 
         self.gui_window.refresh_vtk()
 
@@ -452,40 +462,30 @@ class PointPairPicker(vtk.vtkInteractorStyleTerrain):
                         self.Set3DCursorStyle(i,self.SelectedPoint == i,self.ImagePoints[i].count(None) < self.nFields)
                 self.gui_window.update_viewport_info(self.Camera3D.GetPosition(),self.get_view_target(),self.Camera3D.GetViewAngle())
         else:
-                # Only zoom out until the whole image is visible
+                # Zoom out smoothly until the whole image is visible
                 if self.ZoomLevel > 1.:
 
-                    # Zoom out, centring the image in the window
+                    zoom_ratio = 0.2/(self.ZoomLevel**2 - 1.2*self.ZoomLevel + 0.2)
+
+                    campos = self.Camera2D.GetPosition()
+
+                    zoomvec = ( self.zoom_ref_cc[0] - campos[0] , self.zoom_ref_cc[1] - campos[1] )
+
+                    self.Camera2D.SetPosition((campos[0] + zoomvec[0] * zoom_ratio, campos[1] +  zoomvec[1] * zoom_ratio, 1.))
+                    self.Camera2D.SetFocalPoint((campos[0] + zoomvec[0] * zoom_ratio, campos[1] +  zoomvec[1] * zoom_ratio, 0.))
+
                     self.ZoomLevel = self.ZoomLevel - 0.2
-                    w = int(self.ZoomRefSize[0]*self.ZoomLevel)
-                    h = int(self.ZoomRefSize[1]*self.ZoomLevel)
-                
-                    dims_old = self.ImageResizer.GetOutputDimensions()
-                
-                    oldpos = self.ImageActor.GetPosition()
-
-                    oldLHS = float(self.WinSize[0])/4. - float(oldpos[0])
-                    oldBS = float(self.WinSize[1])/2. - float(oldpos[1])
-                    oldTS =  float(dims_old[1] + oldpos[1]) - float(self.WinSize[1]/2.)
-                    oldRHS = float(oldpos[0] + dims_old[0]) - float(self.WinSize[0]/4.)
-
-                    ratio_x = (oldLHS - self.ZoomRefSize[0]/2)/(oldLHS + oldRHS - self.ZoomRefSize[0])
-                    ratio_y = (oldBS - self.ZoomRefSize[1]/2)/(oldBS + oldTS - self.ZoomRefSize[1])
-
-                    newpos_x = oldpos[0] + int( float( dims_old[0] - w ) * ratio_x ) 
-                    newpos_y = oldpos[1] + int( float( dims_old[1] - h ) * ratio_y )
-                
-                    self.ImageResizer.SetOutputDimensions(w,h,self.ZoomRefSize[2])
-                    self.ImageActor.SetPosition([newpos_x,newpos_y])
-                    self.Update2DCursorPositions()
-                    
-                    if self.fit_overlay_actor is not None:
-                        self.fit_overlay_actor.SetPosition(self.ImageActor.GetPosition())
-                        self.fit_overlay_resizer.SetOutputDimensions(self.ImageResizer.GetOutputDimensions())
+                    self.Camera2D.SetParallelScale(self.zoom_ref_scale / self.ZoomLevel)
+                    self.update_im_cursorstyles()
 
         self.gui_window.refresh_vtk()
 
 
+
+    def update_im_cursorstyles(self):
+        
+        for n in range(len(self.ImagePoints)):
+            self.Set2DCursorStyle(n,self.SelectedPoint == n,self.ObjectPoints[n] is not None)           
 
 
     def clear_all(self):
@@ -608,11 +608,11 @@ class PointPairPicker(vtk.vtkInteractorStyleTerrain):
         # Otherwise, if the click was within the bounds of the image,
         # return the pixel coordinates on the image
         if picktype is None and self.Image is not None:
-                impos = self.ImageActor.GetPosition()
-                imsize = self.ImageResizer.GetOutputDimensions()
-                if (clickcoords[0] - self.WinSize[0]/2) > impos[0] and (clickcoords[0] - self.WinSize[0]/2) < (impos[0] + imsize[0]) and clickcoords[1] > impos[1] and clickcoords[1] < (impos[1] + imsize[1]):
+                imcoords = self.DisplayToImageCoords(clickcoords)
+                imshape = self.Image.transform.get_display_shape()
+                if np.all(np.array(imcoords) > 0.) and np.all(np.array(imcoords) < np.array(imshape)):
                     picktype = 'Position'
-                    pickdata = self.DisplayToImageCoords(clickcoords)
+                    pickdata = imcoords
 
         return picktype,pickdata
 
@@ -659,8 +659,11 @@ class PointPairPicker(vtk.vtkInteractorStyleTerrain):
     # Similar to Set3DCursorStyle but for image points
     def Set2DCursorStyle(self,CursorNumber,Focus,Paired=True):
         
-        focus_size = 0.008
-        nofocus_size = 0.004
+        camscale = self.Camera2D.GetParallelScale()
+        focus_size = 0.03 * camscale 
+        radius_focus = 0. #focus_size/3.
+        nofocus_size = 0.015 * camscale
+        radius_nofocus = 0.
 
         focus_linewidth = 3
         nofocus_linewidth = 2
@@ -672,13 +675,16 @@ class PointPairPicker(vtk.vtkInteractorStyleTerrain):
         for i in range(self.nFields):
                 if self.ImagePoints[CursorNumber][i] is not None:
                     pos = self.ImagePoints[CursorNumber][i][0].GetFocalPoint()
+                    
                     if Focus:
-                        self.ImagePoints[CursorNumber][i][0].SetModelBounds([pos[0]-focus_size,pos[0]+focus_size,pos[1]-focus_size,pos[1]+focus_size,pos[2]-focus_size,pos[2]+focus_size])
+                        self.ImagePoints[CursorNumber][i][0].SetModelBounds([pos[0]-focus_size,pos[0]+focus_size,pos[1]-focus_size,pos[1]+focus_size,0.,0.])
                         self.ImagePoints[CursorNumber][i][2].GetProperty().SetColor(focus_colour)
                         self.ImagePoints[CursorNumber][i][2].GetProperty().SetLineWidth(focus_linewidth)
+                        self.ImagePoints[CursorNumber][i][0].SetRadius(radius_focus)
                     else:
-                        self.ImagePoints[CursorNumber][i][0].SetModelBounds([pos[0]-nofocus_size,pos[0]+nofocus_size,pos[1]-nofocus_size,pos[1]+nofocus_size,pos[2]-nofocus_size,pos[2]+nofocus_size])
+                        self.ImagePoints[CursorNumber][i][0].SetModelBounds([pos[0]-nofocus_size,pos[0]+nofocus_size,pos[1]-nofocus_size,pos[1]+nofocus_size,0.,0.])
                         self.ImagePoints[CursorNumber][i][2].GetProperty().SetLineWidth(nofocus_linewidth)
+                        self.ImagePoints[CursorNumber][i][0].SetRadius(radius_nofocus)
                         if Paired:
                                 self.ImagePoints[CursorNumber][i][2].GetProperty().SetColor(nofocus_colour)
                         else:
@@ -693,43 +699,27 @@ class PointPairPicker(vtk.vtkInteractorStyleTerrain):
         if self.Interactor is not None:
 
                 if self.Image is not None:
-                    w_old = int(self.ZoomRefSize[0]*self.ZoomLevel)
-                    h_old = int(self.ZoomRefSize[1]*self.ZoomLevel)
 
                     newWinSize = self.Window.GetSize()
-                    newImAspect = (float(newWinSize[0])/2)/float(newWinSize[1])
-                    originalImAspect = float(self.ImageOriginalSize[0])/self.ImageOriginalSize[1]
-                    newRefSize = list(self.ZoomRefSize)
+                    winaspect = (float(newWinSize[0])/2)/float(newWinSize[1])
 
-                    if newImAspect >= originalImAspect:
+                    bounds = self.ImageActor.GetBounds()
+                    xc = bounds[0] + bounds[1] / 2
+                    yc = bounds[2] + bounds[3] / 2
+                    ye = bounds[3] - bounds[2]
+                    xe = bounds[1] - bounds[0]
+
+                    im_aspect = xe / ye
+
+                    if winaspect >= im_aspect:
                         # Base new zero size on y dimension
-                        newRefSize[0] = newWinSize[1]*originalImAspect
-                        newRefSize[1] = newWinSize[1]
+                        self.zoom_ref_scale = 0.5*ye
                     else:
-                        # Base new zero size on x dimension
-                        newRefSize[0] = newWinSize[0]/2
-                        newRefSize[1] = (newWinSize[0]/2)/originalImAspect
+                        self.zoom_ref_scale = 0.5*xe/winaspect
 
-                    self.ZoomRefSize = tuple(newRefSize)
-                
-                    w = int(self.ZoomRefSize[0]*self.ZoomLevel)
-                    h = int(self.ZoomRefSize[1]*self.ZoomLevel)
 
-                    zoom_ratio = float(w) / w_old
-
-                    oldpos = self.ImageActor.GetPosition()
-                    new_deltaX = (self.WinSize[0]/4 - oldpos[0]) * zoom_ratio
-                    new_deltaY = (self.WinSize[1]/2 - oldpos[1]) * zoom_ratio
-                    newpos = [newWinSize[0]/4 - new_deltaX,newWinSize[1]/2 - new_deltaY]
-
-                    self.ImageActor.SetPosition(newpos)
-                    self.ImageResizer.SetOutputDimensions(w,h,self.ZoomRefSize[2])
-                    if self.fit_overlay_actor is not None:
-                        self.fit_overlay_actor.SetPosition(newpos)
-                        self.fit_overlay_resizer.SetOutputDimensions(w,h,self.ZoomRefSize[2])               
-                    
+                    self.Camera2D.SetParallelScale(self.zoom_ref_scale / self.ZoomLevel)
                     self.WinSize = newWinSize
-                    self.Update2DCursorPositions()
 
 
 
@@ -737,9 +727,10 @@ class PointPairPicker(vtk.vtkInteractorStyleTerrain):
     # Function to convert display coordinates to pixel coordinates on the camera image
     def DisplayToImageCoords(self,DisplayCoords):
 
-        impos = self.ImageActor.GetPosition()
-        imsize = self.ImageResizer.GetOutputDimensions()
-        ImCoords = (self.ImageOriginalSize[0] * ( ((DisplayCoords[0] - self.WinSize[0]/2)-impos[0]) / imsize[0] ) , self.ImageOriginalSize[1] * ( (DisplayCoords[1]-impos[1]) / imsize[1] ))
+        camyscale = self.Camera2D.GetParallelScale() * 2.
+        camxscale = camyscale * (self.WinSize[0]/2.)/self.WinSize[1]
+        cc = self.Camera2D.GetFocalPoint()
+        ImCoords = ( (( DisplayCoords[0] - 3.*self.WinSize[0]/4 ) / (self.WinSize[0]/2.)) * camxscale + cc[0], (DisplayCoords[1] - self.WinSize[1]/2.)/self.WinSize[1] * camyscale + cc[1] )
 
         return ImCoords
 
@@ -748,14 +739,20 @@ class PointPairPicker(vtk.vtkInteractorStyleTerrain):
     # Function to convert image pixel coordinates to display coordinates
     def ImageToDisplayCoords(self,ImCoords):
 
-        impos = self.ImageActor.GetPosition()
-        imsize = self.ImageResizer.GetOutputDimensions()
-        DisplayCoords = ( imsize[0] * ImCoords[0]/self.ImageOriginalSize[0] + impos[0] + self.WinSize[0]/2 , imsize[1] * ImCoords[1]/self.ImageOriginalSize[1] + impos[1] )
+        camyscale = self.Camera2D.GetParallelScale() * 2.
+        camxscale = camyscale * (self.WinSize[0]/2.)/self.WinSize[1]
+        cc = self.Camera2D.GetFocalPoint()
+
+        DisplayCoords = ( float(ImCoords[0] - cc[0]) / camxscale * self.WinSize[0]/2. + 3.*self.WinSize[0]/4. , float(ImCoords[1] - cc[1]) / camyscale*self.WinSize[1] + self.WinSize[1]/2.)
+
+        #impos = self.ImageActor.GetPosition()
+        #imsize = self.ImageResizer.GetOutputDimensions()
+        #DisplayCoords = ( imsize[0] * ImCoords[0]/self.ImageOriginalSize[0] + impos[0] + self.WinSize[0]/2 , imsize[1] * ImCoords[1]/self.ImageOriginalSize[1] + impos[1] )
 
         return DisplayCoords
 
 
-
+    '''
     # Make sure the cursors on the camera image are where they should be
     def Update2DCursorPositions(self):
         for i in range(len(self.ImagePoints)):
@@ -772,7 +769,7 @@ class PointPairPicker(vtk.vtkInteractorStyleTerrain):
                     worldpos = [0.,0.,0.]
                     self.ImPointPlacer.ComputeWorldPosition(self.Renderer_2D,DisplayCoords,worldpos,[0,0,0,0,0,0,0,0,0])
                     cursor[0].SetFocalPoint(worldpos)
-
+    '''
 
     # Update the current point pairs FROM the current point pairs object.
     def UpdateFromPPObject(self,append):
@@ -828,18 +825,21 @@ class PointPairPicker(vtk.vtkInteractorStyleTerrain):
         field = self.fieldmask[int(Imcoords[1]),int(Imcoords[0])]
 
         # Create new cursor, mapper and actor
-        self.ImagePoints[self.SelectedPoint][field] = [vtk.vtkCursor3D(),vtk.vtkPolyDataMapper(),vtk.vtkActor(),Imcoords]
+        self.ImagePoints[self.SelectedPoint][field] = [vtk.vtkCursor2D(),vtk.vtkPolyDataMapper(),vtk.vtkActor(),Imcoords]
         
         # Some setup of the cursor
-        self.ImagePoints[self.SelectedPoint][field][0].XShadowsOff()
-        self.ImagePoints[self.SelectedPoint][field][0].YShadowsOff()
-        self.ImagePoints[self.SelectedPoint][field][0].ZShadowsOff()
+        #self.ImagePoints[self.SelectedPoint][field][0].XShadowsOff()
+        #self.ImagePoints[self.SelectedPoint][field][0].YShadowsOff()
+        #self.ImagePoints[self.SelectedPoint][field][0].ZShadowsOff()
         self.ImagePoints[self.SelectedPoint][field][0].OutlineOff()
-        self.ImagePoints[self.SelectedPoint][field][0].SetTranslationMode(1)
+        self.ImagePoints[self.SelectedPoint][field][0].AxesOn()
+        self.ImagePoints[self.SelectedPoint][field][0].TranslationModeOn()
         
+        im_dims = self.Image.transform.get_display_shape()
+
         # Work out where to place the cursor
-        worldpos = [0.,0.,0.]
-        self.ImPointPlacer.ComputeWorldPosition(self.Renderer_2D,self.ImageToDisplayCoords(Imcoords),worldpos,[0,0,0,0,0,0,0,0,0])
+        worldpos = [Imcoords[0],Imcoords[1],0.1]
+        #self.ImPointPlacer.ComputeWorldPosition(self.Renderer_2D,self.ImageToDisplayCoords(Imcoords),worldpos,[0,0,0,0,0,0,0,0,0])
         self.ImagePoints[self.SelectedPoint][field][0].SetFocalPoint(worldpos)
 
         # Mapper setup
@@ -1016,43 +1016,45 @@ class PointPairPicker(vtk.vtkInteractorStyleTerrain):
         self.gui_window.update_n_points(n_pairs,n_unpaired)
 
 
+    # Custom mouse move event to enable middle click panning on both
+    # CAD and image views.
     def mouse_move(self,obj,event):
 
+        # If the mouse is over the 3D renderer, invoke its normal mouse move callback
+        # and make sure the 2D image stops panning.
         if self.ChooseRenderer() == '3D':
+            self.im_dragging = False
             self.OnMouseMove()
         else:
-            if self.im_dragging:
-
-                oldpos = self.ImageActor.GetPosition()
-                dims = self.ImageResizer.GetOutputDimensions()
+            if self.im_dragging and self.ZoomLevel > 1:
 
                 lastXYpos = self.Interactor.GetLastEventPosition() 
                 xypos = self.Interactor.GetEventPosition()
+                camscale = self.Camera2D.GetParallelScale() * 2
+                oldpos = self.Camera2D.GetPosition()
+                deltaX = (xypos[0] - lastXYpos[0])/(self.WinSize[0]/2.) * camscale * (self.WinSize[0]/2.)/self.WinSize[1]
+                deltaY = (xypos[1] - lastXYpos[1])/self.WinSize[1] * camscale
 
-                deltaX = xypos[0] - lastXYpos[0]
-                deltaY = xypos[1] - lastXYpos[1]
+                newY = oldpos[1] - deltaY
+                newX = oldpos[0] - deltaX
 
-                if self.ZoomLevel == 1:
-                    newY = oldpos[1]
-                    newX = oldpos[0]
-                else:
-                    newY = oldpos[1] + deltaY
-                    newX = oldpos[0] + deltaX
+                
+                # Make sure we don't pan outside the image.
+                im_bounds = self.ImageActor.GetBounds()
+                xcamscale = (camscale * (self.WinSize[0]/2.)/self.WinSize[1])
+                if newX + xcamscale/2. > im_bounds[1]:
+                    newX = im_bounds[1] - xcamscale/2.
+                elif newX - xcamscale/2. < im_bounds[0]:
+                    newX = im_bounds[0] + xcamscale/2.
 
-                if oldpos[0] <= 0:
-                    newX = min(0,newX)
-                if oldpos[1] <= 0:
-                    newY = min(0,newY)
-                if oldpos[0] + dims[0] >= self.WinSize[0] / 2:
-                    newX = int(max(newX, self.WinSize[0]/2 - dims[0]))
-                if oldpos[1] + dims[1] >= self.WinSize[1]:
-                    newY = int(max(newY, self.WinSize[1] - dims[1]))
-
-                self.ImageActor.SetPosition(newX, newY)
-                self.Update2DCursorPositions()
-
-                if self.fit_overlay_actor is not None:
-                    self.fit_overlay_actor.SetPosition(newX, newY)              
+                if newY + camscale/2. > im_bounds[3]:
+                    newY = im_bounds[3] - camscale/2.
+                elif newY - camscale/2. < im_bounds[2]:
+                    newY = im_bounds[2] + camscale/2.
+                
+                # Move image camera
+                self.Camera2D.SetPosition((newX, newY,1.))
+                self.Camera2D.SetFocalPoint((newX,newY,0.))
 
                 self.gui_window.refresh_vtk(im_only=True)
 
@@ -4258,7 +4260,7 @@ class ImageAnalyser(vtk.vtkInteractorStyleTrackballCamera):
     # Similar to Set3DCursorStyle but for image points
     def Set2DCursorStyle(self):
         
-        focus_size = 0.008
+        focus_size = 2.
 
         focus_linewidth = 3
         occluded_linewidth=2

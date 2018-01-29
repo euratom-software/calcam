@@ -62,7 +62,7 @@ class Image():
 
 
     # Return VTK image actor and VTK image reiszer objects for this image.
-    def get_vtkobjects(self,opacity=None):
+    def get_vtkActor(self,opacity=None):
 
         if self.data is None:
             raise Exception('No image data loaded!')
@@ -102,23 +102,12 @@ class Image():
         ImageImporter.SetDataExtent(0,Data.shape[1]-1,0,Data.shape[0]-1,0,0)
         ImageImporter.SetWholeExtent(0,Data.shape[1]-1,0,Data.shape[0]-1,0,0)
 
-        Resizer = vtk.vtkImageResize()
-        Resizer.SetInputConnection(ImageImporter.GetOutputPort())
-        Resizer.SetResizeMethodToOutputDimensions()
-        Resizer.SetOutputDimensions((Data.shape[1],Data.shape[0],1))
-        # jrh mod begin
-        Resizer.InterpolateOff()
+        Actor = vtk.vtkImageActor()
+        Actor.InterpolateOff()
+        mapper = Actor.GetMapper()
+        mapper.SetInputConnection(ImageImporter.GetOutputPort())
 
-        mapper = vtk.vtkImageMapper()
-        mapper.SetInputConnection(Resizer.GetOutputPort())
-        mapper.SetColorWindow(255)
-        mapper.SetColorLevel(127.5)
-
-        Actor = vtk.vtkActor2D()
-        Actor.SetMapper(mapper)
-        Actor.GetProperty().SetDisplayLocationToBackground()
-
-        return Actor,Resizer
+        return Actor
 
 
     # Save the image to disk, along with all its calcam metadata
