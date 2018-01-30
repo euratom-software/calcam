@@ -68,31 +68,28 @@ class PointPairs():
         # Set the point pair set name to the save name
         self.name = savename
 
-        savefile = open(os.path.join(paths.pointpairs,self.name + '.csv'),'wb')
+        savefile = open(os.path.join(paths.pointpairs,self.name + '.csv'),'w')
 
-        csvwriter = csv.writer(savefile)
-        header = []
-        header.append(['CalCam Point Pairs File'])
-        header.append(['Machine:',self.machine_name])
-        header.append(['Image:',self.image.name])
-        header.append(['','',''])
-        header.append(["Machine X","Machine Y","Machine Z"])
+
+        # Construct and write the file header and column headings
+        fieldheaders = ',,,'
+        xyheaders = ''
         for i in range(self.image.n_fields):
-                header[3] = header[3] + ['',"Field " + str(i),'']
-                header[4] = header[4] + ['',"Image X","Image Y"]
+            fieldheaders = fieldheaders + ',Field {:d},'.format(i)
+            xyheaders = xyheaders + ',,Image X,Image Y'
+            
+        savefile.write( 'CalCam Point Pairs File\nMachine:,{:s}\nImage:,{:s}\n{:s}\nMachine X,Machine Y,Machine Z{:s}\n'.format(self.machine_name,self.image.name,fieldheaders,xyheaders))
 
-        for headrow in header:          
-                csvwriter.writerow(headrow)
-
+        # Write the point coordinates
         for i in range(len(self.objectpoints)):
-                row = [self.objectpoints[i][0],self.objectpoints[i][1],self.objectpoints[i][2]]
+                row = '{:.4f},{:.4f},{:.4f}'.format(self.objectpoints[i][0],self.objectpoints[i][1],self.objectpoints[i][2])
                 for j in range(self.image.n_fields):
                     if self.imagepoints[i][j] is None:
-                        row = row + ['','','']
+                        row = row + ',,,'
                     else:
-                        row = row + [''] + list(self.imagepoints[i][j])
+                        row = row + ',,{:.2f},{:.2f}'.format(self.imagepoints[i][j][0],self.imagepoints[i][j][1])
 
-                csvwriter.writerow(row)
+                savefile.write(row + '\n')
 
         savefile.close()
 
