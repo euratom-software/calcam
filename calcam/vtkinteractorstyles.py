@@ -313,9 +313,7 @@ class PointPairPicker(vtk.vtkInteractorStyleTerrain):
                                 self.ImagePoints[self.SelectedPoint][field][3] = pickdata
                                 # Because the image view is still a 3D renderer, we have to convert our 2D image coordinate
                                 # in to a 3D location to place the cursor there
-                                worldpos = [0.,0.,0.]
-                                self.ImPointPlacer.ComputeWorldPosition(self.Renderer_2D,self.ImageToDisplayCoords(pickdata),worldpos,[0,0,0,0,0,0,0,0,0])
-                                self.ImagePoints[self.SelectedPoint][field][0].SetFocalPoint(worldpos)
+                                self.ImagePoints[self.SelectedPoint][field][0].SetFocalPoint(pickdata[0],pickdata[1],0.1)
                    
                 self.gui_window.pointpairs_changed = True
  
