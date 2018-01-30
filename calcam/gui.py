@@ -825,9 +825,6 @@ class CalCamWindow(qt.QMainWindow):
         self.tabWidget.setTabEnabled(3,False)
         self.tabWidget.setTabEnabled(4,False)
 
-        self.overlay_oversampling_combobox.setCurrentIndex(2)
-        self.overlay_combobox_options = [0.25, 0.5, 1., 2., 4.]
-
         # Callbacks for GUI elements
         self.image_sources_list.currentIndexChanged.connect(self.build_imload_gui)
         self.enable_all_button.clicked.connect(self.mass_toggle_model)
