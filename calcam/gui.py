@@ -2291,6 +2291,8 @@ class SplitFieldDialog(qt.QDialog):
         self.splitfieldeditor.DoInit(self.renderer,self.image,self,self.mask_alpha_slider.value()/100.)
         self.renderer.Render()
         self.vtkInteractor.Initialize()
+        self.splitfieldeditor.Renderer.AddActor2D(self.splitfieldeditor.ImageActor)
+        self.splitfieldeditor.update_fieldmask(self.splitfieldeditor.Image.fieldmask,self.splitfieldeditor.Image.field_names)
 
 
     def change_method(self,obj=None,event=None):
