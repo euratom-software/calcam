@@ -987,6 +987,9 @@ class PointPairPicker(vtk.vtkInteractorStyleTerrain):
             self.im_dragging = False
             self.OnMouseMove()
         else:
+            self.OnLeftButtonUp()
+            self.OnMiddleButtonUp()
+            self.OnRightButtonUp()
             if self.im_dragging and self.ZoomLevel > 1:
 
                 lastXYpos = self.Interactor.GetLastEventPosition() 
