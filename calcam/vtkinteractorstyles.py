@@ -384,9 +384,10 @@ class PointPairPicker(vtk.vtkInteractorStyleTerrain):
                 self.gui_window.update_viewport_info(self.Camera3D.GetPosition(),self.get_view_target(),self.Camera3D.GetViewAngle())
         else:
 
+                if self.Image is None:
+                    return
+
                 # Re-position the image camera to keep the image point under the mouse pointer fixed when zooming
-
-
                 zoom_ratio = 1 + 0.2/self.ZoomLevel                 # The zoom ratio we will have
 
                 # Current camera position and scale
@@ -445,6 +446,9 @@ class PointPairPicker(vtk.vtkInteractorStyleTerrain):
                         self.Set3DCursorStyle(i,self.SelectedPoint == i,self.ImagePoints[i].count(None) < self.nFields)
                 self.gui_window.update_viewport_info(self.Camera3D.GetPosition(),self.get_view_target(),self.Camera3D.GetViewAngle())
         else:
+                if self.Image is None:
+                    return
+
                 # Zoom out smoothly until the whole image is visible
                 if self.ZoomLevel > 1.:
 
@@ -3418,7 +3422,7 @@ class ViewAligner(vtk.vtkInteractorStyleTerrain):
                 self.gui_window.refresh_vtk()
 
 
-class ImageAnalyser(vtk.vtkInteractorStyleTrackballCamera):
+class ImageAnalyser(vtk.vtkInteractorStyleTerrain):
  
     def __init__(self,parent=None):
         # Set callbacks for all the controls
@@ -3762,9 +3766,10 @@ class ImageAnalyser(vtk.vtkInteractorStyleTrackballCamera):
     def update_sightlines(self,show_sightlines=True):
 
         visible_linewidth = 3
+        visible_colour = (0,0.8,0)
         invisible_linewidth = 2
-        line_dash_pattern = 0xf0f0
-
+        invisible_colour = (0.8,0,0)
+        
         for sightline in self.sightlines:
             self.Renderer.RemoveActor(sightline[2])
         self.sightlines = []
@@ -3780,6 +3785,7 @@ class ImageAnalyser(vtk.vtkInteractorStyleTrackballCamera):
                     self.sightlines[-1][1].SetInputConnection(self.sightlines[-1][0].GetOutputPort())
                     self.sightlines[-1][2].SetMapper(self.sightlines[-1][1])
                     self.sightlines[-1][2].GetProperty().SetLineWidth(visible_linewidth)
+                    self.sightlines[-1][2].GetProperty().SetColor(visible_colour)
                     self.Renderer.AddActor(self.sightlines[-1][2])
 
                     self.sightlines.append((vtk.vtkLineSource(),vtk.vtkPolyDataMapper(),vtk.vtkActor()))
@@ -3792,8 +3798,8 @@ class ImageAnalyser(vtk.vtkInteractorStyleTrackballCamera):
                     self.sightlines[-1][1].SetInputConnection(self.sightlines[-1][0].GetOutputPort())
                     self.sightlines[-1][2].SetMapper(self.sightlines[-1][1])
                     self.sightlines[-1][2].GetProperty().SetLineWidth(invisible_linewidth)
-                    self.sightlines[-1][2].GetProperty().SetLineStipplePattern(0xf0f0)
-                    self.sightlines[-1][2].GetProperty().SetLineStippleRepeatFactor(1)
+                    self.sightlines[-1][2].GetProperty().SetColor(invisible_colour)
+
                     self.Renderer.AddActor(self.sightlines[-1][2])
 
                 else:
@@ -3804,8 +3810,8 @@ class ImageAnalyser(vtk.vtkInteractorStyleTrackballCamera):
                     self.sightlines[-1][1].SetInputConnection(self.sightlines[-1][0].GetOutputPort())
                     self.sightlines[-1][2].SetMapper(self.sightlines[-1][1])
                     self.sightlines[-1][2].GetProperty().SetLineWidth(invisible_linewidth)
-                    self.sightlines[-1][2].GetProperty().SetLineStipplePattern(0xf0f0)
-                    self.sightlines[-1][2].GetProperty().SetLineStippleRepeatFactor(1)
+                    self.sightlines[-1][2].GetProperty().SetColor(invisible_colour)
+ 
                     self.Renderer.AddActor(self.sightlines[-1][2])
 
         self.gui_window.refresh_vtk()
@@ -3870,9 +3876,10 @@ class ImageAnalyser(vtk.vtkInteractorStyleTrackballCamera):
                 self.gui_window.update_viewport_info(self.Camera3D.GetPosition(),self.get_view_target(),self.Camera3D.GetViewAngle())
         else:
 
+                if self.Image is None:
+                    return
+
                 # Re-position the image camera to keep the image point under the mouse pointer fixed when zooming
-
-
                 zoom_ratio = 1 + 0.2/self.ZoomLevel                 # The zoom ratio we will have
 
                 # Current camera position and scale
@@ -3929,6 +3936,10 @@ class ImageAnalyser(vtk.vtkInteractorStyleTrackballCamera):
                 self.Set3DCursorStyle()
                 self.gui_window.update_viewport_info(self.Camera3D.GetPosition(),self.get_view_target(),self.Camera3D.GetViewAngle())
         else:
+
+                if self.Image is None:
+                    return
+
                 # Zoom out smoothly until the whole image is visible
                 if self.ZoomLevel > 1.:
 
@@ -3979,7 +3990,7 @@ class ImageAnalyser(vtk.vtkInteractorStyleTrackballCamera):
         occluded_linewidth=4
 
         focus_colour = (0.,0.8,0)
-        hidden_colour = (0.8,0.8,0)
+        hidden_colour = (0.8,0.,0)
 
         # Cursor size scales with camera FOV to maintain size on screen.
         focus_size = focus_size * (self.Camera3D.GetViewAngle()/75)
@@ -4010,7 +4021,7 @@ class ImageAnalyser(vtk.vtkInteractorStyleTrackballCamera):
         occluded_linewidth=3
 
         focus_colour = (0.,0.8,0)
-        hidden_colour = (0.8,0.8,0)
+        hidden_colour = (0.8,0.,0)
 
         for cursor in self.cursor2D:
             pos = cursor[0].GetFocalPoint()
@@ -4135,6 +4146,9 @@ class ImageAnalyser(vtk.vtkInteractorStyleTrackballCamera):
             self.im_dragging = False
             self.OnMouseMove()
         else:
+            self.OnMiddleButtonUp()
+            self.OnLeftButtonUp()
+            self.OnRightButtonUp()
             if self.im_dragging and self.ZoomLevel > 1:
 
                 lastXYpos = self.Interactor.GetLastEventPosition() 
