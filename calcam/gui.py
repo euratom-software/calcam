@@ -337,7 +337,16 @@ class CADViewerWindow(qt.QMainWindow):
 
         if self.sender() is self.viewlist or init:
  
-            if view_item.parent() is self.views_root_model:
+            if view_item.parent() in self.views_results:
+                view = fitting.CalibResults(str(view_item.parent().text(0)))
+                subfield = view.field_names.index(str(view_item.text(0)))
+
+                self.camera.SetPosition(view.get_pupilpos(field=subfield))
+                self.camera.SetFocalPoint(view.get_pupilpos(field=subfield) + view.get_los_direction(view.image_display_shape[0]/2,view.image_display_shape[1]/2))
+                self.camera.SetViewAngle(view.get_fov(field=subfield)[1])
+              
+                self.camera.SetViewUp(-1.*view.get_cam_to_lab_rotation(field=subfield)[:,1])  
+            elif view_item.parent() is self.views_root_model:
 
                 self.cadmodel.set_default_view(str(view_item.text(0)))
 
@@ -363,14 +372,7 @@ class CADViewerWindow(qt.QMainWindow):
                 self.camera.SetViewAngle(view.get_fov()[1])
                 self.camera.SetViewUp(-1.*view.get_cam_to_lab_rotation()[:,1])
 
-            elif view_item.parent() in self.views_results:
-                view = fitting.CalibResults(str(view_item.parent().text(0)))
-                subfield = view.field_names.index(str(view_item.text(0)))
-
-                self.camera.SetPosition(view.get_pupilpos(field=subfield))
-                self.camera.SetFocalPoint(view.get_pupilpos(field=subfield) + view.get_los_direction(view.image_display_shape[0]/2,view.image_display_shape[1]/2))
-                self.camera.SetViewAngle(view.get_fov(field=subfield)[1])
-                self.camera.SetViewUp(-1.*view.get_cam_to_lab_rotation(field=subfield)[:,1])              
+            
 
         else:
             self.camera.SetPosition((self.camX.value(),self.camY.value(),self.camZ.value()))
@@ -399,8 +401,9 @@ class CADViewerWindow(qt.QMainWindow):
         if colour_by_material and self.highlight_selected.isChecked():
             self.highlight_selected.setCheckState(qt.Qt.Unchecked)
 
-        self.cadmodel.colour_by_material(colour_by_material)
-        self.refresh_vtk()
+        if self.cadmodel is not None:
+            self.cadmodel.colour_by_material(colour_by_material)
+            self.refresh_vtk()
 
 
     def update_selected(self):
@@ -440,14 +443,15 @@ class CADViewerWindow(qt.QMainWindow):
         if enable and self.colour_by_material.isChecked():
             self.colour_by_material.setCheckState(qt.Qt.Unchecked)
 
-        if self.selected_feature is not None:
-            if enable:
-                self.orig_colour = self.cadmodel.get_colour(self.selected_feature)
-                self.cadmodel.set_colour((1,0,0),self.selected_feature)
-                self.refresh_vtk()
-            else:
-                self.cadmodel.set_colour(self.orig_colour,self.selected_feature)
-                self.refresh_vtk()
+        if self.cadmodel is not None:
+            if self.selected_feature is not None:
+                if enable:
+                    self.orig_colour = self.cadmodel.get_colour(self.selected_feature)
+                    self.cadmodel.set_colour((1,0,0),self.selected_feature)
+                    self.refresh_vtk()
+                else:
+                    self.cadmodel.set_colour(self.orig_colour,self.selected_feature)
+                    self.refresh_vtk()
 
 
 
@@ -563,6 +567,15 @@ class CADViewerWindow(qt.QMainWindow):
 
         self.enable_all_button.setEnabled(1)
         self.disable_all_button.setEnabled(1)
+
+        if self.highlight_selected.isChecked():
+            self.highlight_selected.setChecked(False)
+            self.highlight_selected.setChecked(True)
+
+        if self.colour_by_material.isChecked():
+            self.colour_by_material.setChecked(False)
+            self.colour_by_material.setChecked(True)
+
         self.statusbar.clearMessage()
         self.refresh_vtk()
         self.app.restoreOverrideCursor()
@@ -916,14 +929,23 @@ class CalCamWindow(qt.QMainWindow):
 
     def change_cad_view(self,view_item,init=False):
 
+
         if self.sender() is self.viewlist:
             if view_item.isDisabled() or view_item is self.views_root_results or view_item is self.views_root_synthetic or view_item is self.views_root_model:
                 return
 
         if self.sender() is self.viewlist or init:
- 
-            if view_item.parent() is self.views_root_model:
 
+
+            if view_item.parent() in self.views_results:
+                view = fitting.CalibResults(str(view_item.parent().text(0)))
+                subfield = view.field_names.index(str(view_item.text(0)))
+
+                self.camera.SetPosition(view.get_pupilpos(field=subfield))
+                self.camera.SetFocalPoint(view.get_pupilpos(field=subfield) + view.get_los_direction(view.image_display_shape[0]/2,view.image_display_shape[1]/2))
+                self.camera.SetViewAngle(view.get_fov(field=subfield)[1])
+                self.camera.SetViewUp(-1.*view.get_cam_to_lab_rotation(field=subfield)[:,1])     
+            elif view_item.parent() is self.views_root_model:
                 self.cadmodel.set_default_view(str(view_item.text(0)))
 
                 # Set to that view
@@ -933,7 +955,6 @@ class CalCamWindow(qt.QMainWindow):
                 self.camera.SetViewUp(0,0,1)
 
             elif view_item.parent() is self.views_root_results or self.views_root_synthetic:
-
                 if view_item.parent() is self.views_root_results:
                     view = fitting.CalibResults(str(view_item.text(0)))
                 else:
@@ -948,14 +969,6 @@ class CalCamWindow(qt.QMainWindow):
                 self.camera.SetViewAngle(view.get_fov()[1])
                 self.camera.SetViewUp(-1.*view.get_cam_to_lab_rotation()[:,1])
 
-            elif view_item.parent() in self.views_results:
-                view = fitting.CalibResults(str(view_item.parent().text(0)))
-                subfield = view.field_names.index(str(view_item.text(0)))
-
-                self.camera.SetPosition(view.get_pupilpos(field=subfield))
-                self.camera.SetFocalPoint(view.get_pupilpos(field=subfield) + view.get_los_direction(view.image_display_shape[0]/2,view.image_display_shape[1]/2))
-                self.camera.SetViewAngle(view.get_fov(field=subfield)[1])
-                self.camera.SetViewUp(-1.*view.get_cam_to_lab_rotation(field=subfield)[:,1])              
 
         else:
             self.camera.SetPosition((self.camX.value(),self.camY.value(),self.camZ.value()))
@@ -4193,7 +4206,15 @@ class ImageAnalyserWindow(qt.QMainWindow):
 
         if self.sender() is self.viewlist or init:
  
-            if view_item.parent() is self.views_root_model:
+            if view_item.parent() in self.views_results:
+                view = fitting.CalibResults(str(view_item.parent().text(0)))
+                subfield = view.field_names.index(str(view_item.text(0)))
+
+                self.camera.SetPosition(view.get_pupilpos(field=subfield))
+                self.camera.SetFocalPoint(view.get_pupilpos(field=subfield) + view.get_los_direction(view.image_display_shape[0]/2,view.image_display_shape[1]/2))
+                self.camera.SetViewAngle(view.get_fov(field=subfield)[1])
+                self.camera.SetViewUp(-1.*view.get_cam_to_lab_rotation(field=subfield)[:,1]) 
+            elif view_item.parent() is self.views_root_model:
 
                 self.cadmodel.set_default_view(str(view_item.text(0)))
 
@@ -4219,14 +4240,7 @@ class ImageAnalyserWindow(qt.QMainWindow):
                 self.camera.SetViewAngle(view.get_fov()[1])
                 self.camera.SetViewUp(-1.*view.get_cam_to_lab_rotation()[:,1])
 
-            elif view_item.parent() in self.views_results:
-                view = fitting.CalibResults(str(view_item.parent().text(0)))
-                subfield = view.field_names.index(str(view_item.text(0)))
-
-                self.camera.SetPosition(view.get_pupilpos(field=subfield))
-                self.camera.SetFocalPoint(view.get_pupilpos(field=subfield) + view.get_los_direction(view.image_display_shape[0]/2,view.image_display_shape[1]/2))
-                self.camera.SetViewAngle(view.get_fov(field=subfield)[1])
-                self.camera.SetViewUp(-1.*view.get_cam_to_lab_rotation(field=subfield)[:,1])              
+             
 
         else:
             self.camera.SetPosition((self.camX.value(),self.camY.value(),self.camZ.value()))
@@ -4661,10 +4675,8 @@ class ImageAnalyserWindow(qt.QMainWindow):
                 try:
                     OverlayImage = image.from_array(render.render_cam_view(self.cadmodel,self.raycaster.fitresults,Edges=True,Transparency=True,Verbose=False,EdgeColour=(0,0,1),oversampling=oversampling,ScreenSize=self.screensize))
 
-                    self.pointpicker.fit_overlay_actor,self.pointpicker.fit_overlay_resizer = OverlayImage.get_vtkobjects()
-
-                    self.pointpicker.fit_overlay_actor.SetPosition(self.pointpicker.ImageActor.GetPosition())
-                    self.pointpicker.fit_overlay_resizer.SetOutputDimensions(self.pointpicker.ImageResizer.GetOutputDimensions())
+                    self.pointpicker.fit_overlay_actor = OverlayImage.get_vtkActor()
+                    self.pointpicker.fit_overlay_actor.SetPosition(0.,0.,0.01)
                     self.pointpicker.Renderer_2D.AddActor(self.pointpicker.fit_overlay_actor)
 
                     self.refresh_vtk()

@@ -109,12 +109,6 @@ class mr_fusion(CADModel):
         self.units = 1.0
 
 
-        # Specify how to generate wireframe edges for the model. Options are 'Detect' or 'Simple'.
-        # 'Detect' does fancy edge detection, 'Simple' simply shows the edges of all the polygons in the model.
-        # I strongly suggest leaving this as 'Detect' unless you find important edges are missing when rendering wireframes this way.
-        self.default_edge_method = 'Detect'
-
-
         # This call is required to run all the back end stuff to configure the CAD model based on these attributes.
         self.init_cadmodel()
 
