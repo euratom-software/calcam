@@ -28,9 +28,9 @@ CalCam package.
 import sys
 import inspect
 import os
-calcampath = sys.path.append(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))))
+calcampath = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 if calcampath not in sys.path:
-    sys.path.append(calcampath)
+    sys.path.insert(0,calcampath)
 
 # List of user-exposed modules which are part of the CalCam package.
 module_list = ['paths','machine_geometry','pointpairs','fitting','roi','render','raytrace','image','gui','geometry_matrix','image_filters']

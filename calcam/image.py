@@ -62,13 +62,65 @@ class Image():
 
 
     # Return VTK image actor and VTK image reiszer objects for this image.
-    def get_vtkobjects(self,opacity=None):
+    def get_vtkActor(self,opacity=None):
 
         if self.data is None:
             raise Exception('No image data loaded!')
 
         ImageImporter = vtk.vtkImageImport()
 		
+        # Create a temporary floating point copy of the data, for scaling.
+        # Also flip the data (vtk addresses y from bottom right) and put in display coords.
+        Data = np.float32(np.flipud(self.transform.original_to_display_image(self.data)))
+        clim = np.float32(self.clim)
+
+        # Scale to colour limits and convert to uint8 for displaying.
+        Data -= clim[0]
+        Data /= (clim[1]-clim[0])
+        Data *= 255.
+        Data = np.uint8(Data)
+
+        if self.postprocessor is not None:
+            Data = self.postprocessor(Data)
+            
+        if opacity is not None:
+            Alpha = np.uint8(np.ones(Data.shape[:2])*opacity*255)
+            Data = np.dstack([Data,Alpha])
+        if self.alpha is not None:
+            Alpha = np.flipud(self.transform.original_to_display_image(self.alpha))
+            Data = np.dstack([Data,Alpha])
+
+        DataString = Data.tostring()
+        ImageImporter.CopyImportVoidPointer(DataString,len(DataString))
+        ImageImporter.SetDataScalarTypeToUnsignedChar()
+
+        if len(self.data.shape) == 2:
+            ImageImporter.SetNumberOfScalarComponents(1)
+        else:
+            ImageImporter.SetNumberOfScalarComponents(Data.shape[2])
+
+        ImageImporter.SetDataExtent(0,Data.shape[1]-1,0,Data.shape[0]-1,0,0)
+        ImageImporter.SetWholeExtent(0,Data.shape[1]-1,0,Data.shape[0]-1,0,0)
+
+        Actor = vtk.vtkImageActor()
+        Actor.InterpolateOff()
+        mapper = Actor.GetMapper()
+        mapper.SetInputConnection(ImageImporter.GetOutputPort())
+
+        return Actor
+
+
+
+    # Return VTK image actor and VTK image reiszer objects for this image.
+    # This is older than get_vtkActor and is used in parts of the code not (yet)
+    # changed to use vtkImageActor rather than vtkActor2D.
+    def get_vtkobjects(self,opacity=None):
+
+        if self.data is None:
+            raise Exception('No image data loaded!')
+
+        ImageImporter = vtk.vtkImageImport()
+        
         # Create a temporary floating point copy of the data, for scaling.
         # Also flip the data (vtk addresses y from bottom right) and put in display coords.
         Data = np.float32(np.flipud(self.transform.original_to_display_image(self.data)))
@@ -219,10 +271,17 @@ class Image():
             self.pixel_size = None
 
         self.name = f.image_name
+
+        if type(self.name) is bytes:
+            self.name = self.name.decode('utf-8')
+
         self.n_fields = np.max(self.fieldmask) + 1
 
         try:
-            self.field_names = str(f.field_names).split(',')
+            fns = f.field_names
+            if type(fns) is bytes:
+                fns = fns.decode('utf-8')
+            self.field_names = fns.split(',')
         except AttributeError:
             if self.n_fields == 1:
                 self.field_names = ['Image']

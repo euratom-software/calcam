@@ -37,7 +37,7 @@ import image as CalCamImage
 import time
 import qt_wrapper as qt
 
-def render_cam_view(CADModel,FitResults,filename=None,oversampling=1,AA=1,Edges=False,EdgeColour=(1,0,0),EdgeWidth=None,Transparency=False,EdgeMethod=None,ROI=None,ROIColour=(0.8,0,0),ROIOpacity=0.3,roi_oversize=0,NearestNeighbourRemap=False,Verbose=True,Coords = 'Display',exclude_feature_edges=[],include_feature_edges=[],ScreenSize=None):
+def render_cam_view(CADModel,FitResults,filename=None,oversampling=1,AA=1,Edges=False,EdgeColour=(1,0,0),EdgeWidth=None,Transparency=False,ROI=None,ROIColour=(0.8,0,0),ROIOpacity=0.3,roi_oversize=0,NearestNeighbourRemap=False,Verbose=True,Coords = 'Display',exclude_feature_edges=[],include_feature_edges=[],ScreenSize=None):
 
     """
     Make CAD model renders from the camera's point of view, including all distortion effects etc.
@@ -56,9 +56,6 @@ def render_cam_view(CADModel,FitResults,filename=None,oversampling=1,AA=1,Edges=
     EdgeColour      - 3-element tuple of floats 0-1, If Edges=True, what colour to make the edges in the wireframe (R,G,B)
     EdgeWidth       - If Edges=True, line width for edges
     Transparency    - whether to make black areas (i.e. background) transparent.
-    EdgeMethod      - 'Detect' or 'Simple'. 'Detect' tries to detect edges on the CAD model, 
-                      'Simple' just highlights all the polygon edges. 'Detect' looks nicer but will miss 
-                      edges if they are rounded off instead of sharp. Overrides the method specified in the CAD model definition.
     ROI             - An ROI definition object: if supplied, the ROI will be rendered on the image.
     ROIColour       - (R,G,B) colour to render the ROI
     ROIOpacity      - Opacity to render ROI
@@ -74,17 +71,9 @@ def render_cam_view(CADModel,FitResults,filename=None,oversampling=1,AA=1,Edges=
     if Coords.lower() == 'original' and oversampling != 1:
         raise Exception('Cannot render in original coordinates with oversampling!')
 
-    if Edges:
-        if EdgeMethod is None:
-            EdgeMethod = CADModel.default_edge_method
-        if str.lower(EdgeMethod) != 'detect' and  str.lower(EdgeMethod) != 'simple':
-            raise ValueError('Unknown edge rendering method name "' + EdgeMethod + '"')
-        # Different default edgewidth values for each method:
-        if EdgeWidth is None:
-            if str.lower(EdgeMethod) == 'detect':
-                EdgeWidth = 2
-            else:
-                EdgeWidth = 1
+    if Edges and EdgeWidth is None:
+        EdgeWidth = 2
+
 
     logbase2 = np.log(oversampling) / np.log(2)
     if abs(int(logbase2) - logbase2) > 1e-5:
@@ -151,11 +140,7 @@ def render_cam_view(CADModel,FitResults,filename=None,oversampling=1,AA=1,Edges=
         # Add all the bits of the machine
         for Actor in CADModel.get_vtkActors():
             renderer.AddActor(Actor)
-            # If doing simple edge render, highlight the edges.
-            #if Edges and EdgeMethod.lower() == 'simple':
-            #    Actor.GetProperty().SetEdgeColor(EdgeColour)
-            #    Actor.GetProperty().EdgeVisibilityOn()
-            #    Actor.GetProperty().SetLineWidth(EdgeWidth)
+
             
         # Add the ROI if provided
         if ROI is not None:
@@ -282,9 +267,6 @@ def render_cam_view(CADModel,FitResults,filename=None,oversampling=1,AA=1,Edges=
             OutputImage[FieldMask == field,:] = im[FieldMask == field,:]
 
         CADModel.edges = False
-        if Edges and EdgeMethod.lower() == 'simple':
-            for Actor in CADModel.get_vtkActors():
-                Actor.GetProperty().EdgeVisibilityOff()
 
         if Coords.lower() == 'original':
             OutputImage = FitResults.transform.display_to_original_image(OutputImage)

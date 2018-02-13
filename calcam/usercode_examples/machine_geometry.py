@@ -52,7 +52,7 @@ class mr_fusion(CADModel):
         # You shouldn't need to edit this. It's only up here because, for exmple, later on the list of CAD filenames etc
         # could depend on model variant if you wanted, so it's nice to validate it beforehand.
         if model_variant not in self.model_variants:
-            raise ValueError('Unknown ' + self.model_name + ' model variant "' + model_variant + '"')
+            raise ValueError('Unknown ' + self.machine_name + ' model variant "' + model_variant + '"')
         self.model_variant = model_variant
 
         # Default colour to render the model in the format (R,G,B), where RGB go from 0 to 1.
@@ -107,12 +107,6 @@ class mr_fusion(CADModel):
         # A value of 1.0 corresponds to the CAD model saved in metres, 0.001 means the CAD model is saved in millimetres,
         # 2.54e-2 would mean the CAD model was saved in inches (you monster!)
         self.units = 1.0
-
-
-        # Specify how to generate wireframe edges for the model. Options are 'Detect' or 'Simple'.
-        # 'Detect' does fancy edge detection, 'Simple' simply shows the edges of all the polygons in the model.
-        # I strongly suggest leaving this as 'Detect' unless you find important edges are missing when rendering wireframes this way.
-        self.default_edge_method = 'Detect'
 
 
         # This call is required to run all the back end stuff to configure the CAD model based on these attributes.
