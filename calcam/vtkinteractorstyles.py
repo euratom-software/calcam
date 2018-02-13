@@ -643,11 +643,8 @@ class PointPairPicker(vtk.vtkInteractorStyleTerrain):
     def Set2DCursorStyle(self,CursorNumber,Focus,Paired=True):
         
         camscale = self.Camera2D.GetParallelScale()
-        focus_size = 0.03 * camscale 
-        radius_focus = 0. #focus_size/3.
+        focus_size = 0.03 * camscale
         nofocus_size = 0.015 * camscale
-        radius_nofocus = 0.
-        radius_reprojected = 0.
 
         focus_linewidth = 3
         nofocus_linewidth = 2
@@ -659,16 +656,14 @@ class PointPairPicker(vtk.vtkInteractorStyleTerrain):
         for i in range(self.nFields):
                 if self.ImagePoints[CursorNumber][i] is not None:
                     pos = self.ImagePoints[CursorNumber][i][0].GetFocalPoint()
-                    
+
                     if Focus:
-                        self.ImagePoints[CursorNumber][i][0].SetModelBounds([pos[0]-focus_size,pos[0]+focus_size,pos[1]-focus_size,pos[1]+focus_size,0.,0.])
+                        self.ImagePoints[CursorNumber][i][0].SetModelBounds(pos[0]-focus_size,pos[0]+focus_size,pos[1]-focus_size,pos[1]+focus_size,0.0,0.0)
                         self.ImagePoints[CursorNumber][i][2].GetProperty().SetColor(focus_colour)
                         self.ImagePoints[CursorNumber][i][2].GetProperty().SetLineWidth(focus_linewidth)
-                        self.ImagePoints[CursorNumber][i][0].SetRadius(radius_focus)
                     else:
                         self.ImagePoints[CursorNumber][i][0].SetModelBounds([pos[0]-nofocus_size,pos[0]+nofocus_size,pos[1]-nofocus_size,pos[1]+nofocus_size,0.,0.])
                         self.ImagePoints[CursorNumber][i][2].GetProperty().SetLineWidth(nofocus_linewidth)
-                        self.ImagePoints[CursorNumber][i][0].SetRadius(radius_nofocus)
                         if Paired:
                                 self.ImagePoints[CursorNumber][i][2].GetProperty().SetColor(nofocus_colour)
                         else:
@@ -677,7 +672,6 @@ class PointPairPicker(vtk.vtkInteractorStyleTerrain):
         if self.ReProjectedPoints is not None:
             for point in self.ReProjectedPoints:
                 point[0].SetModelBounds([point[3][0]-nofocus_size,point[3][0]+nofocus_size,point[3][1]-nofocus_size,point[3][1]+nofocus_size,0.,0.])
-                point[0].SetRadius(radius_reprojected*nofocus_size)
 
 
     # Adjust 2D image size and cursor positions if the window is resized
@@ -791,10 +785,13 @@ class PointPairPicker(vtk.vtkInteractorStyleTerrain):
         field = self.fieldmask[int(Imcoords[1]),int(Imcoords[0])]
 
         # Create new cursor, mapper and actor
-        self.ImagePoints[self.SelectedPoint][field] = [vtk.vtkCursor2D(),vtk.vtkPolyDataMapper(),vtk.vtkActor(),Imcoords]
+        self.ImagePoints[self.SelectedPoint][field] = [vtk.vtkCursor3D(),vtk.vtkPolyDataMapper(),vtk.vtkActor(),Imcoords]
         
         # Some setup of the cursor
         self.ImagePoints[self.SelectedPoint][field][0].OutlineOff()
+        self.ImagePoints[self.SelectedPoint][field][0].XShadowsOff()
+        self.ImagePoints[self.SelectedPoint][field][0].YShadowsOff()
+        self.ImagePoints[self.SelectedPoint][field][0].ZShadowsOff()
         self.ImagePoints[self.SelectedPoint][field][0].AxesOn()
         self.ImagePoints[self.SelectedPoint][field][0].TranslationModeOn()
         
@@ -802,7 +799,7 @@ class PointPairPicker(vtk.vtkInteractorStyleTerrain):
 
         # Work out where to place the cursor
         worldpos = [Imcoords[0],Imcoords[1],0.1]
-        #self.ImPointPlacer.ComputeWorldPosition(self.Renderer_2D,self.ImageToDisplayCoords(Imcoords),worldpos,[0,0,0,0,0,0,0,0,0])
+
         self.ImagePoints[self.SelectedPoint][field][0].SetFocalPoint(worldpos)
 
         # Mapper setup
@@ -1761,9 +1758,7 @@ class SplitFieldEditor(vtk.vtkInteractorStyleTrackballCamera):
         
         camscale = self.camera.GetParallelScale()
         focus_size = 0.03 * camscale 
-        radius_focus = 0. #focus_size/3.
         nofocus_size = 0.015 * camscale
-        radius_nofocus = 0.
 
         focus_linewidth = 3
         nofocus_linewidth = 2
@@ -1777,11 +1772,9 @@ class SplitFieldEditor(vtk.vtkInteractorStyleTrackballCamera):
             self.Points[CursorNumber][0].SetModelBounds([pos[0]-focus_size,pos[0]+focus_size,pos[1]-focus_size,pos[1]+focus_size,0.,0.])
             self.Points[CursorNumber][2].GetProperty().SetColor(focus_colour)
             self.Points[CursorNumber][2].GetProperty().SetLineWidth(focus_linewidth)
-            self.Points[CursorNumber][0].SetRadius(radius_focus)
         else:
             self.Points[CursorNumber][0].SetModelBounds([pos[0]-nofocus_size,pos[0]+nofocus_size,pos[1]-nofocus_size,pos[1]+nofocus_size,0.,0.])
             self.Points[CursorNumber][2].GetProperty().SetLineWidth(nofocus_linewidth)
-            self.Points[CursorNumber][0].SetRadius(radius_nofocus)
             self.Points[CursorNumber][2].GetProperty().SetColor(nofocus_colour)
 
 
@@ -1875,11 +1868,14 @@ class SplitFieldEditor(vtk.vtkInteractorStyleTrackballCamera):
 
         self.SelectedPoint = len(self.Points)
 
-        self.Points.append([vtk.vtkCursor2D(),vtk.vtkPolyDataMapper(),vtk.vtkActor(),Imcoords])
+        self.Points.append([vtk.vtkCursor3D(),vtk.vtkPolyDataMapper(),vtk.vtkActor(),Imcoords])
         
         # Some setup of the cursor
         self.Points[self.SelectedPoint][0].AxesOn()
         self.Points[self.SelectedPoint][0].OutlineOff()
+        self.Points[self.SelectedPoint][0].XShadowsOff()
+        self.Points[self.SelectedPoint][0].YShadowsOff()
+        self.Points[self.SelectedPoint][0].ZShadowsOff()
         self.Points[self.SelectedPoint][0].SetTranslationMode(1)
         
         # Place it in the right place.
@@ -3818,11 +3814,14 @@ class ImageAnalyser(vtk.vtkInteractorStyleTrackballCamera):
 
     def place_cursor_2D(self,im_coords,visible=True):
         # Create new cursor, mapper and actor
-        self.cursor2D.append((vtk.vtkCursor2D(),vtk.vtkPolyDataMapper(),vtk.vtkActor(),im_coords,visible))
+        self.cursor2D.append((vtk.vtkCursor3D(),vtk.vtkPolyDataMapper(),vtk.vtkActor(),im_coords,visible))
         
         # Some setup of the cursor
         self.cursor2D[-1][0].OutlineOff()
         self.cursor2D[-1][0].AxesOn()
+        self.cursor2D[-1][0].XShadowsOff()
+        self.cursor2D[-1][0].YShadowsOff()
+        self.cursor2D[-1][0].ZShadowsOff()
         self.cursor2D[-1][0].TranslationModeOn()
 
         imshape = self.Image.transform.get_display_shape()
@@ -4016,7 +4015,6 @@ class ImageAnalyser(vtk.vtkInteractorStyleTrackballCamera):
         for cursor in self.cursor2D:
             pos = cursor[0].GetFocalPoint()
             cursor[0].SetModelBounds([pos[0]-focus_size,pos[0]+focus_size,pos[1]-focus_size,pos[1]+focus_size,0.,0.])
-            cursor[0].SetRadius(0.)
             
 
             if cursor[4]:
