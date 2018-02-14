@@ -4,3 +4,4 @@
 *.log
 *.synctex.gz
 *.toc
+Calcam.egg-info/*
