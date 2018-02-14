@@ -491,7 +491,7 @@ from_file = FileSource()
 image_sources.append(from_file)
 image_sources.append(CalCamSaveSource())
 
-example_file = os.path.join(paths.calcampath,'usercode_examples','image_source.py')
+example_file = os.path.join(paths.calcampath,'usercode_examples','image_source.py_')
 user_files = [fname for fname in os.listdir(paths.image_sources) if fname.endswith('.py')]
 
 # See if the user already has a CAD model definition example file, and if it's up to date. If not, create it.

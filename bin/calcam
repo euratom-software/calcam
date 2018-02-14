@@ -1,0 +1,4 @@
+#!/usr/bin/env python
+
+import calcam
+calcam.gui.start_gui()

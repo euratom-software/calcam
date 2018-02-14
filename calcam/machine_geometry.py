@@ -45,7 +45,7 @@ if os.path.isfile(os.path.join(paths.code,'_machine_geometry.py')):
     shutil.move(os.path.join(paths.code,'_machine_geometry.py'),os.path.join(paths.machine_geometry,'machine_geometry_moved.py'))
     print('[Calcam Import] The way CAD definitions are organised has changed. Your existing definitions have been moved to ' + os.path.join(paths.machine_geometry,'machine_geometry_moved.py') + '. It is recommended to split up model definitions one-per-file in that directory, for tidyness.')
 
-example_file = os.path.join(paths.calcampath,'usercode_examples','machine_geometry.py')
+example_file = os.path.join(paths.calcampath,'usercode_examples','machine_geometry.py_')
 user_files = [fname for fname in os.listdir(paths.machine_geometry) if fname.endswith('.py')]
 
 # See if the user already has a CAD model definition example file, and if it's up to date. If not, create it.
