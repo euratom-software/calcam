@@ -1234,7 +1234,6 @@ class FieldFit:
         # Distortion coefficients array
         self.kc = FitParams[2].copy()
 
-
         # Extrinsics: rotation and translation vectors
         self.rvec = FitParams[3][0].copy()
         self.tvec = FitParams[4][0].copy()
@@ -1256,8 +1255,8 @@ class FieldFit:
             # Annoyingly, fisheye calibration returns its extrinsics in a different
             # format than the perspective fitting. *sigh*
             if not from_save:
-                self.rvec = self.rvec[0].T
-                self.tvec = self.tvec[0].T
+                self.rvec[0] = self.rvec[0].T
+                self.tvec[0] = self.tvec[0].T
 
             self.k1 = self.kc[0]
             self.k2 = self.kc[1]

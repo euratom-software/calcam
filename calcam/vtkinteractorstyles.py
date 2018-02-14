@@ -144,7 +144,6 @@ class PointPairPicker(vtk.vtkInteractorStyleTerrain):
 
             self.Renderer_2D.RemoveActor(self.ImageActor)
             self.ImageActor = None
-            self.ImageResizer = None
             self.Image = None
         else:
             hold_position = False
@@ -170,7 +169,6 @@ class PointPairPicker(vtk.vtkInteractorStyleTerrain):
             ImAspect = float(self.ImageOriginalSize[0])/self.ImageOriginalSize[1]
 
 
-            #self.ImageResizer.SetOutputDimensions(int(self.ZoomRefSize[0]*self.ZoomLevel),int(self.ZoomRefSize[1]*self.ZoomLevel),1)
             self.Renderer_2D.AddActor2D(self.ImageActor)
 
 

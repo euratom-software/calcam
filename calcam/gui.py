@@ -2012,10 +2012,17 @@ class CalCamWindow(qt.QMainWindow):
         if self.use_chessboard_checkbox.isChecked():
             self.toggle_chessboard_constraints(True)
 
+        self.pointpicker.UpdateFromPPObject(False)
+
         if self.overlay_checkbox.isChecked():
             self.overlay_checkbox.setChecked(False)
             self.overlay_checkbox.setChecked(True)
 
+        if self.fitted_points_checkbox.isChecked():
+            self.fitted_points_checkbox.setChecked(False)
+            self.fitted_points_checkbox.setChecked(True)
+
+        
 
     def closeEvent(self,event):
 
