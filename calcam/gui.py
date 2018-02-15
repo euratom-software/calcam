@@ -4389,6 +4389,7 @@ class ImageAnalyserWindow(qt.QMainWindow):
 
         if self.raycaster.fitresults is not None:
             self.overlay_checkbox.setEnabled(True)
+            self.set_viewport_to_calib.setEnabled(True)
 
 
         self.tabWidget.setTabEnabled(2,True)
