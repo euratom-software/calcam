@@ -1253,11 +1253,17 @@ class FieldFit:
         
         elif fit_model == 'fisheye':
             # Annoyingly, fisheye calibration returns its extrinsics in a different
-            # format than the perspective fitting. *sigh*
+            # format than the perspective fitting. *sigh*. Also the format that comes
+            # back from OpenCV depends in some interesting way on versions of things,
+            # so we need this try...except here. Grumble.
             if not from_save:
-                self.rvec[0] = self.rvec[0].T
-                self.tvec[0] = self.tvec[0].T
-
+                try:
+                    self.rvec[0] = self.rvec[0].T
+                    self.tvec[0] = self.tvec[0].T
+                except ValueError:
+                    self.rvec = self.rvec[0].T
+                    self.tvec = self.tvec[0].T
+                                        
             self.k1 = self.kc[0]
             self.k2 = self.kc[1]
             self.k3 = self.kc[2]
