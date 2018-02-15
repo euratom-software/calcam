@@ -144,7 +144,6 @@ class PointPairPicker(vtk.vtkInteractorStyleTerrain):
 
             self.Renderer_2D.RemoveActor(self.ImageActor)
             self.ImageActor = None
-            self.ImageResizer = None
             self.Image = None
         else:
             hold_position = False
@@ -170,7 +169,6 @@ class PointPairPicker(vtk.vtkInteractorStyleTerrain):
             ImAspect = float(self.ImageOriginalSize[0])/self.ImageOriginalSize[1]
 
 
-            #self.ImageResizer.SetOutputDimensions(int(self.ZoomRefSize[0]*self.ZoomLevel),int(self.ZoomRefSize[1]*self.ZoomLevel),1)
             self.Renderer_2D.AddActor2D(self.ImageActor)
 
 
@@ -873,11 +871,14 @@ class PointPairPicker(vtk.vtkInteractorStyleTerrain):
                     point = (point[0],self.ImageOriginalSize[1]-point[1])
 
                     # Create new cursor, mapper and actor
-                    self.ReProjectedPoints.append((vtk.vtkCursor2D(),vtk.vtkPolyDataMapper(),vtk.vtkActor(),point))
+                    self.ReProjectedPoints.append((vtk.vtkCursor3D(),vtk.vtkPolyDataMapper(),vtk.vtkActor(),point))
                 
                     # Some setup of the cursor
                     self.ReProjectedPoints[-1][0].OutlineOff()
                     self.ReProjectedPoints[-1][0].AxesOn()
+                    self.ReProjectedPoints[-1][0].XShadowsOff()
+                    self.ReProjectedPoints[-1][0].YShadowsOff()
+                    self.ReProjectedPoints[-1][0].ZShadowsOff()
                     self.ReProjectedPoints[-1][0].SetTranslationMode(1)
                 
                     self.ReProjectedPoints[-1][0].SetFocalPoint((point[0],point[1],0.2))
@@ -894,7 +895,6 @@ class PointPairPicker(vtk.vtkInteractorStyleTerrain):
                     self.ReProjectedPoints[-1][0].SetModelBounds([point[0]-cursorsize,point[0]+cursorsize,point[1]-cursorsize,point[1]+cursorsize,0.,0.])
                     self.ReProjectedPoints[-1][2].GetProperty().SetColor(cursorcolour)
                     self.ReProjectedPoints[-1][2].GetProperty().SetLineWidth(cursorlinewidth)
-                    self.ReProjectedPoints[-1][0].SetRadius(0.)
 
         self.gui_window.refresh_vtk()
 
@@ -998,25 +998,24 @@ class PointPairPicker(vtk.vtkInteractorStyleTerrain):
                 camscale = self.Camera2D.GetParallelScale() * 2
                 oldpos = self.Camera2D.GetPosition()
                 deltaX = (xypos[0] - lastXYpos[0])/(self.WinSize[0]/2.) * camscale * (self.WinSize[0]/2.)/self.WinSize[1]
-                deltaY = (xypos[1] - lastXYpos[1])/self.WinSize[1] * camscale
+                deltaY = (xypos[1] - lastXYpos[1])/float(self.WinSize[1]) * camscale
 
                 newY = oldpos[1] - deltaY
                 newX = oldpos[0] - deltaX
 
-                
+
                 # Make sure we don't pan outside the image.
                 im_bounds = self.ImageActor.GetBounds()
                 xcamscale = (camscale * (self.WinSize[0]/2.)/self.WinSize[1])
-                if newX + xcamscale/2. > im_bounds[1]:
-                    newX = im_bounds[1] - xcamscale/2.
-                elif newX - xcamscale/2. < im_bounds[0]:
-                    newX = im_bounds[0] + xcamscale/2.
+                if newX + xcamscale/2. > im_bounds[1] and newX - xcamscale/2. > im_bounds[0]:
+                    newX = oldpos[0]
+                elif newX - xcamscale/2. < im_bounds[0] and newX + xcamscale/2. < im_bounds[1]:
+                    newX = oldpos[0]
+                if newY + camscale/2. > im_bounds[3] and newY - camscale/2. > im_bounds[2]:
+                    newY = oldpos[1]
+                elif newY - camscale/2. < im_bounds[2] and newY + camscale/2. < im_bounds[3]:
+                    newY = oldpos[1]
 
-                if newY + camscale/2. > im_bounds[3]:
-                    newY = im_bounds[3] - camscale/2.
-                elif newY - camscale/2. < im_bounds[2]:
-                    newY = im_bounds[2] + camscale/2.
-                
                 # Move image camera
                 self.Camera2D.SetPosition((newX, newY,1.))
                 self.Camera2D.SetFocalPoint((newX,newY,0.))
@@ -1678,8 +1677,8 @@ class SplitFieldEditor(vtk.vtkInteractorStyleTrackballCamera):
             xypos = self.Interactor.GetEventPosition()
             camscale = self.camera.GetParallelScale() * 2
             oldpos = self.camera.GetPosition()
-            deltaX = (xypos[0] - lastXYpos[0])/(self.WinSize[0]/2.) * camscale * (self.WinSize[0]/2.)/self.WinSize[1]
-            deltaY = (xypos[1] - lastXYpos[1])/self.WinSize[1] * camscale
+            deltaX = (xypos[0] - lastXYpos[0])/float(self.WinSize[0]) * camscale * float(self.WinSize[0])/self.WinSize[1]
+            deltaY = (xypos[1] - lastXYpos[1])/float(self.WinSize[1]) * camscale
 
             newY = oldpos[1] - deltaY
             newX = oldpos[0] - deltaX
@@ -1687,16 +1686,15 @@ class SplitFieldEditor(vtk.vtkInteractorStyleTrackballCamera):
             
             # Make sure we don't pan outside the image.
             im_bounds = self.ImageActor.GetBounds()
-            xcamscale = (camscale * (self.WinSize[0]/2.)/self.WinSize[1])
-            if newX + xcamscale/2. > im_bounds[1]:
-                newX = im_bounds[1] - xcamscale/2.
-            elif newX - xcamscale/2. < im_bounds[0]:
-                newX = im_bounds[0] + xcamscale/2.
-
-            if newY + camscale/2. > im_bounds[3]:
-                newY = im_bounds[3] - camscale/2.
-            elif newY - camscale/2. < im_bounds[2]:
-                newY = im_bounds[2] + camscale/2.
+            xcamscale = (camscale * float(self.WinSize[0])/self.WinSize[1])
+            if newX + xcamscale/2. > im_bounds[1] and newX - xcamscale/2. > im_bounds[0]:
+                newX = oldpos[0]
+            elif newX - xcamscale/2. < im_bounds[0] and newX + xcamscale/2. < im_bounds[1]:
+                newX = oldpos[0]
+            if newY + camscale/2. > im_bounds[3] and newY - camscale/2. > im_bounds[2]:
+                newY = oldpos[1]
+            elif newY - camscale/2. < im_bounds[2] and newY + camscale/2. < im_bounds[3]:
+                newY = oldpos[1]
             
             # Move image camera
             self.camera.SetPosition((newX, newY,1.))
@@ -4156,7 +4154,7 @@ class ImageAnalyser(vtk.vtkInteractorStyleTerrain):
                 camscale = self.Camera2D.GetParallelScale() * 2
                 oldpos = self.Camera2D.GetPosition()
                 deltaX = (xypos[0] - lastXYpos[0])/(self.WinSize[0]/2.) * camscale * (self.WinSize[0]/2.)/self.WinSize[1]
-                deltaY = (xypos[1] - lastXYpos[1])/self.WinSize[1] * camscale
+                deltaY = (xypos[1] - lastXYpos[1])/float(self.WinSize[1]) * camscale
 
                 newY = oldpos[1] - deltaY
                 newX = oldpos[0] - deltaX
@@ -4165,15 +4163,14 @@ class ImageAnalyser(vtk.vtkInteractorStyleTerrain):
                 # Make sure we don't pan outside the image.
                 im_bounds = self.ImageActor.GetBounds()
                 xcamscale = (camscale * (self.WinSize[0]/2.)/self.WinSize[1])
-                if newX + xcamscale/2. > im_bounds[1]:
-                    newX = im_bounds[1] - xcamscale/2.
-                elif newX - xcamscale/2. < im_bounds[0]:
-                    newX = im_bounds[0] + xcamscale/2.
-
-                if newY + camscale/2. > im_bounds[3]:
-                    newY = im_bounds[3] - camscale/2.
-                elif newY - camscale/2. < im_bounds[2]:
-                    newY = im_bounds[2] + camscale/2.
+                if newX + xcamscale/2. > im_bounds[1] and newX - xcamscale/2. > im_bounds[0]:
+                    newX = oldpos[0]
+                elif newX - xcamscale/2. < im_bounds[0] and newX + xcamscale/2. < im_bounds[1]:
+                    newX = oldpos[0]
+                if newY + camscale/2. > im_bounds[3] and newY - camscale/2. > im_bounds[2]:
+                    newY = oldpos[1]
+                elif newY - camscale/2. < im_bounds[2] and newY + camscale/2. < im_bounds[3]:
+                    newY = oldpos[1]
                 
                 # Move image camera
                 self.Camera2D.SetPosition((newX, newY,1.))

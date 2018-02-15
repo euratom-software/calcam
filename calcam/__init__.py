@@ -24,7 +24,15 @@
 CalCam package.
 """
 
-# Make sure Calcam is in the user's PYTHONPATH
+# See what version we're on
+import pkg_resources
+try:
+    __version__ = pkg_resources.get_distribution('calcam').version
+except:
+    __version__ = None
+
+
+# Make sure we have the right thing in sys.path to be able to import the modules.
 import sys
 import inspect
 import os
@@ -35,22 +43,10 @@ if calcampath not in sys.path:
 # List of user-exposed modules which are part of the CalCam package.
 module_list = ['paths','machine_geometry','pointpairs','fitting','roi','render','raytrace','image','gui','geometry_matrix','image_filters']
 
-# This will be a list of things which aren't working
-missing_modules = []
 
-# Try to import each module, and tell the user if some dependencies are missing.
+# Try to import each module
 for ModuleName in module_list:
-    try:
-        exec('import ' + ModuleName)
-    except ImportError as error:
-        if 'No module named ' in error.args[0]:
-            missing_modules.append(error.args[0][16:])
-        else:
-            raise
-
-if len(missing_modules) > 0:
-    missing_modules = list(set(missing_modules))
-    raise ImportError('The following required python modules could not be imported: ' + ', '.join(missing_modules))
+    exec('import ' + ModuleName)
 
 
 from fitting import CalibResults, VirtualCalib
