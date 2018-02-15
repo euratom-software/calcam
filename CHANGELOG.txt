@@ -5,9 +5,10 @@ Release 1.9.0 (1 Jan 2017)
 --------------------------
 
 Fixed:
-* <<<List of changes>>>
+* Various fixes to mouse interaction (juddering, not recognising button-up etc)
+* Many other bug fixes (see commit messages)
 
 New:
-* Actual setup script.
-* Actual release tag.
-
+* Add setup script
+* First version with a proper release tag, and add __version__ attribute to package
+* Actually start using Changelog somewhat properly
