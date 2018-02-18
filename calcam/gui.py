@@ -822,7 +822,7 @@ class CalCamWindow(qt.QMainWindow):
         self.pointpairs_changed = False
         self.fit_changed = False
         self.chessboard_pointpairs = None
-        self.n_data = 0
+        self.n_data = [0]
 
 
         # Populate CAD model list
@@ -1222,6 +1222,9 @@ class CalCamWindow(qt.QMainWindow):
 
         if newim.transform.get_display_shape()  != old_shape or (newim.fieldmask.max() != old_fieldmask.max()):
             self.pointpicker.clear_all()
+            self.n_data = []
+            for field in range(newim.n_fields):
+            	self.n_data.append(0)
             self.use_chessboard_checkbox.setChecked(False)
             self.chessboard_pointpairs = None
             self.chessboard_info.setText('No chessboard pattern images currently loaded.')
@@ -1431,7 +1434,8 @@ class CalCamWindow(qt.QMainWindow):
             sub_layout.addWidget(newWidgets[0])
             sub_layout.addWidget(newWidgets[1])
             fisheye_settings_layout.addWidget(sub_widget)
-
+            spacer = qt.QSpacerItem(20,10,qt.QSizePolicy.Minimum,qt.QSizePolicy.Expanding)
+            fisheye_settings_layout.addItem(spacer)
             # ------- End of fisheye settings -----------------
 
 
@@ -1932,7 +1936,7 @@ class CalCamWindow(qt.QMainWindow):
 
 
             for i,point in enumerate(image_coords):
-                info_string = info_string + '( {:4.0f} , {:4.0f} ) px'.format(point[0],point[1]).replace(' ','&nbsp;')
+                info_string = info_string + '( {:.0f} , {:.0f} ) px'.format(point[0],point[1]).replace(' ','&nbsp;')
                 if len(image_coords) > 1:
                     info_string = info_string + '  [' + self.image.field_names[i] + ']'.replace(' ','&nbsp;')
                 if image_coords.index(point) < len(image_coords) - 1:
@@ -2123,6 +2127,10 @@ class CalCamWindow(qt.QMainWindow):
         result = dialog.exec_()
         if result == 1:
             self.pointpicker.clear_all()
+            self.n_data = []
+            for field in range(self.pointpicker.nFields):
+            	self.n_data.append(0)
+
             if dialog.fieldmask.max() > 0:
                 self.use_chessboard_checkbox.setChecked(False)
                 self.use_chessboard_checkbox.setEnabled(False)

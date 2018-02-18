@@ -327,7 +327,7 @@ class PointPairPicker(vtk.vtkInteractorStyleTerrain):
                 if self.ImagePoints[self.SelectedPoint][j] is not None:
 
                         x = self.ImagePoints[self.SelectedPoint][j][3][0]
-                        y = self.ImageOriginalSize[1] - self.ImagePoints[self.SelectedPoint][j][3][1]
+                        y = self.ImageOriginalSize[1] - self.ImagePoints[self.SelectedPoint][j][3][1] - 1
                         impoints.append((x,y))
 
             if self.ObjectPoints[self.SelectedPoint] is not None:
@@ -711,7 +711,7 @@ class PointPairPicker(vtk.vtkInteractorStyleTerrain):
         camyscale = self.Camera2D.GetParallelScale() * 2.
         camxscale = camyscale * (self.WinSize[0]/2.)/self.WinSize[1]
         cc = self.Camera2D.GetFocalPoint()
-        ImCoords = ( (( DisplayCoords[0] - 3.*self.WinSize[0]/4 ) / (self.WinSize[0]/2.)) * camxscale + cc[0], (DisplayCoords[1] - self.WinSize[1]/2.)/self.WinSize[1] * camyscale + cc[1] )
+        ImCoords = ( (( DisplayCoords[0] - 3.*self.WinSize[0]/4 ) / (self.WinSize[0]/2.)) * camxscale + cc[0], (DisplayCoords[1] - self.WinSize[1]/2.)/self.WinSize[1] * camyscale + cc[1])
 
         return ImCoords
 
@@ -743,7 +743,7 @@ class PointPairPicker(vtk.vtkInteractorStyleTerrain):
                 self.AddPoint3D(self.PointPairs.objectpoints[i])
                 for field in range(self.nFields):
                     if self.PointPairs.imagepoints[i][field] is not None:
-                        self.AddPoint2D([self.PointPairs.imagepoints[i][field][0],self.ImageOriginalSize[1] - self.PointPairs.imagepoints[i][field][1]])
+                        self.AddPoint2D([self.PointPairs.imagepoints[i][field][0],self.ImageOriginalSize[1] - self.PointPairs.imagepoints[i][field][1] - 1])
 
         self.UpdateResults()
         self.update_current_point()
@@ -922,7 +922,7 @@ class PointPairPicker(vtk.vtkInteractorStyleTerrain):
                                 self.PointPairs.imagepoints[-1].append(None)
                         else:
                                 x = self.ImagePoints[i][j][3][0]
-                                y = self.ImageOriginalSize[1] - self.ImagePoints[i][j][3][1]
+                                y = self.ImageOriginalSize[1] - self.ImagePoints[i][j][3][1] - 1
 
                                 self.PointPairs.imagepoints[-1].append([x,y])
 
@@ -1846,7 +1846,7 @@ class SplitFieldEditor(vtk.vtkInteractorStyleTrackballCamera):
         cc = self.camera.GetFocalPoint()
         ImCoords = [ (( DisplayCoords[0] - self.WinSize[0]/2. ) / (self.WinSize[0])) * camxscale + cc[0], (DisplayCoords[1] - self.WinSize[1]/2.)/self.WinSize[1] * camyscale + cc[1] ]
         imshape = self.Image.transform.get_display_shape()
-        ImCoords[1]  = imshape[1] - ImCoords[1]
+        ImCoords[1]  = imshape[1] - ImCoords[1] - 1
 
         return tuple(ImCoords)
 
@@ -1904,7 +1904,7 @@ class SplitFieldEditor(vtk.vtkInteractorStyleTrackballCamera):
         
         # Place it in the right place.
         imshape = self.Image.transform.get_display_shape()
-        self.Points[self.SelectedPoint][0].SetFocalPoint(Imcoords[0],imshape[1] - Imcoords[1],0.02)
+        self.Points[self.SelectedPoint][0].SetFocalPoint(Imcoords[0],imshape[1] - Imcoords[1] - 1,0.02)
 
         # Mapper setup
         self.Points[self.SelectedPoint][1].SetInputConnection(self.Points[self.SelectedPoint][0].GetOutputPort())
@@ -1936,84 +1936,21 @@ class SplitFieldEditor(vtk.vtkInteractorStyleTrackballCamera):
 
             if len(points) == 2:
 
-                m = (points[1][1] - points[0][1])/(points[1][0] - points[0][0])
-                c = points[1][1] - m*points[1][0]
+                n0 = np.argmin([points[0][0], points[1][0]])
+                n1 = np.argmax([points[0][0], points[1][0]])
 
-                if c < 0:
-                    side1 = 0
-                elif c > self.Image.data.shape[0]-1:
-                    side1 = 2
-                else:
-                    side1 = 1
-
-                c2  = c + m * self.Image.data.shape[1]-1
-
-                if c2 < 0:
-                    side2 = 0
-                elif c2 > self.Image.data.shape[0]-1:
-                    side2 = 2
-                else:
-                    side2 = 3
-
-
-                if side1 == 1 and side2 == 0:
-                    pathpoints = np.zeros([3,2]) - 1
-                    pathpoints[0,1] = c
-                    pathpoints[1,0] = -c/m
-
-                elif side1 == 1 and side2 == 3:
-                    pathpoints = np.zeros([5,2]) - 1
-                    pathpoints[0,1] = c
-                    pathpoints[1,1] = self.Image.data.shape[0]
-                    pathpoints[2,0] = self.Image.data.shape[1]
-                    pathpoints[2,1] = self.Image.data.shape[0]
-                    pathpoints[3,0] = self.Image.data.shape[1]
-                    pathpoints[3,1] = c2
-
-                elif side1 == 1 and side2 == 2:
-                    pathpoints = np.zeros([4,2]) - 1
-                    pathpoints[0,1] = c
-                    pathpoints[1,0] = (self.Image.data.shape[0]-c)/m
-                    pathpoints[1,1] = self.Image.data.shape[0]
-                    pathpoints[2,0] = self.Image.data.shape[1]
-                    pathpoints[2,1] = self.Image.data.shape[0]
-
-                elif side1 == 2 and side2 == 3:
-                    pathpoints = np.zeros([4,2]) - 1
-                    pathpoints[0,1] = self.Image.data.shape[0]
-                    pathpoints[0,0] = (self.Image.data.shape[0]-c)/m
-                    pathpoints[1,1] = self.Image.data.shape[0]
-                    pathpoints[1,0] = self.Image.data.shape[1]
-                    pathpoints[2,0] = self.Image.data.shape[1]
-                    pathpoints[2,1] = c2
-
-                elif side1 == 0 and side2 == 3:
-                    pathpoints = np.zeros([4,2]) - 1
-                    pathpoints[0,0] = -c/m
-                    pathpoints[1,0] = self.Image.data.shape[1]
-                    pathpoints[2,0] = self.Image.data.shape[1]
-                    pathpoints[2,1] = c2
-
-                else:
-                    pathpoints = np.zeros([5,2]) - 1
-                    pathpoints[0,1] = self.Image.data.shape[0]
-                    pathpoints[0,0] = (self.Image.data.shape[0]-c)/m
-                    pathpoints[1,0] = self.Image.data.shape[1]
-                    pathpoints[1,1] = self.Image.data.shape[0]
-                    pathpoints[2,0] =self.Image.data.shape[1]
-                    pathpoints[3,0] = -c/m
-
-                path = mplPath.Path(pathpoints,closed=True)
+                m = (points[n1][1] - points[n0][1])/(points[n1][0] - points[n0][0])
+                c = points[n0][1] - m*points[n0][0]
 
                 x,y = np.meshgrid(np.linspace(0,self.Image.data.shape[1]-1,self.Image.data.shape[1]),np.linspace(0,self.Image.data.shape[0]-1,self.Image.data.shape[0]))
-                x = np.reshape(x,[np.size(x),1])
-                y = np.reshape(y,[np.size(y),1])
-                impoints = np.hstack((x,y))
+                
+                ylim = m*x + c
+                self.fieldmask = np.zeros(x.shape,int)
 
-                mask = path.contains_points(impoints)
+                self.fieldmask[y > ylim] = 1
 
-                self.fieldmask = np.uint8(np.reshape(mask,self.Image.data.shape[0:2]))
-                n_fields = np.max(self.fieldmask) + 1
+                n_fields = self.fieldmask.max() + 1
+
             else:
                 return
 
@@ -3657,6 +3594,7 @@ class ImageAnalyser(vtk.vtkInteractorStyleTerrain):
         else:
             im_shape = self.gui_window.raycaster.fitresults.transform.get_display_shape()
             im_coords = self.DisplayToImageCoords(clickcoords)
+
             if im_coords[0] < 0 or im_coords[1] < 0 or im_coords[0] > im_shape[0] or im_coords[1] > im_shape[1]:
                 return
 
@@ -3852,7 +3790,7 @@ class ImageAnalyser(vtk.vtkInteractorStyleTerrain):
 
         imshape = self.Image.transform.get_display_shape()
 
-        worldpos = [im_coords[0],imshape[1] - im_coords[1],0.1]
+        worldpos = [im_coords[0],imshape[1] - im_coords[1]-1,0.1]
         self.cursor2D[-1][0].SetFocalPoint(worldpos)
 
         # Mapper setup
@@ -4097,7 +4035,7 @@ class ImageAnalyser(vtk.vtkInteractorStyleTerrain):
         cc = self.Camera2D.GetFocalPoint()
         ImCoords = [ (( DisplayCoords[0] - self.WinSize[0]/4 ) / (self.WinSize[0]/2.)) * camxscale + cc[0], (DisplayCoords[1] - self.WinSize[1]/2.)/self.WinSize[1] * camyscale + cc[1] ]
 
-        ImCoords[1] = self.Image.transform.get_display_shape()[1] - ImCoords[1]
+        ImCoords[1] = self.Image.transform.get_display_shape()[1] - ImCoords[1] - 1
 
         return tuple(ImCoords)
 

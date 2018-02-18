@@ -7,10 +7,12 @@ Update to 1.9.1 (18 Feb 2018)
 Fixes:
 * Fixed exception raised when clicking "Apply" in the split field definition dialog.
 * Fixed zoom not working properly in split field definition dialog.
+* Fixed broken field mask behaviour when using 2-point split-field definition (and greatly simplify algorithm in the process).
 * In point fitting calibration tool, fixed various GUI elements with text being cut-off due to being too narrow.
 * Fixed a bug where performing some image geometrical transformations would cause the image to move off-centre in the window.
 * Hard code version string in __init__.py; the way I did it before was stupid.
 * Fixed bug where the numbers of paired and un-paired points was not being reported correctly.
+* Fix off-by-1 issue when converting between VTK and image coordinates (effects point pair calibration and image analyser).
 
 New & Enhancements:
 * Make RayCaster class available in the root of the calcam package instead of only in calcam.raytrace.
