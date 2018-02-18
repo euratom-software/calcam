@@ -7,7 +7,7 @@ For authorship information see AUTHORS.txt
 
 ## Documentation
 
-The full calcam documentation can be found at:
+The full calcam documentation can be found at: https://euratom-software.github.io/calcam/
 
 or in the docs/ folder of this project.
 

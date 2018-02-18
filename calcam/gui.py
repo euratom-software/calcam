@@ -4973,7 +4973,7 @@ class LauncherWindow(qt.QDialog):
         subprocess.Popen([sys.executable,os.path.join(paths.calcampath,'gui.py'),'launch_alignment_calib'],stdin=None, stdout=self.devnull, stderr=self.devnull)
 
     def open_manual(self):
-        webbrowser.open(os.path.join(os.path.dirname(paths.calcampath),'docs','index.html'))
+        webbrowser.open('https://euratom-software.github.io/calcam/')
 
     def launch_image_analysis(self):
         subprocess.Popen([sys.executable,os.path.join(paths.calcampath,'gui.py'),'launch_image_analysis'],stdin=None, stdout=self.devnull, stderr=self.devnull)
