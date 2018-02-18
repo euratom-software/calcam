@@ -1,0 +1,271 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Coordinate Conventions &mdash; Calcam 1.9.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="Calcam 1.9.0 documentation" href="index.html"/>
+        <link rel="next" title="Calcam GUI Launcher" href="gui/launcher.html"/>
+        <link rel="prev" title="Installation &amp; Setup" href="installation.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Calcam
+          
+
+          
+            
+            <img src="_static/logo.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.9
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Introduction &amp; Background</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">What is Calcam?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="background.html">Theoretical Background</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation &amp; Setup</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Coordinate Conventions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#pixel-coordinates">Pixel Coordinates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#original-and-display-coordinates">&#8220;Original&#8221; and &#8220;Display&#8221; Coordinates</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">GUI User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="gui/launcher.html">Calcam GUI Launcher</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui/calib_tool_points.html">Calibration Tool (Point Fitting)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui/calib_tool_alignment.html">Calibration Tool (Manual Alignment)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui/virtualcalib_editor.html">Virtual Calibration Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui/image_analyser.html">Image Analyser</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui/model_viewer.html">CAD Model Viewer</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API Manual</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/calibresults.html">Working with Calibration Results</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/cadmodel.html">Working with CAD Meshes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/rendering.html">Rendering Images</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/raycasting.html">Ray Casting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/geometrymatrix.html">Creating Geometry Matrices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/utilities.html">Utilities &amp; Misc.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/fileformats.html">File Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/examples.html">Examples</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Calcam</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Coordinate Conventions</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="coordinate-conventions">
+<h1>Coordinate Conventions<a class="headerlink" href="#coordinate-conventions" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="pixel-coordinates">
+<h2>Pixel Coordinates<a class="headerlink" href="#pixel-coordinates" title="Permalink to this headline">¶</a></h2>
+<p>Calcam follows the convention of using matrix/linear algebra style pixel coordinates for images, which is consistent with the way images are stored and addressed in 2D arrays in Python. In this convention, the origin <code class="docutils literal"><span class="pre">(0,0)</span></code> is in the centre of the top-left pixel in the image. The <em>y</em> axis runs from top to bottom down the image and the <em>x</em> axis runs horizontally left to right.</p>
+<p>It is important to note that since 2D arrays are indexed <code class="docutils literal"><span class="pre">[row,</span> <span class="pre">column]</span></code>, arrays containing images are indexed as <code class="docutils literal"><span class="pre">[y,x]</span></code>. However, Calcam functions which deal with image coordinates are called as <code class="docutils literal"><span class="pre">function(x,y)</span></code>. This is consistent with the way image coordinates are delt with in OpenCV.</p>
+</div>
+<div class="section" id="original-and-display-coordinates">
+<h2>&#8220;Original&#8221; and &#8220;Display&#8221; Coordinates<a class="headerlink" href="#original-and-display-coordinates" title="Permalink to this headline">¶</a></h2>
+<p>In camera diagnostics, the data comes out of the camera with some intrinsic orientation which may not be the &#8220;right way up&#8221; in terms of easily looking at or understanding the images, e.g. if the camera is mounted upside down or the image is flipped by a mirror on the optical path. It is therefore desirable to work with the image transformed to be the &#8220;right way round&#8221;. However, when performing bulk, programmatic analysis of video data it is not necessary or advantageous to perform this transformation, and is more efficient to work with the raw data as it comes out of the camera or is stored. Calcam therefore uses the concept of &#8220;display&#8221; and &#8220;original&#8221; image coordinates (thanks to Valentina Huber for this idea, and coining the phrase). Consider an object at a specific point in an image. Its coordinates in the camera image, as read straight from the camera, are the &#8220;original&#8221; coordinates. If the image is transformed to be the &#8220;right way up&#8221;, the object&#8217;s coordinates in the image will now be different. These coordinates in the &#8220;right way up&#8221; image are called &#8220;Display&#8221; coordinates. Calcam keeps track of the transofmration between original and display coordinates, so that the results can be used with raw data as it comes from the camera as well as processed &#8220;right way up&#8221; data. It is therefore highly recommended that you do not perform any geometrical transformations to images before loading them in to calcam for calibration, but make all these adjustments within calcam. This will leave the option open for using the raw data more efficiently in your analysis.</p>
+<p>By default, calcam functions work with display coordinates unless specified otherwise. This is because the underlying openCV camera model fitting requires that the image being calibrated is not flipped, horizontally or vertically (this would add a minus sign to the pinhole projection which is not supported by the code). This is also an important point when calibrating images: ensure the image is not horizontally or vertically flipped when performing calibrations!</p>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="gui/launcher.html" class="btn btn-neutral float-right" title="Calcam GUI Launcher" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="installation.html" class="btn btn-neutral" title="Installation &amp; Setup" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, European Atomic Energy Community (EURATOM).
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'1.9.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  false,
+            SOURCELINK_SUFFIX: ''
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

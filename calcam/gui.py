@@ -53,6 +53,7 @@ import copy
 from coordtransformer import CoordTransformer
 import webbrowser
 import subprocess
+from calcam import __version__
 
 cv2_version = float('.'.join(cv2.__version__.split('.')[:2]))
 cv2_micro_version = int(cv2.__version__.split('.')[2].split('-')[0])
@@ -115,7 +116,7 @@ def show_exception_box(self,excep_type,excep_value,tb):
             dialog.setStandardButtons(qt.QMessageBox.Ok)
             dialog.setTextFormat(qt.Qt.RichText)
             dialog.setWindowTitle('Calcam - Error')
-            dialog.setText("An unhandled exception has been raised. This is probably a bug in Calcam; please report this and/or consider contributing a fix!")
+            dialog.setText('An unhandled exception has been raised. This is probably a bug in Calcam; please report it <a href="https://github.com/euratom-software/calcam/issues">here</a> and/or consider contributing a fix!')
             dialog.setInformativeText(''.join(traceback.format_exception(excep_type,excep_value,tb)))
             dialog.setIcon(qt.QMessageBox.Warning)
             dialog.exec_()
@@ -820,6 +821,8 @@ class CalCamWindow(qt.QMainWindow):
         self.any_points = False
         self.pointpairs_changed = False
         self.fit_changed = False
+        self.chessboard_pointpairs = None
+        self.n_data = 0
 
 
         # Populate CAD model list
@@ -1227,6 +1230,20 @@ class CalCamWindow(qt.QMainWindow):
 
         self.image = newim
 
+        if self.image.n_fields > 1:
+            self.use_chessboard_checkbox.setEnabled(False)
+            self.chessboard_button.setEnabled(False)
+            self.chessboard_info.setText('Cannot use chessboard images with split-field cameras.')
+        else:
+            self.use_chessboard_checkbox.setEnabled(True)
+            self.chessboard_button.setEnabled(True)
+            if self.chessboard_pointpairs is not None:
+                self.chessboard_info.setText('{:d} chessboard pattern images loaded<br>Total additional points: {:d} '.format(len(self.chessboard_pointpairs),len(self.chessboard_pointpairs)*len(self.chessboard_pointpairs[0].objectpoints)))
+            else:   
+                self.chessboard_info.setText('No chessboard pattern images currently loaded.')
+
+
+
         if self.overlay_checkbox.isChecked():
             self.overlay_checkbox.setChecked(False)
 
@@ -1289,8 +1306,8 @@ class CalCamWindow(qt.QMainWindow):
                 widgetlist[1].setEnabled(False)
                 widgetlist[1].setToolTip('Requires OpenCV 3')
 
-            widgetlist[0].toggled.connect(self.update_fitopts_gui)
             widgetlist[0].setChecked(True)
+            widgetlist[0].toggled.connect(self.update_fitopts_gui)
             widgetlist[1].toggled.connect(self.update_fitopts_gui)
             sub_widget = qt.QWidget()
             sub_layout = qt.QHBoxLayout()
@@ -1320,9 +1337,14 @@ class CalCamWindow(qt.QMainWindow):
             sub_layout.setContentsMargins(0,0,0,0)
             perspective_settings_layout.addWidget(sub_widget)
 
+            for widgetno in [-3,-2,-1]:
+                widgetlist[widgetno].toggled.connect(self.fit_enable_check)
+
             widgetlist.append(qt.QCheckBox('Disable tangential distortion'))
             perspective_settings_layout.addWidget(widgetlist[-1])
+            widgetlist[-1].clicked.connect(self.fit_enable_check)
             widgetlist.append(qt.QCheckBox('Fix Fx = Fy'))
+            widgetlist[-1].clicked.connect(self.fit_enable_check)
             widgetlist[-1].setChecked(True)
             perspective_settings_layout.addWidget(widgetlist[-1])
 
@@ -1390,6 +1412,8 @@ class CalCamWindow(qt.QMainWindow):
             sub_layout.addWidget(widgetlist[-1],1,0)
             sub_layout.setContentsMargins(0,0,0,0)
             fisheye_settings_layout.addWidget(sub_widget)
+            for widgetno in [-4,-3,-2,-1]:
+                widgetlist[widgetno].toggled.connect(self.fit_enable_check)
 
 
             newWidgets = [qt.QLabel('Initial guess for focal length:'),qt.QSpinBox()]
@@ -1554,7 +1578,7 @@ class CalCamWindow(qt.QMainWindow):
         self.pointpicker.fit_overlay_actor = None
 
         if self.fitted_points_checkbox.isChecked():
-        	self.fitted_points_checkbox.setChecked(False)
+            self.fitted_points_checkbox.setChecked(False)
 
         # Transform all the point pairs in to the new coordinates
         x,y = self.image.transform.original_to_display_coords(x,y)
@@ -1609,12 +1633,56 @@ class CalCamWindow(qt.QMainWindow):
         else:
             self.pointpicker.HideReprojectedPoints()
 
+    def fit_enable_check(self):
+
+
+        # This avoids raising errors if this function is called when we have no
+        # fit options GUI.
+        if len(self.fit_settings_widgets) == 0:
+            return
+
+        enable = True
+
+        if not self.use_chessboard_checkbox.isChecked():
+            # Check whether or not we have enough points to enable the fit button.
+            for field in range(self.pointpicker.nFields):
+
+                # If we're doing a perspective fit...
+                if self.fit_settings_widgets[field][0].isChecked():
+
+                    free_params = 15
+                    free_params = free_params - self.fit_settings_widgets[field][2].isChecked()
+                    free_params = free_params - self.fit_settings_widgets[field][3].isChecked()
+                    free_params = free_params - self.fit_settings_widgets[field][4].isChecked()
+                    free_params = free_params - 2*self.fit_settings_widgets[field][5].isChecked()
+                    free_params = free_params - self.fit_settings_widgets[field][6].isChecked()
+                    free_params = free_params - 2*self.fit_settings_widgets[field][7].isChecked()
+
+                # Or for a fisheye fit...
+                elif self.fit_settings_widgets[field][1].isChecked():
+                    free_params = 14
+                    free_params = free_params - self.fit_settings_widgets[field][11].isChecked()
+                    free_params = free_params - self.fit_settings_widgets[field][12].isChecked()
+                    free_params = free_params - self.fit_settings_widgets[field][13].isChecked()
+                    free_params = free_params - self.fit_settings_widgets[field][14].isChecked()
+
+                if free_params >= self.n_data[field]:
+                    enable = False
+
+
+        self.fit_button.setEnabled(enable)
+        if enable:
+            self.fit_button.setToolTip('Do fit')
+        else:
+            self.fit_button.setToolTip('Not enough point pairs for a well constrained fit')
+
 
     def do_fit(self):
 
         # If this was called via a keyboard shortcut, we may be in no position to do a fit.
         if not self.fit_button.isEnabled():
             return
+
         self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
         self.fitted_points_checkbox.setChecked(False)
         self.overlay_checkbox.setChecked(False)
@@ -1828,18 +1896,14 @@ class CalCamWindow(qt.QMainWindow):
             self.refresh_vtk()   
 
 
-    def update_n_points(self,n_pairs,n_unpaired):
+    def update_n_points(self,n_pairs,n_unpaired,n_list):
 
+        self.n_data = np.array(n_list) * 3
         n_pairs_string = str(n_pairs) + ' Point Pairs'
         if n_unpaired > 0:
-            n_pairs_string = n_pairs_string + ' + ' + str(n_unpaired) + ' unpaired point'
+            n_pairs_string = n_pairs_string + ' + ' + str(n_unpaired) + ' unpaired points'
 
         self.n_pointpairs_text.setText(n_pairs_string)
-
-        if n_pairs > 5 or (n_pairs > 2 and self.use_chessboard_checkbox.isChecked()):
-            self.fit_button.setEnabled(True)
-        else:
-            self.fit_button.setEnabled(False)
 
         if n_pairs > 0:
             self.save_points_button.setEnabled(1)
@@ -1852,6 +1916,8 @@ class CalCamWindow(qt.QMainWindow):
             self.any_points = True
         else:
             self.any_points = False
+
+        self.fit_enable_check()
 
 
     def update_current_points(self,object_coords,image_coords):
@@ -2054,7 +2120,30 @@ class CalCamWindow(qt.QMainWindow):
 
     def edit_split_field(self):
         dialog = SplitFieldDialog(self,self.pointpicker.Image)
-        dialog.exec_()
+        result = dialog.exec_()
+        if result == 1:
+            self.pointpicker.clear_all()
+            if dialog.fieldmask.max() > 0:
+                self.use_chessboard_checkbox.setChecked(False)
+                self.use_chessboard_checkbox.setEnabled(False)
+                self.chessboard_button.setEnabled(False)
+                self.chessboard_pointpairs = None
+                self.chessboard_info.setText('Cannot use chessboard images with split-field cameras.')
+            else:
+                self.use_chessboard_checkbox.setEnabled(True)
+                self.chessboard_button.setEnabled(True)
+                if self.chessboard_pointpairs is not None:
+                    self.chessboard_info.setText('{:d} chessboard pattern images loaded<br>Total additional points: {:d} '.format(len(self.chessboard_pointpairs),len(self.chessboard_pointpairs)*len(self.chessboard_pointpairs[0].objectpoints)))
+                else:   
+                    self.chessboard_info.setText('No chessboard pattern images currently loaded.')
+            
+            self.image.fieldmask = dialog.fieldmask.copy()
+            self.image.n_fields = dialog.fieldmask.max() + 1
+            self.image.field_names = dialog.field_names
+
+            self.pointpicker.init_image(self.image)
+            self.rebuild_image_gui()
+
         del dialog
 
 
@@ -2176,6 +2265,8 @@ class CalCamWindow(qt.QMainWindow):
                 self.fit_settings_widgets[field][8].setEnabled(choice)
                 self.fit_settings_widgets[field][9].setEnabled(choice)
 
+        self.fit_enable_check()
+
 
     def update_pixel_size(self):
         if self.pixel_size_checkbox.isChecked():
@@ -2220,6 +2311,8 @@ class CalCamWindow(qt.QMainWindow):
             self.pointpicker.Fitter.add_intrinsics_pointpairs(self.chessboard_pointpairs)
         else:
             self.pointpicker.Fitter.clear_intrinsics_pointpairs()
+
+        self.fit_enable_check()
 
 
 # Convenience function for starting the CAD Viewer.
@@ -2371,27 +2464,15 @@ class SplitFieldDialog(qt.QDialog):
 
     def apply(self):
 
-        if self.image.fieldmask.max() != self.splitfieldeditor.fieldmask.max():
-            self.parent.pointpicker.clear_all()
-            self.parent.use_chessboard_checkbox.setChecked(False)
-            self.parent.chessboard_pointpairs = None
-            self.chessboard_info.setText('No chessboard pattern images currently loaded.')
-
-
-        self.image.fieldmask = self.splitfieldeditor.fieldmask
-        self.image.n_fields = self.splitfieldeditor.fieldmask.max() + 1
-        if self.image.n_fields == 1:
-            self.image.field_names = ['Image']
+ 
+        self.fieldmask = self.splitfieldeditor.fieldmask
+        if self.fieldmask.max() == 0:
+            self.field_names = ['Image']
         else:
-            self.image.field_names = [str(namebox.text()) for namebox in self.field_names_boxes]
+            self.field_names = [str(namebox.text()) for namebox in self.field_names_boxes]
 
-        self.parent.pointpicker.init_image(self.image)
-        if self.parent.use_chessboard_checkbox.isChecked():
-            self.parent.toggle_chessboard_constraints(True)
-
-        self.parent.rebuild_image_gui()
-        self.parent.populate_pointpairs_list()
         self.done(1)
+
 
 
     def load_mask_image(self):
@@ -4858,6 +4939,8 @@ class LauncherWindow(qt.QDialog):
         qt.uic.loadUi(os.path.join(paths.ui,'launcher.ui'), self)
         
         self.setWindowIcon(qt.QIcon(os.path.join(paths.calcampath,'ui','calcam.png')))
+        self.setWindowTitle('Calcam  v{:s}'.format(__version__))
+        self.layout().setSizeConstraint(qt.QLayout.SetFixedSize)
 
         self.app = app
         
@@ -4890,7 +4973,7 @@ class LauncherWindow(qt.QDialog):
         subprocess.Popen([sys.executable,os.path.join(paths.calcampath,'gui.py'),'launch_alignment_calib'],stdin=None, stdout=self.devnull, stderr=self.devnull)
 
     def open_manual(self):
-        webbrowser.open(os.path.join(os.path.dirname(paths.calcampath),'docs','UserGuide.pdf'))
+        webbrowser.open(os.path.join(os.path.dirname(paths.calcampath),'docs','index.html'))
 
     def launch_image_analysis(self):
         subprocess.Popen([sys.executable,os.path.join(paths.calcampath,'gui.py'),'launch_image_analysis'],stdin=None, stdout=self.devnull, stderr=self.devnull)

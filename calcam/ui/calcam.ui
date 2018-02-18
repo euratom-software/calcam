@@ -17,7 +17,7 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>CalCam</string>
+   <string>CalCam Calibration Tool (Point Fitting)</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
@@ -27,7 +27,7 @@
        <bool>true</bool>
       </property>
       <property name="sizePolicy">
-       <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
+       <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
@@ -40,7 +40,7 @@
       </property>
       <property name="maximumSize">
        <size>
-        <width>350</width>
+        <width>16777215</width>
         <height>16777215</height>
        </size>
       </property>
@@ -51,7 +51,7 @@
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>4</number>
+       <number>0</number>
       </property>
       <property name="movable">
        <bool>false</bool>
@@ -249,7 +249,7 @@
                <widget class="QCheckBox" name="pixel_size_checkbox">
                 <property name="maximumSize">
                  <size>
-                  <width>100</width>
+                  <width>16777215</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -458,32 +458,60 @@
             </widget>
            </item>
            <item>
-            <widget class="QLabel" name="label_16">
-             <property name="text">
-              <string>Split field-of-view:</string>
+            <widget class="QFrame" name="frame_2">
+             <property name="frameShape">
+              <enum>QFrame::StyledPanel</enum>
              </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="im_define_splitFOV">
-             <property name="enabled">
-              <bool>true</bool>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
              </property>
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>120</width>
-               <height>16777215</height>
-              </size>
-             </property>
-             <property name="text">
-              <string>Define Split Image...</string>
-             </property>
+             <layout class="QGridLayout" name="gridLayout_8">
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_16">
+                <property name="text">
+                 <string>Split field-of-view:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QPushButton" name="im_define_splitFOV">
+                <property name="enabled">
+                 <bool>true</bool>
+                </property>
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>Define Split Image...</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <spacer name="horizontalSpacer_3">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
             </widget>
            </item>
           </layout>
@@ -717,7 +745,7 @@
                <widget class="QDoubleSpinBox" name="tarX">
                 <property name="maximumSize">
                  <size>
-                  <width>55</width>
+                  <width>16777215</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -742,7 +770,7 @@
                <widget class="QDoubleSpinBox" name="tarY">
                 <property name="maximumSize">
                  <size>
-                  <width>55</width>
+                  <width>16777215</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -767,7 +795,7 @@
                <widget class="QDoubleSpinBox" name="tarZ">
                 <property name="maximumSize">
                  <size>
-                  <width>55</width>
+                  <width>16777215</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -792,7 +820,7 @@
                <widget class="QDoubleSpinBox" name="camY">
                 <property name="maximumSize">
                  <size>
-                  <width>55</width>
+                  <width>16777215</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -838,7 +866,7 @@
                <widget class="QDoubleSpinBox" name="camX">
                 <property name="maximumSize">
                  <size>
-                  <width>55</width>
+                  <width>16777215</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -863,7 +891,7 @@
                <widget class="QDoubleSpinBox" name="camZ">
                 <property name="maximumSize">
                  <size>
-                  <width>55</width>
+                  <width>16777215</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -895,7 +923,7 @@
                <widget class="QDoubleSpinBox" name="camFOV">
                 <property name="maximumSize">
                  <size>
-                  <width>55</width>
+                  <width>16777215</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -1017,14 +1045,14 @@
               <bool>true</bool>
              </property>
              <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
              <property name="maximumSize">
               <size>
-               <width>150</width>
+               <width>16777215</width>
                <height>16777215</height>
               </size>
              </property>
@@ -1105,34 +1133,47 @@
           <property name="title">
            <string>Intrinsics Constraints</string>
           </property>
-          <layout class="QVBoxLayout" name="verticalLayout">
-           <item>
-            <widget class="QCheckBox" name="use_chessboard_checkbox">
-             <property name="enabled">
-              <bool>false</bool>
+          <layout class="QGridLayout" name="gridLayout_14">
+           <item row="2" column="0">
+            <widget class="QPushButton" name="chessboard_button">
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>16777215</height>
+              </size>
              </property>
              <property name="text">
-              <string>Use chessboard pattern images to constrain intrinsics</string>
+              <string>Load Chessboard Images...</string>
              </property>
             </widget>
            </item>
-           <item>
+           <item row="2" column="1">
+            <spacer name="horizontalSpacer_4">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="1" column="0" colspan="2">
             <widget class="QLabel" name="chessboard_info">
              <property name="text">
               <string>No chessboard pattern images currently loaded.</string>
              </property>
             </widget>
            </item>
-           <item>
-            <widget class="QPushButton" name="chessboard_button">
-             <property name="maximumSize">
-              <size>
-               <width>200</width>
-               <height>16777215</height>
-              </size>
+           <item row="0" column="0" colspan="2">
+            <widget class="QCheckBox" name="use_chessboard_checkbox">
+             <property name="enabled">
+              <bool>false</bool>
              </property>
              <property name="text">
-              <string>Load Chessboard Images...</string>
+              <string>Use chessboard pattern images to constrain intrinsics</string>
              </property>
             </widget>
            </item>
@@ -1184,8 +1225,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>328</width>
-             <height>586</height>
+             <width>360</width>
+             <height>576</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -1383,7 +1424,7 @@
        <item>
         <widget class="QLabel" name="label_19">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
@@ -1399,7 +1440,7 @@
        <item>
         <widget class="QLabel" name="label_20">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
@@ -1416,7 +1457,7 @@
         <widget class="QPushButton" name="toggle_controls_button">
          <property name="maximumSize">
           <size>
-           <width>100</width>
+           <width>16777215</width>
            <height>16777215</height>
           </size>
          </property>

@@ -37,7 +37,7 @@ import image as CalCamImage
 import time
 import qt_wrapper as qt
 
-def render_cam_view(CADModel,FitResults,filename=None,oversampling=1,AA=1,Edges=False,EdgeColour=(1,0,0),EdgeWidth=None,Transparency=False,ROI=None,ROIColour=(0.8,0,0),ROIOpacity=0.3,roi_oversize=0,NearestNeighbourRemap=False,Verbose=True,Coords = 'Display',exclude_feature_edges=[],include_feature_edges=[],ScreenSize=None):
+def render_cam_view(CADModel,FitResults,filename=None,oversampling=1,AA=1,Edges=False,EdgeColour=(1,0,0),EdgeWidth=2,Transparency=False,ROI=None,ROIColour=(0.8,0,0),ROIOpacity=0.3,roi_oversize=0,NearestNeighbourRemap=False,Verbose=True,Coords = 'Display',ScreenSize=None):
 
     """
     Make CAD model renders from the camera's point of view, including all distortion effects etc.
@@ -70,9 +70,6 @@ def render_cam_view(CADModel,FitResults,filename=None,oversampling=1,AA=1,Edges=
 
     if Coords.lower() == 'original' and oversampling != 1:
         raise Exception('Cannot render in original coordinates with oversampling!')
-
-    if Edges and EdgeWidth is None:
-        EdgeWidth = 2
 
 
     logbase2 = np.log(oversampling) / np.log(2)

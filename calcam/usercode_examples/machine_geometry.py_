@@ -39,7 +39,7 @@ class mr_fusion(CADModel):
     # The __init__ function is the only one required to define the cad model. 
     # It must take an optional keyword argument "model_variant" which has a working default value.
     # In here we set all the attributes we need to define the model.
-    def __init__(self,model_variant='Medium'):
+    def __init__(self,model_variant='1985 Model'):
 
         # Machine name, this is used in the Calcam GUI and save files.
         self.machine_name = "Mr Fusion"

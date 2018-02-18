@@ -1,10 +1,33 @@
 Project Changelog
 =================
 
-Release 1.9.0 (1 Jan 2017)
+Update to 1.9.1 (18 Feb 2018)
 --------------------------
 
-Fixed:
+Fixes:
+* Fixed exception raised when clicking "Apply" in the split field definition dialog.
+* Fixed zoom not working properly in split field definition dialog.
+* In point fitting calibration tool, fixed various GUI elements with text being cut-off due to being too narrow.
+* Fixed a bug where performing some image geometrical transformations would cause the image to move off-centre in the window.
+* Hard code version string in __init__.py; the way I did it before was stupid.
+* Fixed bug where the numbers of paired and un-paired points was not being reported correctly.
+
+New & Enhancements:
+* Make RayCaster class available in the root of the calcam package instead of only in calcam.raytrace.
+* Switch to Sphinx for documentation. The documentation is not yet complete, but it's no less complete than it was before.
+* Tweaks to launcher GUI including displaying calcam version in the window title
+* Update GUI window titles
+* Whether or not the 'Do Fit' button is enabled is now decided a bit more cleverly depending on how many fit parameters are enabled.
+
+Removed:
+* Removed unused exclude_feature_edges and include_feature_edges arguments in calcam.render.render_cam_view()
+
+
+
+Release 1.9.0 (15 Feb 2018)
+--------------------------
+
+Fixes:
 * Various fixes to mouse interaction (juddering, not recognising button-up etc)
 * Many other bug fixes (see commit messages)
 

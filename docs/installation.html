@@ -1,0 +1,338 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Installation &amp; Setup &mdash; Calcam 1.9.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="Calcam 1.9.0 documentation" href="index.html"/>
+        <link rel="next" title="Coordinate Conventions" href="conventions.html"/>
+        <link rel="prev" title="Theoretical Background" href="background.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Calcam
+          
+
+          
+            
+            <img src="_static/logo.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.9
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Introduction &amp; Background</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">What is Calcam?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="background.html">Theoretical Background</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Installation &amp; Setup</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#download-installation">Download &amp; Installation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#installing-in-development-mode">Installing in Development mode</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#first-import-file-storage">First Import &amp; File Storage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cad-model-setup">CAD Model Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#image-source-setup-optional">Image Source Setup (Optional)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="conventions.html">Coordinate Conventions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">GUI User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="gui/launcher.html">Calcam GUI Launcher</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui/calib_tool_points.html">Calibration Tool (Point Fitting)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui/calib_tool_alignment.html">Calibration Tool (Manual Alignment)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui/virtualcalib_editor.html">Virtual Calibration Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui/image_analyser.html">Image Analyser</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui/model_viewer.html">CAD Model Viewer</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API Manual</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/calibresults.html">Working with Calibration Results</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/cadmodel.html">Working with CAD Meshes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/rendering.html">Rendering Images</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/raycasting.html">Ray Casting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/geometrymatrix.html">Creating Geometry Matrices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/utilities.html">Utilities &amp; Misc.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/fileformats.html">File Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/examples.html">Examples</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Calcam</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Installation &amp; Setup</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="installation-setup">
+<h1>Installation &amp; Setup<a class="headerlink" href="#installation-setup" title="Permalink to this headline">¶</a></h1>
+<p>The steps to get up &amp; running with Calcam are:</p>
+<ol class="arabic simple">
+<li>Install prerequisites</li>
+<li>Download &amp; Install Calcam</li>
+<li>Import calcam for the first time</li>
+<li>Set up CAD model definitions</li>
+<li>(Optional) Set up image source definitions</li>
+</ol>
+<p>The sections below provide details of each step.</p>
+<div class="section" id="prerequisites">
+<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h2>
+<p>The calcam package works with Python 2.7+ (tested up to 3.5) and requires the following other Python packages to be available:</p>
+<blockquote>
+<div><ul class="simple">
+<li>NumPy</li>
+<li>SciPy</li>
+<li>MatPlotLib</li>
+<li>OpenCV (cv2) 2.4+ [Some features only available with 3.0+]</li>
+<li>PyQt [4 or 5]</li>
+<li>VTK 5.10+ [Tested with versions up to 7.1. Must be built with Qt support enabled for the correct Qt version]</li>
+<li>Setuptools (for installation)</li>
+</ul>
+</div></blockquote>
+<p>It can be rather non-trivial to get all of these up &amp; running and playing nicely together if installing everything from source, particularly in the case of VTK. The easiest way to satisfy all of these dependencies is to use a Python distibution such as <a class="reference external" href="https://www.enthought.com/product/canopy/">Enthought Canopy</a> or <a class="reference external" href="https://python-xy.github.io/">Python (x,y)</a>.</p>
+</div>
+<div class="section" id="download-installation">
+<h2>Download &amp; Installation<a class="headerlink" href="#download-installation" title="Permalink to this headline">¶</a></h2>
+<p>If you have Git available, the latest version of the code can be cloned from GitHub using:</p>
+<div class="highlight-python"><div class="highlight"><pre>git clone https://github.com/euratom-software/calcam.git
+</pre></div>
+</div>
+<p>Alternatively, the code can be downloaded from: <a class="reference external" href="https://github.com/euratom-software/calcam">https://github.com/euratom-software/calcam</a> .</p>
+<p>Once you have the calcam repository files safely on your computer, the package is installed using the included setup script:</p>
+<div class="highlight-python"><div class="highlight"><pre>python setup.py install
+</pre></div>
+</div>
+<p>This will copy Calcam to the appropriate Python library path and create a launcher script for the Calcam GUI. After the setup script is finished you can delete the downloaded calcam files, should you so choose.</p>
+<p>If using a multi-user system where you do not have the relevant permissions to install globally, adding the <code class="docutils literal"><span class="pre">--user</span></code> switch to the above commands will install the package just for you.</p>
+<p><strong>Note for Windows users:</strong> If installing Calcam on Windows, the setup script will finish by printing the location of the GUI launcher <code class="docutils literal"><span class="pre">calcam.exe</span></code> which is created during the installation. It is recommended to make a shortcut to this in a place of your choosing for easy access to the Calcam GUI.</p>
+<div class="section" id="installing-in-development-mode">
+<h3>Installing in Development mode<a class="headerlink" href="#installing-in-development-mode" title="Permalink to this headline">¶</a></h3>
+<p>If you are likely to want to poke around (a.k.a. develop) the code without having to reinstall a lot, you can use the alternative command to install calcam in development mode:</p>
+<div class="highlight-python"><div class="highlight"><pre>python setup.py develop
+</pre></div>
+</div>
+<p>In this case the copy you are installing from remains the &#8220;live&#8221; version and can be used for development.</p>
+</div>
+</div>
+<div class="section" id="first-import-file-storage">
+<h2>First Import &amp; File Storage<a class="headerlink" href="#first-import-file-storage" title="Permalink to this headline">¶</a></h2>
+<p>Calcam stores CAD model definitions, calibration results etc in a specific storage directory which is created the first time the module is importted. It is therefore necessary to import or start calcam before continuing setting things up. Thie can be done by importing calcam in Python, i.e.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="go">&gt;&gt;&gt;import calcam</span>
+</pre></div>
+</div>
+<p>The default location for Calcam&#8217;s storage folder is <code class="docutils literal"><span class="pre">~/calcam</span></code>, i.e. typically <code class="docutils literal"><span class="pre">/home/username/</span></code> on unix and <code class="docutils literal"><span class="pre">C:\Users\username\</span></code> on Windows. The storage rolder location can be changed using a function in calcam:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="go">&gt;&gt;&gt;import calcam</span>
+<span class="go">&gt;&gt;&gt;calcam.paths.change_save_location(new_path,migrate=True)</span>
+</pre></div>
+</div>
+<p>The optional argument <code class="docutils literal"><span class="pre">migrate</span></code> specifies whether Calcam should try to copy any existing files it finds in the storage folder to the new location.</p>
+<p>Throughout this documentation the calcam storage directory will be denoted <code class="docutils literal"><span class="pre">[calcam_root]</span></code>.</p>
+</div>
+<div class="section" id="cad-model-setup">
+<h2>CAD Model Setup<a class="headerlink" href="#cad-model-setup" title="Permalink to this headline">¶</a></h2>
+<p>Camera calibration in Calcam is based on feature matching between images and a CAD model of the scene viewed by the camera. As such, it is necessary to define one or more CAD models for use in calcam. The current version supports <code class="docutils literal"><span class="pre">.stl.</span></code> and <code class="docutils literal"><span class="pre">.obj</span></code> format 3D mesh files. It&#8217;s usually convenient to split the model in to several individual files containing different parts of the scene, and these can then be turned on or off individually when working with the model in Calcam.</p>
+<p>CAD model definitions are written as Python classes and stored in the directory <code class="docutils literal"><span class="pre">[calcam_root]/UserCode/machine_geometry/</span></code>. A detailed template is provided in this folder and will be created when Calcam is first imported. To define CAD models for use in calcam, please refer to this file to create your CAD model definition(s).</p>
+</div>
+<div class="section" id="image-source-setup-optional">
+<h2>Image Source Setup (Optional)<a class="headerlink" href="#image-source-setup-optional" title="Permalink to this headline">¶</a></h2>
+<p>As standard, Calcam can load camera images from most common image file formats. However, it may also be desirable to plug in your own code for loading images, e.g. fetching images from a central data store based on some uder inputs. This can be achieved by defining custom image sources in python files in <code class="docutils literal"><span class="pre">[calcam_root]/UserCodemage_sources/</span></code>. A detailed, working template is provided in that directory.</p>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="conventions.html" class="btn btn-neutral float-right" title="Coordinate Conventions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="background.html" class="btn btn-neutral" title="Theoretical Background" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, European Atomic Energy Community (EURATOM).
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'1.9.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  false,
+            SOURCELINK_SUFFIX: ''
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

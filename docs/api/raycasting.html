@@ -1,0 +1,433 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Ray Casting &mdash; Calcam 1.9.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="Calcam 1.9.0 documentation" href="../index.html"/>
+        <link rel="next" title="Creating Geometry Matrices" href="geometrymatrix.html"/>
+        <link rel="prev" title="Rendering Images" href="rendering.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Calcam
+          
+
+          
+            
+            <img src="../_static/logo.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.9
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Introduction &amp; Background</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">What is Calcam?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../background.html">Theoretical Background</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation &amp; Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../conventions.html">Coordinate Conventions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">GUI User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../gui/launcher.html">Calcam GUI Launcher</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gui/calib_tool_points.html">Calibration Tool (Point Fitting)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gui/calib_tool_alignment.html">Calibration Tool (Manual Alignment)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gui/virtualcalib_editor.html">Virtual Calibration Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gui/image_analyser.html">Image Analyser</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gui/model_viewer.html">CAD Model Viewer</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API Manual</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="calibresults.html">Working with Calibration Results</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cadmodel.html">Working with CAD Meshes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rendering.html">Rendering Images</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Ray Casting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="geometrymatrix.html">Creating Geometry Matrices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utilities.html">Utilities &amp; Misc.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fileformats.html">File Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Calcam</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>Ray Casting</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="ray-casting">
+<h1>Ray Casting<a class="headerlink" href="#ray-casting" title="Permalink to this headline">¶</a></h1>
+<p>While working with calibration fitting results alone can give the 3D viewing geometry of the camera, it does not provide information about where the camera sight-lines intersect physical objects in the scene. This is important e.g. for determining sight-line lengths when integrating for synthetic diagnostics, or producing geometry matrices for tomographic inversion. It is also useful for infrared cameras observing heat loaded surfaces, where it is desirable to associate temperature measurements with a real position on a component.</p>
+<p>Ray casting can be performed using the calcam.raytrace module. This was originally envisaged to include ray tracing of reflections, however better tools are available for this (e.g. RaySect) and for now only basic ray casting to find sight-line lengths is implemented.</p>
+<p>The main tools for ray casting in calcam are the <a class="reference internal" href="#calcam.RayCaster" title="calcam.RayCaster"><code class="xref py py-class docutils literal"><span class="pre">calcam.RayCaster</span></code></a> class for performing raytracing and <code class="xref py py-class docutils literal"><span class="pre">calcam.Raydata</span></code> class for storing ray tracing results.</p>
+<dl class="class">
+<dt id="calcam.RayCaster">
+<em class="property">class </em><code class="descclassname">calcam.</code><code class="descname">RayCaster</code><a class="headerlink" href="#calcam.RayCaster" title="Permalink to this definition">¶</a></dt>
+<dd><p>A class for performing ray casting. Can be initialised with no input arguments or with:</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>FitResults</strong> (<a class="reference internal" href="calibresults.html#calcam.CalibResults" title="calcam.CalibResults"><code class="xref py py-class docutils literal"><span class="pre">calcam.CalibResults</span></code></a>) &#8211; Camera calibration result defining the camera view for ray casting.</li>
+<li><strong>CADModel</strong> (<a class="reference internal" href="cadmodel.html#calcam.CADModel" title="calcam.CADModel"><code class="xref py py-class docutils literal"><span class="pre">calcam.CADModel</span></code></a>) &#8211; CAD model for ray casting.</li>
+<li><strong>Verbose</strong> (<em>bool</em>) &#8211; Whether to print status when performing operations, the default is True.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="calcam.RayCaster.set_cadmodel">
+<code class="descname">set_cadmodel</code><span class="sig-paren">(</span><em>CADModel</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayCaster.set_cadmodel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the CAD model for ray casting to the passed CAD model object.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>CADModel</strong> (<a class="reference internal" href="cadmodel.html#calcam.CADModel" title="calcam.CADModel"><code class="xref py py-class docutils literal"><span class="pre">calcam.CADModel</span></code></a>) &#8211; CAD model for ray casting.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="calcam.RayCaster.set_calibration">
+<code class="descname">set_calibration</code><span class="sig-paren">(</span><em>FitResults</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayCaster.set_calibration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the camera calibration to use for raycasting to the passed result.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>FitResults</strong> (<a class="reference internal" href="calibresults.html#calcam.CalibResults" title="calcam.CalibResults"><code class="xref py py-class docutils literal"><span class="pre">calcam.CalibResults</span></code></a>) &#8211; Calibration result for ray casting.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="calcam.RayCaster.raycast_pixels">
+<code class="descname">raycast_pixels</code><span class="sig-paren">(</span><em>x=None</em>, <em>y=None</em>, <em>binning=1</em>, <em>Coords='Display'</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayCaster.raycast_pixels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform ray casting either for each detector pixel or at the provided image coordinates.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<em>array-like</em>) &#8211; Image X coordinates at which to do the ray casting. If this is not specified, rays will be cast at the centre of every detector pixel.</li>
+<li><strong>y</strong> (<em>array-like</em>) &#8211; Image Y coordinates at which to do the ray casting. Must be the same shape as x. If this is not specified, the ray casting will be performed at the centre of each detector pixel.</li>
+<li><strong>binning</strong> (<em>float</em>) &#8211; If not explicitly providing x and y image coordinates, pixel binning for ray casting. This specifies NxN binning, i.e. for a value of 2, one ray is cast at the centre of every 2x2 cluster of pixels.</li>
+<li><strong>Coords</strong> (<em>str</em>) &#8211; &#8216;Display&#8217; or &#8216;Original&#8217;. If providing x and y coordinate inputs, this specifies whether the input is in display or original coordinates. If not providing image coordinates, specifies in what orientation the output should be.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Ray data object containing the ray cast results.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#calcam.RayData" title="calcam.RayData"><code class="xref py py-class docutils literal"><span class="pre">calcam.RayData</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="calcam.RayData">
+<em class="property">class </em><code class="descclassname">calcam.</code><code class="descname">RayData</code><a class="headerlink" href="#calcam.RayData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class for representing the results of ray casting, and providing some convenience methods for working with the results.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>filename</strong> (<em>str</em>) &#8211; Name of a saved raycast result to load.</td>
+</tr>
+</tbody>
+</table>
+<p>The ray casting results are stored in the following attributes of the RayData object:</p>
+<dl class="attribute">
+<dt id="calcam.RayData.x">
+<code class="descname">x</code><a class="headerlink" href="#calcam.RayData.x" title="Permalink to this definition">¶</a></dt>
+<dd><p>Numpy array containing the image X coordinates at which ray casting was performed.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="calcam.RayData.y">
+<code class="descname">y</code><a class="headerlink" href="#calcam.RayData.y" title="Permalink to this definition">¶</a></dt>
+<dd><p>Numpy array containing the image Y coordinates at which ray casting was performed.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="calcam.RayData.ray_start_coords">
+<code class="descname">ray_start_coords</code><a class="headerlink" href="#calcam.RayData.ray_start_coords" title="Permalink to this definition">¶</a></dt>
+<dd><p>Numpy array containing the 3D coordinates of the start of the sight lines, i.e. the camera pupil position. This is the same shape as x and y with an additional dimension; the X,Y,Z components of the ray start coordinates are stored along the extra dimension.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="calcam.RayData.ray_end_coords">
+<code class="descname">ray_end_coords</code><a class="headerlink" href="#calcam.RayData.ray_end_coords" title="Permalink to this definition">¶</a></dt>
+<dd><p>Numpy array containing the 3D coordinates of the sight line ends, i.e. the locations where the sight lines intersect the CAD geometry. This is usually the most interesting data from the ray cast. This is the same shape as x and y with an additional dimension; the X,Y,Z components of the ray end coordinates are stored along the extra dimension.</p>
+</dd></dl>
+
+<p>In addition, the following methods are provided for quickly extrating useful information:</p>
+<dl class="method">
+<dt id="calcam.RayData.save">
+<code class="descname">save</code><span class="sig-paren">(</span><em>SaveName</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save the ray casting results to disk for later use.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>SaveName</strong> (<em>str</em>) &#8211; Name with which to save the results.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="calcam.RayData.get_ray_length">
+<code class="descname">get_ray_length</code><span class="sig-paren">(</span><em>x=None</em>, <em>y=None</em>, <em>PositionTol = 3</em>, <em>Coords='Display'</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData.get_ray_length" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the sight-line lengths either of all casted sight-lines or at the specified image coordinates.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<em>array</em>) &#8211; Image X coordinates at which to get the sight-line lengths. If not specified, the lengths of all casted sight lines will be returned.</li>
+<li><strong>y</strong> (<em>array</em>) &#8211; Image Y coordinates at which to get the sight-line lengths. Must be the same shape as x. If not specified, the lengths of all casted sight lines will be returned.</li>
+<li><strong>PositionTol</strong> (<em>float</em>) &#8211; If specifying x and y, it is possible that ray casting was not performed exactly at the specified x and y coordinates. In such a case the length of the nearest cast ray is returned instead, provided its distance is not more than PositionTol pixels away from the requested position.</li>
+<li><strong>Coords</strong> (<em>str</em>) &#8211; &#8216;Original&#8217; or &#8216;Display&#8217;, specifies whether any x and y coordinates provided are in original or display coordinates. When working with a full-frame raycast, specifies whether the results should be returned in original or display orientation.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Numpy array containing the sight-line lengths. If the ray cast was for the full detector this array will be the same shape as the camera image, otherwise it will be the same shape as the input image coordinate arrays.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="calcam.RayData.get_ray_directions">
+<code class="descname">get_ray_directions</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>PositionTol=3</em>, <em>Coords='Display'</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData.get_ray_directions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return unit vectors specifying the sight-line directions. Note that ray casting is not required to get this information: see <a class="reference internal" href="calibresults.html#calcam.CalibResults.get_los_direction" title="calcam.CalibResults.get_los_direction"><code class="xref py py-func docutils literal"><span class="pre">calcam.CalibResults.get_los_direction()</span></code></a> for the same functionality, however this can be useful if you have the RayData but not CalibResults objects loaded when doing the analysis.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<em>array</em>) &#8211; Image X coordinates at which to get the sight-line directions. If not specified, the directions of all casted sight lines will be returned.</li>
+<li><strong>y</strong> (<em>array</em>) &#8211; Image Y coordinates at which to get the sight-line directions. Must be the same shape as x. If not specified, the directions of all casted sight lines will be returned.</li>
+<li><strong>PositionTol</strong> (<em>float</em>) &#8211; If specifying x and y, it is possible that ray casting was not performed exactly at the specified x and y coordinates. In such a case the direction of the nearest cast ray is returned instead, provided its distance is not more than PositionTol pixels away from the requested position.</li>
+<li><strong>Coords</strong> (<em>str</em>) &#8211; &#8216;Original&#8217; or &#8216;Display&#8217;, specifies whether any x and y coordinates provided are in original or display coordinates. When working with a full-frame raycast, specifies whether the results should be returned in original or display orientation.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Numpy array containing the sight-line directions. If the ray cast was for the full detector this array will be the same shape as the camera image plus an extra dimension, with the X,Y,Z components of the sight-line directions stored along the extra dimension. Otherwise, it will be the same shape as the input image coordinate arrays with the extra dimension added.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="geometrymatrix.html" class="btn btn-neutral float-right" title="Creating Geometry Matrices" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="rendering.html" class="btn btn-neutral" title="Rendering Images" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, European Atomic Energy Community (EURATOM).
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'1.9.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  false,
+            SOURCELINK_SUFFIX: ''
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

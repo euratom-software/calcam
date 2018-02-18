@@ -1,0 +1,291 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Theoretical Background &mdash; Calcam 1.9.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="Calcam 1.9.0 documentation" href="index.html"/>
+        <link rel="next" title="Installation &amp; Setup" href="installation.html"/>
+        <link rel="prev" title="What is Calcam?" href="introduction.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Calcam
+          
+
+          
+            
+            <img src="_static/logo.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.9
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Introduction &amp; Background</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">What is Calcam?</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Theoretical Background</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#camera-model">Camera Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#perspective-distortion-model">Perspective Distortion Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#fisheye-distirtion-model">Fisheye Distirtion Model</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation &amp; Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="conventions.html">Coordinate Conventions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">GUI User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="gui/launcher.html">Calcam GUI Launcher</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui/calib_tool_points.html">Calibration Tool (Point Fitting)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui/calib_tool_alignment.html">Calibration Tool (Manual Alignment)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui/virtualcalib_editor.html">Virtual Calibration Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui/image_analyser.html">Image Analyser</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui/model_viewer.html">CAD Model Viewer</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API Manual</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/calibresults.html">Working with Calibration Results</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/cadmodel.html">Working with CAD Meshes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/rendering.html">Rendering Images</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/raycasting.html">Ray Casting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/geometrymatrix.html">Creating Geometry Matrices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/utilities.html">Utilities &amp; Misc.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/fileformats.html">File Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/examples.html">Examples</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Calcam</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Theoretical Background</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="theoretical-background">
+<h1>Theoretical Background<a class="headerlink" href="#theoretical-background" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="camera-model">
+<h2>Camera Model<a class="headerlink" href="#camera-model" title="Permalink to this headline">¶</a></h2>
+<p>Calcam works by fitting a model which describes the relationship between 3D real-world coordinates and image coordinates. It supports two different models: one for conventional perspective projection lenses and one for fisheye lenses. In both cases, we wish to relate the coordinates of a point <span class="math">\((X,Y,Z)\)</span> in the lab frame to its pixel coordinates <span class="math">\((x{_p},y{_p})\)</span> in the camera image. First, we must consider the position and viewing direction of the camera in the lab frame, which is described by a 3D translation and rotation. The translation and rotation parameters are known as the <em>extrinsic</em> parameters in the model.  Knowing these, we can apply a suitable translation and rotation to obtain the point of interest&#8217;s coordinates in the camera frame: a 3D real space coordinate system where the camera pupil is at the origin and the camera looks along the positive <span class="math">\(Z\)</span> axis. We denote the coordinates of our point of interest in the camera frame as <span class="math">\((X^\prime,Y^\prime,Z^\prime)\)</span>.</p>
+<p>In order to find the pixel coordinates of this point in the camera image, we start with a simple perspective projection, where the height of an object in the image is inversely proportional to its distance from the camera pupil:</p>
+<div class="math">
+\[\begin{split}\begin{pmatrix}x_n\\y_n\end{pmatrix} = \begin{pmatrix}X^\prime/Z^\prime\\Y^\prime/Z^\prime\end{pmatrix}.
+\label{eqn:cmmodel_pinhole}\end{split}\]</div>
+<p>The <em>normalised</em> coordinates <span class="math">\((x_n,y_n)\)</span> are then transformed by a model which describes the image distortion due to the optical system. This model depends on the lens projection being assumed, and models for the perspective and fisheye lens types are described in the following sections. Here we simply denote the resulting distorted normalised coordinates as <span class="math">\((x_d, y_d)\)</span>. Finally, the normalised, distorted coordinates are related to the actual pixel coordinates <span class="math">\(x_p, y_p\)</span> in the image plane by multiplication with the <em>camera matrix</em>:</p>
+<div class="math">
+\[\begin{split}\begin{pmatrix}x_p\\y_p\\1\end{pmatrix} = \begin{pmatrix}f_x &amp; 0 &amp; c_x \\ 0 &amp; f_y &amp; c_y\\0 &amp; 0 &amp; 1\end{pmatrix}\begin{pmatrix}x_d\\y_d\\1\end{pmatrix}.
+\label{eqn:cammatrix}\end{split}\]</div>
+<p>Here <span class="math">\(f_x\)</span> and <span class="math">\(f_y\)</span> are the effective focal length of the imaging system measured in units of detector pixels in the horizontal and vertical directions, and are  expected to be equal for square pixels and non-anamorphic optics. <span class="math">\(c_x\)</span> and <span class="math">\(c_y\)</span> are the pixel coordinates of the centre of the perspective projection on the sensor, expected to be close to the detector centre. The parameters in the camera matrix, along with those describing the distortion model, constitute the <em>intrinsic</em> camera parameters, i.e. they are characteristic of the camera and optical system and are independent of how that system is placed in the lab.</p>
+</div>
+<div class="section" id="perspective-distortion-model">
+<h2>Perspective Distortion Model<a class="headerlink" href="#perspective-distortion-model" title="Permalink to this headline">¶</a></h2>
+<p>The image distortion model for perspective projection lenses takes in to account radial (barrel or pincushion) distortion, and tangential (wedge-prism like, usually due to de-centring of optical components) distortions. The equation relating the undistorted and distorted normalised image coordinates in this model is:</p>
+<div class="math">
+\[\begin{split}\begin{pmatrix}x_d\\y_d\end{pmatrix} = \left[ 1 + k_1r^2 + k_2r^4 + k_3r^6\right]\begin{pmatrix}x_n\\y_n\end{pmatrix} +  \begin{pmatrix}2p_1x_ny_n + p_2(r^2 + 2x_n^2)\\p_1(r^2 + 2y^2) + 2p_2x{_n}y{_n}\end{pmatrix},
+\label{eqn:perspective_distortion}\end{split}\]</div>
+<p>where <span class="math">\(r = \sqrt{x_n^2 + y_n^2}\)</span>, and <span class="math">\(k_n\)</span> and <span class="math">\(p_n\)</span> are radial and tangential distortion coefficients, respectively. The polynomial in <span class="math">\(r^2\)</span> in the first term describes the radial distortion while the second term represents tangential distortion.</p>
+</div>
+<div class="section" id="fisheye-distirtion-model">
+<h2>Fisheye Distirtion Model<a class="headerlink" href="#fisheye-distirtion-model" title="Permalink to this headline">¶</a></h2>
+<p>The fisheye distortion model only includes radial fisheye distortion. Unlike the perspective projection model, the polynomial describing the radial distortion is a function of an anglular distance from the centre of perspective, rather than a linear distance in the image:</p>
+<div class="math">
+\[\begin{split}\begin{pmatrix}x_d\\y_d\end{pmatrix} = \frac{\theta}{r}\left[ 1 + k_1\theta^2 + k_2\theta^4 + k_3\theta^6 + k_4\theta^8\right]\begin{pmatrix}x_n\\y_n\end{pmatrix},
+\label{eqn:fisheye_distortion}\end{split}\]</div>
+<p>where <span class="math">\(r = \sqrt{x_n^2 + y_n^2}\)</span> and <span class="math">\(\theta = \tan^{-1}(r)\)</span>.</p>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="installation.html" class="btn btn-neutral float-right" title="Installation &amp; Setup" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="introduction.html" class="btn btn-neutral" title="What is Calcam?" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, European Atomic Energy Community (EURATOM).
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'1.9.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  false,
+            SOURCELINK_SUFFIX: ''
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

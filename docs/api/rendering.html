@@ -1,0 +1,316 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Rendering Images &mdash; Calcam 1.9.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="Calcam 1.9.0 documentation" href="../index.html"/>
+        <link rel="next" title="Ray Casting" href="raycasting.html"/>
+        <link rel="prev" title="Working with CAD Meshes" href="cadmodel.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Calcam
+          
+
+          
+            
+            <img src="../_static/logo.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.9
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Introduction &amp; Background</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">What is Calcam?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../background.html">Theoretical Background</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation &amp; Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../conventions.html">Coordinate Conventions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">GUI User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../gui/launcher.html">Calcam GUI Launcher</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gui/calib_tool_points.html">Calibration Tool (Point Fitting)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gui/calib_tool_alignment.html">Calibration Tool (Manual Alignment)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gui/virtualcalib_editor.html">Virtual Calibration Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gui/image_analyser.html">Image Analyser</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gui/model_viewer.html">CAD Model Viewer</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API Manual</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="calibresults.html">Working with Calibration Results</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cadmodel.html">Working with CAD Meshes</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Rendering Images</a></li>
+<li class="toctree-l1"><a class="reference internal" href="raycasting.html">Ray Casting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="geometrymatrix.html">Creating Geometry Matrices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utilities.html">Utilities &amp; Misc.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fileformats.html">File Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Calcam</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>Rendering Images</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="rendering-images">
+<h1>Rendering Images<a class="headerlink" href="#rendering-images" title="Permalink to this headline">¶</a></h1>
+<p>You may wish to render images of the CAD model from the point of view of a calibrated camera, e.g. to provide illustrations of the camera view, to use as overlays to provide context when viewing data, etc. For this purpose Calcam provides the render module, containing functions which can produce renders of the camera&#8217;s view including the effects of distortion in the real camera.</p>
+<span class="target" id="module-calcam.render"></span><dl class="function">
+<dt id="calcam.render.render_cam_view">
+<code class="descclassname">calcam.render.</code><code class="descname">render_cam_view</code><span class="sig-paren">(</span><em>CADModel</em>, <em>FitResults</em>, <em>filename=None</em>, <em>oversampling=1</em>, <em>AA=1</em>, <em>Edges=False</em>, <em>EdgeColour=(1</em>, <em>0</em>, <em>0)</em>, <em>EdgeWidth=2</em>, <em>Transparency=False</em>, <em>ROI=None</em>, <em>ROIColour=(0.8</em>, <em>0</em>, <em>0)</em>, <em>ROIOpacity=0.3</em>, <em>roi_oversize=0</em>, <em>NearestNeighbourRemap=False</em>, <em>Verbose=True</em>, <em>Coords = 'Display'</em>, <em>ScreenSize=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/calcam/render.html#render_cam_view"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#calcam.render.render_cam_view" title="Permalink to this definition">¶</a></dt>
+<dd><p>Render an image of the CAD model from the point of view of a calibrated camera, and optionally save the result to an image file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>CADModel</strong> (<a class="reference internal" href="cadmodel.html#calcam.CADModel" title="calcam.CADModel"><code class="xref py py-class docutils literal"><span class="pre">calcam.CADModel</span></code></a>) &#8211; The CAD model to render an image of.</li>
+<li><strong>FitResults</strong> (<a class="reference internal" href="calibresults.html#calcam.CalibResults" title="calcam.CalibResults"><code class="xref py py-class docutils literal"><span class="pre">calcam.CalibResults</span></code></a>) &#8211; The camera calibration defining the view you want to render from.</li>
+<li><strong>filename</strong> (<em>str</em>) &#8211; Image file name (including extension) to save the results. If not specified, the results are not saved to disk.</li>
+<li><strong>oversampling</strong> (<em>float</em>) &#8211; Over-sampling factor. The image is rendered at the resolution of the real camera multiplied by this factor. Values &lt;1 can be used for under-sampling.</li>
+<li><strong>AA</strong> (<em>int</em>) &#8211; Anti-aliasing amount. This smoothens the appearance of edges in the image by rendering at a higher resolution then downsampling it to the final input. Since the size of intermediate images stored goes as the square of this factor, it can become slow and memory intensive very quickly.</li>
+<li><strong>Edges</strong> (<em>bool</em>) &#8211; Whether to render the CAD as a solid body or wireframe-style. Setting this to True renders in wireframe.</li>
+<li><strong>EdgeColour</strong> (<em>tuple</em>) &#8211; If using Edges=True, specifies what colour the wireframe lines should be. This should be a tuple of 3 numbers between 0 and 1 specifying the R,G,B colour.</li>
+<li><strong>EdgeWidth</strong> (<em>float</em>) &#8211; If using Edges=True, this specifies the line thickness for the wireframe render in pixels.</li>
+<li><strong>Transparency</strong> (<em>bool</em>) &#8211; If set to True, the (black) background of the image will be set to transparent and an RGBA image will be returned (useful e.g. for creating wireframe overlays). Otherwise a black background is used and an RGB image returned.</li>
+<li><strong>ROI</strong> (<code class="xref py py-class docutils literal"><span class="pre">calcam.roi.ROI</span></code> or <code class="xref py py-class docutils literal"><span class="pre">calcam.roi.ROISet</span></code>) &#8211; Region-of-interest or region-of-interest set to include in the render as a shaded region(s). ROI documentation to come later</li>
+<li><strong>ROIColour</strong> (<em>tuple</em>) &#8211; If including an ROI in the render, what colour to shade the ROI. Tuple of 3 values between 0 and 1 specifying the R,G,B colour.</li>
+<li><strong>ROIOpacity</strong> (<em>float</em>) &#8211; If including an ROI in the render, the opacity to render the ROI between 0 (transparent) and 1 (solid colour).</li>
+<li><strong>roi_oversize</strong> (<em>float</em>) &#8211; Can be used to expand the size of a rendered ROI by approximately this many pixels.</li>
+<li><strong>NearestNeighbourRemap</strong> (<em>bool</em>) &#8211; When applying the image distortion, whether to use nearest neighbour rather than the defauly cubic interpolation. I can&#8217;t remember why this is an option or if it&#8217;s actually ever used.</li>
+<li><strong>Verbose</strong> (<em>bool</em>) &#8211; Whether or not to print status messages while performing the render.</li>
+<li><strong>Coords</strong> (<em>str</em>) &#8211; &#8216;Display&#8217; or &#8216;Original&#8217;, whether to render the image in original or display orientation.</li>
+<li><strong>ScreenSize</strong> (<em>tuple</em>) &#8211; Resolution of the current display in pixels. This is usually unnecessary and should only be specified if things don&#8217;t work properly without it.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Array containing the rendered RGB or RGBA image. Also saves the result to disk if the filename parameter is set.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="calcam.render.render_material_mask">
+<code class="descclassname">calcam.render.</code><code class="descname">render_material_mask</code><span class="sig-paren">(</span><em>CADModel</em>, <em>FitResults</em>, <em>Coords='Display'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/calcam/render.html#render_material_mask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#calcam.render.render_material_mask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a mask describing what material (according to the CAD model configuration) each pixel is looking at. This is useful e.g. for infra-red cameras where the scene may consist of materials with different emissivities, by creating a mask which can be used to apply the correct emissivity to the correct image regions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>CADModel</strong> (<a class="reference internal" href="cadmodel.html#calcam.CADModel" title="calcam.CADModel"><code class="xref py py-class docutils literal"><span class="pre">calcam.CADModel</span></code></a>) &#8211; The CAD model to create the mask for.</li>
+<li><strong>FitResults</strong> (<code class="xref py py-class docutils literal"><span class="pre">clacm.CalibResults</span></code>) &#8211; The camera calibration to create the mask for.</li>
+<li><strong>Coords</strong> (<em>str</em>) &#8211; &#8216;Display&#8217; or &#8216;Original&#8217;, whether to render the mask in Display or Original orientation.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A tuple of (material_list, material_mask). material_list is a list of strings containing the names of all the materials which the camera can see (as defined in the CAD model definition). material_mask is an array the same shape as the camera image containing integer indexes in to material_list which specify what material each pixel is looking at.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="raycasting.html" class="btn btn-neutral float-right" title="Ray Casting" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="cadmodel.html" class="btn btn-neutral" title="Working with CAD Meshes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, European Atomic Energy Community (EURATOM).
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'1.9.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  false,
+            SOURCELINK_SUFFIX: ''
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

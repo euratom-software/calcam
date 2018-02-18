@@ -138,8 +138,7 @@ class PointPairPicker(vtk.vtkInteractorStyleTerrain):
         if self.Image is not None:
             if hold_position:
                 # Check if hold position is really justified - override hold position if the image aspect ratio has changed!
-                imshape = self.Image.transform.get_display_shape()
-                if abs( imshape[1]/imshape[0] - image.transform.get_display_shape()[1] / image.transform.get_display_shape()[0]) > 1e-6:
+                if abs( self.ImageOriginalSize[1]/self.ImageOriginalSize[0] - image.transform.get_display_shape()[1] / image.transform.get_display_shape()[0]) > 1e-6:
                     hold_position = False
 
             self.Renderer_2D.RemoveActor(self.ImageActor)
@@ -197,8 +196,6 @@ class PointPairPicker(vtk.vtkInteractorStyleTerrain):
                 self.Camera2D.SetFocalPoint(xc,yc,0.)
             
             self.PointPairs.set_image(self.Image)
-            self.Fitter.set_PointPairs(self.PointPairs)
-
 
             self.gui_window.refresh_vtk()
         except:
@@ -968,14 +965,40 @@ class PointPairPicker(vtk.vtkInteractorStyleTerrain):
         n_pairs = 0
         n_unpaired = 0
 
+        n_pairs_list = []
+        for field in range(self.nFields):
+            n_pairs_list.append(0)
+
         for i in range(len(self.ObjectPoints)):
             if self.ObjectPoints[i] is not None or self.ImagePoints[i] is not None:
-                if self.ObjectPoints[i] is not None and self.ImagePoints[i] is not None:
+
+                if self.ObjectPoints[i] is not None and np.any(self.ImagePoints[i]) is not None:
                     n_pairs = n_pairs + 1
                 else:
                     n_unpaired = n_unpaired + 1
 
-        self.gui_window.update_n_points(n_pairs,n_unpaired)
+                for field in range(self.nFields):
+                    if self.ObjectPoints[i] is not None and self.ImagePoints[i][field] is not None:
+                        n_pairs_list[field] = n_pairs_list[field] + 1
+
+        self.gui_window.update_n_points(n_pairs,n_unpaired,n_pairs_list)
+
+
+    def get_n_pairs_perfield(self):
+
+        n_pairs = []
+        n_unpaired = []
+
+        for n in range(self.nFields):
+            n_pairs.append(0)
+            n_unpaired.append(0)
+
+        for i in range(len(self.ObjectPoints)):
+            
+            for n in range(self.nFields):
+                paired =  (self.ObjectPoints[i] is not None) & (self.ImagePoints[i][n] is not None)
+                n_pairs[n] = n_pairs[n] + paired
+                n_unpaired[n] = n_unpaired[n] + (not paired)        
 
 
     # Custom mouse move event to enable middle click panning on both
@@ -1614,10 +1637,9 @@ class SplitFieldEditor(vtk.vtkInteractorStyleTrackballCamera):
 
         # Zoom coordinates in window pixels
         zoomcoords = list(self.Interactor.GetEventPosition())
-        zoomcoords[0] = zoomcoords[0] - self.WinSize[0]/2.
 
         # Position of current centre from to where we're zooming
-        zoomcoords = ( (zoomcoords[0] - (self.WinSize[0]/4.))/(self.WinSize[0]/2.) * camscale * (float(self.WinSize[0])/2.)/float(self.WinSize[1]) + campos[0],
+        zoomcoords = ( (zoomcoords[0] - (self.WinSize[0]/2.))/self.WinSize[0] * camscale * (float(self.WinSize[0]))/float(self.WinSize[1]) + campos[0],
                        (zoomcoords[1] - self.WinSize[1]/2.)/self.WinSize[1] * camscale + campos[1] )
 
         # Vector from zoom point to current camera centre
@@ -3502,7 +3524,7 @@ class ImageAnalyser(vtk.vtkInteractorStyleTerrain):
 
             # Don't try to hold position if the image aspect ratio has changed!
             imshape = self.Image.transform.get_display_shape()
-            if abs( imshape[1]/imshape[0] - image.transform.get_display_shape()[1] / image.transform.get_display_shape()[0]) > 1e-6:
+            if abs( self.ImageOriginalSize[1]/self.ImageOriginalSize[0] - image.transform.get_display_shape()[1] / image.transform.get_display_shape()[0]) > 1e-6:
                 hold_position = False            
 
             self.Renderer_2D.RemoveActor(self.ImageActor)

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>774</width>
-    <height>228</height>
+    <width>851</width>
+    <height>219</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -17,7 +17,7 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>CalCam Launcher</string>
+   <string>CalCam</string>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout">
    <item>
@@ -36,31 +36,43 @@
       <enum>QFrame::Raised</enum>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
+      <property name="topMargin">
+       <number>0</number>
+      </property>
       <item row="1" column="1">
        <widget class="QPushButton" name="alignment_calib_button">
         <property name="text">
          <string>Calibration Tool (Manual Alignment)</string>
         </property>
-       </widget>
-      </item>
-      <item row="4" column="3">
-       <widget class="QLabel" name="label_3">
-        <property name="text">
-         <string>Create virtual calibrations by manually positioning virtual cameras.</string>
+        <property name="autoDefault">
+         <bool>false</bool>
         </property>
        </widget>
       </item>
-      <item row="2" column="1">
-       <widget class="QPushButton" name="cad_viewer_button">
+      <item row="7" column="3">
+       <widget class="QLabel" name="label_4">
         <property name="text">
-         <string>CAD Model Viewer</string>
+         <string>Open the online documentation.</string>
         </property>
        </widget>
       </item>
-      <item row="1" column="3">
-       <widget class="QLabel" name="label_5">
+      <item row="5" column="1">
+       <widget class="QPushButton" name="image_analysis_button">
         <property name="text">
-         <string>Perform calibrations by manually aligning images and CAD render.</string>
+         <string>Image Analyser</string>
+        </property>
+        <property name="autoDefault">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="1">
+       <widget class="QPushButton" name="userguide_button">
+        <property name="text">
+         <string>Documentation</string>
+        </property>
+        <property name="autoDefault">
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -71,31 +83,10 @@
         </property>
        </widget>
       </item>
-      <item row="6" column="3">
-       <widget class="QLabel" name="label_4">
+      <item row="1" column="3">
+       <widget class="QLabel" name="label_5">
         <property name="text">
-         <string>Open the CalCam user guide &amp; API reference</string>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="1">
-       <widget class="QPushButton" name="userguide_button">
-        <property name="text">
-         <string>User Guide</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QPushButton" name="calcam_button">
-        <property name="text">
-         <string>Calibration Tool (Point Fitting)</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="3">
-       <widget class="QLabel" name="label_2">
-        <property name="text">
-         <string>View CAD data including plotting ray-traced sight lines, etc.</string>
+         <string>Perform calibrations by manually aligning images and CAD render.</string>
         </property>
        </widget>
       </item>
@@ -103,6 +94,9 @@
        <widget class="QPushButton" name="view_designer_button">
         <property name="text">
          <string>Virtual Calibration Editor</string>
+        </property>
+        <property name="autoDefault">
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -113,10 +107,37 @@
         </property>
        </widget>
       </item>
-      <item row="5" column="1">
-       <widget class="QPushButton" name="image_analysis_button">
+      <item row="0" column="1">
+       <widget class="QPushButton" name="calcam_button">
         <property name="text">
-         <string>Image Analyser</string>
+         <string>Calibration Tool (Point Fitting)</string>
+        </property>
+        <property name="autoDefault">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="3">
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>Create virtual calibrations by manually positioning virtual cameras.</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="1">
+       <widget class="QPushButton" name="cad_viewer_button">
+        <property name="text">
+         <string>3D Viewer</string>
+        </property>
+        <property name="autoDefault">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="3">
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>View CAD models and visualise camera views, raycast results and ROIs</string>
         </property>
        </widget>
       </item>

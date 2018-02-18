@@ -24,12 +24,8 @@
 CalCam package.
 """
 
-# See what version we're on
-import pkg_resources
-try:
-    __version__ = pkg_resources.get_distribution('calcam').version
-except:
-    __version__ = None
+# Calcam version
+__version__ = '1.9.1'
 
 
 # Make sure we have the right thing in sys.path to be able to import the modules.
@@ -51,7 +47,7 @@ for ModuleName in module_list:
 
 from fitting import CalibResults, VirtualCalib
 from image import Image
-from raytrace import RayData
+from raytrace import RayData, RayCaster
 from pointpairs import PointPairs
 from roi import ROI, ROISet
 from geometry_matrix import RectangularGeometryMatrix
