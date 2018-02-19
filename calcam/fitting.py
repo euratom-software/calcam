@@ -170,7 +170,7 @@ class Fitter:
 
 
     def fix_cc(self,fix,field=0,Cx=None,Cy=None):
-        if self.model == 'fisheye':
+        if self.model[field] == 'fisheye':
             raise Exception('This option is not available for the fisheye camera model.')
 
         self.fixcc[field] = fix

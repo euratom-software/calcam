@@ -196,7 +196,8 @@ class PointPairPicker(vtk.vtkInteractorStyleTerrain):
                 self.Camera2D.SetFocalPoint(xc,yc,0.)
             
             self.PointPairs.set_image(self.Image)
-
+            self.Fitter.set_PointPairs(self.PointPairs)
+            
             self.gui_window.refresh_vtk()
         except:
 
