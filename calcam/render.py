@@ -170,7 +170,6 @@ def render_cam_view(CADModel,FitResults,filename=None,oversampling=1,AA=1,Edges=
 
             Cx = FitResults.fit_params[field].cam_matrix[0,2]
             Cy = FitResults.fit_params[field].cam_matrix[1,2]
-            Fx = FitResults.fit_params[field].cam_matrix[0,0]
             Fy = FitResults.fit_params[field].cam_matrix[1,1]
 
             vtk_win_im = vtk.vtkRenderLargeImage()
@@ -193,7 +192,7 @@ def render_cam_view(CADModel,FitResults,filename=None,oversampling=1,AA=1,Edges=
             renWin.SetSize(width,height)
 
             # Set up CAD camera
-            FOV_y = 360 * np.arctan( np.tan(3.14159*FitResults.get_fov(field=field,FullChipWithoutDistortion=True)[1]/360.) * window_factor * height / y_pixels ) / 3.14159
+            FOV_y = 360 * np.arctan( ht / (2*Fy) ) / 3.14159
             CamPos = FitResults.get_pupilpos(field=field)
             CamTar = FitResults.get_los_direction(Cx,Cy,ForceField=field) + CamPos
             UpVec = -1.*FitResults.get_cam_to_lab_rotation(field=field)[:,1]
@@ -237,13 +236,7 @@ def render_cam_view(CADModel,FitResults,filename=None,oversampling=1,AA=1,Edges=
             # Pixel locations we want on the final image
             [xn,yn] = np.meshgrid(np.linspace(0,x_pixels-1,x_pixels*oversampling),np.linspace(0,y_pixels-1,y_pixels*oversampling))
 
-            xn = np.reshape(xn,np.size(xn))
-            yn = np.reshape(yn,np.size(yn))
-
-            x_norm,y_norm = FitResults.normalise(xn,yn,field)
-
-            xn = np.reshape(x_norm,[int(y_pixels*oversampling),int(x_pixels*oversampling)])
-            yn = np.reshape(y_norm,[int(y_pixels*oversampling),int(x_pixels*oversampling)])
+            xn,yn = FitResults.normalise(xn,yn,field)
 
             # Transform back to pixel coords where we want to sample the un-distorted render.
             # Both x and y are divided by Fy because the initial render always has Fx = Fy.

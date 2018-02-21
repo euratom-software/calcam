@@ -1645,7 +1645,7 @@ class CalCamWindow(qt.QMainWindow):
         if len(self.fit_settings_widgets) == 0:
             return
 
-        enable = True
+        enable = self.n_data > 9
 
         if not self.use_chessboard_checkbox.isChecked():
             # Check whether or not we have enough points to enable the fit button.
