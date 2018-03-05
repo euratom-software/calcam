@@ -935,7 +935,10 @@ class CalibResults:
         csvreader = csv.reader(SaveFile)
 
         # Skip header row
-        csvreader.next()
+        try:  # python <3.6?
+            csvreader.next()
+        except AttributeError as e:  # Python 3.6+
+            next(csvreader)
 
         for row in csvreader:
             # Read the RMS error
