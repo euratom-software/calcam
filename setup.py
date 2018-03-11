@@ -9,7 +9,7 @@ import sys
 
 setup(
 	  name='Calcam',
-	  version='1.9.2',
+	  version='1.9.3',
 	  url='https://github.com/euratom-software/calcam',
 	  license='European Union Public License 1.1',
 	  packages=find_packages(),

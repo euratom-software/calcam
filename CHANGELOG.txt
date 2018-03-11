@@ -1,8 +1,16 @@
 Project Changelog
 =================
 
+Bugfix release 1.9.3 (11 Mar 2018)
+----------------------------------
+
+Fixes:
+* Fix bug in loading legacy CSV format fit files under Python 3.6
+* Fix bug in exception handling under Python 3.6
+
+
 Update to 1.9.1 (18 Feb 2018)
---------------------------
+-----------------------------
 
 Fixes:
 * Fixed exception raised when clicking "Apply" in the split field definition dialog.
@@ -27,7 +35,7 @@ Removed:
 
 
 Release 1.9.0 (15 Feb 2018)
---------------------------
+---------------------------
 
 Fixes:
 * Various fixes to mouse interaction (juddering, not recognising button-up etc)

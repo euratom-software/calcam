@@ -14,7 +14,7 @@ The sections below provide details of each step.
 
 Prerequisites
 -------------
-The calcam package works with Python 2.7+ (tested up to 3.5) and requires the following other Python packages to be available:
+The calcam package works with Python 2.7+ (tested up to 3.6) and requires the following other Python packages to be available:
 
 	- NumPy
 	- SciPy
