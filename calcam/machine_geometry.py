@@ -82,9 +82,9 @@ for def_filename in user_files:
             if def_filename in einf[0]:
                 lineno = einf[1]
         if lineno is not None:
-            print('[Calcam Import] CAD definition file {:s} not imported due to exception at line {:d}: {:s}'.format(def_filename,lineno,e))
+            print('[Calcam Import] CAD definition file {:s} not imported due to exception at line {:d}: {}'.format(def_filename,lineno,e))
         else:
-            print('[Calcam Import] CAD definition file {:s} not imported due to exception: {:s}'.format(def_filename,e))
+            print('[Calcam Import] CAD definition file {:s} not imported due to exception: {}'.format(def_filename,e))
 	
 	
 # Get a list of available CAD models and their available variants
