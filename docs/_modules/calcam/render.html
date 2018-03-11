@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>calcam.render &mdash; Calcam 1.9.0 documentation</title>
+  <title>calcam.render &mdash; Calcam 1.9.3 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="Calcam 1.9.0 documentation" href="../../index.html"/>
+    <link rel="top" title="Calcam 1.9.3 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -351,7 +351,6 @@
 
             <span class="n">Cx</span> <span class="o">=</span> <span class="n">FitResults</span><span class="o">.</span><span class="n">fit_params</span><span class="p">[</span><span class="n">field</span><span class="p">]</span><span class="o">.</span><span class="n">cam_matrix</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span>
             <span class="n">Cy</span> <span class="o">=</span> <span class="n">FitResults</span><span class="o">.</span><span class="n">fit_params</span><span class="p">[</span><span class="n">field</span><span class="p">]</span><span class="o">.</span><span class="n">cam_matrix</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span>
-            <span class="n">Fx</span> <span class="o">=</span> <span class="n">FitResults</span><span class="o">.</span><span class="n">fit_params</span><span class="p">[</span><span class="n">field</span><span class="p">]</span><span class="o">.</span><span class="n">cam_matrix</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">Fy</span> <span class="o">=</span> <span class="n">FitResults</span><span class="o">.</span><span class="n">fit_params</span><span class="p">[</span><span class="n">field</span><span class="p">]</span><span class="o">.</span><span class="n">cam_matrix</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span>
 
             <span class="n">vtk_win_im</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkRenderLargeImage</span><span class="p">()</span>
@@ -374,7 +373,7 @@
             <span class="n">renWin</span><span class="o">.</span><span class="n">SetSize</span><span class="p">(</span><span class="n">width</span><span class="p">,</span><span class="n">height</span><span class="p">)</span>
 
             <span class="c1"># Set up CAD camera</span>
-            <span class="n">FOV_y</span> <span class="o">=</span> <span class="mi">360</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan</span><span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span><span class="mf">3.14159</span><span class="o">*</span><span class="n">FitResults</span><span class="o">.</span><span class="n">get_fov</span><span class="p">(</span><span class="n">field</span><span class="o">=</span><span class="n">field</span><span class="p">,</span><span class="n">FullChipWithoutDistortion</span><span class="o">=</span><span class="bp">True</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="mf">360.</span><span class="p">)</span> <span class="o">*</span> <span class="n">window_factor</span> <span class="o">*</span> <span class="n">height</span> <span class="o">/</span> <span class="n">y_pixels</span> <span class="p">)</span> <span class="o">/</span> <span class="mf">3.14159</span>
+            <span class="n">FOV_y</span> <span class="o">=</span> <span class="mi">360</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan</span><span class="p">(</span> <span class="n">ht</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">Fy</span><span class="p">)</span> <span class="p">)</span> <span class="o">/</span> <span class="mf">3.14159</span>
             <span class="n">CamPos</span> <span class="o">=</span> <span class="n">FitResults</span><span class="o">.</span><span class="n">get_pupilpos</span><span class="p">(</span><span class="n">field</span><span class="o">=</span><span class="n">field</span><span class="p">)</span>
             <span class="n">CamTar</span> <span class="o">=</span> <span class="n">FitResults</span><span class="o">.</span><span class="n">get_los_direction</span><span class="p">(</span><span class="n">Cx</span><span class="p">,</span><span class="n">Cy</span><span class="p">,</span><span class="n">ForceField</span><span class="o">=</span><span class="n">field</span><span class="p">)</span> <span class="o">+</span> <span class="n">CamPos</span>
             <span class="n">UpVec</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.</span><span class="o">*</span><span class="n">FitResults</span><span class="o">.</span><span class="n">get_cam_to_lab_rotation</span><span class="p">(</span><span class="n">field</span><span class="o">=</span><span class="n">field</span><span class="p">)[:,</span><span class="mi">1</span><span class="p">]</span>
@@ -418,13 +417,7 @@
             <span class="c1"># Pixel locations we want on the final image</span>
             <span class="p">[</span><span class="n">xn</span><span class="p">,</span><span class="n">yn</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">x_pixels</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">x_pixels</span><span class="o">*</span><span class="n">oversampling</span><span class="p">),</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">y_pixels</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">y_pixels</span><span class="o">*</span><span class="n">oversampling</span><span class="p">))</span>
 
-            <span class="n">xn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">xn</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">xn</span><span class="p">))</span>
-            <span class="n">yn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">yn</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">yn</span><span class="p">))</span>
-
-            <span class="n">x_norm</span><span class="p">,</span><span class="n">y_norm</span> <span class="o">=</span> <span class="n">FitResults</span><span class="o">.</span><span class="n">normalise</span><span class="p">(</span><span class="n">xn</span><span class="p">,</span><span class="n">yn</span><span class="p">,</span><span class="n">field</span><span class="p">)</span>
-
-            <span class="n">xn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">x_norm</span><span class="p">,[</span><span class="nb">int</span><span class="p">(</span><span class="n">y_pixels</span><span class="o">*</span><span class="n">oversampling</span><span class="p">),</span><span class="nb">int</span><span class="p">(</span><span class="n">x_pixels</span><span class="o">*</span><span class="n">oversampling</span><span class="p">)])</span>
-            <span class="n">yn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">y_norm</span><span class="p">,[</span><span class="nb">int</span><span class="p">(</span><span class="n">y_pixels</span><span class="o">*</span><span class="n">oversampling</span><span class="p">),</span><span class="nb">int</span><span class="p">(</span><span class="n">x_pixels</span><span class="o">*</span><span class="n">oversampling</span><span class="p">)])</span>
+            <span class="n">xn</span><span class="p">,</span><span class="n">yn</span> <span class="o">=</span> <span class="n">FitResults</span><span class="o">.</span><span class="n">normalise</span><span class="p">(</span><span class="n">xn</span><span class="p">,</span><span class="n">yn</span><span class="p">,</span><span class="n">field</span><span class="p">)</span>
 
             <span class="c1"># Transform back to pixel coords where we want to sample the un-distorted render.</span>
             <span class="c1"># Both x and y are divided by Fy because the initial render always has Fx = Fy.</span>
@@ -554,7 +547,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'1.9.0',
+            VERSION:'1.9.3',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  false,

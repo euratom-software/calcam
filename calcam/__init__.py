@@ -25,7 +25,7 @@ CalCam package.
 """
 
 # Calcam version
-__version__ = '1.9.2'
+__version__ = '1.9.3'
 
 
 # Make sure we have the right thing in sys.path to be able to import the modules.

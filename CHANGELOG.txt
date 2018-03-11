@@ -1,8 +1,27 @@
 Project Changelog
 =================
 
+Bug fix release 1.9.3 (11 Mar 2018)
+-----------------------------------
+
+Fixes:
+* Fixed bug in loading legacy CSV format fit files under Python 3.6
+* Fixed string formatting in exception handling under Python 3.6
+* Fixed bug when checking if "Do Fit" button should be enabled which caused exceptions when loading some previously used images.
+* Fixed image points disappearing when loading a different image of the same shape when they should be persistent.
+
+
+Bug fix relase 1.9.2 (21 Feb 2018)
+----------------------------------
+
+Fixes:
+* Fix inaccurate rendering in render_cam_view() for images with the centre of perspective not at the image centre (as far as I know this bug has existed since the very earliest versions of Calcam, but only now been noticed).
+* Only enable "Do Fit" button in calibration tool when there are enough points that OpenCV won't raise an exception.
+
+
+
 Update to 1.9.1 (18 Feb 2018)
---------------------------
+-----------------------------
 
 Fixes:
 * Fixed exception raised when clicking "Apply" in the split field definition dialog.
@@ -27,7 +46,7 @@ Removed:
 
 
 Release 1.9.0 (15 Feb 2018)
---------------------------
+---------------------------
 
 Fixes:
 * Various fixes to mouse interaction (juddering, not recognising button-up etc)
