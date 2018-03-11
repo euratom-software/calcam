@@ -1228,8 +1228,10 @@ class CalCamWindow(qt.QMainWindow):
             self.use_chessboard_checkbox.setChecked(False)
             self.chessboard_pointpairs = None
             self.chessboard_info.setText('No chessboard pattern images currently loaded.')
+            keep_points = False
         else:
             self.use_chessboard_checkbox.setChecked(False)
+            keep_points = True
 
         self.image = newim
 
@@ -1259,6 +1261,17 @@ class CalCamWindow(qt.QMainWindow):
 
         self.rebuild_image_gui()
         self.populate_pointpairs_list()
+
+        if keep_points:
+            self.pointpicker.UpdateFromPPObject(False)
+
+            if self.overlay_checkbox.isChecked():
+                self.overlay_checkbox.setChecked(False)
+                self.overlay_checkbox.setChecked(True)
+
+            if self.fitted_points_checkbox.isChecked():
+                self.fitted_points_checkbox.setChecked(False)
+                self.fitted_points_checkbox.setChecked(True)
 
         self.update_image_info_string()
         self.app.restoreOverrideCursor()
@@ -1645,33 +1658,34 @@ class CalCamWindow(qt.QMainWindow):
         if len(self.fit_settings_widgets) == 0:
             return
 
-        enable = self.n_data > 9
+  
+        enable = True
 
-        if not self.use_chessboard_checkbox.isChecked():
-            # Check whether or not we have enough points to enable the fit button.
-            for field in range(self.pointpicker.nFields):
+        # Check whether or not we have enough points to enable the fit button.
+        for field in range(self.pointpicker.nFields):
 
-                # If we're doing a perspective fit...
-                if self.fit_settings_widgets[field][0].isChecked():
+            # If we're doing a perspective fit...
+            if self.fit_settings_widgets[field][0].isChecked():
 
-                    free_params = 15
-                    free_params = free_params - self.fit_settings_widgets[field][2].isChecked()
-                    free_params = free_params - self.fit_settings_widgets[field][3].isChecked()
-                    free_params = free_params - self.fit_settings_widgets[field][4].isChecked()
-                    free_params = free_params - 2*self.fit_settings_widgets[field][5].isChecked()
-                    free_params = free_params - self.fit_settings_widgets[field][6].isChecked()
-                    free_params = free_params - 2*self.fit_settings_widgets[field][7].isChecked()
+                free_params = 15
+                free_params = free_params - self.fit_settings_widgets[field][2].isChecked()
+                free_params = free_params - self.fit_settings_widgets[field][3].isChecked()
+                free_params = free_params - self.fit_settings_widgets[field][4].isChecked()
+                free_params = free_params - 2*self.fit_settings_widgets[field][5].isChecked()
+                free_params = free_params - self.fit_settings_widgets[field][6].isChecked()
+                free_params = free_params - 2*self.fit_settings_widgets[field][7].isChecked()
 
-                # Or for a fisheye fit...
-                elif self.fit_settings_widgets[field][1].isChecked():
-                    free_params = 14
-                    free_params = free_params - self.fit_settings_widgets[field][11].isChecked()
-                    free_params = free_params - self.fit_settings_widgets[field][12].isChecked()
-                    free_params = free_params - self.fit_settings_widgets[field][13].isChecked()
-                    free_params = free_params - self.fit_settings_widgets[field][14].isChecked()
+            # Or for a fisheye fit...
+            elif self.fit_settings_widgets[field][1].isChecked():
+                free_params = 14
+                free_params = free_params - self.fit_settings_widgets[field][11].isChecked()
+                free_params = free_params - self.fit_settings_widgets[field][12].isChecked()
+                free_params = free_params - self.fit_settings_widgets[field][13].isChecked()
+                free_params = free_params - self.fit_settings_widgets[field][14].isChecked()
 
-                if free_params >= self.n_data[field]:
-                    enable = False
+            # And the award for most confusingly written if condition goes to...
+            if not ( (self.n_data[field] > free_params and self.n_data[field] > 9) or (self.n_data[field] > 9 and self.use_chessboard_checkbox.isChecked()) ):
+                enable = False
 
 
         self.fit_button.setEnabled(enable)
