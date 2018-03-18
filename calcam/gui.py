@@ -94,7 +94,7 @@ def show_exception_box(self,excep_type,excep_value,tb):
             dialog.setStandardButtons(qt.QMessageBox.Ok)
             dialog.setTextFormat(qt.Qt.RichText)
             dialog.setWindowTitle('Calcam')
-            dialog.setText(excep_value.message)
+            dialog.setText(str(excep_value))
             dialog.setIcon(qt.QMessageBox.Information)
             dialog.exec_()
         # Check if we've run out of memory:
@@ -120,6 +120,17 @@ def show_exception_box(self,excep_type,excep_value,tb):
             dialog.setInformativeText(''.join(traceback.format_exception(excep_type,excep_value,tb)))
             dialog.setIcon(qt.QMessageBox.Warning)
             dialog.exec_()
+
+
+def warn_no_models(self):
+    dialog = qt.QMessageBox(self)
+    dialog.setStandardButtons(qt.QMessageBox.Ok)
+    dialog.setTextFormat(qt.Qt.RichText)
+    dialog.setWindowTitle('Calcam - No CAD Models')
+    dialog.setText('No CAD model definitions were found. To define some, see the example at:<br><br>{:s}\Example.py'.format(paths.machine_geometry))
+    dialog.setIcon(qt.QMessageBox.Information)
+    dialog.exec_()
+
 
 # We start off with some functions which are common to the various GUIs
 def init_viewports_list(self):
@@ -327,7 +338,7 @@ class CADViewerWindow(qt.QMainWindow):
 
         # Warn the user if we don't have any CAD models
         if self.model_list == {}:
-            raise UserWarning('No machine CAD model definitions were found. To define some, see the example in:<br>' + paths.machine_geometry)
+            warn_no_models(self)
 
 
     def change_cad_view(self,view_item,init=False):
@@ -926,8 +937,7 @@ class CalCamWindow(qt.QMainWindow):
 
         # Warn the user if we don't have any CAD models
         if self.model_list == {}:
-            raise UserWarning('No machine CAD model definitions were found. To define some, see the example in:<br>' + paths.machine_geometry)
-
+            warn_no_models(self)
 
 
     def change_cad_view(self,view_item,init=False):
@@ -2920,7 +2930,7 @@ class ViewDesignerWindow(qt.QMainWindow):
 
         # Warn the user if we don't have any CAD models
         if self.model_list == {}:
-            raise UserWarning('No machine CAD model definitions were found. To define some, see the example in:<br>' + paths.machine_geometry)
+            warn_no_models(self)
 
 
     def change_cad_view(self,view_index,init=False):
@@ -3397,7 +3407,7 @@ class AlignmentCalibWindow(qt.QMainWindow):
 
         # Warn the user if we don't have any CAD models
         if self.model_list == {}:
-            raise UserWarning('No machine CAD model definitions were found. To define some, see the example in:<br>' + paths.machine_geometry)
+            warn_no_models(self)
 
     def toggle_real_pixel_size(self,real_pixel_size):
         self.focal_length_box.blockSignals(True)
@@ -4241,7 +4251,7 @@ class ImageAnalyserWindow(qt.QMainWindow):
 
         # Warn the user if we don't have any CAD models
         if self.model_list == {}:
-            raise UserWarning('No machine CAD model definitions were found. To define some, see the example in:<br>' + paths.machine_geometry)
+            warn_no_models(self)
 
 
     def update_position_info(self,coords_2d,coords_3d,visible):
