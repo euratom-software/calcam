@@ -285,8 +285,8 @@ class CADViewerWindow(qt.QMainWindow):
         self.cadmodel = None
 
         # Set up VTK
-        self.qvtkWidget = qt.QVTKRenderWindowInteractor(self.centralwidget)
-        self.gridLayout.addWidget(self.qvtkWidget,1,0)
+        self.qvtkWidget = qt.QVTKRenderWindowInteractor(self.vtk_frame)
+        self.vtk_frame.layout().addWidget(self.qvtkWidget,0,0,1,2)
         self.cadexplorer = vtkinteractorstyles.CADExplorer()
         self.qvtkWidget.SetInteractorStyle(self.cadexplorer)
         self.renderer = vtk.vtkRenderer()
@@ -307,7 +307,6 @@ class CADViewerWindow(qt.QMainWindow):
         self.colour_by_material.stateChanged.connect(self.set_cad_colour_by_material)
         self.enable_all_button.clicked.connect(self.mass_toggle_model)
         self.disable_all_button.clicked.connect(self.mass_toggle_model)
-        self.controls_dock_widget.topLevelChanged.connect(self.update_controls_docked)
         self.viewlist.itemClicked.connect(self.change_cad_view)
         self.camX.valueChanged.connect(self.change_cad_view)
         self.camY.valueChanged.connect(self.change_cad_view)
@@ -323,6 +322,7 @@ class CADViewerWindow(qt.QMainWindow):
         self.feature_tree.currentItemChanged.connect(self.update_selected)
         self.feature_tree.itemChanged.connect(self.update_checked_features)
         self.highlight_selected.stateChanged.connect(self.update_highlight_enable)
+        self.xsection_checkbox.toggled.connect(self.cadexplorer.toggle_xsection)
 
 
         placeholder = qt.QTreeWidgetItem(['Please load a CAD model'])
@@ -394,7 +394,6 @@ class CADViewerWindow(qt.QMainWindow):
         self.update_viewport_info(self.camera.GetPosition(),self.camera.GetFocalPoint(),self.camera.GetViewAngle())
 
         self.refresh_vtk()
-
 
 
 
@@ -538,7 +537,6 @@ class CADViewerWindow(qt.QMainWindow):
                 self.renderer.RemoveActor(actor)
             
             del self.cadmodel
-            self.tabWidget.setTabEnabled(2,False)
 
         else:
             old_machine_name = None
@@ -605,12 +603,6 @@ class CADViewerWindow(qt.QMainWindow):
                 self.treeitem_machine.child(i).setCheckState(0,qt.Qt.Unchecked)
         self.app.restoreOverrideCursor()
 
-    def update_controls_docked(self,floating_controls):
-
-        if floating_controls:
-            self.cadview_header.hide()
-        else:
-            self.cadview_header.show()
 
     def update_viewport_info(self,campos,camtar,fov):
         self.camX.blockSignals(True)
@@ -1234,7 +1226,7 @@ class CalCamWindow(qt.QMainWindow):
             self.pointpicker.clear_all()
             self.n_data = []
             for field in range(newim.n_fields):
-            	self.n_data.append(0)
+                self.n_data.append(0)
             self.use_chessboard_checkbox.setChecked(False)
             self.chessboard_pointpairs = None
             self.chessboard_info.setText('No chessboard pattern images currently loaded.')
@@ -2153,7 +2145,7 @@ class CalCamWindow(qt.QMainWindow):
             self.pointpicker.clear_all()
             self.n_data = []
             for field in range(self.pointpicker.nFields):
-            	self.n_data.append(0)
+                self.n_data.append(0)
 
             if dialog.fieldmask.max() > 0:
                 self.use_chessboard_checkbox.setChecked(False)

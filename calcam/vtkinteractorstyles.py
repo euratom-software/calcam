@@ -2657,6 +2657,8 @@ class CADExplorer(vtk.vtkInteractorStyleTerrain):
         self.AddObserver("MiddleButtonReleaseEvent",self.middleButtonRelease)
         self.AddObserver("MouseWheelForwardEvent",self.ZoomIn)
         self.AddObserver("MouseWheelBackwardEvent",self.ZoomOut)
+        self.AddObserver("MouseMoveEvent",self.mouse_move)
+        self.SetAutoAdjustCameraClippingRange(False)
         
              
 
@@ -2682,6 +2684,7 @@ class CADExplorer(vtk.vtkInteractorStyleTerrain):
         self.Interactor.SetPicker(self.Picker)
         
         self.point = None 
+        self.xsection = False
     
         self.rays = {}
         self.rois = {}
@@ -2692,13 +2695,37 @@ class CADExplorer(vtk.vtkInteractorStyleTerrain):
         if self.gui_window is not None:
             self.gui_window.update_viewport_info(self.Camera3D.GetPosition(),self.get_view_target(),self.Camera3D.GetViewAngle())
 
-        
+    def mouse_move(self,obj,event):
+        self.OnMouseMove()
+        self.update_clipping()
+
+
     def free_references(self):
         del self.Interactor
         del self.Window
         del self.Renderer
         del self.Camera3D
         del self.Picker
+
+
+    def toggle_xsection(self,xsection):
+        self.xsection = xsection
+        self.Renderer.Render()
+        self.gui_window.refresh_vtk()
+
+
+    def update_clipping(self):
+
+        self.Renderer.ResetCameraClippingRange()
+        normal_range = self.Camera3D.GetClippingRange()
+        if self.xsection and self.point is not None:
+            cam_to_pointer = np.array( self.point[0].GetFocalPoint() ) - np.array(self.Camera3D.GetPosition())
+            cam_view_dir = self.get_view_target() - np.array(self.Camera3D.GetPosition())
+            cam_view_dir = cam_view_dir / np.sqrt( np.sum(cam_view_dir**2))
+            dist = max(normal_range[0],np.dot(cam_to_pointer,cam_view_dir))
+            self.Camera3D.SetClippingRange(dist,normal_range[1])
+
+
 
     # On the CAD view, middle click + drag to pan
     def middleButtonPress(self,obj,event):
@@ -2707,11 +2734,13 @@ class CADExplorer(vtk.vtkInteractorStyleTerrain):
             roi[1].GetProperty().SetOpacity(0)
         self.OnMiddleButtonDown()
 
+
     def middleButtonRelease(self,obj,event):
         self.OnMiddleButtonUp()
         if self.gui_window is not None:
             self.gui_window.update_viewport_info(self.Camera3D.GetPosition(),self.get_view_target(),self.Camera3D.GetViewAngle())
         self.update_rois()
+        self.update_clipping()
         self.gui_window.refresh_vtk()
 
     # On the CAD view, right click+drag to rotate (usually on left button in this interactorstyle)
@@ -2734,6 +2763,7 @@ class CADExplorer(vtk.vtkInteractorStyleTerrain):
             self.gui_window.update_viewport_info(self.Camera3D.GetPosition(),self.get_view_target(),self.Camera3D.GetViewAngle())
 
         self.update_rois()
+        self.update_clipping()
         self.gui_window.refresh_vtk()
 
 
@@ -2793,6 +2823,9 @@ class CADExplorer(vtk.vtkInteractorStyleTerrain):
                 
                 self.gui_window.update_cursor_position(self.point[0].GetFocalPoint())
 
+                if self.xsection:
+                    self.update_clipping()
+
                 self.gui_window.refresh_vtk()
                 
                 
@@ -2835,6 +2868,7 @@ class CADExplorer(vtk.vtkInteractorStyleTerrain):
             self.gui_window.update_viewport_info(self.Camera3D.GetPosition(),self.get_view_target(zoom=True),self.Camera3D.GetViewAngle())
 
         self.update_rois()
+        self.update_clipping()
         self.gui_window.refresh_vtk()
 
 
@@ -2860,6 +2894,7 @@ class CADExplorer(vtk.vtkInteractorStyleTerrain):
             self.gui_window.update_viewport_info(self.Camera3D.GetPosition(),self.get_view_target(zoom=True),self.Camera3D.GetViewAngle())
 
         self.update_rois()
+        self.update_clipping()
         self.gui_window.refresh_vtk()
 
 
