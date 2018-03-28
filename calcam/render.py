@@ -36,6 +36,7 @@ import sys
 import image as CalCamImage
 import time
 import qt_wrapper as qt
+import raytrace
 
 def render_cam_view(CADModel,FitResults,filename=None,oversampling=1,AA=1,Edges=False,EdgeColour=(1,0,0),EdgeWidth=2,Transparency=False,ROI=None,ROIColour=(0.8,0,0),ROIOpacity=0.3,roi_oversize=0,NearestNeighbourRemap=False,Verbose=True,Coords = 'Display',ScreenSize=None):
 
@@ -330,3 +331,73 @@ def render_material_mask(CADModel,FitResults,Coords='Display'):
         material_mask[_material_mask == material] = len(material_list) - 1
     
     return material_list,material_mask
+
+
+
+def get_fov_actor(cadmodel,calib,type='volume',resolution=64,opacity=0.75):
+
+    rc = raytrace.RayCaster(calib,cadmodel,verbose=False)
+
+    raydata = rc.raycast_pixels(binning=max(calib.image_display_shape)/resolution)
+
+
+    if type == 'volume':
+
+        # Before we do anything, we need to arrange our triangle corners
+        points = vtk.vtkPoints()
+
+        x_horiz,y_horiz = np.meshgrid( np.arange(raydata.ray_start_coords.shape[1]-1), np.arange(raydata.ray_start_coords.shape[0]))
+        x_horiz = x_horiz.flatten()
+        y_horiz = y_horiz.flatten()
+
+        x_vert,y_vert = np.meshgrid( np.arange(raydata.ray_start_coords.shape[1]), np.arange(raydata.ray_start_coords.shape[0]-1))
+        x_vert = x_vert.flatten()
+        y_vert = y_vert.flatten()
+        
+        field = 0
+
+        pupilpos = calib.get_pupilpos(field=field)
+        polygons = vtk.vtkCellArray()
+
+        for n in range(len(x_horiz)):
+            points.InsertNextPoint(pupilpos)
+            points.InsertNextPoint(raydata.ray_end_coords[y_horiz[n],x_horiz[n],:])
+            points.InsertNextPoint(raydata.ray_end_coords[y_horiz[n],x_horiz[n]+1,:])
+
+        for n in range(len(x_vert)):
+            points.InsertNextPoint(pupilpos)
+            points.InsertNextPoint(raydata.ray_end_coords[y_vert[n],x_vert[n],:])
+            points.InsertNextPoint(raydata.ray_end_coords[y_vert[n]+1,x_vert[n],:])
+
+
+
+        # Go through and make polygons!
+        polygons = vtk.vtkCellArray()
+        for n in range(0,points.GetNumberOfPoints(),3):
+            polygon = vtk.vtkPolygon()
+            polygon.GetPointIds().SetNumberOfIds(3)
+            for i in range(3):
+                polygon.GetPointIds().SetId(i,i+n)
+            polygons.InsertNextCell(polygon)
+
+
+        # Make Polydata!
+        polydata = vtk.vtkPolyData()
+        polydata.SetPoints(points)
+        polydata.SetPolys(polygons)
+
+        mapper = vtk.vtkPolyDataMapper()
+
+        if vtk.VTK_MAJOR_VERSION <= 5:
+            mapper.SetInput(polydata)
+        else:
+            mapper.SetInputData(polydata)
+
+        actor = vtk.vtkActor()
+        actor.SetMapper(mapper)
+
+        print(opacity * 12./float(n))
+        actor.GetProperty().SetOpacity(opacity * 10./resolution)
+        actor.GetProperty().LightingOff()
+
+        return actor

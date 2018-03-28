@@ -323,6 +323,11 @@ class CADViewerWindow(qt.QMainWindow):
         self.feature_tree.itemChanged.connect(self.update_checked_features)
         self.highlight_selected.stateChanged.connect(self.update_highlight_enable)
         self.xsection_checkbox.toggled.connect(self.cadexplorer.toggle_xsection)
+        self.sightline_opacity_slider.valueChanged.connect(self.update_sightlines)
+
+        self.sightlines = {}
+
+        self.colourcycle = [(1,0,0),(0,1,0),(0,0,1),(1,1,0),(1,0,1),(0,1,1)]
 
 
         placeholder = qt.QTreeWidgetItem(['Please load a CAD model'])
@@ -402,7 +407,7 @@ class CADViewerWindow(qt.QMainWindow):
         self.sightlines_list.clear()
 
         # Populate sight line list
-        self.sightlines_list.addItems(paths.get_save_list('RayData'))
+        self.sightlines_list.addItems(paths.get_save_list('FitResults'))
         for i in range(self.sightlines_list.count()):
             self.sightlines_list.item(i).setCheckState(qt.Qt.Unchecked)
 
@@ -633,11 +638,27 @@ class CADViewerWindow(qt.QMainWindow):
     def update_sightlines(self,data):
 
         if self.sender() is self.sightlines_list:
-            raydata_name = str(data.text())
+            calib_name = str(data.text())
             if data.checkState() == qt.Qt.Checked:
-                self.cadexplorer.add_raydata(raydata_name,self.sightlines_per_fan.value())
+                self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
+                self.statusbar.showMessage('Ray casting camera sight lines...')
+                actor = render.get_fov_actor(self.cadmodel,fitting.CalibResults(calib_name),opacity = self.sightline_opacity_slider.value()/100.)
+                self.statusbar.clearMessage()
+                actor.GetProperty().SetColor(self.colourcycle[len(self.sightlines.keys())])
+                self.sightlines[calib_name] = [actor,self.sightline_opacity_slider.value()]
+                self.renderer.AddActor(actor)
+                self.app.restoreOverrideCursor()
             else:
-                self.cadexplorer.remove_raydata(raydata_name)
+                sightlines= self.sightlines.pop(calib_name,None)
+                if sightlines is not None:
+                    self.renderer.RemoveActor(sightlines[0])
+
+        elif self.sender() is self.sightline_opacity_slider:
+            for sightlines in self.sightlines.values():
+                sightlines[0].GetProperty().SetOpacity( sightlines[0].GetProperty().GetOpacity() * (float(data) /  float(sightlines[1]) ) )
+                sightlines[1] = data
+
+                
 
         self.qvtkWidget.update()
 
