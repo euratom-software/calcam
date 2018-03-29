@@ -334,70 +334,66 @@ def render_material_mask(CADModel,FitResults,Coords='Display'):
 
 
 
-def get_fov_actor(cadmodel,calib,type='volume',resolution=64,opacity=0.75):
+def get_fov_actor(cadmodel,calib,resolution=64):
 
     rc = raytrace.RayCaster(calib,cadmodel,verbose=False)
 
     raydata = rc.raycast_pixels(binning=max(calib.image_display_shape)/resolution)
 
 
-    if type == 'volume':
 
-        # Before we do anything, we need to arrange our triangle corners
-        points = vtk.vtkPoints()
+    # Before we do anything, we need to arrange our triangle corners
+    points = vtk.vtkPoints()
 
-        x_horiz,y_horiz = np.meshgrid( np.arange(raydata.ray_start_coords.shape[1]-1), np.arange(raydata.ray_start_coords.shape[0]))
-        x_horiz = x_horiz.flatten()
-        y_horiz = y_horiz.flatten()
+    x_horiz,y_horiz = np.meshgrid( np.arange(raydata.ray_start_coords.shape[1]-1), np.arange(raydata.ray_start_coords.shape[0]))
+    x_horiz = x_horiz.flatten()
+    y_horiz = y_horiz.flatten()
 
-        x_vert,y_vert = np.meshgrid( np.arange(raydata.ray_start_coords.shape[1]), np.arange(raydata.ray_start_coords.shape[0]-1))
-        x_vert = x_vert.flatten()
-        y_vert = y_vert.flatten()
-        
-        field = 0
+    x_vert,y_vert = np.meshgrid( np.arange(raydata.ray_start_coords.shape[1]), np.arange(raydata.ray_start_coords.shape[0]-1))
+    x_vert = x_vert.flatten()
+    y_vert = y_vert.flatten()
+    
+    field = 0
 
-        pupilpos = calib.get_pupilpos(field=field)
-        polygons = vtk.vtkCellArray()
+    pupilpos = calib.get_pupilpos(field=field)
+    polygons = vtk.vtkCellArray()
 
-        for n in range(len(x_horiz)):
-            points.InsertNextPoint(pupilpos)
-            points.InsertNextPoint(raydata.ray_end_coords[y_horiz[n],x_horiz[n],:])
-            points.InsertNextPoint(raydata.ray_end_coords[y_horiz[n],x_horiz[n]+1,:])
+    for n in range(len(x_horiz)):
+        points.InsertNextPoint(pupilpos)
+        points.InsertNextPoint(raydata.ray_end_coords[y_horiz[n],x_horiz[n],:])
+        points.InsertNextPoint(raydata.ray_end_coords[y_horiz[n],x_horiz[n]+1,:])
 
-        for n in range(len(x_vert)):
-            points.InsertNextPoint(pupilpos)
-            points.InsertNextPoint(raydata.ray_end_coords[y_vert[n],x_vert[n],:])
-            points.InsertNextPoint(raydata.ray_end_coords[y_vert[n]+1,x_vert[n],:])
-
+    for n in range(len(x_vert)):
+        points.InsertNextPoint(pupilpos)
+        points.InsertNextPoint(raydata.ray_end_coords[y_vert[n],x_vert[n],:])
+        points.InsertNextPoint(raydata.ray_end_coords[y_vert[n]+1,x_vert[n],:])
 
 
-        # Go through and make polygons!
-        polygons = vtk.vtkCellArray()
-        for n in range(0,points.GetNumberOfPoints(),3):
-            polygon = vtk.vtkPolygon()
-            polygon.GetPointIds().SetNumberOfIds(3)
-            for i in range(3):
-                polygon.GetPointIds().SetId(i,i+n)
-            polygons.InsertNextCell(polygon)
+
+    # Go through and make polygons!
+    polygons = vtk.vtkCellArray()
+    for n in range(0,points.GetNumberOfPoints(),3):
+        polygon = vtk.vtkPolygon()
+        polygon.GetPointIds().SetNumberOfIds(3)
+        for i in range(3):
+            polygon.GetPointIds().SetId(i,i+n)
+        polygons.InsertNextCell(polygon)
 
 
-        # Make Polydata!
-        polydata = vtk.vtkPolyData()
-        polydata.SetPoints(points)
-        polydata.SetPolys(polygons)
+    # Make Polydata!
+    polydata = vtk.vtkPolyData()
+    polydata.SetPoints(points)
+    polydata.SetPolys(polygons)
 
-        mapper = vtk.vtkPolyDataMapper()
+    mapper = vtk.vtkPolyDataMapper()
 
-        if vtk.VTK_MAJOR_VERSION <= 5:
-            mapper.SetInput(polydata)
-        else:
-            mapper.SetInputData(polydata)
+    if vtk.VTK_MAJOR_VERSION <= 5:
+        mapper.SetInput(polydata)
+    else:
+        mapper.SetInputData(polydata)
 
-        actor = vtk.vtkActor()
-        actor.SetMapper(mapper)
+    actor = vtk.vtkActor()
+    actor.SetMapper(mapper)
+    actor.GetProperty().LightingOff()
 
-        print(opacity * 12./float(n))
-        actor.GetProperty().SetOpacity(opacity * 10./resolution)
-        actor.GetProperty().LightingOff()
-
-        return actor
+    return actor

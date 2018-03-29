@@ -316,7 +316,7 @@ class CADViewerWindow(qt.QMainWindow):
         self.tarZ.valueChanged.connect(self.change_cad_view)
         self.camFOV.valueChanged.connect(self.change_cad_view)
         self.sightlines_list.itemChanged.connect(self.update_sightlines)
-        self.roi_tree.itemChanged.connect(self.update_rois)
+        #self.roi_tree.itemChanged.connect(self.update_rois)
         self.load_model_button.clicked.connect(self.load_model)
         self.model_name.currentIndexChanged.connect(self.populate_model_variants)
         self.feature_tree.currentItemChanged.connect(self.update_selected)
@@ -326,13 +326,14 @@ class CADViewerWindow(qt.QMainWindow):
         self.sightline_opacity_slider.valueChanged.connect(self.update_sightlines)
 
         self.sightlines = {}
+        self.colour_q = []
 
-        self.colourcycle = [(1,0,0),(0,1,0),(0,0,1),(1,1,0),(1,0,1),(0,1,1)]
-
+        self.available_colours = [(0.121,0.466,0.705),(1,0.498,0.054),(0.172,0.627,0.172),(0.829,0.152,0.156),(0.580,0.403,0.741),(0.549,0.337,0.294),(0.890,0.466,0.760),(0.498,0.498,0.498),(0.737,0.741,0.133),(0.09,0.745,0.811)]
+        self.available_colours = self.available_colours[::-1]
 
         placeholder = qt.QTreeWidgetItem(['Please load a CAD model'])
         self.viewlist.addTopLevelItem(placeholder)
-        self.roi_tree.addTopLevelItem(placeholder)
+        #self.roi_tree.addTopLevelItem(placeholder)
         self.sightlines_list.addItem('Please load a CAD model')
 
 
@@ -568,7 +569,7 @@ class CADViewerWindow(qt.QMainWindow):
 
         # Initialise other lists of things
         init_viewports_list(self)
-        self.init_roi_list()
+        #self.init_roi_list()
         self.init_sightline_list()
 
 
@@ -642,21 +643,22 @@ class CADViewerWindow(qt.QMainWindow):
             if data.checkState() == qt.Qt.Checked:
                 self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
                 self.statusbar.showMessage('Ray casting camera sight lines...')
-                actor = render.get_fov_actor(self.cadmodel,fitting.CalibResults(calib_name),opacity = self.sightline_opacity_slider.value()/100.)
+                actor = render.get_fov_actor(self.cadmodel,fitting.CalibResults(calib_name))
                 self.statusbar.clearMessage()
-                actor.GetProperty().SetColor(self.colourcycle[len(self.sightlines.keys())])
-                self.sightlines[calib_name] = [actor,self.sightline_opacity_slider.value()]
+                actor.GetProperty().SetColor(self.available_colours.pop())
+                actor.GetProperty().SetOpacity(100.**(self.sightline_opacity_slider.value()/100.)/100.)
+                self.sightlines[calib_name] = actor
                 self.renderer.AddActor(actor)
                 self.app.restoreOverrideCursor()
             else:
                 sightlines= self.sightlines.pop(calib_name,None)
                 if sightlines is not None:
-                    self.renderer.RemoveActor(sightlines[0])
+                    self.available_colours.append(sightlines.GetProperty().GetColor())
+                    self.renderer.RemoveActor(sightlines)
 
         elif self.sender() is self.sightline_opacity_slider:
             for sightlines in self.sightlines.values():
-                sightlines[0].GetProperty().SetOpacity( sightlines[0].GetProperty().GetOpacity() * (float(data) /  float(sightlines[1]) ) )
-                sightlines[1] = data
+                sightlines.GetProperty().SetOpacity( 100.**(data/100.)/100. )
 
                 
 
