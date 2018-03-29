@@ -361,6 +361,27 @@ class CADModel:
         else:
             return cols_out
 
+    # Set the colour of a component or the whole model
+    def get_colour_new(self,features=None,col_type='material'):
+
+        cols_out = []
+
+        if type(features) == str:
+            features = [features]
+
+        for req_feature in features:
+            for Feature in self.features:
+                if str.lower(req_feature) == str.lower(Feature[0]):
+                    if col_type == 'material':
+                        cols_out.append(self.materials[Feature[2]][1])
+                    elif col_type == 'default':
+                        cols_out.append(self.default_colour)
+
+        if len(cols_out) == 1:
+            return cols_out[0]
+        else:
+            return cols_out
+
 
     # Enable model colouring by material
     def colour_by_material(self,colourbymaterial):

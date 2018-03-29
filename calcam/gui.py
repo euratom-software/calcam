@@ -324,9 +324,18 @@ class CADViewerWindow(qt.QMainWindow):
         self.highlight_selected.stateChanged.connect(self.update_highlight_enable)
         self.xsection_checkbox.toggled.connect(self.cadexplorer.toggle_xsection)
         self.sightline_opacity_slider.valueChanged.connect(self.update_sightlines)
+        self.rendertype_edges.toggled.connect(self.toggle_wireframe)
+        self.model_manual_colour.toggled.connect(self.set_cad_colour)
+        self.choose_model_colour.clicked.connect(self.pick_model_colour)
+        self.viewport_load_calib.clicked.connect(self.load_viewport_calib)
+        self.set_view_to_calib.clicked.connect(self.change_cad_view)
+        self.sightlines_load_button.clicked.connect(self.add_sightlines)
+
+        self.model_actors = {}
 
         self.sightlines = {}
         self.colour_q = []
+        self.model_custom_colour = None
 
         self.available_colours = [(0.121,0.466,0.705),(1,0.498,0.054),(0.172,0.627,0.172),(0.829,0.152,0.156),(0.580,0.403,0.741),(0.549,0.337,0.294),(0.890,0.466,0.760),(0.498,0.498,0.498),(0.737,0.741,0.133),(0.09,0.745,0.811)]
         self.available_colours = self.available_colours[::-1]
@@ -347,24 +356,66 @@ class CADViewerWindow(qt.QMainWindow):
             warn_no_models(self)
 
 
+    def add_sightlines(self):
+
+        cal = object_from_file(self,'Calibration')
+
+
+    # We start off with some functions which are common to the various GUIs
+    def init_viewports_list(self):
+
+        self.viewlist.clear()
+
+        # Populate viewports list
+        self.views_root_model = qt.QTreeWidgetItem([self.cadmodel.machine_name])
+        self.views_root_auto = qt.QTreeWidgetItem(['Auto View Adjustments'])
+
+        # Add views to list
+        for view in self.cadmodel.views:
+            qt.QTreeWidgetItem(self.views_root_model,[view[0]])
+
+        # Auto type views
+        qt.QTreeWidgetItem(self.views_root_auto,['Radial cross-section thru cursor'])
+        qt.QTreeWidgetItem(self.views_root_auto,['Horizontal cross-section thru cursor'])
+        #qt.QTreeWidgetItem(self.views_root_auto,['Centre current view on origin'])
+
+
+        self.viewlist.addTopLevelItem(self.views_root_model)
+        self.viewlist.addTopLevelItem(self.views_root_auto)
+        self.views_root_model.setExpanded(True)
+        self.views_root_auto.setExpanded(True)
+        self.views_root_model.setFlags(qt.Qt.ItemIsEnabled)
+        self.views_root_auto.setFlags(qt.Qt.ItemIsEnabled)
+
+
+    def load_viewport_calib(self):
+        self.viewport_calib = object_from_file(self,'calibration')
+        if self.viewport_calib is not None:
+            self.set_view_to_calib.setEnabled(True)
+            self.viewport_cal_name.setText('Calibration Loaded')
+
+        self.set_view_to_calib.click()
+
+
     def change_cad_view(self,view_item,init=False):
 
+        self.xsection_checkbox.setChecked(False)
+
         if self.sender() is self.viewlist:
-            if view_item.isDisabled() or view_item is self.views_root_results or view_item is self.views_root_synthetic or view_item is self.views_root_model:
+            if view_item.isDisabled() or view_item is self.views_root_model:
                 return
 
-        if self.sender() is self.viewlist or init:
- 
-            if view_item.parent() in self.views_results:
-                view = fitting.CalibResults(str(view_item.parent().text(0)))
-                subfield = view.field_names.index(str(view_item.text(0)))
+        if self.sender() is self.set_view_to_calib:
+                subfield = 0
+                self.camera.SetPosition(self.viewport_calib.get_pupilpos(field=subfield))
+                self.camera.SetFocalPoint(self.viewport_calib.get_pupilpos(field=subfield) + self.viewport_calib.get_los_direction(self.viewport_calib.image_display_shape[0]/2,self.viewport_calib.image_display_shape[1]/2))
+                self.camera.SetViewAngle(self.viewport_calib.get_fov(field=subfield)[1])
+                self.camera.SetViewUp(-1.*self.viewport_calib.get_cam_to_lab_rotation(field=subfield)[:,1])
 
-                self.camera.SetPosition(view.get_pupilpos(field=subfield))
-                self.camera.SetFocalPoint(view.get_pupilpos(field=subfield) + view.get_los_direction(view.image_display_shape[0]/2,view.image_display_shape[1]/2))
-                self.camera.SetViewAngle(view.get_fov(field=subfield)[1])
-              
-                self.camera.SetViewUp(-1.*view.get_cam_to_lab_rotation(field=subfield)[:,1])  
-            elif view_item.parent() is self.views_root_model:
+
+        elif self.sender() is self.viewlist or init:
+  
+            if view_item.parent() is self.views_root_model:
 
                 self.cadmodel.set_default_view(str(view_item.text(0)))
 
@@ -374,23 +425,36 @@ class CADViewerWindow(qt.QMainWindow):
                 self.camera.SetFocalPoint(self.cadmodel.cam_target_default)
                 self.camera.SetViewUp(0,0,1)
 
-            elif view_item.parent() is self.views_root_results or self.views_root_synthetic:
+            elif view_item.parent() is self.views_root_auto:
 
-                if view_item.parent() is self.views_root_results:
-                    view = fitting.CalibResults(str(view_item.text(0)))
-                else:
-                    view = fitting.VirtualCalib(str(view_item.text(0)))
 
-                if view.nfields > 1:
-                    view_item.setExpanded(not view_item.isExpanded())
-                    return
+                if str(view_item.text(0)).lower() == 'horizontal cross-section thru cursor' and self.cadexplorer.point is not None:
+                    self.camera.SetViewUp(0,1,0)
+                    self.camera.SetPosition( (0.,0.,max(self.camZ.value(),self.cadexplorer.point[0].GetFocalPoint()[2]+1.)) )
+                    self.camera.SetFocalPoint( (0.,0.,self.cadexplorer.point[0].GetFocalPoint()[2]-1.) )
+                    self.xsection_checkbox.setChecked(True)
 
-                self.camera.SetPosition(view.get_pupilpos())
-                self.camera.SetFocalPoint(view.get_pupilpos() + view.get_los_direction(view.image_display_shape[0]/2,view.image_display_shape[1]/2))
-                self.camera.SetViewAngle(view.get_fov()[1])
-                self.camera.SetViewUp(-1.*view.get_cam_to_lab_rotation()[:,1])
+                elif str(view_item.text(0)).lower() == 'radial cross-section thru cursor' and self.cadexplorer.point is not None:
+                    self.camera.SetViewUp(0,0,1)
+                    R_cursor = np.sqrt( self.cadexplorer.point[0].GetFocalPoint()[1]**2 + self.cadexplorer.point[0].GetFocalPoint()[0]**2 )
+                    phi = np.arctan2(self.cadexplorer.point[0].GetFocalPoint()[1],self.cadexplorer.point[0].GetFocalPoint()[0])
+                    phi_cam = phi - 3.14159/2.
+                    R_cam = np.sqrt( self.camX.value()**2 + self.camY.value()**2 )
+                    self.camera.SetPosition( (max(R_cam,R_cursor + 1) * np.cos(phi_cam), max(R_cam,R_cursor + 1) * np.sin(phi_cam), 0.) )
+                    self.camera.SetFocalPoint( (0.,0.,0.) )
+                    self.xsection_checkbox.setChecked(True)
 
-            
+                elif str(view_item.text(0)).lower() == 'centre current view on origin':
+                    oldviewup = self.camera.GetViewUp()
+                    self.camera.OrthogonalizeViewUp()
+                    if np.argmax(self.camera.GetViewUp()) == 2:
+                        self.camera.SetPosition( (self.camX.value(),self.camY.value(),0.) )
+                        self.camera.SetViewUp((0.,0.,1.))
+                    elif np.argmax(self.camera.GetViewUp()) == 1:
+                        self.camera.SetPosition( (0.,0.,self.camZ.value()) )
+                        self.camera.SetViewUp((0.,1.,0.))
+                    self.camera.SetFocalPoint((0.,0.,-self.camZ.value()))
+
 
         else:
             self.camera.SetPosition((self.camX.value(),self.camY.value(),self.camZ.value()))
@@ -398,6 +462,8 @@ class CADViewerWindow(qt.QMainWindow):
             self.camera.SetViewAngle(self.camFOV.value())
 
         self.update_viewport_info(self.camera.GetPosition(),self.camera.GetFocalPoint(),self.camera.GetViewAngle())
+
+        self.cadexplorer.update_clipping()
 
         self.refresh_vtk()
 
@@ -415,13 +481,89 @@ class CADViewerWindow(qt.QMainWindow):
 
     def set_cad_colour_by_material(self,colour_by_material):
 
-        if colour_by_material and self.highlight_selected.isChecked():
-            self.highlight_selected.setCheckState(qt.Qt.Unchecked)
+        if colour_by_material and self.model_manual_colour.isChecked():
+            self.model_manual_colour.setChecked(False)
 
         if self.cadmodel is not None:
-            self.cadmodel.colour_by_material(colour_by_material)
+            for feature,actors in self.model_actors.iteritems():
+
+                if colour_by_material:
+                    colour = self.cadmodel.get_colour_new(feature,'material')
+                else:
+                    colour = self.cadmodel.get_colour_new(feature,'default')
+
+                actors[-1].GetProperty().SetColor(colour)
+
+            self.update_selected()
             self.refresh_vtk()
 
+
+    def set_cad_colour(self):
+
+        if self.model_manual_colour.isChecked() and self.model_custom_colour is None:
+            self.pick_model_colour()
+            return
+
+        if self.model_manual_colour.isChecked() and self.colour_by_material.isChecked():
+            self.colour_by_material.setChecked(False)
+
+        if self.cadmodel is not None:
+            for feature,actors in self.model_actors.iteritems():
+                if self.model_manual_colour.isChecked():
+                    actors[-1].GetProperty().SetColor(self.model_custom_colour)
+                else:
+                    actors[-1].GetProperty().SetColor(self.cadmodel.get_colour_new(feature,'default'))
+
+            self.update_selected()
+
+            self.refresh_vtk()
+
+
+    def pick_model_colour(self):
+
+        if self.model_custom_colour is None:
+            col_init = np.array(self.cadmodel.default_colour) * 255
+        else:
+            col_init = np.array(self.model_custom_colour) * 255
+
+        dialog = qt.QColorDialog(qt.QColor(col_init[0],col_init[1],col_init[2]),self)
+        res = dialog.exec_()
+
+        if res:
+            self.model_custom_colour = ( dialog.currentColor().red() / 255. , dialog.currentColor().green() / 255. , dialog.currentColor().blue() / 255.)
+        del dialog
+
+        self.set_cad_colour()
+
+
+
+    def toggle_wireframe(self,wireframe):
+        
+        if self.cadmodel is not None:
+            self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
+            self.cadmodel.edges = wireframe
+            for feature in self.model_actors.keys():
+                actors = self.model_actors.pop(feature)
+                for actor in actors:
+                    self.renderer.RemoveActor(actor)
+
+            features = self.cadmodel.get_enabled_features()
+
+            for feature in self.cadmodel.get_enabled_features():
+                actors = self.cadmodel.get_vtkActors(feature)
+                self.model_actors[feature] = actors
+
+                if self.colour_by_material.isChecked():
+                    actors[-1].GetProperty().SetColor( self.cadmodel.get_colour_new(feature,'material'))
+                elif self.model_manual_colour.isChecked():
+                    actors[-1].GetProperty().SetColor( self.model_custom_colour )
+
+                for actor in actors:
+                    self.renderer.AddActor(actor)
+
+            self.refresh_vtk()
+            self.update_selected()      
+            self.app.restoreOverrideCursor()
 
     def update_selected(self):
 
@@ -447,27 +589,36 @@ class CADViewerWindow(qt.QMainWindow):
         if self.highlight_selected.isChecked():
 
             if previous_selection is not None:
-                self.cadmodel.set_colour(self.orig_colour,previous_selection)
+                for feature in previous_selection:
+                    if self.colour_by_material.isChecked():
+                        self.model_actors[feature][-1].GetProperty().SetColor( self.cadmodel.get_colour_new(feature,'material') )
+                    elif self.model_manual_colour.isChecked():
+                        self.model_actors[feature][-1].GetProperty().SetColor( self.model_custom_colour )
+                    else:
+                        self.model_actors[feature][-1].GetProperty().SetColor( self.cadmodel.get_colour_new(feature,'default') )
 
             if self.selected_feature is not None:
-                self.orig_colour = self.cadmodel.get_colour(self.selected_feature)
-                self.cadmodel.set_colour((1,0,0),self.selected_feature)
-                self.refresh_vtk()
+                for feature in self.selected_feature:
+                    self.model_actors[feature][-1].GetProperty().SetColor( 1,0,0 )
+ 
+            self.refresh_vtk()
 
 
     def update_highlight_enable(self,enable):
 
-        if enable and self.colour_by_material.isChecked():
-            self.colour_by_material.setCheckState(qt.Qt.Unchecked)
-
         if self.cadmodel is not None:
             if self.selected_feature is not None:
                 if enable:
-                    self.orig_colour = self.cadmodel.get_colour(self.selected_feature)
-                    self.cadmodel.set_colour((1,0,0),self.selected_feature)
-                    self.refresh_vtk()
-                else:
-                    self.cadmodel.set_colour(self.orig_colour,self.selected_feature)
+                    self.update_selected()
+                elif self.selected_feature is not None:
+                    for feature in self.selected_feature:
+                        if self.colour_by_material.isChecked():
+                            self.cadmodel.get_colour_new(feature,'material')
+                        elif self.model_manual_colour.isChecked():
+                            col = self.model_custom_colour
+                        else:
+                            col = self.cadmodel.get_colour_new(feature,'default')
+                        self.model_actors[feature][-1].GetProperty().SetColor( col )
                     self.refresh_vtk()
 
 
@@ -539,8 +690,10 @@ class CADViewerWindow(qt.QMainWindow):
             old_machine_name = self.cadmodel.machine_name
             old_enabled_features = self.cadmodel.get_enabled_features()
 
-            for actor in self.cadmodel.get_vtkActors():
-                self.renderer.RemoveActor(actor)
+            for feature in self.model_actors.keys():
+                actors = self.model_actors.pop(feature)
+                for actor in actors:
+                    self.renderer.RemoveActor(actor)
             
             del self.cadmodel
 
@@ -559,8 +712,11 @@ class CADViewerWindow(qt.QMainWindow):
                 for feature in self.cadmodel.features:
                     self.cadmodel.disable_features(feature[0])
 
-        for actor in self.cadmodel.get_vtkActors():
-            self.renderer.AddActor(actor)
+        for feature in self.cadmodel.get_enabled_features():
+            actors = self.cadmodel.get_vtkActors(feature)
+            self.model_actors[feature] = actors
+            for actor in actors:
+                self.renderer.AddActor(actor)
 
         self.statusbar.showMessage('Setting up CAD model...')
 
@@ -568,7 +724,7 @@ class CADViewerWindow(qt.QMainWindow):
         init_model_settings(self)
 
         # Initialise other lists of things
-        init_viewports_list(self)
+        self.init_viewports_list()
         #self.init_roi_list()
         self.init_sightline_list()
 
@@ -1091,8 +1247,9 @@ class CalCamWindow(qt.QMainWindow):
             old_machine_name = self.cadmodel.machine_name
             old_enabled_features = self.cadmodel.get_enabled_features()
 
-            for actor in self.cadmodel.get_vtkActors():
-                self.renderer_cad.RemoveActor(actor)
+            for feature in self.model_actors.keys():
+                actor = self.model_actors.pop(feature)
+                self.renderer.RemoveActor(actor)
             
             del self.cadmodel
             self.tabWidget.setTabEnabled(2,True)
@@ -3132,7 +3289,8 @@ class ViewDesignerWindow(qt.QMainWindow):
             old_machine_name = self.cadmodel.machine_name
             old_enabled_features = self.cadmodel.get_enabled_features()
 
-            for actor in self.cadmodel.get_vtkActors():
+            for feature in self.model_actors.keys():
+                actor = self.model_actors.pop(feature)
                 self.renderer.RemoveActor(actor)
             
             del self.cadmodel
@@ -3153,7 +3311,9 @@ class ViewDesignerWindow(qt.QMainWindow):
                 for feature in self.cadmodel.features:
                     self.cadmodel.disable_features(feature[0])
 
-        for actor in self.cadmodel.get_vtkActors():
+        features = self.cadmodel.get_enabled_features()
+        for i,actor in self.cadmodel.get_vtkActors(features):
+            self.model_actors[features[i]] = actor
             self.renderer.AddActor(actor)
 
         self.statusbar.showMessage('Setting up CAD model...')
@@ -5061,6 +5221,33 @@ def rotate_3D(vect,axis,angle):
     R[2,2] = np.cos(angle) + axis[2]**2*(1 - np.cos(angle))
 
     return np.array( R * vect_)
+
+
+def object_from_file(parent,obj_type):
+
+    if obj_type.lower() == 'calibration':
+        filename_filter = 'Calcam Calibration (*.pickle)'
+        start_dir = paths.root
+
+    filedialog = qt.QFileDialog(parent)
+    filedialog.setAcceptMode(0)
+    filedialog.setFileMode(1)
+    filedialog.setWindowTitle('Open...')
+    filedialog.setNameFilter(filename_filter)
+    filedialog.exec_()
+    if filedialog.result() == 1:
+        path = str(filedialog.selectedFiles()[0])
+    else:
+        return None
+
+    if obj_type.lower() == 'calibration':
+        name = os.path.split(path)[-1].replace('.pickle','')
+        try:
+            obj = fitting.CalibResults(name)
+        except:
+            obj = fitting.VirtualCalib(name)
+
+    return obj
 
 
 if __name__ == '__main__':
