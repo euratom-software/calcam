@@ -69,6 +69,12 @@ def render_cam_view(CADModel,FitResults,filename=None,oversampling=1,AA=1,Edges=
     If filename is provided, saves the render with the specified filename
     """
 
+    if CADModel.__class__ == vtk.vtkActorCollection:
+        given_actors = True
+        CADModel.InitTraversal()
+    else:
+        given_actors = False
+
     if Coords.lower() == 'original' and oversampling != 1:
         raise Exception('Cannot render in original coordinates with oversampling!')
 
@@ -121,31 +127,41 @@ def render_cam_view(CADModel,FitResults,filename=None,oversampling=1,AA=1,Edges=
 
     Camera = renderer.GetActiveCamera()
 
-    # Set the model face colour to black if we only want to see edges
-    if Edges:
-        CADModel.edges = True
-        CADModel.edge_width = EdgeWidth
-        # If rendering wireframe, set the CAD model colour to the desired edge colour. Before we do that, save the colours we started with.
-        oldColours = []
-        for Feature in CADModel.features:
-            oldColours.append((Feature[4],Feature[0]))
-        CADModel.set_colour(EdgeColour)
+
+    if not given_actors:
+        # Set the model face colour to black if we only want to see edges
+        if Edges:
+            CADModel.edges = True
+            CADModel.edge_width = EdgeWidth
+            # If rendering wireframe, set the CAD model colour to the desired edge colour. Before we do that, save the colours we started with.
+            oldColours = []
+            for Feature in CADModel.features:
+                oldColours.append((Feature[4],Feature[0]))
+            CADModel.set_colour(EdgeColour)
         
 
     # This whole thing is in a try() except() because it is prone to memory errors, and I need to put the CAD model
     # colour back the way it started if we have a problem.
     try:
-        # Add all the bits of the machine
-        for Actor in CADModel.get_vtkActors():
-            renderer.AddActor(Actor)
-
-            
-        # Add the ROI if provided
-        if ROI is not None:
-            try:
-                n_rois = len(ROI.rois)
-                for roi in ROI.rois:
-                    ROIActor = roi.get_vtkActor(FitResults.get_pupilpos())
+        if not given_actors:
+            # Add all the bits of the machine
+            for Actor in CADModel.get_vtkActors():
+                renderer.AddActor(Actor)
+            # Add the ROI if provided
+            if ROI is not None:
+                try:
+                    n_rois = len(ROI.rois)
+                    for roi in ROI.rois:
+                        ROIActor = roi.get_vtkActor(FitResults.get_pupilpos())
+                        ROIActor.GetProperty().SetColor(ROIColour)
+                        ROIActor.GetProperty().SetOpacity(ROIOpacity)
+                        if roi_oversize > 0:
+                            ROIActor.GetProperty().EdgeVisibilityOn()
+                            ROIActor.GetProperty().SetLineWidth(roi_oversize*2.)
+                            ROIActor.GetProperty().SetEdgeColor(ROIColour)
+                        renderer.AddActor(ROIActor)
+                except AttributeError:
+                    ROIActor = ROI.get_vtkActor(FitResults.get_pupilpos(field=0))
                     ROIActor.GetProperty().SetColor(ROIColour)
                     ROIActor.GetProperty().SetOpacity(ROIOpacity)
                     if roi_oversize > 0:
@@ -153,15 +169,12 @@ def render_cam_view(CADModel,FitResults,filename=None,oversampling=1,AA=1,Edges=
                         ROIActor.GetProperty().SetLineWidth(roi_oversize*2.)
                         ROIActor.GetProperty().SetEdgeColor(ROIColour)
                     renderer.AddActor(ROIActor)
-            except AttributeError:
-                ROIActor = ROI.get_vtkActor(FitResults.get_pupilpos(field=0))
-                ROIActor.GetProperty().SetColor(ROIColour)
-                ROIActor.GetProperty().SetOpacity(ROIOpacity)
-                if roi_oversize > 0:
-                    ROIActor.GetProperty().EdgeVisibilityOn()
-                    ROIActor.GetProperty().SetLineWidth(roi_oversize*2.)
-                    ROIActor.GetProperty().SetEdgeColor(ROIColour)
-                renderer.AddActor(ROIActor)
+
+        else:
+            actor = CADModel.GetNextItemAsObject()
+            while actor is not None:
+                renderer.AddActor(actor)
+                actor = CADModel.GetNextItemAsObject()
 
         # We need a field mask the same size as the output
         FieldMask = cv2.resize(FitResults.fieldmask,(int(x_pixels*oversampling),int(y_pixels*oversampling)),interpolation=cv2.INTER_NEAREST)
@@ -257,7 +270,8 @@ def render_cam_view(CADModel,FitResults,filename=None,oversampling=1,AA=1,Edges=
 
             OutputImage[FieldMask == field,:] = im[FieldMask == field,:]
 
-        CADModel.edges = False
+        if not given_actors:
+            CADModel.edges = False
 
         if Coords.lower() == 'original':
             OutputImage = FitResults.transform.display_to_original_image(OutputImage)
@@ -280,16 +294,17 @@ def render_cam_view(CADModel,FitResults,filename=None,oversampling=1,AA=1,Edges=
             if Verbose:
                 print('[Calcam Renderer] Result saved as {:s}'.format(filename))
     except:
-        if Edges:
-            CADModel.edges = False
-            # Put the colour scheme back to how it was
-            for Feature in oldColours:
-                CADModel.set_colour(Feature[0],Feature[1])
-            Actor.GetProperty().EdgeVisibilityOff()
-            try:
-                renWin.Finalize()
-            except:
-                pass
+        if not given_actors:
+            if Edges:
+                CADModel.edges = False
+                # Put the colour scheme back to how it was
+                for Feature in oldColours:
+                    CADModel.set_colour(Feature[0],Feature[1])
+                Actor.GetProperty().EdgeVisibilityOff()
+        try:
+            renWin.Finalize()
+        except:
+            pass
         raise
 
     return OutputImage
@@ -334,56 +349,94 @@ def render_material_mask(CADModel,FitResults,Coords='Display'):
 
 
 
-def get_fov_actor(cadmodel,calib,resolution=64):
+def get_fov_actor(cadmodel,calib,actor_type='volume',resolution=None):
+
+
+    if actor_type.lower() == 'volume':
+
+        if resolution is None:
+            resolution = 64
+
+    elif actor_type.lower() == 'lines':
+
+        if resolution is None:
+            resolution = 8
+
+    else:
+        raise ValueError('"actor_type" argument must be "volume" or "lines"')
+
 
     rc = raytrace.RayCaster(calib,cadmodel,verbose=False)
 
     raydata = rc.raycast_pixels(binning=max(calib.image_display_shape)/resolution)
 
-
-
     # Before we do anything, we need to arrange our triangle corners
     points = vtk.vtkPoints()
 
-    x_horiz,y_horiz = np.meshgrid( np.arange(raydata.ray_start_coords.shape[1]-1), np.arange(raydata.ray_start_coords.shape[0]))
-    x_horiz = x_horiz.flatten()
-    y_horiz = y_horiz.flatten()
-
-    x_vert,y_vert = np.meshgrid( np.arange(raydata.ray_start_coords.shape[1]), np.arange(raydata.ray_start_coords.shape[0]-1))
-    x_vert = x_vert.flatten()
-    y_vert = y_vert.flatten()
-    
-    field = 0
-
-    pupilpos = calib.get_pupilpos(field=field)
-    polygons = vtk.vtkCellArray()
-
-    for n in range(len(x_horiz)):
-        points.InsertNextPoint(pupilpos)
-        points.InsertNextPoint(raydata.ray_end_coords[y_horiz[n],x_horiz[n],:])
-        points.InsertNextPoint(raydata.ray_end_coords[y_horiz[n],x_horiz[n]+1,:])
-
-    for n in range(len(x_vert)):
-        points.InsertNextPoint(pupilpos)
-        points.InsertNextPoint(raydata.ray_end_coords[y_vert[n],x_vert[n],:])
-        points.InsertNextPoint(raydata.ray_end_coords[y_vert[n]+1,x_vert[n],:])
+    if actor_type.lower() == 'volume': 
 
 
+        x_horiz,y_horiz = np.meshgrid( np.arange(raydata.ray_start_coords.shape[1]-1), np.arange(raydata.ray_start_coords.shape[0]))
+        x_horiz = x_horiz.flatten()
+        y_horiz = y_horiz.flatten()
 
-    # Go through and make polygons!
-    polygons = vtk.vtkCellArray()
-    for n in range(0,points.GetNumberOfPoints(),3):
-        polygon = vtk.vtkPolygon()
-        polygon.GetPointIds().SetNumberOfIds(3)
-        for i in range(3):
-            polygon.GetPointIds().SetId(i,i+n)
-        polygons.InsertNextCell(polygon)
+        x_vert,y_vert = np.meshgrid( np.arange(raydata.ray_start_coords.shape[1]), np.arange(raydata.ray_start_coords.shape[0]-1))
+        x_vert = x_vert.flatten()
+        y_vert = y_vert.flatten()
+        
+        polygons = vtk.vtkCellArray()
+
+        for n in range(len(x_horiz)):
+            if np.abs(raydata.ray_start_coords[y_horiz[n],x_horiz[n],:] - raydata.ray_start_coords[y_horiz[n],x_horiz[n]+1,:]).max() < 1e-3:
+                points.InsertNextPoint(raydata.ray_start_coords[y_horiz[n],x_horiz[n],:])
+                points.InsertNextPoint(raydata.ray_end_coords[y_horiz[n],x_horiz[n],:])
+                points.InsertNextPoint(raydata.ray_end_coords[y_horiz[n],x_horiz[n]+1,:])
+
+        for n in range(len(x_vert)):
+            if np.abs( raydata.ray_start_coords[y_vert[n],x_vert[n],:] - raydata.ray_start_coords[y_vert[n]+1,x_vert[n],:] ).max() < 1e-3:
+                points.InsertNextPoint(raydata.ray_start_coords[y_vert[n],x_vert[n],:])
+                points.InsertNextPoint(raydata.ray_end_coords[y_vert[n],x_vert[n],:])
+                points.InsertNextPoint(raydata.ray_end_coords[y_vert[n]+1,x_vert[n],:])
 
 
-    # Make Polydata!
-    polydata = vtk.vtkPolyData()
-    polydata.SetPoints(points)
-    polydata.SetPolys(polygons)
+        # Go through and make polygons!
+        polygons = vtk.vtkCellArray()
+        for n in range(0,points.GetNumberOfPoints(),3):
+            polygon = vtk.vtkPolygon()
+            polygon.GetPointIds().SetNumberOfIds(3)
+            for i in range(3):
+                polygon.GetPointIds().SetId(i,i+n)
+            polygons.InsertNextCell(polygon)
+
+
+        # Make Polydata!
+        polydata = vtk.vtkPolyData()
+        polydata.SetPoints(points)
+        polydata.SetPolys(polygons)
+
+
+    elif actor_type.lower() == 'lines':
+
+        point_ind = -1
+        for field in range(calib.nfields):
+            points.InsertNextPoint(calib.get_pupilpos(field=field))
+            point_ind = point_ind + 1
+
+        lines = vtk.vtkCellArray()
+        for i in range(raydata.ray_end_coords.shape[0]):
+            for j in range(raydata.ray_end_coords.shape[1]):
+                points.InsertNextPoint(raydata.ray_end_coords[i,j,:])
+                point_ind = point_ind + 1
+
+                line = vtk.vtkLine()
+                line.GetPointIds().SetId(0,calib.fieldmask[i,j])
+                line.GetPointIds().SetId(1,point_ind)
+                lines.InsertNextCell(line)
+
+        polydata = polydata = vtk.vtkPolyData()
+        polydata.SetPoints(points)
+        polydata.SetLines(lines)
+
 
     mapper = vtk.vtkPolyDataMapper()
 
@@ -395,5 +448,8 @@ def get_fov_actor(cadmodel,calib,resolution=64):
     actor = vtk.vtkActor()
     actor.SetMapper(mapper)
     actor.GetProperty().LightingOff()
+
+    if actor_type == 'lines':
+        actor.GetProperty().SetLineWidth(2)
 
     return actor

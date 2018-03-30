@@ -328,22 +328,33 @@ class CADViewerWindow(qt.QMainWindow):
         self.model_manual_colour.toggled.connect(self.set_cad_colour)
         self.choose_model_colour.clicked.connect(self.pick_model_colour)
         self.viewport_load_calib.clicked.connect(self.load_viewport_calib)
-        self.set_view_to_calib.clicked.connect(self.change_cad_view)
-        self.sightlines_load_button.clicked.connect(self.add_sightlines)
+        self.sightlines_load_button.clicked.connect(self.update_sightlines)
+        self.pick_sightlines_colour.clicked.connect(self.update_sightlines)
+        self.sightlines_list.itemSelectionChanged.connect(self.update_selected_sightlines)
+        self.sightline_type_volume.toggled.connect(self.update_sightlines)
+        self.sightlines_legend_checkbox.toggled.connect(self.update_sightlines)
+        self.render_button.clicked.connect(self.do_render)
+        self.render_cam_view.toggled.connect(self.change_render_type)
+        self.render_coords_combobox.currentIndexChanged.connect(self.update_render_coords)
+
+        self.sightlines_legend = None
+        self.render_calib = None
 
         self.model_actors = {}
 
         self.sightlines = {}
         self.colour_q = []
         self.model_custom_colour = None
+        self.viewport_calibs = {}
 
-        self.available_colours = [(0.121,0.466,0.705),(1,0.498,0.054),(0.172,0.627,0.172),(0.829,0.152,0.156),(0.580,0.403,0.741),(0.549,0.337,0.294),(0.890,0.466,0.760),(0.498,0.498,0.498),(0.737,0.741,0.133),(0.09,0.745,0.811)]
-        self.available_colours = self.available_colours[::-1]
+        self.colourcycle = colourcycle()
 
-        placeholder = qt.QTreeWidgetItem(['Please load a CAD model'])
-        self.viewlist.addTopLevelItem(placeholder)
-        #self.roi_tree.addTopLevelItem(placeholder)
-        self.sightlines_list.addItem('Please load a CAD model')
+        self.tabWidget.setTabEnabled(1,False)
+        self.tabWidget.setTabEnabled(2,False)
+        self.tabWidget.setTabEnabled(3,False)
+
+        self.render_coords_combobox.setHidden(True)
+        self.render_coords_text.setHidden(True)
 
 
         # Start the GUI!
@@ -356,10 +367,6 @@ class CADViewerWindow(qt.QMainWindow):
             warn_no_models(self)
 
 
-    def add_sightlines(self):
-
-        cal = object_from_file(self,'Calibration')
-
 
     # We start off with some functions which are common to the various GUIs
     def init_viewports_list(self):
@@ -369,6 +376,7 @@ class CADViewerWindow(qt.QMainWindow):
         # Populate viewports list
         self.views_root_model = qt.QTreeWidgetItem([self.cadmodel.machine_name])
         self.views_root_auto = qt.QTreeWidgetItem(['Auto View Adjustments'])
+        self.views_root_results = qt.QTreeWidgetItem(['From Calibrations'])
 
         # Add views to list
         for view in self.cadmodel.views:
@@ -382,19 +390,91 @@ class CADViewerWindow(qt.QMainWindow):
 
         self.viewlist.addTopLevelItem(self.views_root_model)
         self.viewlist.addTopLevelItem(self.views_root_auto)
+        self.viewlist.addTopLevelItem(self.views_root_results)
         self.views_root_model.setExpanded(True)
         self.views_root_auto.setExpanded(True)
+        self.views_root_results.setExpanded(True)
+        self.views_root_results.setHidden(True)
         self.views_root_model.setFlags(qt.Qt.ItemIsEnabled)
         self.views_root_auto.setFlags(qt.Qt.ItemIsEnabled)
 
 
-    def load_viewport_calib(self):
-        self.viewport_calib = object_from_file(self,'calibration')
-        if self.viewport_calib is not None:
-            self.set_view_to_calib.setEnabled(True)
-            self.viewport_cal_name.setText('Calibration Loaded')
+    def update_selected_sightlines(self):
 
-        self.set_view_to_calib.click()
+        if len(self.sightlines_list.selectedItems()) > 0:
+
+            self.sightlines_settings_box.setEnabled(True)
+            first_sightlines = self.sightlines[self.sightlines_list.selectedItems()[0]]
+
+            self.sightline_type_volume.blockSignals(True)
+            if first_sightlines[2] == 'volume':
+                self.sightline_type_volume.setChecked(True)
+            else:
+                self.sightline_type_lines.setChecked(True)
+            self.sightline_type_volume.blockSignals(False)
+
+            self.sightline_opacity_slider.blockSignals(True)
+            self.sightline_opacity_slider.setValue(100*np.log(first_sightlines[1].GetProperty().GetOpacity()*100.)/np.log(100))
+
+            self.sightline_opacity_slider.blockSignals(False)
+
+        else:
+            self.sightlines_settings_box.setEnabled(False)
+
+
+    def load_viewport_calib(self):
+        cals = object_from_file(self,'calibration',multiple=True)
+
+        for cal in cals:
+            listitem = qt.QTreeWidgetItem(self.views_root_results,[cal.name])
+            if cal.nfields > 1:
+                self.viewport_calibs[listitem] = (cal,None)
+                for n,fieldname in enumerate(res.field_names):
+                    self.viewport_calibs[ qt.QTreeWidgetItem(listitem,[fieldname]) ] = (cal,n) 
+            else:
+                self.viewport_calibs[listitem] = (cal,0)
+
+        self.views_root_results.setHidden(False)
+
+
+
+    def change_render_type(self):
+
+        if self.render_cam_view.isChecked():
+
+            # Check if we have a calibration loaded and if not, load one.
+            if self.render_calib is None:
+                cal = object_from_file(self,'Calibration')
+                if cal is not None:
+                    self.render_calib = cal
+                    self.render_calib_namelabel.setText(cal.name)
+                else:
+                    self.render_current_view.setChecked(True)
+                    return
+
+            self.render_coords_text.setHidden(False)
+            self.render_coords_combobox.setHidden(False)
+            self.update_render_coords()
+        else:
+            self.render_coords_text.setHidden(True)
+            self.render_coords_combobox.setHidden(True)
+            self.render_resolution.setCurrentIndex(-1)
+            self.cadexplorer.OnWindowSizeAdjust()
+
+
+
+    def update_render_coords(self):
+
+        self.render_resolution.clear()
+
+        if self.render_coords_combobox.currentIndex() == 0:
+            base_size = self.render_calib.image_display_shape
+        elif self.render_coords_combobox.currentIndex() == 1:
+            base_size = [self.render_calib.transform.x_pixels,self.render_calib.transform.y_pixels]
+
+        self.render_resolution.addItem('{:d} x {:d} (same as camera)'.format(base_size[0],base_size[1]))
+        self.render_resolution.addItem('{:d} x {:d}'.format(base_size[0]*2,base_size[1]*2))
+        self.render_resolution.addItem('{:d} x {:d}'.format(base_size[0]*4,base_size[1]*4))
 
 
     def change_cad_view(self,view_item,init=False):
@@ -405,15 +485,8 @@ class CADViewerWindow(qt.QMainWindow):
             if view_item.isDisabled() or view_item is self.views_root_model:
                 return
 
-        if self.sender() is self.set_view_to_calib:
-                subfield = 0
-                self.camera.SetPosition(self.viewport_calib.get_pupilpos(field=subfield))
-                self.camera.SetFocalPoint(self.viewport_calib.get_pupilpos(field=subfield) + self.viewport_calib.get_los_direction(self.viewport_calib.image_display_shape[0]/2,self.viewport_calib.image_display_shape[1]/2))
-                self.camera.SetViewAngle(self.viewport_calib.get_fov(field=subfield)[1])
-                self.camera.SetViewUp(-1.*self.viewport_calib.get_cam_to_lab_rotation(field=subfield)[:,1])
 
-
-        elif self.sender() is self.viewlist or init:
+        if self.sender() is self.viewlist or init:
   
             if view_item.parent() is self.views_root_model:
 
@@ -425,8 +498,18 @@ class CADViewerWindow(qt.QMainWindow):
                 self.camera.SetFocalPoint(self.cadmodel.cam_target_default)
                 self.camera.SetViewUp(0,0,1)
 
-            elif view_item.parent() is self.views_root_auto:
+            elif view_item.parent() is self.views_root_results or view_item.parent() in self.viewport_calibs.keys():
 
+                view,subfield = self.viewport_calibs[view_item]
+                if subfield is None:
+                    return
+
+                self.camera.SetPosition(view.get_pupilpos(field=subfield))
+                self.camera.SetFocalPoint(view.get_pupilpos(field=subfield) + view.get_los_direction(view.image_display_shape[0]/2,view.image_display_shape[1]/2))
+                self.camera.SetViewAngle(view.get_fov(field=subfield)[1])
+                self.camera.SetViewUp(-1.*view.get_cam_to_lab_rotation(field=subfield)[:,1])                 
+
+            elif view_item.parent() is self.views_root_auto:
 
                 if str(view_item.text(0)).lower() == 'horizontal cross-section thru cursor' and self.cadexplorer.point is not None:
                     self.camera.SetViewUp(0,1,0)
@@ -461,22 +544,12 @@ class CADViewerWindow(qt.QMainWindow):
             self.camera.SetFocalPoint((self.tarX.value(),self.tarY.value(),self.tarZ.value()))
             self.camera.SetViewAngle(self.camFOV.value())
 
-        self.update_viewport_info(self.camera.GetPosition(),self.camera.GetFocalPoint(),self.camera.GetViewAngle())
+        self.update_viewport_info(self.camera.GetPosition(),self.camera.GetFocalPoint(),self.camera.GetViewAngle(),keep_selection=True)
 
         self.cadexplorer.update_clipping()
 
         self.refresh_vtk()
 
-
-
-    def init_sightline_list(self):
-
-        self.sightlines_list.clear()
-
-        # Populate sight line list
-        self.sightlines_list.addItems(paths.get_save_list('FitResults'))
-        for i in range(self.sightlines_list.count()):
-            self.sightlines_list.item(i).setCheckState(qt.Qt.Unchecked)
 
 
     def set_cad_colour_by_material(self,colour_by_material):
@@ -522,18 +595,15 @@ class CADViewerWindow(qt.QMainWindow):
     def pick_model_colour(self):
 
         if self.model_custom_colour is None:
-            col_init = np.array(self.cadmodel.default_colour) * 255
+            col_init = self.cadmodel.default_colour
         else:
-            col_init = np.array(self.model_custom_colour) * 255
+            col_init = self.model_custom_colour
 
-        dialog = qt.QColorDialog(qt.QColor(col_init[0],col_init[1],col_init[2]),self)
-        res = dialog.exec_()
+        picked_colour = pick_colour(self,col_init)
 
-        if res:
-            self.model_custom_colour = ( dialog.currentColor().red() / 255. , dialog.currentColor().green() / 255. , dialog.currentColor().blue() / 255.)
-        del dialog
-
-        self.set_cad_colour()
+        if picked_colour is not None:
+            self.model_custom_colour = picked_colour
+            self.set_cad_colour()
 
 
 
@@ -623,6 +693,68 @@ class CADViewerWindow(qt.QMainWindow):
 
 
 
+    def do_render(self):
+
+        dialog = qt.QFileDialog(self)
+        dialog.setAcceptMode(1)
+        dialog.setFileMode(0)
+        dialog.setWindowTitle('Export High Res Image...')
+        dialog.setNameFilter('PNG Image (*.png)')
+        dialog.exec_()
+        if dialog.result() == 1:
+            filename = str(dialog.selectedFiles()[0])
+            if not filename.endswith('.png'):
+                filename = filename + '.png'
+        else:
+            return
+
+        self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
+
+        temp_actors = []
+        if self.sightlines_legend_checkbox.isChecked():
+            temp_actors.append(self.cadexplorer.legend)
+
+        if not self.render_include_cursor.isChecked():
+            if self.cadexplorer.point is not None:
+                temp_actors.append( self.cadexplorer.point[2] )
+
+        for actor in temp_actors:
+            self.renderer.RemoveActor(actor)
+
+        self.renderer.Render()
+
+        if self.render_current_view.isChecked():
+
+            magnification = 2**self.render_resolution.currentIndex() * (self.render_aa.currentIndex() + 1)
+            dims = np.array(self.cadexplorer.Window.GetSize()) * magnification
+
+            hires_renderer = vtk.vtkRenderLargeImage()
+            hires_renderer.SetInput(self.renderer)
+            hires_renderer.SetMagnification( magnification )
+            hires_renderer.Update()
+            vtk_im_array = hires_renderer.GetOutput().GetPointData().GetScalars()
+            im = np.flipud(vtk.util.numpy_support.vtk_to_numpy(vtk_im_array).reshape(dims[1], dims[0] , 3))
+
+            if self.render_bg_transparent.isChecked():
+                alpha = 255 * np.ones([np.shape(im)[0],np.shape(im)[1]],dtype='uint8')
+                alpha[np.sum(im,axis=2) == 0] = 0
+                im = np.dstack((im,alpha))
+
+            im = cv2.resize(im,(int(dims[0]/(self.render_aa.currentIndex() + 1)),int(dims[1]/(self.render_aa.currentIndex() + 1))),interpolation=cv2.INTER_AREA)
+            
+            im[:,:,:3] = im[:,:,2::-1]
+            cv2.imwrite(filename,im)
+
+        elif self.render_cam_view.isChecked():
+            im = render.render_cam_view(self.renderer.GetActors(),self.render_calib,filename=filename,oversampling=2**(self.render_resolution.currentIndex()),AA=self.render_aa.currentIndex()+1,Transparency=self.render_bg_transparent.isChecked())
+
+        for actor in temp_actors:
+            self.renderer.AddActor(actor)
+            
+        self.renderer.Render()
+
+        self.app.restoreOverrideCursor()
+
 
     def populate_model_variants(self):
 
@@ -678,6 +810,17 @@ class CADViewerWindow(qt.QMainWindow):
             self.feature_tree.blockSignals(False)
             self.app.restoreOverrideCursor()
 
+            for key,item in self.sightlines.iteritems():
+                recheck = False
+                if key.checkState() == qt.Qt.Checked:
+                    recheck = True
+                    key.setCheckState(qt.Qt.Unchecked)
+                    self.colourcycle.queue_colour(item[1].GetProperty().GetColor())
+                item[1] = None
+                if recheck:
+                    key.setCheckState(qt.Qt.Checked)
+
+
 
     def load_model(self):
 
@@ -723,10 +866,13 @@ class CADViewerWindow(qt.QMainWindow):
         # Initialise the CAD model setup GUI
         init_model_settings(self)
 
+
+        self.tabWidget.setTabEnabled(1,True)
+        self.tabWidget.setTabEnabled(2,True)
+        self.tabWidget.setTabEnabled(3,True)
+
         # Initialise other lists of things
         self.init_viewports_list()
-        #self.init_roi_list()
-        self.init_sightline_list()
 
 
         # Set selected CAD view to the model's default, if the machine has been changed (i.e. changing model variant will maintain the viewport)
@@ -750,6 +896,12 @@ class CADViewerWindow(qt.QMainWindow):
 
         self.statusbar.clearMessage()
         self.refresh_vtk()
+
+        # Make sure the light lights up the whole model without annoying shadows or falloff.
+        light = self.renderer.GetLights().GetItemAsObject(0)
+        light.PositionalOn()
+        light.SetConeAngle(180)
+
         self.app.restoreOverrideCursor()
 
 
@@ -766,7 +918,7 @@ class CADViewerWindow(qt.QMainWindow):
         self.app.restoreOverrideCursor()
 
 
-    def update_viewport_info(self,campos,camtar,fov):
+    def update_viewport_info(self,campos,camtar,fov,keep_selection = False):
         self.camX.blockSignals(True)
         self.camY.blockSignals(True)
         self.camZ.blockSignals(True)
@@ -791,32 +943,112 @@ class CADViewerWindow(qt.QMainWindow):
         self.tarZ.blockSignals(False)
         self.camFOV.blockSignals(False)
 
+        if not keep_selection:
+            self.viewlist.clearSelection()
+
+        try:
+            if self.cadexplorer.point is not None:
+                self.xsection_checkbox.setEnabled(True)
+                for i in range(self.views_root_auto.childCount()):
+                    self.views_root_auto.child(i).setFlags(self.views_root_auto.child(i).flags() | qt.Qt.ItemIsEnabled)
+            else:
+                self.xsection_checkbox.setEnabled(False)
+                for i in range(self.views_root_auto.childCount()):
+                    self.views_root_auto.child(i).setFlags(qt.Qt.NoItemFlags)
+        except AttributeError:
+            pass          
+
+
 
     def update_sightlines(self,data):
 
-        if self.sender() is self.sightlines_list:
-            calib_name = str(data.text())
+        if self.sender() is self.sightlines_load_button:
+
+            cals = object_from_file(self,'Calibration',multiple=True)
+
+            for cal in cals:
+                # Add it to the sight lines list
+                listitem = qt.QListWidgetItem(cal.name)
+                
+                listitem.setFlags(listitem.flags() | qt.Qt.ItemIsEditable | qt.Qt.ItemIsSelectable)
+                listitem.setToolTip(cal.name)
+                self.sightlines_list.addItem(listitem)
+                if self.sightline_type_volume.isChecked():
+                    actor_type = 'volume'
+                elif self.sightline_type_lines.isChecked():
+                    actor_type = 'lines'
+                self.sightlines[listitem] = [cal,None,actor_type]
+                listitem.setCheckState(qt.Qt.Checked)
+                self.sightlines_list.setCurrentItem(listitem)
+
+
+        elif self.sender() is self.sightlines_list:
+
             if data.checkState() == qt.Qt.Checked:
-                self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
-                self.statusbar.showMessage('Ray casting camera sight lines...')
-                actor = render.get_fov_actor(self.cadmodel,fitting.CalibResults(calib_name))
-                self.statusbar.clearMessage()
-                actor.GetProperty().SetColor(self.available_colours.pop())
-                actor.GetProperty().SetOpacity(100.**(self.sightline_opacity_slider.value()/100.)/100.)
-                self.sightlines[calib_name] = actor
-                self.renderer.AddActor(actor)
-                self.app.restoreOverrideCursor()
+                
+                if len(self.cadexplorer.sightline_actors) == 1:
+                    self.sightlines_legend_checkbox.setChecked(True)
+
+                if self.sightlines[data][1] is None:
+                    self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
+                    self.statusbar.showMessage('Ray casting camera sight lines...')
+                    actor = render.get_fov_actor(self.cadmodel,self.sightlines[data][0],self.sightlines[data][2])
+                    self.statusbar.clearMessage()
+                    actor.GetProperty().SetColor(next(self.colourcycle))
+                    actor.GetProperty().SetOpacity(100.**(self.sightline_opacity_slider.value()/100.)/100.)
+                    self.sightlines[data][1] = actor
+                    self.renderer.AddActor(actor)
+                    self.app.restoreOverrideCursor()
+                    self.cadexplorer.sightline_actors.append(actor)
+                else:
+                    self.renderer.AddActor(self.sightlines[data][1])
+                    self.cadexplorer.sightline_actors.append(self.sightlines[data][1])
+
             else:
-                sightlines= self.sightlines.pop(calib_name,None)
-                if sightlines is not None:
-                    self.available_colours.append(sightlines.GetProperty().GetColor())
-                    self.renderer.RemoveActor(sightlines)
+                self.renderer.RemoveActor(self.sightlines[data][1])
+                self.cadexplorer.sightline_actors.remove(self.sightlines[data][1])
+                if len(self.cadexplorer.sightline_actors) < 2:
+                    self.sightlines_legend_checkbox.setChecked(False)
 
         elif self.sender() is self.sightline_opacity_slider:
-            for sightlines in self.sightlines.values():
-                sightlines.GetProperty().SetOpacity( 100.**(data/100.)/100. )
 
-                
+            for item in self.sightlines_list.selectedItems():
+                self.sightlines[item][1].GetProperty().SetOpacity( 100.**(data/100.)/100. )
+
+        elif self.sender() is self.pick_sightlines_colour and len(self.sightlines_list.selectedItems()) > 0:
+
+            picked_colour = pick_colour(self,self.sightlines[self.sightlines_list.selectedItems()[0]][1].GetProperty().GetColor())
+            if picked_colour is not None:
+                for item in self.sightlines_list.selectedItems():
+                    self.sightlines[item][1].GetProperty().SetColor( picked_colour )
+
+        elif self.sender() is self.sightline_type_volume:
+
+            for item in self.sightlines_list.selectedItems():
+                item.setCheckState(qt.Qt.Unchecked)
+                self.colourcycle.queue_colour(self.sightlines[item][1].GetProperty().GetColor())
+                self.sightlines[item][1] = None
+
+                if self.sightline_type_volume.isChecked():
+                    self.sightlines[item][2] = 'volume'
+                elif self.sightline_type_lines.isChecked():
+                    self.sightlines[item][2] = 'lines'
+
+                item.setCheckState(qt.Qt.Checked)
+
+            
+
+        if self.sightlines_legend_checkbox.isChecked():
+            
+            legend_items = []
+            for item in self.sightlines.keys():
+                if item.checkState() == qt.Qt.Checked and self.sightlines[item][1] is not None:
+                    legend_items.append( ( str(item.text()), self.sightlines[item][1].GetProperty().GetColor() ) )
+
+            self.cadexplorer.set_legend(legend_items)  
+
+        else:
+            self.cadexplorer.set_legend([])
 
         self.qvtkWidget.update()
 
@@ -1478,6 +1710,8 @@ class CalCamWindow(qt.QMainWindow):
         self.pointpairs_load_name.clear()
         self.pointpairs_load_name.addItems(pp_list)
         self.pointpairs_load_name.setCurrentIndex(-1)
+
+
 
 
 
@@ -5223,7 +5457,53 @@ def rotate_3D(vect,axis,angle):
     return np.array( R * vect_)
 
 
-def object_from_file(parent,obj_type):
+def object_from_file(parent,obj_type,multiple=False):
+
+    if obj_type.lower() == 'calibration':
+        filename_filter = 'Calcam Calibration (*.pickle)'
+        start_dir = paths.root
+
+    filedialog = qt.QFileDialog(parent)
+    filedialog.setAcceptMode(0)
+
+    if multiple:
+        filedialog.setFileMode(3)
+        empty_ret = []
+    else:
+        filedialog.setFileMode(1)
+        empty_ret = None
+
+    filedialog.setWindowTitle('Open...')
+    filedialog.setNameFilter(filename_filter)
+    filedialog.exec_()
+    if filedialog.result() == 1:
+        selected_paths = filedialog.selectedFiles()
+    else:
+        return empty_ret
+
+
+    objs = []
+    for path in [str(p) for p in selected_paths]:
+
+        if obj_type.lower() == 'calibration':
+            name = os.path.split(path)[-1].replace('.pickle','')
+            try:
+                obj = fitting.CalibResults(name)
+            except:
+                obj = fitting.VirtualCalib(name)
+
+            obj.name = name
+
+
+        objs.append(obj)
+
+    if multiple:
+        return objs
+    else:
+        return objs[0]
+
+
+def get_save_filename(parent,obj_type):
 
     if obj_type.lower() == 'calibration':
         filename_filter = 'Calcam Calibration (*.pickle)'
@@ -5247,7 +5527,64 @@ def object_from_file(parent,obj_type):
         except:
             obj = fitting.VirtualCalib(name)
 
+    obj.name = name
+
     return obj
+
+
+def pick_colour(parent,init_colour):
+
+    col_init = np.array(init_colour) * 255
+
+    dialog = qt.QColorDialog(qt.QColor(col_init[0],col_init[1],col_init[2]),parent)
+    res = dialog.exec_()
+
+    if res:
+        ret_col = ( dialog.currentColor().red() / 255. , dialog.currentColor().green() / 255. , dialog.currentColor().blue() / 255.)
+    else:
+        ret_col = None
+
+    del dialog
+
+    return ret_col
+
+
+class colourcycle():
+
+    def __init__(self):
+
+        self.colours = [(0.121,0.466,0.705),
+                        (1,0.498,0.054),
+                        (0.172,0.627,0.172),
+                        (0.829,0.152,0.156),
+                        (0.580,0.403,0.741),
+                        (0.549,0.337,0.294),
+                        (0.890,0.466,0.760),
+                        (0.498,0.498,0.498),
+                        (0.737,0.741,0.133),
+                        (0.09,0.745,0.811),
+                        ]
+
+        self.extra_colours = []
+
+        self.next_index = 0
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        if len(self.extra_colours) > 0:
+            return self.extra_colours.pop()
+        else:
+            col = self.colours[self.next_index]
+            self.next_index = self.next_index + 1
+            if self.next_index > len(self.colours) - 1:
+                self.next_index = 0 
+            return col
+
+    def queue_colour(self,colour):
+        self.extra_colours.insert(0,colour)
+
 
 
 if __name__ == '__main__':

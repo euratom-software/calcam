@@ -2678,6 +2678,7 @@ class CADExplorer(vtk.vtkInteractorStyleTerrain):
         self.Camera3D = self.Renderer.GetActiveCamera()
         self.gui_window = gui_window
 
+        self.Window.AddObserver("ModifiedEvent",self.OnWindowSizeAdjust)
 
         # Create a picker
         self.Picker = vtk.vtkCellPicker()
@@ -2692,8 +2693,14 @@ class CADExplorer(vtk.vtkInteractorStyleTerrain):
         self.view_target = None
         self.view_target_dummy = True
 
+        self.legend = None
+
+        self.sightline_actors = []
+
         if self.gui_window is not None:
             self.gui_window.update_viewport_info(self.Camera3D.GetPosition(),self.get_view_target(),self.Camera3D.GetViewAngle())
+
+
 
     def mouse_move(self,obj,event):
         self.OnMouseMove()
@@ -2712,6 +2719,76 @@ class CADExplorer(vtk.vtkInteractorStyleTerrain):
         self.xsection = xsection
         self.Renderer.Render()
         self.gui_window.refresh_vtk()
+
+
+
+    def set_legend(self,legend_items):
+
+        if self.legend is not None:
+            self.Renderer.RemoveActor(self.legend)
+
+        if len(legend_items) > 0:
+
+            self.longest_name = 0
+            for entry in legend_items:
+                if len(entry[0]) > self.longest_name:
+                    self.longest_name = len(entry[0])
+
+            self.n_legend_items = len(legend_items)
+
+            legend = vtk.vtkLegendBoxActor()
+            legend.SetNumberOfEntries(len(legend_items))
+
+            for i,entry in enumerate(legend_items):
+                legend.SetEntryString(i,entry[0])
+                legend.SetEntryColor(i,entry[1])
+
+ 
+            legend.UseBackgroundOn()
+            legend.SetBackgroundColor((0.1,0.1,0.1))
+            legend.SetPadding(9)
+            self.legend = legend
+
+            self.Renderer.AddActor(legend)
+
+            self.OnWindowSizeAdjust()
+            
+
+    def OnWindowSizeAdjust(self,obj=None,event=None):
+
+        vtk_size = self.Window.GetSize()
+
+        # Sizing of the legend
+        if self.legend is not None:
+
+            legend_offset_y = 0.02
+            legend_scale = 0.03
+
+            legend_offset_x = legend_offset_y*vtk_size[1] / vtk_size[0]
+            legend_pad_y = 20./vtk_size[1]
+            legend_pad_x = 20./vtk_size[0]
+
+            legend_height = legend_pad_y + legend_scale * self.n_legend_items
+            abs_height = legend_scale * vtk_size[1]
+            width_per_char = abs_height * 0.5
+            legend_width = legend_pad_x + (width_per_char * self.longest_name)/vtk_size[0]
+
+            self.legend.GetPosition2Coordinate().SetCoordinateSystemToNormalizedDisplay()
+            self.legend.GetPositionCoordinate().SetCoordinateSystemToNormalizedDisplay()
+
+            # Set Legend Size
+            self.legend.GetPosition2Coordinate().SetValue(legend_width,legend_height )
+            # Set Legend position
+            self.legend.GetPositionCoordinate().SetValue(1 - legend_offset_x - legend_width, legend_offset_y)
+
+
+        if self.gui_window.render_current_view.isChecked():
+            index = max(self.gui_window.render_resolution.currentIndex(),0)
+            self.gui_window.render_resolution.clear()
+            self.gui_window.render_resolution.addItem('{:d} x {:d} (Window Size)'.format(vtk_size[0],vtk_size[1]))
+            self.gui_window.render_resolution.addItem('{:d} x {:d}'.format(vtk_size[0]*2,vtk_size[1]*2))
+            self.gui_window.render_resolution.addItem('{:d} x {:d}'.format(vtk_size[0]*4,vtk_size[1]*4))
+            self.gui_window.render_resolution.setCurrentIndex(index)
 
 
     def update_clipping(self):
@@ -2772,7 +2849,12 @@ class CADExplorer(vtk.vtkInteractorStyleTerrain):
         
         # Do a pick with our picker object
         clickcoords = self.Interactor.GetEventPosition()
+
+        for actor in self.sightline_actors:
+            self.Renderer.RemoveActor(actor)
         retval = self.Picker.Pick(clickcoords[0],clickcoords[1],0,self.Renderer)
+        for actor in self.sightline_actors:
+            self.Renderer.AddActor(actor)
 
         # If something was successfully picked, find out what it was...
         if retval != 0:
@@ -2826,6 +2908,7 @@ class CADExplorer(vtk.vtkInteractorStyleTerrain):
                 if self.xsection:
                     self.update_clipping()
 
+                self.gui_window.update_viewport_info(self.Camera3D.GetPosition(),self.get_view_target(),self.Camera3D.GetViewAngle())
                 self.gui_window.refresh_vtk()
                 
                 

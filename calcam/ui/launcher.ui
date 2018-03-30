@@ -137,7 +137,7 @@
       <item row="6" column="3">
        <widget class="QLabel" name="label_2">
         <property name="text">
-         <string>View CAD models and visualise camera views, raycast results and ROIs</string>
+         <string>View CAD models; visualise camera sight lines; create figures</string>
         </property>
        </widget>
       </item>
