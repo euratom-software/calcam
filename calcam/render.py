@@ -69,9 +69,9 @@ def render_cam_view(CADModel,FitResults,filename=None,oversampling=1,AA=1,Edges=
     If filename is provided, saves the render with the specified filename
     """
 
-    if CADModel.__class__ == vtk.vtkActorCollection:
+    if type(CADModel) is list:
         given_actors = True
-        CADModel.InitTraversal()
+        actors = CADModel
     else:
         given_actors = False
 
@@ -171,10 +171,8 @@ def render_cam_view(CADModel,FitResults,filename=None,oversampling=1,AA=1,Edges=
                     renderer.AddActor(ROIActor)
 
         else:
-            actor = CADModel.GetNextItemAsObject()
-            while actor is not None:
+            for actor in actors:
                 renderer.AddActor(actor)
-                actor = CADModel.GetNextItemAsObject()
 
         # We need a field mask the same size as the output
         FieldMask = cv2.resize(FitResults.fieldmask,(int(x_pixels*oversampling),int(y_pixels*oversampling)),interpolation=cv2.INTER_NEAREST)
@@ -226,7 +224,7 @@ def render_cam_view(CADModel,FitResults,filename=None,oversampling=1,AA=1,Edges=
             vtk_image = vtk_win_im.GetOutput()
 
             if field == FitResults.nfields - 1:
-                renWin.Finalize()
+                #renWin.Finalize()
                 if Edges:
                     # Put the colour scheme back to how it was
                     for Feature in oldColours:
@@ -272,6 +270,7 @@ def render_cam_view(CADModel,FitResults,filename=None,oversampling=1,AA=1,Edges=
 
         if not given_actors:
             CADModel.edges = False
+
 
         if Coords.lower() == 'original':
             OutputImage = FitResults.transform.display_to_original_image(OutputImage)
@@ -417,19 +416,16 @@ def get_fov_actor(cadmodel,calib,actor_type='volume',resolution=None):
 
     elif actor_type.lower() == 'lines':
 
-        point_ind = -1
-        for field in range(calib.nfields):
-            points.InsertNextPoint(calib.get_pupilpos(field=field))
-            point_ind = point_ind + 1
-
         lines = vtk.vtkCellArray()
+        point_ind = -1
         for i in range(raydata.ray_end_coords.shape[0]):
             for j in range(raydata.ray_end_coords.shape[1]):
                 points.InsertNextPoint(raydata.ray_end_coords[i,j,:])
-                point_ind = point_ind + 1
+                points.InsertNextPoint(raydata.ray_start_coords[i,j,:])
+                point_ind = point_ind + 2
 
                 line = vtk.vtkLine()
-                line.GetPointIds().SetId(0,calib.fieldmask[i,j])
+                line.GetPointIds().SetId(0,point_ind - 1)
                 line.GetPointIds().SetId(1,point_ind)
                 lines.InsertNextCell(line)
 

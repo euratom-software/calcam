@@ -70,7 +70,7 @@ class CADModel:
 
         self.edges = False
 
-        self.edge_width = 2
+        self.edge_width = 1
 
         for Feature in self.features:
 

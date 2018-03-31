@@ -265,14 +265,14 @@ class CADViewerWindow(qt.QMainWindow):
         qt.QMainWindow.__init__(self, parent)
         qt.uic.loadUi(os.path.join(paths.ui,'cad_viewer.ui'), self)
 
-        self.setWindowIcon(qt.QIcon(os.path.join(paths.calcampath,'ui','calcam.png')))
+        self.setWindowIcon(qt.QIcon(os.path.join(paths.calcampath,'ui','icon.png')))
 
         self.app = app
 
         # See how big the screen is and open the window at an appropriate size
         desktopinfo = self.app.desktop()
         available_space = desktopinfo.availableGeometry(self)
-
+        self.screensize = (available_space.width(),available_space.height())
         # Open the window with same aspect ratio as the screen, and no fewer than 500px tall.
         win_height = max(500,min(780,0.75*available_space.height()))
         win_width = win_height * available_space.width() / available_space.height() 
@@ -342,10 +342,10 @@ class CADViewerWindow(qt.QMainWindow):
 
         self.model_actors = {}
 
-        self.sightlines = {}
+        self.sightlines = DodgyDict()
         self.colour_q = []
         self.model_custom_colour = None
-        self.viewport_calibs = {}
+        self.viewport_calibs = DodgyDict()
 
         self.colourcycle = colourcycle()
 
@@ -428,11 +428,11 @@ class CADViewerWindow(qt.QMainWindow):
         for cal in cals:
             listitem = qt.QTreeWidgetItem(self.views_root_results,[cal.name])
             if cal.nfields > 1:
-                self.viewport_calibs[listitem] = (cal,None)
+                self.viewport_calibs[(listitem)] = (cal,None)
                 for n,fieldname in enumerate(res.field_names):
-                    self.viewport_calibs[ qt.QTreeWidgetItem(listitem,[fieldname]) ] = (cal,n) 
+                    self.viewport_calibs[ (qt.QTreeWidgetItem(listitem,[fieldname])) ] = (cal,n) 
             else:
-                self.viewport_calibs[listitem] = (cal,0)
+                self.viewport_calibs[(listitem)] = (cal,0)
 
         self.views_root_results.setHidden(False)
 
@@ -500,7 +500,7 @@ class CADViewerWindow(qt.QMainWindow):
 
             elif view_item.parent() is self.views_root_results or view_item.parent() in self.viewport_calibs.keys():
 
-                view,subfield = self.viewport_calibs[view_item]
+                view,subfield = self.viewport_calibs[(view_item)]
                 if subfield is None:
                     return
 
@@ -558,7 +558,7 @@ class CADViewerWindow(qt.QMainWindow):
             self.model_manual_colour.setChecked(False)
 
         if self.cadmodel is not None:
-            for feature,actors in self.model_actors.iteritems():
+            for feature,actors in self.model_actors.items():
 
                 if colour_by_material:
                     colour = self.cadmodel.get_colour_new(feature,'material')
@@ -581,7 +581,7 @@ class CADViewerWindow(qt.QMainWindow):
             self.colour_by_material.setChecked(False)
 
         if self.cadmodel is not None:
-            for feature,actors in self.model_actors.iteritems():
+            for feature,actors in self.model_actors.items():
                 if self.model_manual_colour.isChecked():
                     actors[-1].GetProperty().SetColor(self.model_custom_colour)
                 else:
@@ -613,16 +613,12 @@ class CADViewerWindow(qt.QMainWindow):
             self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
             self.cadmodel.edges = wireframe
             for feature in self.model_actors.keys():
-                actors = self.model_actors.pop(feature)
+                actors = self.model_actors[feature]
+
                 for actor in actors:
                     self.renderer.RemoveActor(actor)
 
-            features = self.cadmodel.get_enabled_features()
-
-            for feature in self.cadmodel.get_enabled_features():
                 actors = self.cadmodel.get_vtkActors(feature)
-                self.model_actors[feature] = actors
-
                 if self.colour_by_material.isChecked():
                     actors[-1].GetProperty().SetColor( self.cadmodel.get_colour_new(feature,'material'))
                 elif self.model_manual_colour.isChecked():
@@ -630,6 +626,8 @@ class CADViewerWindow(qt.QMainWindow):
 
                 for actor in actors:
                     self.renderer.AddActor(actor)
+
+                self.model_actors[feature] = actors
 
             self.refresh_vtk()
             self.update_selected()      
@@ -721,6 +719,19 @@ class CADViewerWindow(qt.QMainWindow):
         for actor in temp_actors:
             self.renderer.RemoveActor(actor)
 
+
+        actorcollection = self.renderer.GetActors()
+        actorcollection.InitTraversal()
+        actors = []
+        actor = actorcollection.GetNextItemAsObject()
+        while actor is not None:
+            actors.append(actor)
+            actor = actorcollection.GetNextItemAsObject()
+
+        for actor in actors:
+            actor.GetProperty().SetLineWidth( actor.GetProperty().GetLineWidth() * (self.render_aa.currentIndex() + 1)  )
+
+
         self.renderer.Render()
 
         if self.render_current_view.isChecked():
@@ -746,11 +757,15 @@ class CADViewerWindow(qt.QMainWindow):
             cv2.imwrite(filename,im)
 
         elif self.render_cam_view.isChecked():
-            im = render.render_cam_view(self.renderer.GetActors(),self.render_calib,filename=filename,oversampling=2**(self.render_resolution.currentIndex()),AA=self.render_aa.currentIndex()+1,Transparency=self.render_bg_transparent.isChecked())
+
+            im = render.render_cam_view(actors,self.render_calib,filename=filename,oversampling=2**(self.render_resolution.currentIndex()),AA=self.render_aa.currentIndex()+1,Transparency=self.render_bg_transparent.isChecked(),ScreenSize=self.screensize)
+
+        for actor in actors:
+            actor.GetProperty().SetLineWidth( actor.GetProperty().GetLineWidth() / (self.render_aa.currentIndex() + 1)  )
 
         for actor in temp_actors:
             self.renderer.AddActor(actor)
-            
+
         self.renderer.Render()
 
         self.app.restoreOverrideCursor()
@@ -810,7 +825,7 @@ class CADViewerWindow(qt.QMainWindow):
             self.feature_tree.blockSignals(False)
             self.app.restoreOverrideCursor()
 
-            for key,item in self.sightlines.iteritems():
+            for key,item in self.sightlines:
                 recheck = False
                 if key.checkState() == qt.Qt.Checked:
                     recheck = True
@@ -1194,7 +1209,7 @@ class CalCamWindow(qt.QMainWindow):
         qt.QMainWindow.__init__(self, parent)
         qt.uic.loadUi(os.path.join(paths.ui,'calcam.ui'), self)
 
-        self.setWindowIcon(qt.QIcon(os.path.join(paths.calcampath,'ui','calcam.png')))
+        self.setWindowIcon(qt.QIcon(os.path.join(paths.calcampath,'ui','icon.png')))
 
         self.app = app
 
@@ -3248,7 +3263,7 @@ class ViewDesignerWindow(qt.QMainWindow):
         qt.QMainWindow.__init__(self, parent)
         qt.uic.loadUi(os.path.join(paths.ui,'view_designer.ui'), self)
 
-        self.setWindowIcon(qt.QIcon(os.path.join(paths.calcampath,'ui','calcam.png')))
+        self.setWindowIcon(qt.QIcon(os.path.join(paths.calcampath,'ui','icon.png')))
 
         self.app = app
 
@@ -3709,7 +3724,7 @@ class AlignmentCalibWindow(qt.QMainWindow):
         qt.QMainWindow.__init__(self, parent)
         qt.uic.loadUi(os.path.join(paths.ui,'alignment_calib.ui'), self)
 
-        self.setWindowIcon(qt.QIcon(os.path.join(paths.calcampath,'ui','calcam.png')))
+        self.setWindowIcon(qt.QIcon(os.path.join(paths.calcampath,'ui','icon.png')))
 
         self.app = app
 
@@ -4547,7 +4562,7 @@ class ImageAnalyserWindow(qt.QMainWindow):
         qt.QMainWindow.__init__(self, parent)
         qt.uic.loadUi(os.path.join(paths.ui,'image_analyser.ui'), self)
 
-        self.setWindowIcon(qt.QIcon(os.path.join(paths.calcampath,'ui','calcam.png')))
+        self.setWindowIcon(qt.QIcon(os.path.join(paths.calcampath,'ui','icon.png')))
 
         self.app = app
 
@@ -5379,13 +5394,13 @@ class LauncherWindow(qt.QDialog):
         # Load the Qt designer file, assumed to be in the same directory as this python file and named gui.ui.
         qt.uic.loadUi(os.path.join(paths.ui,'launcher.ui'), self)
         
-        self.setWindowIcon(qt.QIcon(os.path.join(paths.calcampath,'ui','calcam.png')))
+        self.setWindowIcon(qt.QIcon(os.path.join(paths.calcampath,'ui','icon.png')))
         self.setWindowTitle('Calcam  v{:s}'.format(__version__))
         self.layout().setSizeConstraint(qt.QLayout.SetFixedSize)
 
         self.app = app
         
-        immap = qt.QPixmap(os.path.join(paths.ui,'calcam.png'))
+        immap = qt.QPixmap(os.path.join(paths.ui,'logo.png'))
         self.logolabel.setPixmap(immap)
 
         # Callbacks for GUI elements: connect the buttons to the functions we want to run
@@ -5572,7 +5587,7 @@ class colourcycle():
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         if len(self.extra_colours) > 0:
             return self.extra_colours.pop()
         else:
@@ -5585,6 +5600,49 @@ class colourcycle():
     def queue_colour(self,colour):
         self.extra_colours.insert(0,colour)
 
+
+
+# Custom dictionary-like storage class.
+# Behaves more-or-less like a dictionary but without the requirement
+# that the keys are hashable. Needed so I can do things like use
+# QTreeWidgetItems as keys.
+class DodgyDict():
+
+    def __init__(self):
+
+        self.keylist = []
+        self.itemlist = []
+        self.iter_index = 0
+
+    def __getitem__(self,key):
+        for i,ikey in enumerate(self.keylist):
+            if key == ikey:
+                return self.itemlist[i]
+        raise IndexError()
+
+    def __setitem__(self,key,value):
+
+        for i,ikey in enumerate(self.keylist):
+            if key == ikey:
+                self.itemlist[i] = value
+                return
+
+        self.keylist.append(key)
+        self.itemlist.append(value)
+
+    def __iter__(self):
+        self.iter_index = 0
+        return self
+
+    def __next__(self):
+        if self.iter_index > len(self.keys()) - 1: 
+            raise StopIteration
+        else:
+            self.iter_index += 1
+            return (self.keylist[self.iter_index-1],self.itemlist[self.iter_index-1])
+
+    def keys(self):
+        return self.keylist
 
 
 if __name__ == '__main__':
