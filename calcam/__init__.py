@@ -28,26 +28,14 @@ CalCam package.
 __version__ = '2.0.0-dev'
 
 
-# Make sure we have the right thing in sys.path to be able to import the modules.
-import sys
-import inspect
-import os
-calcampath = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-if calcampath not in sys.path:
-    sys.path.insert(0,calcampath)
-
-# List of user-exposed modules which are part of the CalCam package.
-module_list = ['paths','machine_geometry','pointpairs','fitting','roi','render','raytrace','image','gui','geometry_matrix','image_filters']
-
-
-# Try to import each module
-for ModuleName in module_list:
-    exec('import ' + ModuleName)
+# Import the top level "public facing" classes & functions
+from .config import CalCamConfig
+from .cadmodel import CADModel
 
 
 from fitting import CalibResults, VirtualCalib
 from image import Image
-from raytrace import RayData, RayCaster
+from raytrace import RayData, raycast_sightlines
 from pointpairs import PointPairs
 from roi import ROI, ROISet
 from geometry_matrix import RectangularGeometryMatrix

@@ -21,6 +21,30 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="0">
+     <widget class="QFrame" name="vtk_frame">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::NoFrame</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Plain</enum>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_6">
+       <property name="margin">
+        <number>9</number>
+       </property>
+       <property name="spacing">
+        <number>6</number>
+       </property>
+      </layout>
+     </widget>
+    </item>
     <item row="0" column="2">
      <widget class="QTabWidget" name="tabWidget">
       <property name="enabled">
@@ -45,7 +69,7 @@
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>3</number>
+       <number>0</number>
       </property>
       <property name="elideMode">
        <enum>Qt::ElideNone</enum>
@@ -135,7 +159,7 @@
            <item row="2" column="0" colspan="4">
             <widget class="QCheckBox" name="cad_auto_load">
              <property name="text">
-              <string>Load default features immediately</string>
+              <string>Enable default features on load</string>
              </property>
              <property name="checked">
               <bool>true</bool>
@@ -157,7 +181,10 @@
            <item row="1" column="0" colspan="2">
             <widget class="QTreeWidget" name="feature_tree">
              <property name="selectionMode">
-              <enum>QAbstractItemView::SingleSelection</enum>
+              <enum>QAbstractItemView::ExtendedSelection</enum>
+             </property>
+             <property name="selectionBehavior">
+              <enum>QAbstractItemView::SelectItems</enum>
              </property>
              <attribute name="headerVisible">
               <bool>false</bool>
@@ -167,33 +194,6 @@
                <string notr="true">1</string>
               </property>
              </column>
-            </widget>
-           </item>
-           <item row="2" column="1">
-            <widget class="QPushButton" name="disable_all_button">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="text">
-              <string>Disable All</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="0">
-            <widget class="QPushButton" name="enable_all_button">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="text">
-              <string>Enable All</string>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="0" colspan="2">
-            <widget class="QCheckBox" name="highlight_selected">
-             <property name="text">
-              <string>Highlight selected feature in red</string>
-             </property>
             </widget>
            </item>
           </layout>
@@ -218,6 +218,26 @@
              </property>
             </widget>
            </item>
+           <item row="1" column="0" colspan="3">
+            <widget class="QCheckBox" name="xsection_checkbox">
+             <property name="text">
+              <string>Cut model cross-section through cursor</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="2">
+            <spacer name="horizontalSpacer_3">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
            <item row="0" column="1">
             <widget class="QRadioButton" name="rendertype_edges">
              <property name="text">
@@ -225,25 +245,50 @@
              </property>
             </widget>
            </item>
-           <item row="1" column="0" colspan="3">
-            <widget class="QCheckBox" name="colour_by_material">
-             <property name="text">
-              <string>Colour by material (defined in model)</string>
+           <item row="3" column="0" colspan="3">
+            <widget class="QFrame" name="frame_4">
+             <property name="frameShape">
+              <enum>QFrame::NoFrame</enum>
              </property>
-            </widget>
-           </item>
-           <item row="2" column="0">
-            <widget class="QCheckBox" name="model_manual_colour">
-             <property name="text">
-              <string>Manual Colour:</string>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
              </property>
-            </widget>
-           </item>
-           <item row="2" column="1">
-            <widget class="QPushButton" name="choose_model_colour">
-             <property name="text">
-              <string>Choose...</string>
-             </property>
+             <layout class="QGridLayout" name="gridLayout_9">
+              <property name="margin">
+               <number>0</number>
+              </property>
+              <property name="spacing">
+               <number>6</number>
+              </property>
+              <item row="1" column="2">
+               <widget class="QPushButton" name="cad_colour_reset_button">
+                <property name="text">
+                 <string>Reset All</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QPushButton" name="cad_colour_choose_button">
+                <property name="text">
+                 <string>Choose...</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QPushButton" name="cad_colour_by_material_button">
+                <property name="text">
+                 <string>By Material</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="0" colspan="3">
+               <widget class="QLabel" name="label_15">
+                <property name="text">
+                 <string>Colour of selected feature(s):</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </widget>
            </item>
           </layout>
@@ -270,6 +315,12 @@
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
+             <property name="editTriggers">
+              <set>QAbstractItemView::NoEditTriggers</set>
+             </property>
+             <property name="showDropIndicator" stdset="0">
+              <bool>false</bool>
+             </property>
              <attribute name="headerVisible">
               <bool>false</bool>
              </attribute>
@@ -287,19 +338,13 @@
              </property>
             </widget>
            </item>
-          </layout>
-         </widget>
-        </item>
-        <item>
-         <widget class="QGroupBox" name="groupBox_10">
-          <property name="title">
-           <string>Cross-Section</string>
-          </property>
-          <layout class="QVBoxLayout" name="verticalLayout_9">
            <item>
-            <widget class="QCheckBox" name="xsection_checkbox">
+            <widget class="QLabel" name="label_3">
              <property name="text">
-              <string>Cut model cross-section through cursor</string>
+              <string>Note: setting the viewport from calibration results is only approximate; for accurate results use the &quot;Render / Save Image&quot; tab.</string>
+             </property>
+             <property name="wordWrap">
+              <bool>true</bool>
              </property>
             </widget>
            </item>
@@ -315,7 +360,7 @@
            </sizepolicy>
           </property>
           <property name="title">
-           <string>Current Viewing Geometry</string>
+           <string>Set Manually</string>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_6">
            <item>
@@ -612,10 +657,33 @@
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="save_view_button">
-          <property name="text">
-           <string>Save Current View...</string>
+         <widget class="QGroupBox" name="groupBox_2">
+          <property name="title">
+           <string>Save current view to model definition</string>
           </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_3">
+           <item>
+            <widget class="QLabel" name="label_16">
+             <property name="text">
+              <string>Name:</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="view_save_name">
+             <property name="text">
+              <string>My Custom View</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="save_view_button">
+             <property name="text">
+              <string>Save</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </widget>
         </item>
        </layout>
@@ -646,7 +714,7 @@
               <bool>false</bool>
              </property>
              <property name="selectionMode">
-              <enum>QAbstractItemView::ContiguousSelection</enum>
+              <enum>QAbstractItemView::ExtendedSelection</enum>
              </property>
             </widget>
            </item>
@@ -843,7 +911,7 @@
         </sizepolicy>
        </property>
        <attribute name="title">
-        <string>Render / Export</string>
+        <string>Render / Save Image</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
@@ -869,7 +937,14 @@
             </widget>
            </item>
            <item>
-            <widget class="QLabel" name="label_17">
+            <widget class="QRadioButton" name="render_cam_view">
+             <property name="text">
+              <string>Calibration Result</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="render_current_description">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
                <horstretch>0</horstretch>
@@ -885,30 +960,7 @@
             </widget>
            </item>
            <item>
-            <spacer name="verticalSpacer_2">
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="sizeType">
-              <enum>QSizePolicy::Fixed</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>20</width>
-               <height>10</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item>
-            <widget class="QRadioButton" name="render_cam_view">
-             <property name="text">
-              <string>Calibrated Camera View</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="label_18">
+            <widget class="QLabel" name="render_calib_description">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
                <horstretch>0</horstretch>
@@ -916,7 +968,7 @@
               </sizepolicy>
              </property>
              <property name="text">
-              <string>Renders an image of the current 3D scene using camera position, field of view and optical distortion from a clibration result. The resulting image will exactly match the real camera view to the accuracy of the calibration.</string>
+              <string>Export an image of the current 3D scene from the point of view of a calibrated camera. The correct camera position, field of view and optical distortion will be used, so the resulting image should overlay with the real camera image to within the accuracy of the calibration.</string>
              </property>
              <property name="wordWrap">
               <bool>true</bool>
@@ -941,20 +993,6 @@
               <property name="margin">
                <number>0</number>
               </property>
-              <item>
-               <widget class="QPushButton" name="render_load_button">
-                <property name="text">
-                 <string>Open...</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="render_calib_namelabel">
-                <property name="text">
-                 <string>No calibration Loaded</string>
-                </property>
-               </widget>
-              </item>
              </layout>
             </widget>
            </item>
@@ -970,10 +1008,10 @@
            </sizepolicy>
           </property>
           <property name="title">
-           <string>Image Settings</string>
+           <string>Render Settings</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_8">
-           <item row="2" column="0">
+           <item row="4" column="0">
             <widget class="QLabel" name="label_21">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
@@ -986,7 +1024,7 @@
              </property>
             </widget>
            </item>
-           <item row="1" column="0">
+           <item row="3" column="0">
             <widget class="QLabel" name="label_19">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
@@ -999,7 +1037,7 @@
              </property>
             </widget>
            </item>
-           <item row="4" column="0">
+           <item row="6" column="0">
             <widget class="QLabel" name="label_22">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
@@ -1012,7 +1050,7 @@
              </property>
             </widget>
            </item>
-           <item row="4" column="1">
+           <item row="6" column="1">
             <widget class="QRadioButton" name="render_bg_black">
              <property name="text">
               <string>Black</string>
@@ -1022,7 +1060,7 @@
              </property>
             </widget>
            </item>
-           <item row="4" column="2">
+           <item row="6" column="2">
             <widget class="QRadioButton" name="render_bg_transparent">
              <property name="text">
               <string>Transparent</string>
@@ -1032,7 +1070,7 @@
              </property>
             </widget>
            </item>
-           <item row="1" column="1" colspan="2">
+           <item row="3" column="1" colspan="2">
             <widget class="QComboBox" name="render_resolution">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
@@ -1042,7 +1080,7 @@
              </property>
             </widget>
            </item>
-           <item row="2" column="1" colspan="2">
+           <item row="4" column="1" colspan="2">
             <widget class="QComboBox" name="render_aa">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
@@ -1075,21 +1113,21 @@
              </item>
             </widget>
            </item>
-           <item row="5" column="0">
+           <item row="7" column="0">
             <widget class="QCheckBox" name="render_include_cursor">
              <property name="text">
               <string>Include cursor</string>
              </property>
             </widget>
            </item>
-           <item row="0" column="0">
+           <item row="2" column="0">
             <widget class="QLabel" name="render_coords_text">
              <property name="text">
               <string>Orientation:</string>
              </property>
             </widget>
            </item>
-           <item row="0" column="1" colspan="2">
+           <item row="2" column="1" colspan="2">
             <widget class="QComboBox" name="render_coords_combobox">
              <item>
               <property name="text">
@@ -1103,13 +1141,34 @@
              </item>
             </widget>
            </item>
+           <item row="0" column="0">
+            <widget class="QLabel" name="rendersettings_calib_label">
+             <property name="text">
+              <string>Calibration:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1" colspan="2">
+            <widget class="QLabel" name="render_calib_namelabel">
+             <property name="text">
+              <string>No calibration chosen</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QPushButton" name="render_load_button">
+             <property name="text">
+              <string>Select...</string>
+             </property>
+            </widget>
+           </item>
           </layout>
          </widget>
         </item>
         <item>
          <widget class="QPushButton" name="render_button">
           <property name="text">
-           <string>Export High Quality Image...</string>
+           <string>Render Image...</string>
           </property>
          </widget>
         </item>
@@ -1128,30 +1187,6 @@
         </item>
        </layout>
       </widget>
-     </widget>
-    </item>
-    <item row="0" column="0">
-     <widget class="QFrame" name="vtk_frame">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="frameShape">
-       <enum>QFrame::NoFrame</enum>
-      </property>
-      <property name="frameShadow">
-       <enum>QFrame::Plain</enum>
-      </property>
-      <layout class="QGridLayout" name="gridLayout_6">
-       <property name="margin">
-        <number>9</number>
-       </property>
-       <property name="spacing">
-        <number>6</number>
-       </property>
-      </layout>
      </widget>
     </item>
    </layout>

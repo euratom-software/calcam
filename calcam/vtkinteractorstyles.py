@@ -2698,7 +2698,7 @@ class CADExplorer(vtk.vtkInteractorStyleTerrain):
         self.sightline_actors = []
 
         if self.gui_window is not None:
-            self.gui_window.update_viewport_info(self.Camera3D.GetPosition(),self.get_view_target(),self.Camera3D.GetViewAngle())
+            self.gui_window.update_viewport_info()
 
 
 
@@ -2815,7 +2815,7 @@ class CADExplorer(vtk.vtkInteractorStyleTerrain):
     def middleButtonRelease(self,obj,event):
         self.OnMiddleButtonUp()
         if self.gui_window is not None:
-            self.gui_window.update_viewport_info(self.Camera3D.GetPosition(),self.get_view_target(),self.Camera3D.GetViewAngle())
+            self.gui_window.update_viewport_info()
         self.update_rois()
         self.update_clipping()
         self.gui_window.refresh_vtk()
@@ -2837,7 +2837,7 @@ class CADExplorer(vtk.vtkInteractorStyleTerrain):
         self.OnLeftButtonUp()
 
         if self.gui_window is not None:
-            self.gui_window.update_viewport_info(self.Camera3D.GetPosition(),self.get_view_target(),self.Camera3D.GetViewAngle())
+            self.gui_window.update_viewport_info()
 
         self.update_rois()
         self.update_clipping()
@@ -2908,7 +2908,7 @@ class CADExplorer(vtk.vtkInteractorStyleTerrain):
                 if self.xsection:
                     self.update_clipping()
 
-                self.gui_window.update_viewport_info(self.Camera3D.GetPosition(),self.get_view_target(),self.Camera3D.GetViewAngle())
+                self.gui_window.update_viewport_info()
                 self.gui_window.refresh_vtk()
                 
                 
@@ -2948,7 +2948,7 @@ class CADExplorer(vtk.vtkInteractorStyleTerrain):
             self.Update3DCursorSize()
 
         if self.gui_window is not None:
-            self.gui_window.update_viewport_info(self.Camera3D.GetPosition(),self.get_view_target(zoom=True),self.Camera3D.GetViewAngle())
+            self.gui_window.update_viewport_info()
 
         self.update_rois()
         self.update_clipping()
@@ -2974,7 +2974,7 @@ class CADExplorer(vtk.vtkInteractorStyleTerrain):
             self.Update3DCursorSize()
 
         if self.gui_window is not None:
-            self.gui_window.update_viewport_info(self.Camera3D.GetPosition(),self.get_view_target(zoom=True),self.Camera3D.GetViewAngle())
+            self.gui_window.update_viewport_info()
 
         self.update_rois()
         self.update_clipping()

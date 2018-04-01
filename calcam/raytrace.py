@@ -39,178 +39,161 @@ import coordtransformer
 import random
 
 
-""" 
-Ray Caster class.
-Given a CAD model and camera fit, does ray casting.
-"""
-class RayCaster:
-	
-    def __init__(self,FitResults = None,CADModel = None,verbose=True):
-		
-        self.verbose = verbose
-        self.vtkCellLocator = None
-        self.machine_name = None
-        self.fitresults = None
-
-        if FitResults is not None:
-            self.fitresults = FitResults   
-		
-        if CADModel is not None:
-            self.set_cadmodel(CADModel)
 
 
+def raycast_sightlines(calibration,cadmodel,x=None,y=None,binning=1,coords='Display',verbose=True):
 
-    def set_cadmodel(self,CADModel):
-        # CAD model name
-        self.machine_name = CADModel.machine_name
-        # Ray length to use
-        self.max_ray_length = CADModel.max_ray_length
+    if not verbose:
+        original_callback = cadmodel.get_status_callback()
+        cadmodel.set_status_callback(None)
 
-        if self.verbose:
-            print('[Calcam RayCaster] Getting CAD model octree...')
 
-        # Get the CAD model's octree
-        self.vtkCellLocator = CADModel.get_vtkCellLocator()
+    # Work out how big the model is. This is to make sure the rays we cast aren't too short.
+    model_extent = cadmodel.get_extent()
+    model_size = model_extent[1::2] - model_extent[::2]
+    max_ray_length = model_size.max() * 4
+    
+    if verbose:
+        sys.stdout.write('Getting CAD model octree...')
 
-        if self.verbose:
-            print('[Calcam RayCaster] Done.'.format(self.machine_name))
+    # Get the CAD model's octree
+    cell_locator = cadmodel.get_cell_locator()
 
-    def set_calibration(self,FitResults):	
-        self.fitresults = FitResults
-		
+    if verbose:
+        sys.stdout.write('Done.\n')
 
-    def raycast_pixels(self,x=None,y=None,binning=1,Coords='Display'):
 
-        if self.fitresults is None:
-            raise Exception('Camera fit results not set in RayCaster!')
-        if self.vtkCellLocator is None:
-            raise Exception('CAD model not set in RayCaster!')
 
-        # If no pixels are specified, do the whole chip at the specified binning level.
-        fullchip = False
-        if x is None and y is None:
-            fullchip = True
-            if Coords.lower() == 'display':
-                xl = np.linspace( (binning-1.)/2,float(self.fitresults.image_display_shape[0]-1)-(binning-1.)/2,(1+float(self.fitresults.image_display_shape[0]-1))/binning)
-                yl = np.linspace( (binning-1.)/2,float(self.fitresults.image_display_shape[1]-1)-(binning-1.)/2,(1+float(self.fitresults.image_display_shape[1]-1))/binning)
-                x,y = np.meshgrid(xl,yl)
-            else:
-                xl = np.linspace( (binning-1.)/2,float(self.fitresults.transform.x_pixels-1)-(binning-1.)/2,(1+float(self.fitresults.transform.x_pixels-1))/binning)
-                yl = np.linspace( (binning-1.)/2,float(self.fitresults.transform.y_pixels-1)-(binning-1.)/2,(1+float(self.fitresults.transform.y_pixels-1))/binning)
-                x,y = np.meshgrid(xl,yl)
-                x,y = self.fitresults.transform.original_to_display_coords(x,y)
-            valid_mask = np.ones(x.shape,dtype=bool)
+    # If no pixels are specified, do the whole chip at the specified binning level.
+    fullchip = False
+    if x is None and y is None:
+        fullchip = True
+        if coords.lower() == 'display':
+            xl = np.linspace( (binning-1.)/2,float(calibration.image_display_shape[0]-1)-(binning-1.)/2,(1+float(calibration.image_display_shape[0]-1))/binning)
+            yl = np.linspace( (binning-1.)/2,float(calibration.image_display_shape[1]-1)-(binning-1.)/2,(1+float(calibration.image_display_shape[1]-1))/binning)
+            x,y = np.meshgrid(xl,yl)
         else:
-            if np.shape(x) != np.shape(y):
-                raise ValueError('x and y arrays must be the same shape!')
-            valid_mask = np.logical_and(np.isnan(x) == 0 , np.isnan(y) == 0 )
-            if Coords.lower() == 'original':
-                x,y = self.fitresults.transform.original_to_display_coords(x,y)
+            xl = np.linspace( (binning-1.)/2,float(calibration.transform.x_pixels-1)-(binning-1.)/2,(1+float(calibration.transform.x_pixels-1))/binning)
+            yl = np.linspace( (binning-1.)/2,float(calibration.transform.y_pixels-1)-(binning-1.)/2,(1+float(calibration.transform.y_pixels-1))/binning)
+            x,y = np.meshgrid(xl,yl)
+            x,y = calibration.transform.original_to_display_coords(x,y)
+        valid_mask = np.ones(x.shape,dtype=bool)
+    else:
+        if np.shape(x) != np.shape(y):
+            raise ValueError('x and y arrays must be the same shape!')
+        valid_mask = np.logical_and(np.isnan(x) == 0 , np.isnan(y) == 0 )
+        if coords.lower() == 'original':
+            x,y = calibration.transform.original_to_display_coords(x,y)
 
-        Results = RayData()
-        Results.ResultType = 'PixelRayCast'
-        Results.fullchip = fullchip
-        Results.x = np.copy(x).astype('float')
-        Results.x[valid_mask == 0] = 0
-        Results.y = np.copy(y).astype('float')
-        Results.y[valid_mask == 0] = 0
-        Results.transform = self.fitresults.transform
+    Results = RayData()
+    Results.ResultType = 'PixelRayCast'
+    Results.fullchip = fullchip
+    Results.x = np.copy(x).astype('float')
+    Results.x[valid_mask == 0] = 0
+    Results.y = np.copy(y).astype('float')
+    Results.y[valid_mask == 0] = 0
+    Results.transform = calibration.transform
 
-        orig_shape = np.shape(Results.x)
-        Results.x = np.reshape(Results.x,np.size(Results.x),order='F')
-        Results.y = np.reshape(Results.y,np.size(Results.y),order='F')
-        valid_mask = np.reshape(valid_mask,np.size(valid_mask),order='F')
-        totpx = np.size(Results.x)
+    orig_shape = np.shape(Results.x)
+    Results.x = np.reshape(Results.x,np.size(Results.x),order='F')
+    Results.y = np.reshape(Results.y,np.size(Results.y),order='F')
+    valid_mask = np.reshape(valid_mask,np.size(valid_mask),order='F')
+    totpx = np.size(Results.x)
 
 
-        # New results object to store results
-        if fullchip:
-            Results.binning = binning
+    # New results object to store results
+    if fullchip:
+        Results.binning = binning
+    else:
+        Results.binning = None
+
+
+    Results.ray_end_coords = np.ndarray([np.size(x),3])
+
+    # Line of sight directions
+    LOSDir = calibration.get_los_direction(Results.x,Results.y,Coords='Display')
+    Results.ray_start_coords = calibration.get_pupilpos(Results.x,Results.y,Coords='Display')
+
+    
+    if verbose:
+        now = datetime.datetime.now()
+        print(datetime.datetime.now().strftime('Started casting {:d} rays at %Y-%m-%d %H:%M'.format(np.size(x))))
+
+
+    # Some variables to give to VTK becasue of its annoying C-like interface
+    t = vtk.mutable(0)
+    pos = np.zeros(3)
+    coords_ = np.zeros(3)
+    subid = vtk.mutable(0)
+
+    starttime = time.time()
+    etime_printed = False
+    n_done = 0
+    
+    # We will do the ray casting in a random order,
+    # purely to get better time remaining estimation.
+    inds = list(range(np.size(x)))
+    random.shuffle(inds)
+    
+    for ind in inds:
+
+        if not valid_mask[ind]:
+            Results.ray_end_coords[ind,:] = np.nan
+            Results.ray_start_coords[ind,:] = np.nan
+            continue
+
+        # Do the raycast and put the result in the output array
+        rayend = Results.ray_start_coords[ind] + max_ray_length * LOSDir[ind]
+        retval = cell_locator.IntersectWithLine(Results.ray_start_coords[ind],rayend,1.e-6,t,pos,coords_,subid)
+
+        if abs(retval) > 0:
+            Results.ray_end_coords[ind,:] = pos[:]
         else:
-            Results.binning = None
+            Results.ray_end_coords[ind,:] = rayend
 
-        Results.ray_end_coords = np.ndarray([np.size(x),3])
+        n_done = n_done + 1
+        # Progress printing stuff
+        if verbose and not etime_printed:
+            if time.time() - starttime > 10:
+                est_time = (time.time() - starttime) / n_done * np.size(x)
+                if est_time > 15:
+                    est_time_string = ''
+                    if est_time > 3600:
+                        est_time_string = est_time_string + '{:.0f} hr '.format(np.floor(est_time/3600))
+                    if est_time > 600:
+                        est_time_string = est_time_string + '{:.0f} min.'.format((est_time - 3600*np.floor(est_time/3600))/60)
+                    elif est_time > 60:
+                        est_time_string = est_time_string + '{:.0f} min {:.0f} sec.'.format(np.floor(est_time/60),est_time % 60)
+                    else:
+                        est_time_string ='{:.0f} sec.'.format(est_time)
 
-        # Line of sight directions
-        LOSDir = self.fitresults.get_los_direction(Results.x,Results.y,Coords='Display')
-        Results.ray_start_coords = self.fitresults.get_pupilpos(Results.x,Results.y,Coords='Display')
+                    print('Estimated calculation time: ' + est_time_string)
+                etime_printed = True
 
-		
-        if self.verbose:
-            now = datetime.datetime.now()
-            print(datetime.datetime.now().strftime('[Calcam RayCaster] Started casting {:d} rays at %Y-%m-%d %H:%M'.format(np.size(x))))
+    if verbose:
+        tot_time = time.time() - starttime
+        time_string = ''
+        if tot_time > 3600:
+            time_string = time_string + '{0:.0f} hr '.format(np.floor(tot_time / 3600))
+        if tot_time > 60:
+            time_string = time_string + '{0:.0f} min '.format(np.floor( (tot_time - 3600*np.floor(tot_time / 3600))  / 60))
+        time_string = time_string + '{0:.0f} sec. '.format( tot_time - 60*np.floor(tot_time / 60) )
 
+        print('Finished casting {:d} rays in '.format(np.size(x)) + time_string)
 
-        # Some variables to give to VTK becasue of its annoying C-like interface
-        t = vtk.mutable(0)
-        pos = np.zeros(3)
-        coords = np.zeros(3)
-        subid = vtk.mutable(0)
+    Results.x[valid_mask == 0] = np.nan
+    Results.y[valid_mask == 0] = np.nan
 
-        starttime = time.time()
-        etime_printed = False
-        n_done = 0
-        
-        # We will do the ray casting in a random order,
-        # purely to get better time remaining estimation.
-        inds = list(range(np.size(x)))
-        random.shuffle(inds)
-        
-        for ind in inds:
+    Results.ray_end_coords = np.reshape(Results.ray_end_coords,orig_shape + (3,),order='F')
+    Results.ray_start_coords = np.reshape(Results.ray_start_coords,orig_shape + (3,),order='F')
+    Results.x = np.reshape(Results.x,orig_shape,order='F')
+    Results.y = np.reshape(Results.y,orig_shape,order='F')
 
-            if not valid_mask[ind]:
-                Results.ray_end_coords[ind,:] = np.nan
-                Results.ray_start_coords[ind,:] = np.nan
-                continue
+    if not verbose:
+        cadmodel.set_status_callback(original_callback)
 
-            # Do the raycast and put the result in the output array
-            rayend = Results.ray_start_coords[ind] + self.max_ray_length * LOSDir[ind]
-            retval = self.vtkCellLocator.IntersectWithLine(Results.ray_start_coords[ind],rayend,1.e-6,t,pos,coords,subid)
+    return Results
 
-            if abs(retval) > 0:
-                Results.ray_end_coords[ind,:] = pos[:]
-            else:
-                Results.ray_end_coords[ind,:] = rayend
-
-            n_done = n_done + 1
-            # Progress printing stuff
-            if self.verbose and not etime_printed:
-                if time.time() - starttime > 10:
-                    est_time = (time.time() - starttime) / n_done * np.size(x)
-                    if est_time > 15:
-                        est_time_string = ''
-                        if est_time > 3600:
-                            est_time_string = est_time_string + '{:.0f} hr '.format(np.floor(est_time/3600))
-                        if est_time > 600:
-                            est_time_string = est_time_string + '{:.0f} min.'.format((est_time - 3600*np.floor(est_time/3600))/60)
-                        elif est_time > 60:
-                            est_time_string = est_time_string + '{:.0f} min {:.0f} sec.'.format(np.floor(est_time/60),est_time % 60)
-                        else:
-                            est_time_string ='{:.0f} sec.'.format(est_time)
-
-                        print('[Calcam RayCaster] Estimated calculation time: ' + est_time_string)
-                    etime_printed = True
-
-        if self.verbose:
-            tot_time = time.time() - starttime
-            time_string = ''
-            if tot_time > 3600:
-                time_string = time_string + '{0:.0f} hr '.format(np.floor(tot_time / 3600))
-            if tot_time > 60:
-                time_string = time_string + '{0:.0f} min '.format(np.floor( (tot_time - 3600*np.floor(tot_time / 3600))  / 60))
-            time_string = time_string + '{0:.0f} sec. '.format( tot_time - 60*np.floor(tot_time / 60) )
-
-            print('[Calcam RayCaster] Finished casting {:d} rays in '.format(np.size(x)) + time_string)
-
-        Results.x[valid_mask == 0] = np.nan
-        Results.y[valid_mask == 0] = np.nan
-
-        Results.ray_end_coords = np.reshape(Results.ray_end_coords,orig_shape + (3,),order='F')
-        Results.ray_start_coords = np.reshape(Results.ray_start_coords,orig_shape + (3,),order='F')
-        Results.x = np.reshape(Results.x,orig_shape,order='F')
-        Results.y = np.reshape(Results.y,orig_shape,order='F')
-
-        return Results
 
 
 

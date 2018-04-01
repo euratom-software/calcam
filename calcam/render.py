@@ -36,7 +36,9 @@ import sys
 import image as CalCamImage
 import time
 import qt_wrapper as qt
-import raytrace
+from .raytrace import raycast_sightlines
+
+vtk_major_version = vtk.vtkVersion().GetVTKMajorVersion()
 
 def render_cam_view(CADModel,FitResults,filename=None,oversampling=1,AA=1,Edges=False,EdgeColour=(1,0,0),EdgeWidth=2,Transparency=False,ROI=None,ROIColour=(0.8,0,0),ROIOpacity=0.3,roi_oversize=0,NearestNeighbourRemap=False,Verbose=True,Coords = 'Display',ScreenSize=None):
 
@@ -364,10 +366,7 @@ def get_fov_actor(cadmodel,calib,actor_type='volume',resolution=None):
     else:
         raise ValueError('"actor_type" argument must be "volume" or "lines"')
 
-
-    rc = raytrace.RayCaster(calib,cadmodel,verbose=False)
-
-    raydata = rc.raycast_pixels(binning=max(calib.image_display_shape)/resolution)
+    raydata = raycast_sightlines(calib,cadmodel,binning=max(calib.image_display_shape)/resolution,verbose=False)
 
     # Before we do anything, we need to arrange our triangle corners
     points = vtk.vtkPoints()
@@ -436,7 +435,7 @@ def get_fov_actor(cadmodel,calib,actor_type='volume',resolution=None):
 
     mapper = vtk.vtkPolyDataMapper()
 
-    if vtk.VTK_MAJOR_VERSION <= 5:
+    if vtk_major_version < 6:
         mapper.SetInput(polydata)
     else:
         mapper.SetInputData(polydata)

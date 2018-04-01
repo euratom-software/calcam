@@ -1,5 +1,5 @@
 '''
-* Copyright 2015-2017 European Atomic Energy Community (EURATOM)
+* Copyright 2015-2018 European Atomic Energy Community (EURATOM)
 *
 * Licensed under the EUPL, Version 1.1 or - as soon they
   will be approved by the European Commission - subsequent
@@ -18,516 +18,574 @@
 * See the Licence for the specific language governing
   permissions and limitations under the Licence.
 '''
-
-
-"""
-CAD model class for CalCam
-
-This class is for storing CAD models, and provides methods to work with CAD data 
-and interface with other parts of CalCam. 
-
-Actual CAD model definitions, i.e. for specific machines, are defined by sub-classing
-this in the file ~/calcam/UserCode/_machine_geometry.py; this file is just back-end stuff.
-
-At some point I need to add support for file types other than STL.
-
-Written by Scott Silburn
-"""
-
 import vtk
-import os
-import sys
 import numpy as np
+import json
+import zipfile
+import os
+from . import CalCamConfig
 
-class CADModel:
-
-    """
-    Initialise self.features, which is a list containing information about the CAD model features.
-    List indices are:
-    0 = Feature name (str)
-    1 = CAD Model filename (str)
-    2 = Material index (int)
-    3 = Enabled (bool)
-    4 = Colour (RGB tuple)
-    5 = vtkPolyData
-    6 = vtkPolyDataMapper
-    7 = vtkActor
-    8 = Group name
-    9 = vtkFeatureEdges
-    10 = vtkPolyDataMapper for edges
-    11 = vtkActor for edges
-    """
-    def init_cadmodel(self):
-
-        # By default, we want lighting to work
-        self.flatshading = False
-
-        self.colourbyfeature = False
-
-        self.vtkCellLocator = None
-
-        self.gui_window = None
-
-        self.edges = False
-
-        self.edge_width = 1
-
-        for Feature in self.features:
-
-            # Check if the files exist
-            if not os.path.isfile(self.filepath + Feature[1]):
-                raise Exception('Cannot find CAD file ' + str(self.filepath + Feature[1]))
-
-            # Extract group name and default enable status
-            if len(Feature) == 4:
-                enable = True
-                group = None
-            else:
-                enable = Feature[4]
-                group = Feature[3]
-                del Feature[3]
-                del Feature[3]
-
-            # Enable feature, if this is the default case
-            Feature.append(enable)
-
-            # Feature colour
-            if self.colourbymaterial:
-                Feature.append(self.Materials[Feature[2]])
-            else:
-                Feature.append(self.default_colour)
-
-            # This is where the vtk objects will go
-            Feature.extend([None,None,None,group,None,None,None])
+vtk_major_version = vtk.vtkVersion().GetVTKMajorVersion()
 
 
 
-    # Make a vtkCellLocator object to do ray casting with this CAD model
-    def get_vtkCellLocator(self):
-
-        if len(self.get_enabled_features()) == 0:
-            return None
-
-        if self.vtkCellLocator is None:
-            self.vtkCellLocator = vtk.vtkCellLocator()
-            self.vtkCellLocator.SetTolerance(1e-6)
-
-            self.vtkCellLocator.SetDataSet(self.get_combined_geometry())
-            self.vtkCellLocator.BuildLocator()
-
-        return self.vtkCellLocator
-
-    # Load CAD files from disk
-    def load(self,features=None):
-
-        ScaleTransform =  vtk.vtkTransform()
-        ScaleTransform.Scale(self.units,self.units,self.units)
-
-        # If no specific feature is specified, load them all!
-        if features is None:
-            for Feature in self.features:
-                # If no vtkPolyData for this feature, load the CAD file!
-                if Feature[5] is None and Feature[3] == True:
-                    if self.gui_window is not None:
-                        self.gui_window.update_cad_status('Loading CAD data file ' + str(Feature[1]) + '...')
-                    PolyData = load_cad(self.filepath + Feature[1])
-                    Feature[5] = vtk.vtkTransformPolyDataFilter()
-                    if vtk.vtkVersion.GetVTKMajorVersion() < 6:
-                            Feature[5].SetInput(PolyData)
-                    else:
-                            Feature[5].SetInputData(PolyData)
-                    Feature[5].SetTransform(ScaleTransform)
-                    Feature[5].Update()
-                    if self.gui_window is not None:
-                        self.gui_window.update_cad_status(None)
-                    
-
-        else:
-            if type(features) == str:
-                features = [features]
-            for i in range(len(features)):
-                features[i] = str.lower(features[i])
-
-                for Feature in self.features:
-                    if str.lower(Feature[0]) in features:
-                        if self.gui_window is not None:
-                            self.gui_window.update_cad_status('Loading CAD data file ' + str(Feature[1]) + '...')
-                        PolyData = load_cad(self.filepath + Feature[1])
-                        Feature[5] = vtk.vtkTransformPolyDataFilter()
-                        if vtk.vtkVersion.GetVTKMajorVersion() < 6:
-                                Feature[5].SetInput(PolyData)
-                        else:
-                                Feature[5].SetInputData(PolyData)
-                        Feature[5].SetTransform(ScaleTransform)
-                        Feature[5].Update()
-                        if self.gui_window is not None:
-                            self.gui_window.update_cad_status(None)
+# A little function to use for status printing if no
+# user callback is specified.
+def print_status(status):
+    if status is not None:
+        print(status)
 
 
-    # Enable features
-    def enable_features(self,features,renderer=None):
 
-        if type(features) == str:
-            features = [features]
-        for i in range(len(features)):
-            features[i] = str.lower(features[i])
+'''
+Class for representing mesh file based 3D models in calcam.
+Provides a whole load of convenience functions.
 
-            for Feature in self.features:
-                if str.lower(Feature[0]) in features:
-                    self.vtkCellLocator = None
-                    Feature[3] = True
-                    if renderer is not None:
-                        for actor in self.get_vtkActors(Feature[0]):
-                            renderer.AddActor(actor)
+Written by Scott Silburn; completey re-written in March 2018
+'''
+class CADModel():
 
 
-    def enable_only(self,features,renderer=None):
+    # Create a new CAD model object from a .ccm model definition file.
+    def __init__(self,model_name,model_variant=None,status_callback=print_status):
+
+
+        # -------------------------------Loading model definition-------------------------------------
         
-        if type(features) == str:
-            features = [features]
-        for i in range(len(features)):
-            features[i] = str.lower(features[i])
+        model_defs = CalCamConfig().get_cadmodels()
+        
+        # Check whether we know what model definition file to use
+        if model_name not in model_defs.keys():
+            raise ValueError('Unknown machine model "{:s}". Available models are: {:s}.'.format(model_name,', '.join(model_defs.keys())))
+        else:
+            self.variants = model_defs[model_name][1]
+            self.definition_filename = model_defs[model_name][0]
 
-            for Feature in self.features:
-                if str.lower(Feature[0]) in features:
-                    self.enable_features(Feature[0],renderer)
-                    self.vtkCellLocator = None
+        with zipfile.ZipFile(self.definition_filename,'r') as zf:
+            # Load the model definition and grab some properties from it
+            with zf.open( 'model.json' ) as f:
+                model_def = json.load(f)
+
+            if 'usercode.py' in zf.namelist():
+                import sys
+                sys.path.insert(0,self.definition_filename)
+
+                import usercode
+
+                if callable(usercode.format_coord):
+                    test_out = usercode.format_coord( (0.1,0.1,0.1) )
+                    if type(test_out) == str or type(test_out) == unicode:
+                        self.format_coord = usercode.format_coord
+
+
+        self.machine_name = model_def['machine_name']
+        self.material_colours = model_def['material_colours']
+        self.views = model_def['views']
+        self.mesh_path_root = model_def['mesh_path_root']
+        self.initial_view = model_def['initial_view']
+
+        # If not specified, choose whatever model variant is specified in the metadata
+        if model_variant is None:
+            model_variant = model_def['default_variant']
+
+        # Validate the model variant input
+        if model_variant not in self.variants:
+            raise ValueError('Unknown model variant for {:s}: {:s}.'.format(model_name,model_variant))
+
+
+        self.model_variant = model_variant
+
+
+        # Create the feature list!
+        self.features = {}
+        self.groups = {}
+
+        for feature_name,feature_def in model_def['features'][self.model_variant].items():
+
+            # Get the feature's group, if any
+            if len(feature_name.split('/')) > 1:
+                group = feature_name.split('/')[0]
+                if group not in self.groups.keys():
+                    self.groups[group] = [feature_name]
                 else:
-                    self.disable_features(Feature[0],renderer)
+                    self.groups[group].append(feature_name)
 
-
-    # Disable features
-    def disable_features(self,features,renderer=None):
-        if type(features) == str:
-            features = [features]
-        for i in range(len(features)):
-            features[i] = str.lower(features[i])
-
-            for Feature in self.features:
-                if str.lower(Feature[0]) in features:
-                    self.vtkCellLocator = None
-                    Feature[3] = False
-                    if renderer is not None:
-                        for actor in self.get_vtkActors(Feature[0]):
-                            renderer.RemoveActor(actor)
-
-    # Get list of vtkActors
-    def get_vtkActors(self,features=None):
-
-        Actors = []
-
-        # If no specific features are given, do them all!
-        if features is None:
-            features = []
-            for Feature in self.features:
-                if Feature[3] == True:
-                    features.append(Feature[0])
-
-        elif type(features) == str:
-                features = [features]
-
-        for req_feature in features:
-
-            for Feature in self.features:
-                if str.lower(req_feature) == str.lower(Feature[0]):
-
-                    # Load the CAD file if it isn't already loaded
-                    if Feature[7] is None:
-                        if Feature[5] is None:
-                            self.load(Feature[0])
-
-                        Feature[6] = vtk.vtkPolyDataMapper()
-                        if vtk.VTK_MAJOR_VERSION <= 5:
-                            Feature[6].SetInput(Feature[5].GetOutput())
-                        else:
-                            Feature[6].SetInputData(Feature[5].GetOutput())
-                        Feature[7] = vtk.vtkActor()
-                        Feature[7].SetMapper(Feature[6])
-                    
-                    # Make sure the colour and lighing are set appropriately
-                    if self.edges:
-                        Feature[7].GetProperty().SetColor((0,0,0))
-                    else:
-                        Feature[7].GetProperty().SetColor(Feature[4])
-                    if self.flatshading:
-                        Feature[7].GetProperty().LightingOff()
-
-                    # Add the solid body actor to the output actors
-                    Actors.append(Feature[7])
-
-                    # Make the edge actor if it doesn't already exist and is needed
-                    if self.edges:
-                        if Feature[11] is None:
-                            Feature[9] = vtk.vtkFeatureEdges()
-                            Feature[9].ManifoldEdgesOff()
-                            Feature[9].BoundaryEdgesOff()
-                            Feature[9].NonManifoldEdgesOff()
-                            Feature[9].SetFeatureAngle(20)
-                            Feature[9].ColoringOff()
-
-                            if vtk.VTK_MAJOR_VERSION <= 5:
-                                Feature[9].SetInput(Feature[5].GetOutput())
-                            else:
-                                Feature[9].SetInputData(Feature[5].GetOutput())
-
-                            Feature[9].Update()
-                            Feature[10] = vtk.vtkPolyDataMapper()
-                            Feature[10].SetInputConnection(Feature[9].GetOutputPort())
-
-                            Feature[11] = vtk.vtkActor()
-                            Feature[11].SetMapper(Feature[10])
-                            
-                        Feature[11].GetProperty().SetColor(Feature[4])
-                        Feature[11].GetProperty().SetLineWidth(self.edge_width)
-                        Actors.append(Feature[11])
-
-        return Actors
-
-
-    # Get a single vtkPolyData object containing all loaded features
-    def get_combined_geometry(self):
-
-        appender = vtk.vtkAppendPolyData()
-
-        for Feature in self.features:
-                if Feature[3] == True:
-                    if Feature[5] is None:
-                        self.load(Feature[0])
-                    if vtk.vtkVersion.GetVTKMajorVersion() < 6:
-                        appender.AddInput(Feature[5].GetOutput())
-                    else:
-                        appender.AddInputData(Feature[5].GetOutput())
+            # Create a new feature object
+            self.features[feature_name] = ModelFeature(self,feature_def)
         
-        appender.Update()
+        # ----------------------------------------------------------------------------------------------
 
-        return appender.GetOutput()
+        self.set_status_callback(status_callback)
 
-
-    # Default model views: these approximately match each JET camera view.
-    def set_default_view(self,ViewName):
-
-        foundview = False
-        for View in self.views:
-            if str.lower(ViewName) == str.lower(View[0]):
-                foundview = True
-                self.cam_pos_default = View[1]
-                self.cam_target_default = View[2]
-                self.cam_fov_default = View[3]
-                self.default_view_name = View[0]
-        if foundview == False:
-            raise ValueError('Specified CAD view name "' + ViewName + '" not recognised!')
+        self.renderers = []
+        self.flat_shading = False
+        self.edges = False
+        self.cell_locator = None
 
 
-    # Set the colour of a component or the whole model
-    def set_colour(self,Colour,features=None):
+    def set_status_callback(self,status_callback):
+        self.status_callback = status_callback
+
+
+    def get_status_callback(self):
+        return self.status_callback
+
+    # Add this CAD model to a vtk renderer.
+    # Input: vtk.vtkRenderer object.
+    def add_to_renderer(self,renderer):
+
+        if renderer in self.renderers:
+            return
+
+        else:
+            for feature in self.features.values():
+                actors = feature.get_vtk_actors()
+                for actor in actors:
+                    renderer.AddActor(actor)
+
+            self.renderers.append(renderer)
+
+    # Remove this CAD model from a vtk renderer.
+    # Input: vtk.vtkRenderer object.
+    def remove_from_renderer(self,renderer):
+
+        if renderer not in self.renderers:
+            return
+
+        else:
+            for feature in self.features.values():
+                actors = feature.get_vtk_actors()
+                for actor in actors:
+                    renderer.RemoveActor(actor)
+
+            self.renderers.remove(renderer)
+
+
+    # Enable or disable features
+    # Features can be a string, list of strings or none.
+    # If none, all features are enabled!
+    def set_features_enabled(self,enable,features=None):
 
         if features is None:
-            for Feature in self.features:
-                Feature[4] = Colour
-                if Feature[7] is not None:
-                    Feature[7].GetProperty().SetColor(Colour)
-        else:
-            if type(features) == str:
-                features = [features]
-
-            if type(Colour[0]) is not tuple and type(Colour[0]) is not list :
-                Colour = [Colour] * len(features)
-
-            if len(Colour) != len(features):
-                raise Exception('Different number of colours and feature names provided!')
-
-            for i,req_feature in enumerate(features):
-                for Feature in self.features:
-                    if str.lower(req_feature) == str.lower(Feature[0]):
-                        Feature[4] = Colour[i]
-                        if Feature[7] is not None:
-                            Feature[7].GetProperty().SetColor(Colour[i])
-
-    # Set the colour of a component or the whole model
-    def get_colour(self,features=None):
-
-        cols_out = []
-
-        if type(features) == str:
+            features = self.features.keys()
+        elif type(features) == str or type(features) == unicode:
             features = [features]
 
-        for req_feature in features:
-            for Feature in self.features:
-                if str.lower(req_feature) == str.lower(Feature[0]):
-                    cols_out.append(Feature[4])
 
-        if len(cols_out) == 1:
-            return cols_out[0]
-        else:
-            return cols_out
+        for requested in features:
 
-    # Set the colour of a component or the whole model
-    def get_colour_new(self,features=None,col_type='material'):
+            if requested in self.groups.keys():
+                for fname in self.groups[requested]:
+                    self.features[fname].set_enabled(enable)
+            elif requested in self.features.keys():
+                self.features[requested].set_enabled(enable)
+            else:
+                raise ValueError('Unknown feature "{:s}"!'.format(requested))
 
-        cols_out = []
-
-        if type(features) == str:
-            features = [features]
-
-        for req_feature in features:
-            for Feature in self.features:
-                if str.lower(req_feature) == str.lower(Feature[0]):
-                    if col_type == 'material':
-                        cols_out.append(self.materials[Feature[2]][1])
-                    elif col_type == 'default':
-                        cols_out.append(self.default_colour)
-
-        if len(cols_out) == 1:
-            return cols_out[0]
-        else:
-            return cols_out
+        self.cell_locator = None
 
 
-    # Enable model colouring by material
-    def colour_by_material(self,colourbymaterial):
+    # A handy function for enabling just one feature or group
+    def enable_only(self,features):
         
-        if colourbymaterial != self.colourbymaterial:
-            if colourbymaterial:
+        if type(features) == str or type(features) == unicode:
+            features = [features]
 
-                if self.colourbyfeature:
-                    self.colour_by_feature(False)
-
-                for Feature in self.features:
-                    self.set_colour(self.materials[Feature[2]][1],features=Feature[0])
-
-                self.colourbymaterial = True
-
+        self.set_features_enabled(False)
+        for requested in features:
+            if requested in self.groups.keys():
+                for fname in self.groups[requested]:
+                    self.features[fname].set_enabled(True)
+            elif requested in self.features.keys():
+                self.features[requested].set_enabled(True)
             else:
-                for Feature in self.features:
-                    self.set_colour(self.default_colour,features=Feature[0])
-                self.colourbymaterial = False
+                raise ValueError('Unknown feature "{:s}"!'.format(requested))
+
+        self.cell_locator = None
 
 
-    def flat_shading(self,flatshading):
+    # Get a list of strings with the names of
+    # currently enabled features.
+    def get_enabled_features(self):
 
-        if flatshading != self.flatshading:
-            if flatshading:
-                self.flatshading = True
-                for Feature in self.features:
-                    if Feature[7] is not None:
-                        Feature[7].GetProperty().LightingOff()
-            else:
-                self.flatshading = False
-                for Feature in self.features:
-                    if Feature[7] is not None:
-                        Feature[7].GetProperty().LightingOn()
+        flist = []
+        for fname,fobj in self.features.items():
+            if fobj.enabled:
+                flist.append(fname)
+
+        return sorted(flist)
 
 
-    def colour_by_feature(self,colourbyfeature):
+    # Check the enable status of a group of features:
+    # all enabled, partially enabled or none enabled.
+    # This is basically a convenience function for the GUI.
+    def get_group_enable_state(self,group=None):
 
-        if colourbyfeature != self.colourbyfeature:
+        if group is None:
+            flist = self.features.keys()
+        else:
+            flist = self.groups[group]
 
-            if colourbyfeature:
-                if self.colourbymaterial:
-                    self.colour_by_material(False)
+        enable_state = 0
+        for fname in flist:
+            enable_state = enable_state + self.features[fname].enabled
 
-                for featurenum,Feature in enumerate(self.features):
-                    colour = np.unravel_index(featurenum + 1,[256,256,256])
-                    R = colour[0]/255.
-                    G = colour[1]/255.
-                    B = colour[2]/255.
-                    self.set_colour((R,G,B),features=Feature[0])
-            else:
+        if enable_state == len(flist):
+            enable_state = 2
+        elif enable_state > 0:
+            enable_state = 1
 
-                for Feature in self.features:
-                    self.set_colour(self.default_colour,features=Feature[0])
+        return enable_state
 
 
     # Default for getting some info to print
     # Just print the position.
-    def get_position_info(self,coords):
+    def format_coord(self,coords):
+
         phi = np.arctan2(coords[1],coords[0])
         if phi < 0.:
             phi = phi + 2*3.14159
         phi = phi / 3.14159 * 180
-        return 'X,Y,Z: ( {:.3f} m , {:.3f} m , {:.3f} m )'.format(coords[0],coords[1],coords[2]) + u'\nR,Z,\u03d5: ( {:.3f} m , {:.3f}m , {:.1f}\xb0 )'.format(np.sqrt(coords[0]**2 + coords[1]**2),coords[2],phi)
         
+        formatted_coord = 'X,Y,Z: ( {:.3f} m , {:.3f} m , {:.3f} m )'.format(coords[0],coords[1],coords[2])
+        formatted_coord = formatted_coord + u'\nR,Z,\u03d5: ( {:.3f} m , {:.3f}m , {:.1f}\xb0 )'.format(np.sqrt(coords[0]**2 + coords[1]**2),coords[2],phi)
+
+        return  formatted_coord
     
-    
-        
-    def get_detected_edges_actor(self,exclude_features=[],include_only=[]):
 
-        # Sort out any requested feature inclusion / exclusion
-        full_featurelist = self.get_enabled_features()
-        features = self.get_enabled_features()
-        if len(exclude_features) > 0 and len(include_only) > 0:
-            raise Exception('You can specify which features to exclude, or an include only list, but not both!')
-        elif len(exclude_features) > 0:
-            for rmfreature in exclude_features:
-                features.remove(rmfeature)
-        elif len(include_only) > 0:
-            features_to_remove = []
-            for feature in features:
-                if feature.lower() not in include_only:
-                    features_to_remove.append(feature)
-            for rmfeature in features_to_remove:
-                features.remove(rmfeature)
 
-        if self.edge_actor[0] == None or features != self.edge_actor[1]:
-            
-            edgeFinder = vtk.vtkFeatureEdges()
+    # Turn on or off flat shading (no lighting effects)
+    def set_flat_shading(self,flat_shading):
 
-            self.enable_only(features)
-            if vtk.VTK_MAJOR_VERSION <= 5:
-                edgeFinder.SetInput(self.get_combined_geometry())
+        self.flat_shading = flat_shading
+        if flat_shading != self.flat_shading:
+
+            # Just running through each feature like this will force it to
+            # update the colour & lighting settings
+            for feature in self.features.values():
+                feature.get_vtk_actors()
+
+
+
+    # Turn on or off the model being coloured by material
+    def colour_by_material(self):
+
+        for feature in self.features.values():
+            feature.set_colour(self.material_colours[feature.material])
+
+
+
+    # Set the colour of a component or the whole model
+    def set_colour(self,colour,features=None):
+
+        if features is None:
+            features = self.get_feature_list()
+
+        try:
+            0. + colour[0]
+            colour = [colour] * len(features)
+        except:
+            if len(colour) != len(features):
+                raise ValueError('The same number of colours and features must be provided!')
+
+        for i,requested in enumerate(features):
+
+            if requested in self.groups.keys():
+                for fname in self.groups[requested]:
+                    self.features[fname].set_colour(colour[i])
+            elif requested in self.features.keys():
+                self.features[requested].set_colour(colour[i])
             else:
-                edgeFinder.SetInputData(self.get_combined_geometry())
+                raise ValueError('Unknown feature "{:s}"!'.format(requested))
 
-            self.enable_only(full_featurelist)
-            edgeFinder.ManifoldEdgesOff()
-            edgeFinder.BoundaryEdgesOff()
-            edgeFinder.NonManifoldEdgesOff()
-            #edgeFinder.FeatureEdgesOff()
-            edgeFinder.SetFeatureAngle(20)
-            edgeFinder.ColoringOff()
-            edgeFinder.Update()
 
-            edgeMapper = vtk.vtkPolyDataMapper()
-            edgeMapper.SetInputConnection(edgeFinder.GetOutputPort())
+    # Restore any colours previously set with temporary=True
+    def get_colour(self,features = None):
 
-            self.edge_actor[0] = vtk.vtkActor()
-            self.edge_actor[0].SetMapper(edgeMapper)
+        clist = []
+        if features is None:
+            features = self.get_feature_list()
+
+        for feature in features:
+            if feature in self.groups.keys():
+                for fname in self.groups[feature]:
+                    clist.append( self.features[fname].colour )
+            elif feature in self.features.keys():
+                clist.append( self.features[feature].colour )
+            else:
+                raise ValueError('Unknown feature "{:s}"!'.format(requested))
             
-            self.edge_actor[1] = features        
-            
-        return self.edge_actor[0]
-		
-		
-    def get_enabled_features(self):
-	
-        featurelist = []		
-		
-        for Feature in self.features:
-            # If the feature is enabled...
-            if Feature[3] == True:
-                featurelist.append(Feature[0])
+        return clist
+
+
+
+    # Make a vtkCellLocator object to do ray casting with this CAD model
+    def get_cell_locator(self):
+
+        # Don't return anything if we have no enabled geometry
+        if len(self.get_enabled_features()) == 0:
+            return None
+
+        if self.cell_locator is None:
+
+            appender = vtk.vtkAppendPolyData()
+
+            for fname in self.get_enabled_features():
+                if vtk_major_version < 6:
+                    appender.AddInput(self.features[fname].get_polydata())
+                else:
+                    appender.AddInputData(self.features[fname].get_polydata())
         
-        return featurelist
-		
-		
-    def link_gui_window(self,gui_window):
+            appender.Update()
 
-        self.gui_window = gui_window
+            self.cell_locator = vtk.vtkCellLocator()
+            self.cell_locator.SetTolerance(1e-6)
+            self.cell_locator.SetDataSet(appender.GetOutput())
+            self.cell_locator.BuildLocator()
+
+        return self.cell_locator
 
 
-def load_cad(fname):
-    # Return a vtkPolyData object containing a mesh from a given filename
-    if fname[-3:].lower() == 'stl':
-        reader = vtk.vtkSTLReader()
-    elif fname[-3:].lower() == 'obj':
-        reader = vtk.vtkOBJReader()
+    # Set whether the model should appear as solid or wireframe
+    def set_wireframe(self,wireframe):
 
-    reader.SetFileName(fname)
-    try:
-        reader.Update()
-    except:
-        return None
+        enable_features = self.get_enabled_features()
 
-    polydata = reader.GetOutput()
+        for feature in enable_features:
+            self.features[feature].set_enabled(False)
 
-    return polydata
+        self.edges = wireframe
+
+        for feature in enable_features:
+            self.features[feature].set_enabled(True)
+
+
+    # Get a list of every model feature name
+    def get_feature_list(self):
+
+        return sorted(self.features.keys())
+
+
+    # Get the extent of the model in 3D space.
+    # Returns a 6 element araay [x_min, x_max, y_min, y_max, z_min, z_max]
+    def get_extent(self):
+
+        model_extent = np.zeros(6)
+
+        for fname in self.get_enabled_features():
+            feature_extent = self.features[fname].get_polydata().GetBounds()
+            model_extent[::2] = np.minimum(model_extent[::2],feature_extent[::2])
+            model_extent[1::2] = np.maximum(model_extent[1::2],feature_extent[1::2])
+
+        return model_extent
+
+
+    def get_view_names(self):
+        
+        return sorted(self.views.keys())
+
+
+    def get_view(self,view_name):
+
+        return self.views[view_name]
+
+
+    # Some slightly useful print formatting
+    def __str__(self):
+
+        return 'Calcam CAD model: "{:s}" / "{:s}" from {:s}'.format(self.machine_name,self.model_variant,self.definition_filename)
+
+
+    def add_view(self,viewname,campos,camtar,fov):
+
+        self.views[viewname] = {'cam_pos':campos,'target':camtar,'y_fov':fov}
+
+        try:
+            with zipfile.ZipFile(self.definition_filename,'r') as zf:
+                zf.extractall()
+
+            with open( 'model.json','r' ) as f:
+                model_def = json.load(f)
+
+            model_def['views'] = self.views
+
+            with open( 'model.json','w') as f:
+                json.dump(model_def,f,indent=4)
+
+            with zipfile.ZipFile(self.definition_filename,'w') as zf:
+                zf.write('model.json')
+                zf.write('usercode.py')
+        
+        except Exception as e:
+            raise UserWarning('Cannot save view definition ({:s}) to model dfinition file. The view definition will only persist until this window is closed.'.format(str(e)))
+
+        
+
+
+
+# Class to represent a single CAD model feature.
+# Does various grunt work and keeps the code nice and modular.
+class ModelFeature():
+
+    # Initialise with the parent CAD mdel and a dictionary
+    # defining the feature
+    def __init__(self,parent,definition_dict):
+
+        self.parent = parent
+
+        self.filename = os.path.join(self.parent.mesh_path_root,definition_dict['mesh_file'])
+        self.filetype = self.filename.split('.')[-1]
+
+        if definition_dict['material'] not in parent.material_colours.keys():
+            raise Exception('Error in CAD model definition!')
+
+        self.material = definition_dict['material']
+
+        self.enabled = definition_dict['default_enable']
+
+        self.scale = definition_dict['mesh_scale']
+
+        self.polydata = None
+        self.solid_actor = None
+        self.edge_actor = None
+
+        self.colour = self.parent.material_colours['Not Specified']
+
+
+    # Get a vtkPolyData object for this feature
+    def get_polydata(self):
+
+        if not self.enabled:
+            return None
+
+        if self.polydata is None:
+
+            if self.parent.status_callback is not None:
+                self.parent.status_callback('Loading mesh file: {:s}...'.format(self.filename))
+
+            if self.filetype == 'stl':
+                reader = vtk.vtkSTLReader()
+            elif self.filetype == 'obj':
+                reader = vtk.vtkOBJReader()
+
+            reader.SetFileName(self.filename)
+            reader.Update()
+
+            scaler = vtk.vtkTransformPolyDataFilter()
+
+            scale_transform = vtk.vtkTransform()
+            scale_transform.Scale(self.scale,self.scale,self.scale)
+
+            if vtk_major_version < 6:
+                scaler.SetInput(reader.GetOutput())
+            else:
+                scaler.SetInputData(reader.GetOutput())
+            scaler.SetTransform(scale_transform)
+            scaler.Update()
+
+            self.polydata = scaler.GetOutput()
+
+            if self.parent.status_callback is not None:
+                self.parent.status_callback(None)
+
+        return self.polydata
+
+
+    # Enable or disable the feature
+    def set_enabled(self,enable):
+
+        if enable and not self.enabled:
+
+            self.enabled = True
+
+            for renderer in self.parent.renderers:
+                for actor in self.get_vtk_actors():
+                    renderer.AddActor(actor)
+
+        elif self.enabled and not enable:
+            for renderer in self.parent.renderers:
+                for actor in self.get_vtk_actors():
+                    renderer.RemoveActor(actor)
+
+            self.enabled = False       
+
+
+    # Get vtkActor object(s) for this feature
+    def get_vtk_actors(self):
+
+        if not self.enabled:
+
+            return []
+        
+        else:
+            
+            if self.solid_actor is None:
+
+                mapper =  vtk.vtkPolyDataMapper()
+                if vtk_major_version < 6:
+                    mapper.SetInput( self.get_polydata() )
+                else:
+                    mapper.SetInputData( self.get_polydata() )
+
+                self.solid_actor = vtk.vtkActor()
+                self.solid_actor.SetMapper(mapper)
+
+
+            # Make the edge actor if it doesn't already exist and is needed
+            if self.parent.edges and self.edge_actor is None:
+
+                if self.parent.status_callback is not None:
+                    self.parent.status_callback('Detecting mesh edges...')
+
+                edge_finder = vtk.vtkFeatureEdges()
+
+                if vtk_major_version < 6:
+                    edge_finder.SetInput( self.get_polydata() )
+                else:
+                    edge_finder.SetInputData( self.get_polydata() )
+
+                edge_finder.ManifoldEdgesOff()
+                edge_finder.BoundaryEdgesOff()
+                edge_finder.NonManifoldEdgesOff()
+                edge_finder.SetFeatureAngle(20)
+                edge_finder.ColoringOff()
+                edge_finder.Update()
+
+                mapper = vtk.vtkPolyDataMapper()
+                mapper.SetInputConnection(edge_finder.GetOutputPort())
+
+                self.edge_actor = vtk.vtkActor()
+                self.edge_actor.SetMapper(mapper)
+                
+                self.edge_actor.GetProperty().SetLineWidth(1)
+            
+                if self.parent.status_callback is not None:
+                    self.parent.status_callback(None)
+
+            # Make sure the colour and lighing are set appropriately
+            if self.parent.edges:
+                self.solid_actor.GetProperty().SetColor((0,0,0))
+                self.edge_actor.GetProperty().SetColor(self.colour)
+            else:
+                self.solid_actor.GetProperty().SetColor(self.colour)
+
+                if self.parent.flat_shading:
+                   self.solid_actor.GetProperty().LightingOff()
+
+            
+            if self.parent.edges:
+                return [self.solid_actor,self.edge_actor]
+            else:
+                return [self.solid_actor]
+
+
+    # Set the colour of the feature
+    def set_colour(self,colour):
+
+        self.colour = colour
+        if self.parent.edges:
+            if self.edge_actor is not None:
+                self.edge_actor.GetProperty().SetColor(colour)
+        else:
+            if self.solid_actor is not None:
+                self.solid_actor.GetProperty().SetColor(colour)
