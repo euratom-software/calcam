@@ -29,16 +29,15 @@ Written by Scott Silburn, Alasdair Wynn & James Harrison
 import numpy as np
 import cv2
 import csv
-import paths
+from . import paths, pointpairs
 import os
 import pickle
-from coordtransformer import CoordTransformer
-import pointpairs
+from .coordtransformer import CoordTransformer
 from scipy.ndimage.measurements import center_of_mass as CoM
 import copy
 from scipy.io.netcdf import netcdf_file
-from image import Image as CalCam_Image
-from pointpairs import PointPairs
+from .image import Image as CalCam_Image
+from .pointpairs import PointPairs
 
 opencv_major_version = int(cv2.__version__[0])
 

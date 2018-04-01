@@ -35,9 +35,9 @@ import numpy as np
 import matplotlib.path as mplPath
 import sys
 import cv2
-from coordtransformer import CoordTransformer
+from .coordtransformer import CoordTransformer
 from scipy.io.netcdf import netcdf_file
-import paths
+from . import paths
 import shutil
 import filecmp
 import inspect

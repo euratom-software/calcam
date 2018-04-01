@@ -30,9 +30,8 @@ Written by Scott Silburn (scott.silburn@ukaea.uk)
 import vtk
 import numpy as np
 import os
-import paths
 import csv
-import image
+from . import image, paths
 import sys
 
 

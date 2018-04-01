@@ -41,7 +41,8 @@ import copy
 import webbrowser
 import subprocess
 
-from . import qt_wrapper as qt, CalCamConfig, __version__, CADModel, paths, fitting, image, pointpairs, raytrace, render, image_filters, vtkinteractorstyles, raycast_sightlines
+from . import qt_wrapper as qt, __version__, CADModel, paths, fitting, image, pointpairs, raytrace, render, image_filters, vtkinteractorstyles, raycast_sightlines
+from .config import CalcamConfig
 from .coordtransformer import CoordTransformer
 
 cv2_version = float('.'.join(cv2.__version__.split('.')[:2]))
@@ -258,7 +259,7 @@ class CADViewerWindow(qt.QMainWindow):
 
         self.app = app
 
-        self.config = CalCamConfig()
+        self.config = CalcamConfig()
 
         # See how big the screen is and open the window at an appropriate size
         desktopinfo = self.app.desktop()
@@ -362,8 +363,10 @@ class CADViewerWindow(qt.QMainWindow):
 
 
         # Auto type views
-        qt.QTreeWidgetItem(self.views_root_auto,['Vertical cross-section thru cursor'])
-        qt.QTreeWidgetItem(self.views_root_auto,['Horizontal cross-section thru cursor'])
+        item = qt.QTreeWidgetItem(self.views_root_auto,['Vertical cross-section thru cursor'])
+        item.setFlags(qt.Qt.NoItemFlags)
+        item = qt.QTreeWidgetItem(self.views_root_auto,['Horizontal cross-section thru cursor'])
+        item.setFlags(qt.Qt.NoItemFlags)
         #qt.QTreeWidgetItem(self.views_root_auto,['Centre current view on origin'])
 
 
@@ -422,7 +425,8 @@ class CADViewerWindow(qt.QMainWindow):
             listitem = qt.QTreeWidgetItem(self.views_root_results,[cal.name])
             if cal.nfields > 1:
                 self.viewport_calibs[(listitem)] = (cal,None)
-                for n,fieldname in enumerate(res.field_names):
+                listitem.setExpanded(True)
+                for n,fieldname in enumerate(cal.field_names):
                     self.viewport_calibs[ (qt.QTreeWidgetItem(listitem,[fieldname])) ] = (cal,n) 
             else:
                 self.viewport_calibs[(listitem)] = (cal,0)
@@ -532,7 +536,6 @@ class CADViewerWindow(qt.QMainWindow):
 
 
         if self.sender() is self.viewlist:
-
             items = self.viewlist.selectedItems()
             if len(items) > 0:
                 view_item = items[0]
@@ -785,7 +788,8 @@ class CADViewerWindow(qt.QMainWindow):
         if self.cadmodel is not None:
 
             self.cadmodel.remove_from_renderer(self.renderer)
-                    
+            self.cadmodel.unload()
+
             del self.cadmodel
 
 
@@ -933,19 +937,7 @@ class CADViewerWindow(qt.QMainWindow):
         self.camFOV.blockSignals(False)
 
         if not keep_selection:
-            self.viewlist.clearSelection()
-
-        try:
-            if self.cadexplorer.point is not None:
-                self.xsection_checkbox.setEnabled(True)
-                for i in range(self.views_root_auto.childCount()):
-                    self.views_root_auto.child(i).setFlags(self.views_root_auto.child(i).flags() | qt.Qt.ItemIsEnabled)
-            else:
-                self.xsection_checkbox.setEnabled(False)
-                for i in range(self.views_root_auto.childCount()):
-                    self.views_root_auto.child(i).setFlags(qt.Qt.NoItemFlags)
-        except AttributeError:
-            pass          
+            self.viewlist.clearSelection()         
 
 
 
@@ -1152,6 +1144,11 @@ class CADViewerWindow(qt.QMainWindow):
         info = 'Cursor location: ' + self.cadmodel.format_coord(position).replace('\n',' | ')
         self.statusbar.showMessage(info)
 
+        self.xsection_checkbox.setEnabled(True)
+        for i in range(self.views_root_auto.childCount()):
+            self.views_root_auto.child(i).setFlags(qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled)
+
+
     def refresh_vtk(self):
         self.renderer.Render()
         self.qvtkWidget.update()
@@ -1167,6 +1164,10 @@ class CADViewerWindow(qt.QMainWindow):
 
 
     def closeEvent(self,event):
+
+        if self.cadmodel is not None:
+            self.cadmodel.remove_from_renderer(self.renderer)
+            self.cadmodel.unload()
 
         # If we're exiting, put python'e exception handling back to normal.
         sys.excepthook = sys.__excepthook__

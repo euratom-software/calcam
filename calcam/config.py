@@ -1,9 +1,10 @@
 import os
 import json
-import zipfile
 import glob
+from .io import ZipSaveFile
 
-class CalCamConfig():
+
+class CalcamConfig():
 
 	def __init__(self,cfg_file= os.path.expanduser('~/.calcam_config'),allow_create=True):
 
@@ -50,16 +51,18 @@ class CalCamConfig():
 
 		for path in self.cad_def_paths:
 			filelist = glob.glob(os.path.join(path,'*.ccm'))
+			filelist = filelist + glob.glob(os.path.join(path,'*.ccmm'))
 
 			for fname in filelist:
 
 				try:
-					with zipfile.ZipFile(fname,'r') as f:
-						with f.open('model.json','r') as j: 
+					with ZipSaveFile(fname,'r') as f:
+						with f.open_file('model.json','r') as j: 
 							caddef = json.load(j)
 				except Exception as e:
-					raise Exception('Error loading CAD definition {:s}:{:s}'.format(file,e))
+					raise Exception('Error loading CAD definition {:s}:{:s}'.format(fname,e))
 
-				cadmodels[caddef['machine_name']] = [fname,caddef['features'].keys(),caddef['default_variant']]
+				cadmodels[caddef['machine_name']] = [fname,[str(x) for x in caddef['features'].keys()],caddef['default_variant']]
 
 		return cadmodels
+

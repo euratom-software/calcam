@@ -29,14 +29,13 @@ __version__ = '2.0.0-dev'
 
 
 # Import the top level "public facing" classes & functions
-from .config import CalCamConfig
 from .cadmodel import CADModel
 
 
-from fitting import CalibResults, VirtualCalib
-from image import Image
-from raytrace import RayData, raycast_sightlines
-from pointpairs import PointPairs
-from roi import ROI, ROISet
-from geometry_matrix import RectangularGeometryMatrix
-from gui import start_gui
+from .fitting import CalibResults, VirtualCalib
+from .image import Image
+from .raytrace import RayData, raycast_sightlines
+from .pointpairs import PointPairs
+#from .roi import ROI, ROISet
+from .geometry_matrix import RectangularGeometryMatrix
+from .gui import start_gui

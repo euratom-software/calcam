@@ -33,9 +33,8 @@ from vtk.util.numpy_support import vtk_to_numpy
 import numpy as np
 import os
 import sys
-import image as CalCamImage
 import time
-import qt_wrapper as qt
+from . import qt_wrapper as qt, image as CalCamImage
 from .raytrace import raycast_sightlines
 
 vtk_major_version = vtk.vtkVersion().GetVTKMajorVersion()

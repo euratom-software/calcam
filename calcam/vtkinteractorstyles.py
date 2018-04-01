@@ -34,21 +34,14 @@ Written by Scott Silburn
 
 import vtk
 import csv
-import fitting
+from . import fitting, pointpairs, render, image, raytrace, paths
 import numpy as np
 import os
-import pointpairs
-import render
-import image
 import gc
-import roi
 import sys
 import time
-import raytrace
-import roi
 import matplotlib.path as mplPath
 import matplotlib.cm
-import paths
 
 class PointPairPicker(vtk.vtkInteractorStyleTerrain):
  

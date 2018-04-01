@@ -23,7 +23,8 @@ import numpy as np
 import json
 import zipfile
 import os
-from . import CalCamConfig
+from .config import CalcamConfig
+from .io import ZipSaveFile
 
 vtk_major_version = vtk.vtkVersion().GetVTKMajorVersion()
 
@@ -52,37 +53,57 @@ class CADModel():
 
         # -------------------------------Loading model definition-------------------------------------
         
-        model_defs = CalCamConfig().get_cadmodels()
+        model_defs = CalcamConfig().get_cadmodels()
         
         # Check whether we know what model definition file to use
         if model_name not in model_defs.keys():
             raise ValueError('Unknown machine model "{:s}". Available models are: {:s}.'.format(model_name,', '.join(model_defs.keys())))
         else:
             self.variants = model_defs[model_name][1]
-            self.definition_filename = model_defs[model_name][0]
+            definition_filename = model_defs[model_name][0]
 
-        with zipfile.ZipFile(self.definition_filename,'r') as zf:
-            # Load the model definition and grab some properties from it
-            with zf.open( 'model.json' ) as f:
-                model_def = json.load(f)
+        self.set_status_callback(status_callback)
 
-            if 'usercode.py' in zf.namelist():
-                import sys
-                sys.path.insert(0,self.definition_filename)
+        if self.status_callback is not None:
+            self.status_callback('Extracting CAD model definition files...')
 
-                import usercode
+        # Open the definition file (ZIP file)
+        try:
+            self.def_file = ZipSaveFile(definition_filename,'rw',include_large=True)
+        except:
+            self.def_file = ZipSaveFile(definition_filename,'r',include_large=True)
 
-                if callable(usercode.format_coord):
-                    test_out = usercode.format_coord( (0.1,0.1,0.1) )
-                    if type(test_out) == str or type(test_out) == unicode:
-                        self.format_coord = usercode.format_coord
+        if self.status_callback is not None:
+            self.status_callback(None)
 
+
+        # Load the model definition and grab some properties from it
+        with self.def_file.open_file( 'model.json','r' ) as f:
+            model_def = json.load(f)
 
         self.machine_name = model_def['machine_name']
         self.material_colours = model_def['material_colours']
         self.views = model_def['views']
-        self.mesh_path_root = model_def['mesh_path_root']
+
+        # Check if the mesh files are from the CAD definition file itself, in which case
+        # we need a different file path
+        if model_def['mesh_path_root'].startswith('.large'):
+            self.mesh_path_root = os.path.join(self.def_file.get_temp_path(),model_def['mesh_path_root'])
+        else:
+            self.mesh_path_root = model_def['mesh_path_root']
+        
         self.initial_view = model_def['initial_view']
+
+        # See if we have a user-written coordinate formatter, and if
+        # we do, load it over the standard format_coord method
+        usermodule = self.def_file.get_usercode()
+        if usermodule is not None:
+            if callable(usermodule.format_coord):
+                # Check the user function returns a string as expected, and use
+                # it only if it does.
+                test_out = usermodule.format_coord( (0.1,0.1,0.1) )
+                if type(test_out) == str or type(test_out) == unicode:
+                    self.format_coord = usermodule.format_coord
 
         # If not specified, choose whatever model variant is specified in the metadata
         if model_variant is None:
@@ -114,8 +135,6 @@ class CADModel():
             self.features[feature_name] = ModelFeature(self,feature_def)
         
         # ----------------------------------------------------------------------------------------------
-
-        self.set_status_callback(status_callback)
 
         self.renderers = []
         self.flat_shading = False
@@ -396,31 +415,28 @@ class CADModel():
         return 'Calcam CAD model: "{:s}" / "{:s}" from {:s}'.format(self.machine_name,self.model_variant,self.definition_filename)
 
 
+    # Add a new view definition to the file.
     def add_view(self,viewname,campos,camtar,fov):
 
         self.views[viewname] = {'cam_pos':campos,'target':camtar,'y_fov':fov}
 
         try:
-            with zipfile.ZipFile(self.definition_filename,'r') as zf:
-                zf.extractall()
 
-            with open( 'model.json','r' ) as f:
+            with self.def_file.open_file( 'model.json','r' ) as f:
                 model_def = json.load(f)
 
             model_def['views'] = self.views
 
-            with open( 'model.json','w') as f:
+            with self.def_file.open_file( 'model.json','w' ) as f:
                 json.dump(model_def,f,indent=4)
-
-            with zipfile.ZipFile(self.definition_filename,'w') as zf:
-                zf.write('model.json')
-                zf.write('usercode.py')
         
         except Exception as e:
-            raise UserWarning('Cannot save view definition ({:s}) to model dfinition file. The view definition will only persist until this window is closed.'.format(str(e)))
+            raise UserWarning('Cannot save view definition to the model dfinition file ({:s}). The view definition will only persist until this window is closed.'.format(str(e)))
 
         
+    def unload(self):
 
+        self.def_file.close()
 
 
 # Class to represent a single CAD model feature.

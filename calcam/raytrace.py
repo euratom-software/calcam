@@ -33,9 +33,8 @@ import datetime
 import time
 import sys
 import os
-import paths
+from . import paths, coordtransformer
 from scipy.io.netcdf import netcdf_file
-import coordtransformer
 import random
 
 
