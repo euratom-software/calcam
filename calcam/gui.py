@@ -496,16 +496,15 @@ class CADViewerWindow(qt.QMainWindow):
 
         self.render_resolution.clear()
         if self.render_calib is not None:
-            
-
             if self.render_coords_combobox.currentIndex() == 0:
-                base_size = self.render_calib.image_display_shape
+                base_size = self.render_calib.image_display_shape                
+                self.render_resolution.addItem('{:d} x {:d} (same as camera)'.format(base_size[0],base_size[1]))
+                self.render_resolution.addItem('{:d} x {:d}'.format(base_size[0]*2,base_size[1]*2))
+                self.render_resolution.addItem('{:d} x {:d}'.format(base_size[0]*4,base_size[1]*4))
+
             elif self.render_coords_combobox.currentIndex() == 1:
                 base_size = [self.render_calib.transform.x_pixels,self.render_calib.transform.y_pixels]
-
-            self.render_resolution.addItem('{:d} x {:d} (same as camera)'.format(base_size[0],base_size[1]))
-            self.render_resolution.addItem('{:d} x {:d}'.format(base_size[0]*2,base_size[1]*2))
-            self.render_resolution.addItem('{:d} x {:d}'.format(base_size[0]*4,base_size[1]*4))
+                self.render_resolution.addItem('{:d} x {:d} (same as camera)'.format(base_size[0],base_size[1]))
 
 
     def save_view_to_model(self):
@@ -677,6 +676,7 @@ class CADViewerWindow(qt.QMainWindow):
 
     def do_render(self):
 
+        # Get the file name to save as from the user.
         dialog = qt.QFileDialog(self)
         dialog.setAcceptMode(1)
         dialog.setFileMode(0)
@@ -692,63 +692,57 @@ class CADViewerWindow(qt.QMainWindow):
 
         self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
 
-        temp_actors = []
-        if self.sightlines_legend_checkbox.isChecked():
-            temp_actors.append(self.cadexplorer.legend)
 
-        if not self.render_include_cursor.isChecked():
-            if self.cadexplorer.point is not None:
-                temp_actors.append( self.cadexplorer.point[2] )
-
-        for actor in temp_actors:
-            self.renderer.RemoveActor(actor)
+        # Values of extra AA and oversampling to use
+        aa = (self.render_aa.currentIndex() + 1)
+        oversampling=2**(self.render_resolution.currentIndex())
+        use_transparency = self.render_bg_transparent.isChecked()
 
 
-        actorcollection = self.renderer.GetActors()
-        actorcollection.InitTraversal()
-        actors = []
-        actor = actorcollection.GetNextItemAsObject()
-        while actor is not None:
-            actors.append(actor)
-            actor = actorcollection.GetNextItemAsObject()
-
-        for actor in actors:
-            actor.GetProperty().SetLineWidth( actor.GetProperty().GetLineWidth() * (self.render_aa.currentIndex() + 1)  )
-
-
-        self.renderer.Render()
-
+        # Render the current view, using the current renderer.
         if self.render_current_view.isChecked():
+        
+            # Actors which will be temporarily removed from the scene while we render
+            # -----------------------------------------------------------------------
+            temp_actors = []
 
-            magnification = 2**self.render_resolution.currentIndex() * (self.render_aa.currentIndex() + 1)
-            dims = np.array(self.cadexplorer.Window.GetSize()) * magnification
+            # For some reason having the legend completely ruins things,
+            # so we turn it off.
+            if self.sightlines_legend_checkbox.isChecked():
+                temp_actors.append(self.cadexplorer.legend)
 
-            hires_renderer = vtk.vtkRenderLargeImage()
-            hires_renderer.SetInput(self.renderer)
-            hires_renderer.SetMagnification( magnification )
-            hires_renderer.Update()
-            vtk_im_array = hires_renderer.GetOutput().GetPointData().GetScalars()
-            im = np.flipud(vtk.util.numpy_support.vtk_to_numpy(vtk_im_array).reshape(dims[1], dims[0] , 3))
+            # Get rid of the cursor unless the user said not to.
+            if not self.render_include_cursor.isChecked():
+                if self.cadexplorer.point is not None:
+                    temp_actors.append( self.cadexplorer.point[2] )
 
-            if self.render_bg_transparent.isChecked():
-                alpha = 255 * np.ones([np.shape(im)[0],np.shape(im)[1]],dtype='uint8')
-                alpha[np.sum(im,axis=2) == 0] = 0
-                im = np.dstack((im,alpha))
+            for actor in temp_actors:
+                self.renderer.RemoveActor(actor)
+            # -------------------------------------------------------------------------
 
-            im = cv2.resize(im,(int(dims[0]/(self.render_aa.currentIndex() + 1)),int(dims[1]/(self.render_aa.currentIndex() + 1))),interpolation=cv2.INTER_AREA)
-            
-            im[:,:,:3] = im[:,:,2::-1]
-            cv2.imwrite(filename,im)
+            # Do the render
+            im = render.render_hires(self.renderer,oversampling=oversampling,aa=aa,transparency=use_transparency)
 
+            # Add back the temporarily removed actors
+            for actor in temp_actors:
+                self.renderer.AddActor(actor)
+
+        # Render a calibrated camera's point of view
         elif self.render_cam_view.isChecked():
 
-            im = render.render_cam_view(actors,self.render_calib,filename=filename,oversampling=2**(self.render_resolution.currentIndex()),AA=self.render_aa.currentIndex()+1,Transparency=self.render_bg_transparent.isChecked(),ScreenSize=self.screensize)
+            # For render_cam_view we need to tell it what to include apart from the cad model.
+            # So make a list of the other actors we need to add:
+            extra_actors = []
+            for listitem,sightlines in self.sightlines:
+                if listitem.isChecked():
+                    extra_actors.append(sightlines[1])
 
-        for actor in actors:
-            actor.GetProperty().SetLineWidth( actor.GetProperty().GetLineWidth() / (self.render_aa.currentIndex() + 1)  )
+            im = render.render_cam_view(self.cadmodel,self.render_calib,extra_actors = extra_actors,oversampling=oversampling,aa=aa,transparency=use_transparency,verbose=False)
+        
 
-        for actor in temp_actors:
-            self.renderer.AddActor(actor)
+        # Save the image!
+        im[:,:,:3] = im[:,:,2::-1]
+        cv2.imwrite(filename,im)
 
         self.renderer.Render()
 

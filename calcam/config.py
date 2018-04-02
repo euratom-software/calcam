@@ -55,7 +55,7 @@ class CalcamConfig():
 			for fname in filelist:
 
 				try:
-					with ZipSaveFile(fname,'r') as f:
+					with ZipSaveFile(fname,'rs') as f:
 						with f.open_file('model.json','r') as j: 
 							caddef = json.load(j)
 				except Exception as e:

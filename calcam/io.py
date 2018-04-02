@@ -3,7 +3,7 @@ import tempfile
 import sys
 import os
 import shutil
-import time
+import hashlib
 
 # Get a list of directory contents, including sub-directories.
 # Returned list has absolute paths.
@@ -24,24 +24,42 @@ def listdir(path):
 	return filelist
 
 
+def md5_file(filename):
+
+	blocksize = 65536
+	hasher = hashlib.md5()
+	with open(filename, 'rb') as f:
+	    buf = f.read(blocksize)
+	    while len(buf) > 0:
+	        hasher.update(buf)
+	        buf = f.read(blocksize)
+	return hasher.digest()
+
+
 # Class for Zip file based save files.
 class ZipSaveFile():
 
-	def __init__(self,fname,mode='r',include_large=False):
+	def __init__(self,fname,mode='r',ignore_pyc=True):
+
+		if 'w' in mode and 's' in mode:
+			raise ValueError('Invalid mode "{:s}"'.format(mode))
 
 		self.filename = os.path.abspath(fname)
+		self.ignore_pyc = ignore_pyc
 		self.mode = mode
 		self.pypaths = []
 		self.is_open = False
-		self.open(include_large)
+		self.open(self.mode)
 
 
-	def open(self,include_large):
+	def open(self,mode):
 
 		# Maybe we're re-opening the file, in which case
 		# we need to close first.
 		if self.is_open:
 			self.close()
+
+		self.mode = mode
 
 		# Check the file exists, and that if we're going to try to write to it,
 		# that we have the necessary permissions.
@@ -70,7 +88,7 @@ class ZipSaveFile():
 			try:
 				with zipfile.ZipFile(self.filename,'r') as zf:
 
-					if include_large:
+					if 's' not in mode:
 						loadlist = zf.namelist()	
 					else:
 						loadlist = [name for name in zf.namelist() if not name.startswith('.large/')]
@@ -84,8 +102,21 @@ class ZipSaveFile():
 
 		self.file_handles = []
 		self.is_open = True
-		self.original_modified_time = os.path.getmtime(self.tempdir)
+		self.initial_hashes = self.get_hashes()
 
+
+
+
+	def get_hashes(self):
+
+		if self.is_open:
+			hashes = []
+			for fname in self.list_contents():
+				hashes.append( (fname,md5_file(os.path.join(self.tempdir,fname))) )
+
+			return hashes
+		else:
+			raise Exception('File is not open!')
 
 
 	def close(self):
@@ -96,7 +127,7 @@ class ZipSaveFile():
 
 			# If we're in write mode, and the file contents have been modified since being loaded,
 			# we need to re-save the ZIP file with the new contents.
-			if 'w' in self.mode and os.path.getmtime(self.tempdir) > self.original_modified_time:
+			if 'w' in self.mode and self.get_hashes() != self.initial_hashes:
 
 				with zipfile.ZipFile(self.filename,'w',zipfile.ZIP_DEFLATED,True) as zf:
 
@@ -142,14 +173,7 @@ class ZipSaveFile():
 		if 'r' not in self.mode or not self.is_open:
 			raise IOError('File not open in read mode!')
 
-		if 'usercode/__init__.py' or 'usercode.py' in self.list_contents():
-
-			# Since what we're about to do will probably generate .pyc files,
-			# let's keep track of whether we're meaningfully modified or not 
-			if os.path.getmtime(self.tempdir) > self.original_modified_time:
-				modified = True
-			else:
-				modified = False
+		if 'usercode/__init__.py' in self.list_contents() or 'usercode.py' in self.list_contents():
 
 			sys.path.insert(0,self.tempdir)
 			try:
@@ -157,9 +181,6 @@ class ZipSaveFile():
 			except:
 				sys.path.remove(self.tempdir)
 				raise
-
-			if not modified:
-				self.original_modified_time = os.path.getmtime(self.tempdir)
 
 			return usermodule
 		else:
@@ -172,7 +193,10 @@ class ZipSaveFile():
 		if not self.is_open:
 			self.open()
 		
-		return [os.path.relpath(fname,self.tempdir) for fname in listdir(self.tempdir)]
+		if self.ignore_pyc:
+			return [os.path.relpath(fname,self.tempdir) for fname in listdir(self.tempdir) if not fname.endswith('.pyc')]
+		else:
+			return [os.path.relpath(fname,self.tempdir) for fname in listdir(self.tempdir)]
 
 
 	# Add a file or directory to the archive.
@@ -219,7 +243,7 @@ class ZipSaveFile():
 		if 'w' not in self.mode:
 			raise IOError('File is open in read-only mode!')
 
-		if ( 'usercode' in self.list_contents() ) or ( 'usercode.py' in self.list_contents() ):
+		if 'usercode' in self.list_contents()  or 'usercode.py' in self.list_contents() :
 
 			if replace:
 				try:

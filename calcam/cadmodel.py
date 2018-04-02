@@ -84,9 +84,9 @@ class CADModel():
 
         # Open the definition file (ZIP file)
         try:
-            self.def_file = ZipSaveFile(definition_filename,'rw',include_large=True)
+            self.def_file = ZipSaveFile(definition_filename,'rw')
         except:
-            self.def_file = ZipSaveFile(definition_filename,'r',include_large=True)
+            self.def_file = ZipSaveFile(definition_filename,'r')
 
         if self.status_callback is not None:
             self.status_callback(None)
@@ -101,6 +101,7 @@ class CADModel():
         self.machine_name = model_def['machine_name']
         self.views = model_def['views']
         self.initial_view = model_def['initial_view']
+        self.linewidth = 1
 
 
         # Check if the mesh files are from the CAD definition file itself, in which case
@@ -113,7 +114,7 @@ class CADModel():
         
         # See if we have a user-written coordinate formatter, and if
         # we do, load it over the standard format_coord method
-        self.usermodule = False
+        self.usermodule = None
         usermodule = self.def_file.get_usercode()
         if usermodule is not None:
             if callable(usermodule.format_coord):
@@ -167,6 +168,7 @@ class CADModel():
 
     def get_status_callback(self):
         return self.status_callback
+
 
 
     # Add this CAD model to a vtk renderer.
@@ -372,6 +374,48 @@ class CADModel():
         return clist
 
 
+    def get_linewidth(self,features=None):
+        
+        wlist = []
+        if features is None:
+            features = self.get_feature_list()
+
+        for feature in features:
+            if feature in self.groups.keys():
+                for fname in self.groups[feature]:
+                    wlist.append( self.features[fname].linewidth )
+            elif feature in self.features.keys():
+                wlist.append( self.features[feature].linewidth )
+            else:
+                raise ValueError('Unknown feature "{:s}"!'.format(feature))
+            
+        return wlist       
+
+
+    # Set the colour of a component or the whole model
+    def set_linewidth(self,linewidth,features=None):
+
+        if features is None:
+            features = self.get_feature_list()
+
+        try:
+            0 + linewidth
+            linewidth = [linewidth] * len(features)
+        except:
+            if len(linediwth) != len(features):
+                raise ValueError('The same number of line widths and features must be provided!')
+
+        for i,requested in enumerate(features):
+
+            if requested in self.groups.keys():
+                for fname in self.groups[requested]:
+                    self.features[fname].set_linewidth(linewidth[i])
+            elif requested in self.features.keys():
+                self.features[requested].set_linewidth(linewidth[i])
+            else:
+                raise ValueError('Unknown feature "{:s}"!'.format(requested))
+
+
 
     # Make a vtkCellLocator object to do ray casting with this CAD model
     def get_cell_locator(self):
@@ -491,7 +535,7 @@ class CADModel():
     def unload(self):
 
         if self.status_callback is not None:
-            self.status_callback('Saving any changes to model definition file...')
+            self.status_callback('Saving changes to model definition {:s}/{:s}...'.format(self.machine_name,self.model_variant))
 
         self.def_file.close()
 
@@ -537,7 +581,7 @@ class ModelFeature():
 
         self.default_colour = definition_dict['colour']
         self.colour = self.default_colour
-
+        self.linewidth = 1
 
     # Get a vtkPolyData object for this feature
     def get_polydata(self):
@@ -644,7 +688,7 @@ class ModelFeature():
                 self.edge_actor = vtk.vtkActor()
                 self.edge_actor.SetMapper(mapper)
                 
-                self.edge_actor.GetProperty().SetLineWidth(1)
+                self.edge_actor.GetProperty().SetLineWidth(self.linewidth)
             
                 if self.parent.status_callback is not None:
                     self.parent.status_callback(None)
@@ -664,6 +708,12 @@ class ModelFeature():
                 return [self.solid_actor,self.edge_actor]
             else:
                 return [self.solid_actor]
+
+
+    def set_linewidth(self,linewidth):
+        self.linewidth = linewidth
+        if self.edge_actor is not None:
+            self.edge_actor.GetProperty().SetLineWidth(linewidth)
 
 
     # Set the colour of the feature
