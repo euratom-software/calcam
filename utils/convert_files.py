@@ -15,7 +15,7 @@ import inspect
 import tempfile
 import shutil
 
-homedir = os.path.expanduser('~/Documents')
+homedir = os.path.join( os.path.expanduser('~'), 'Documents')
 newpath_root = os.path.join(homedir,'Calcam 2')
 
 
@@ -119,7 +119,7 @@ def convert_cadmodels(new_path= os.path.join(newpath_root,'CAD Models')):
             continue
 
         try:
-            exec('import ' + def_filename[:-3] + ' as CADDef')
+            CADDef = __import__(def_filename[:-3])
             modelclasses = inspect.getmembers(CADDef, inspect.isclass)
 
             for modelclass in modelclasses:
