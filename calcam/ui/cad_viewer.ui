@@ -218,13 +218,6 @@
              </property>
             </widget>
            </item>
-           <item row="1" column="0" colspan="3">
-            <widget class="QCheckBox" name="xsection_checkbox">
-             <property name="text">
-              <string>Cut model cross-section through cursor</string>
-             </property>
-            </widget>
-           </item>
            <item row="0" column="2">
             <spacer name="horizontalSpacer_3">
              <property name="orientation">
@@ -245,8 +238,11 @@
              </property>
             </widget>
            </item>
-           <item row="3" column="0" colspan="3">
-            <widget class="QFrame" name="frame_4">
+           <item row="2" column="0" colspan="3">
+            <widget class="QFrame" name="cad_colour_controls">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="frameShape">
               <enum>QFrame::NoFrame</enum>
              </property>
@@ -260,31 +256,37 @@
               <property name="spacing">
                <number>6</number>
               </property>
-              <item row="1" column="2">
-               <widget class="QPushButton" name="cad_colour_reset_button">
+              <item row="0" column="0" colspan="2">
+               <widget class="QLabel" name="label_15">
                 <property name="text">
-                 <string>Reset All</string>
+                 <string>Colour of selected feature(s):</string>
                 </property>
                </widget>
               </item>
-              <item row="1" column="0">
+              <item row="3" column="0">
                <widget class="QPushButton" name="cad_colour_choose_button">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
                 <property name="text">
                  <string>Choose...</string>
                 </property>
                </widget>
               </item>
-              <item row="1" column="1">
-               <widget class="QPushButton" name="cad_colour_by_material_button">
+              <item row="3" column="1">
+               <widget class="QPushButton" name="cad_colour_reset_button">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
                 <property name="text">
-                 <string>By Material</string>
+                 <string>Reset</string>
                 </property>
                </widget>
               </item>
-              <item row="0" column="0" colspan="3">
-               <widget class="QLabel" name="label_15">
+              <item row="4" column="0" colspan="2">
+               <widget class="QPushButton" name="save_colours_button">
                 <property name="text">
-                 <string>Colour of selected feature(s):</string>
+                 <string>Save current colours as default (whole model)</string>
                 </property>
                </widget>
               </item>
@@ -329,6 +331,16 @@
                <string notr="true">1</string>
               </property>
              </column>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="xsection_checkbox">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="text">
+              <string>Cut model cross-section through cursor</string>
+             </property>
             </widget>
            </item>
            <item>

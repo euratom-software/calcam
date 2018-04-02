@@ -51,7 +51,6 @@ class CalcamConfig():
 
 		for path in self.cad_def_paths:
 			filelist = glob.glob(os.path.join(path,'*.ccm'))
-			filelist = filelist + glob.glob(os.path.join(path,'*.ccmm'))
 
 			for fname in filelist:
 
@@ -62,7 +61,17 @@ class CalcamConfig():
 				except Exception as e:
 					raise Exception('Error loading CAD definition {:s}:{:s}'.format(fname,e))
 
-				cadmodels[caddef['machine_name']] = [fname,[str(x) for x in caddef['features'].keys()],caddef['default_variant']]
+				if caddef['machine_name'] not in cadmodels:
+					key = caddef['machine_name']
+				else:
+					
+					existing_model = cadmodels.pop(caddef['machine_name'])
+					existing_key = '{:s} [{:s}]'.format(caddef['machine_name'], os.path.split(existing_model[0])[1] )
+					cadmodels[existing_key] = existing_model
+
+					key = '{:s} [{:s}]'.format(caddef['machine_name'], os.path.split(fname)[1] )
+
+				cadmodels[key] = [fname,[str(x) for x in caddef['features'].keys()],caddef['default_variant']]
 
 		return cadmodels
 

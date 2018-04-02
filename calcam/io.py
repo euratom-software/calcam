@@ -3,7 +3,7 @@ import tempfile
 import sys
 import os
 import shutil
-
+import time
 
 # Get a list of directory contents, including sub-directories.
 # Returned list has absolute paths.
@@ -29,7 +29,7 @@ class ZipSaveFile():
 
 	def __init__(self,fname,mode='r',include_large=False):
 
-		self.filename = fname
+		self.filename = os.path.abspath(fname)
 		self.mode = mode
 		self.pypaths = []
 		self.is_open = False
@@ -47,18 +47,19 @@ class ZipSaveFile():
 		# that we have the necessary permissions.
 		if 'r' in self.mode:
 			if not os.path.isfile(self.filename):
-				raise FileNotFoundError('No such file: {:s}'.format(self.filename))
+				raise IOError('No such file: {:s}'.format(self.filename))
 
 		if 'w' in self.mode:
 			if os.path.isfile(self.filename):
 				if not os.access(self.filename,os.W_OK):
-					raise PermissionError('Write permission denied on {:s}'.format(self.filename))
+					raise IOError('Write permission denied on {:s}'.format(self.filename))
 			elif os.path.isdir(self.filename):
 				raise IOError('Specified filename already exists but is a directory!')
 			else:
 				savepath = os.path.split(self.filename)[0]
 				if not os.access(savepath,os.W_OK):
-					raise PermissionError('Cannot write to directory {:s}'.format(savepath))
+					raise IOError('Cannot write to directory {:s}'.format(savepath))
+
 
 		# Create a temporary directory which we'll use 
 		# to extract our ZIP while we work with its contents.
@@ -83,6 +84,7 @@ class ZipSaveFile():
 
 		self.file_handles = []
 		self.is_open = True
+		self.original_modified_time = os.path.getmtime(self.tempdir)
 
 
 
@@ -92,11 +94,11 @@ class ZipSaveFile():
 			for h in self.file_handles:
 				h.close()
 
-			# If we're in write mode, this is when we pack
-			# out temporary directory away in to the actual zip file.
-			if 'w' in self.mode:
+			# If we're in write mode, and the file contents have been modified since being loaded,
+			# we need to re-save the ZIP file with the new contents.
+			if 'w' in self.mode and os.path.getmtime(self.tempdir) > self.original_modified_time:
 
-				with zipfile.ZipFile(self.filename,'w') as zf:
+				with zipfile.ZipFile(self.filename,'w',zipfile.ZIP_DEFLATED,True) as zf:
 
 					for fname in listdir(self.tempdir):
 
@@ -118,7 +120,7 @@ class ZipSaveFile():
 			self.open()
 
 		if 'r' in mode and fname not in self.list_contents():
-			raise FileNotFoundError('File "{:s}" not in here!'.format(fname))
+			raise IOError('File "{:s}" not in here!'.format(fname))
 
 		if 'w' in mode and 'w' not in self.mode:
 			raise IOError('File is open in read only mode!')
@@ -141,12 +143,23 @@ class ZipSaveFile():
 			raise IOError('File not open in read mode!')
 
 		if 'usercode/__init__.py' or 'usercode.py' in self.list_contents():
+
+			# Since what we're about to do will probably generate .pyc files,
+			# let's keep track of whether we're meaningfully modified or not 
+			if os.path.getmtime(self.tempdir) > self.original_modified_time:
+				modified = True
+			else:
+				modified = False
+
 			sys.path.insert(0,self.tempdir)
 			try:
 				usermodule = __import__('usercode')
 			except:
 				sys.path.remove(self.tempdir)
 				raise
+
+			if not modified:
+				self.original_modified_time = os.path.getmtime(self.tempdir)
 
 			return usermodule
 		else:
@@ -172,12 +185,12 @@ class ZipSaveFile():
 			raise IOError('File is open in read-only mode!')
 
 		if not (os.path.isdir(from_path) or os.path.isfile(from_path)):
-			raise FileNotFoundError('No such file or directory "{:s}"'.format(from_path))
+			raise IOError('No such file or directory "{:s}"'.format(from_path))
 
 		if to_path is None:
 			dst_path = os.path.join(self.tempdir, from_path.split(os.sep)[-1] )
 		else:
-			dst_path = os.path.join(self.tempdir, from_path.split(os.sep)[-1] )
+			dst_path = os.path.join(self.tempdir, to_path )
 
 		if os.path.isdir(dst_path):
 			if replace:
@@ -206,7 +219,7 @@ class ZipSaveFile():
 		if 'w' not in self.mode:
 			raise IOError('File is open in read-only mode!')
 
-		if 'usercode' or 'usercode.py' in os.listdir(self.tempdir):
+		if ( 'usercode' in self.list_contents() ) or ( 'usercode.py' in self.list_contents() ):
 
 			if replace:
 				try:
@@ -217,8 +230,10 @@ class ZipSaveFile():
 			else:
 				raise IOError('File already contains user code! Use replace=True to allow overwriting.')
 
-		if os.path.isfile(usercode_path) and usercode_path.endswith('.py'):
-			self.add()
+		if os.path.isfile(usercode_path):
+			self.add(usercode_path,'usercode.py')
+		else:
+			self.add(usercode_path,'usercode')
 
 
 	# Remove a named file or folder from the archive
@@ -228,7 +243,7 @@ class ZipSaveFile():
 			raise IOError('File is open in read-only mode!')
 
 		if fname not in self.list_contents():
-			raise FileNotFoundError('File or directory "{:s}" not in here!'.format(fname))
+			raise IOError('File or directory "{:s}" not in here!'.format(fname))
 
 		fullpath = os.path.join(self.tempdir, fname)
 

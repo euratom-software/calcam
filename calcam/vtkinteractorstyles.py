@@ -2678,7 +2678,7 @@ class CADExplorer(vtk.vtkInteractorStyleTerrain):
         self.Interactor.SetPicker(self.Picker)
         
         self.point = None 
-        self.xsection = False
+        self.xsection_coords = None
     
         self.rays = {}
         self.rois = {}
@@ -2708,11 +2708,16 @@ class CADExplorer(vtk.vtkInteractorStyleTerrain):
         del self.Picker
 
 
-    def toggle_xsection(self,xsection):
-        self.xsection = xsection
-        self.Renderer.Render()
-        self.gui_window.refresh_vtk()
 
+    def set_xsection(self,xsection_coords):
+
+        if xsection_coords is not None:
+            self.xsection_coords = xsection_coords
+        else:
+            self.xsection_coords = None
+
+    def get_xsection(self):
+        return self.xsection_coords
 
 
     def set_legend(self,legend_items):
@@ -2787,12 +2792,13 @@ class CADExplorer(vtk.vtkInteractorStyleTerrain):
     def update_clipping(self):
 
         self.Renderer.ResetCameraClippingRange()
-        normal_range = self.Camera3D.GetClippingRange()
-        if self.xsection and self.point is not None:
-            cam_to_pointer = np.array( self.point[0].GetFocalPoint() ) - np.array(self.Camera3D.GetPosition())
+
+        if self.xsection_coords is not None:
+            normal_range = self.Camera3D.GetClippingRange()
+            cam_to_xsec = self.xsection_coords - np.array(self.Camera3D.GetPosition())
             cam_view_dir = self.get_view_target() - np.array(self.Camera3D.GetPosition())
             cam_view_dir = cam_view_dir / np.sqrt( np.sum(cam_view_dir**2))
-            dist = max(normal_range[0],np.dot(cam_to_pointer,cam_view_dir))
+            dist = max(normal_range[0],np.dot(cam_to_xsec,cam_view_dir))
             self.Camera3D.SetClippingRange(dist,normal_range[1])
 
 
@@ -2898,8 +2904,6 @@ class CADExplorer(vtk.vtkInteractorStyleTerrain):
                 
                 self.gui_window.update_cursor_position(self.point[0].GetFocalPoint())
 
-                if self.xsection:
-                    self.update_clipping()
 
                 self.gui_window.update_viewport_info()
                 self.gui_window.refresh_vtk()

@@ -308,7 +308,8 @@ class CADViewerWindow(qt.QMainWindow):
         self.load_model_button.clicked.connect(self.load_model)
         self.model_name.currentIndexChanged.connect(self.populate_model_variants)
         self.feature_tree.itemChanged.connect(self.update_checked_features)
-        self.xsection_checkbox.toggled.connect(self.cadexplorer.toggle_xsection)
+        self.feature_tree.itemSelectionChanged.connect(self.update_cadtree_selection)
+        self.xsection_checkbox.toggled.connect(self.toggle_cursor_xsection)
         self.sightline_opacity_slider.valueChanged.connect(self.update_sightlines)
         self.rendertype_edges.toggled.connect(self.toggle_wireframe)
         self.viewport_load_calib.clicked.connect(self.load_viewport_calib)
@@ -321,10 +322,10 @@ class CADViewerWindow(qt.QMainWindow):
         self.render_cam_view.toggled.connect(self.change_render_type)
         self.render_coords_combobox.currentIndexChanged.connect(self.update_render_coords)
         self.render_load_button.clicked.connect(self.load_render_result)
-        self.cad_colour_by_material_button.clicked.connect(self.set_cad_colour)
         self.cad_colour_reset_button.clicked.connect(self.set_cad_colour)
         self.cad_colour_choose_button.clicked.connect(self.set_cad_colour)
         self.save_view_button.clicked.connect(self.save_view_to_model)
+        self.save_colours_button.clicked.connect(self.save_cad_colours)
 
         self.sightlines_legend = None
         self.render_calib = None
@@ -358,7 +359,7 @@ class CADViewerWindow(qt.QMainWindow):
 
         # Populate viewports list
         self.views_root_model = qt.QTreeWidgetItem(['Defined in Model'])
-        self.views_root_auto = qt.QTreeWidgetItem(['Auto View Adjustments'])
+        self.views_root_auto = qt.QTreeWidgetItem(['Auto Cross-Sections'])
         self.views_root_results = qt.QTreeWidgetItem(['From Calibrations'])
 
 
@@ -367,7 +368,6 @@ class CADViewerWindow(qt.QMainWindow):
         item.setFlags(qt.Qt.NoItemFlags)
         item = qt.QTreeWidgetItem(self.views_root_auto,['Horizontal cross-section thru cursor'])
         item.setFlags(qt.Qt.NoItemFlags)
-        #qt.QTreeWidgetItem(self.views_root_auto,['Centre current view on origin'])
 
 
         self.viewlist.addTopLevelItem(self.views_root_model)
@@ -393,6 +393,16 @@ class CADViewerWindow(qt.QMainWindow):
 
 
  
+
+    def toggle_cursor_xsection(self,onoff):
+
+        if onoff:
+            self.cadexplorer.set_xsection(self.cadexplorer.point[0].GetFocalPoint())
+        else:
+            self.cadexplorer.set_xsection(None)
+
+        self.cadexplorer.update_clipping()
+        self.refresh_vtk()
 
 
     def update_selected_sightlines(self):
@@ -434,6 +444,11 @@ class CADViewerWindow(qt.QMainWindow):
         if len(cals) > 0:
             self.views_root_results.setHidden(False)
 
+
+    def save_cad_colours(self):
+
+        cols = self.cadmodel.get_colour()
+        self.cadmodel.set_default_colour(cols)
 
 
     def change_render_type(self):
@@ -506,9 +521,10 @@ class CADViewerWindow(qt.QMainWindow):
         cam_pos = (self.camX.value(),self.camY.value(),self.camZ.value())
         target = (self.tarX.value(), self.tarY.value(), self.tarZ.value())
         fov = self.camFOV.value()
+        xsection = self.cadexplorer.get_xsection()
 
         try:
-            self.cadmodel.add_view(str(self.view_save_name.text()),cam_pos,target,fov)
+            self.cadmodel.add_view(str(self.view_save_name.text()),cam_pos,target,fov,xsection)
             self.update_model_views()
 
         except:
@@ -526,13 +542,18 @@ class CADViewerWindow(qt.QMainWindow):
             qt.QTreeWidgetItem(self.views_root_model,[view])
 
 
+
+    def update_cadtree_selection(self):
+
+        if len(self.feature_tree.selectedItems()) == 0:
+            self.cad_colour_choose_button.setEnabled(False)
+            self.cad_colour_reset_button.setEnabled(False)
+        else:
+            self.cad_colour_choose_button.setEnabled(True)
+            self.cad_colour_reset_button.setEnabled(True)            
+
+
     def change_cad_view(self):
-
-        self.xsection_checkbox.setChecked(False)
-
-#        if self.sender() is self.viewlist:
-#            if view_item.isDisabled() or view_item is self.views_root_model:
-#                return
 
 
         if self.sender() is self.viewlist:
@@ -542,6 +563,7 @@ class CADViewerWindow(qt.QMainWindow):
             else:
                 return
   
+            self.xsection_checkbox.setChecked(False)
             if view_item.parent() is self.views_root_model:
 
                 view = self.cadmodel.get_view( str(view_item.text(0)))
@@ -551,6 +573,7 @@ class CADViewerWindow(qt.QMainWindow):
                 self.camera.SetPosition(view['cam_pos'])
                 self.camera.SetFocalPoint(view['target'])
                 self.camera.SetViewUp(0,0,1)
+                self.cadexplorer.set_xsection(view['xsection'])
 
             elif view_item.parent() is self.views_root_results or view_item.parent() in self.viewport_calibs.keys():
 
@@ -561,7 +584,8 @@ class CADViewerWindow(qt.QMainWindow):
                 self.camera.SetPosition(view.get_pupilpos(field=subfield))
                 self.camera.SetFocalPoint(view.get_pupilpos(field=subfield) + view.get_los_direction(view.image_display_shape[0]/2,view.image_display_shape[1]/2))
                 self.camera.SetViewAngle(view.get_fov(field=subfield)[1])
-                self.camera.SetViewUp(-1.*view.get_cam_to_lab_rotation(field=subfield)[:,1])                 
+                self.camera.SetViewUp(-1.*view.get_cam_to_lab_rotation(field=subfield)[:,1])
+                self.cadexplorer.set_xsection(view['xsection'])               
 
             elif view_item.parent() is self.views_root_auto:
 
@@ -615,11 +639,16 @@ class CADViewerWindow(qt.QMainWindow):
 
     def set_cad_colour(self):
 
-        if self.sender() is self.cad_colour_choose_button:
+        selected_features = []
+        for treeitem in self.feature_tree.selectedItems():
+            selected_features.append(self.cad_tree_items[treeitem])
 
-            selected_features = []
-            for treeitem in self.feature_tree.selectedItems():
-                selected_features.append(self.cad_tree_items[treeitem])
+        # Note: this does not mean nothing is selected;
+        # rather it means the root of the model is selected!
+        if None in selected_features:
+            selected_features = None
+
+        if self.sender() is self.cad_colour_choose_button:
 
             picked_colour = pick_colour(self,self.cadmodel.get_colour( selected_features )[0] )
 
@@ -627,13 +656,10 @@ class CADViewerWindow(qt.QMainWindow):
 
                 self.cadmodel.set_colour(picked_colour,selected_features)
 
-        elif self.sender() is self.cad_colour_by_material_button:
-
-            self.cadmodel.colour_by_material()
 
         elif self.sender() is self.cad_colour_reset_button:
 
-            self.cadmodel.set_colour(self.initial_cad_colours)
+            self.cadmodel.reset_colour(selected_features)
 
         self.refresh_vtk()
 
@@ -642,12 +668,10 @@ class CADViewerWindow(qt.QMainWindow):
     def toggle_wireframe(self,wireframe):
         
         if self.cadmodel is not None:
-            self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
 
             self.cadmodel.set_wireframe( wireframe )
 
             self.refresh_vtk()
-            self.app.restoreOverrideCursor()
 
 
 
@@ -742,10 +766,8 @@ class CADViewerWindow(qt.QMainWindow):
 
     def update_checked_features(self,item):
 
-            self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
             self.cadmodel.set_features_enabled(item.checkState(0) == qt.Qt.Checked,self.cad_tree_items[item])
             self.update_feature_tree_checks()
-            self.app.restoreOverrideCursor()
 
             self.refresh_vtk()
 
@@ -782,8 +804,6 @@ class CADViewerWindow(qt.QMainWindow):
 
     def load_model(self):
 
-        self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
-
         # Dispose of the old model
         if self.cadmodel is not None:
 
@@ -804,7 +824,6 @@ class CADViewerWindow(qt.QMainWindow):
 
         self.statusbar.showMessage('Setting up CAD model...')
 
-        self.initial_cad_colours = self.cadmodel.get_colour()
 
         # -------------------------- Populate the model feature tree ------------------------------
         self.feature_tree.blockSignals(True)
@@ -860,6 +879,11 @@ class CADViewerWindow(qt.QMainWindow):
         self.tabWidget.setTabEnabled(1,True)
         self.tabWidget.setTabEnabled(2,True)
         self.tabWidget.setTabEnabled(3,True)
+
+        self.cad_colour_controls.setEnabled(True)
+        self.cad_colour_reset_button.setEnabled(False)
+        self.cad_colour_choose_button.setEnabled(False)
+
 
         # Make sure the light lights up the whole model without annoying shadows or falloff.
         light = self.renderer.GetLights().GetItemAsObject(0)
@@ -1147,7 +1171,8 @@ class CADViewerWindow(qt.QMainWindow):
         self.xsection_checkbox.setEnabled(True)
         for i in range(self.views_root_auto.childCount()):
             self.views_root_auto.child(i).setFlags(qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled)
-
+        if self.xsection_checkbox.isChecked():
+            self.cadexplorer.set_xsection(self.cadexplorer.point[0].GetFocalPoint())
 
     def refresh_vtk(self):
         self.renderer.Render()
@@ -1156,9 +1181,11 @@ class CADViewerWindow(qt.QMainWindow):
     def update_cad_status(self,message):
 
         if message is not None:
+            self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
             self.statusbar.showMessage(message)
             self.app.processEvents()
         else:
+            self.app.restoreOverrideCursor()
             self.statusbar.clearMessage()
             self.app.processEvents()
 
@@ -1460,7 +1487,7 @@ class CalCamWindow(qt.QMainWindow):
 
 
     def load_model(self):
-        self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
+
         model = self.model_list[str(self.model_name.currentText())]
 
         # Dispose of the old model
@@ -1494,6 +1521,7 @@ class CalCamWindow(qt.QMainWindow):
             self.renderer_cad.AddActor(actor)
 
         self.statusbar.showMessage('Setting up CAD model...')
+        self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
 
         # Initialise the CAD model setup GUI
         init_model_settings(self)

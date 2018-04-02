@@ -18,6 +18,8 @@
 * See the Licence for the specific language governing
   permissions and limitations under the Licence.
 '''
+
+
 import vtk
 import numpy as np
 import json
@@ -25,6 +27,7 @@ import zipfile
 import os
 from .config import CalcamConfig
 from .io import ZipSaveFile
+from .exceptions import MeshFileMissing, UserCodeException
 
 vtk_major_version = vtk.vtkVersion().GetVTKMajorVersion()
 
@@ -35,7 +38,6 @@ vtk_major_version = vtk.vtkVersion().GetVTKMajorVersion()
 def print_status(status):
     if status is not None:
         print(status)
-
 
 
 '''
@@ -53,19 +55,32 @@ class CADModel():
 
         # -------------------------------Loading model definition-------------------------------------
         
-        model_defs = CalcamConfig().get_cadmodels()
-        
+
         # Check whether we know what model definition file to use
+        model_defs = CalcamConfig().get_cadmodels()
         if model_name not in model_defs.keys():
             raise ValueError('Unknown machine model "{:s}". Available models are: {:s}.'.format(model_name,', '.join(model_defs.keys())))
         else:
             self.variants = model_defs[model_name][1]
             definition_filename = model_defs[model_name][0]
 
+        # If not specified, choose whatever model variant is specified in the metadata
+        if model_variant is None:
+            model_variant = model_def['default_variant']
+
+        # Validate the model variant input
+        if model_variant not in self.variants:
+            raise ValueError('Unknown model variant for {:s}: {:s}.'.format(model_name,model_variant))
+
+        self.model_variant = model_variant
+
+
+
         self.set_status_callback(status_callback)
 
         if self.status_callback is not None:
             self.status_callback('Extracting CAD model definition files...')
+
 
         # Open the definition file (ZIP file)
         try:
@@ -77,47 +92,47 @@ class CADModel():
             self.status_callback(None)
 
 
+
         # Load the model definition and grab some properties from it
         with self.def_file.open_file( 'model.json','r' ) as f:
             model_def = json.load(f)
 
+        self.model_def = model_def
         self.machine_name = model_def['machine_name']
-        self.material_colours = model_def['material_colours']
         self.views = model_def['views']
+        self.initial_view = model_def['initial_view']
+
 
         # Check if the mesh files are from the CAD definition file itself, in which case
         # we need a different file path
-        if model_def['mesh_path_root'].startswith('.large'):
-            self.mesh_path_root = os.path.join(self.def_file.get_temp_path(),model_def['mesh_path_root'])
+        if model_def['mesh_path_roots'][self.model_variant].startswith('.large'):
+            self.mesh_path_root = os.path.join(self.def_file.get_temp_path(),model_def['mesh_path_roots'][self.model_variant])
         else:
-            self.mesh_path_root = model_def['mesh_path_root']
+            self.mesh_path_root = model_def['mesh_path_roots'][self.model_variant]
         
-        self.initial_view = model_def['initial_view']
-
+        
         # See if we have a user-written coordinate formatter, and if
         # we do, load it over the standard format_coord method
+        self.usermodule = False
         usermodule = self.def_file.get_usercode()
         if usermodule is not None:
             if callable(usermodule.format_coord):
                 # Check the user function returns a string as expected, and use
                 # it only if it does.
-                test_out = usermodule.format_coord( (0.1,0.1,0.1) )
+                try:
+                    test_out = usermodule.format_coord( (0.1,0.1,0.1) )
+                except Exception as e:
+                    self.def_file.close()
+                    raise UserCodeException(e)
+
                 if type(test_out) == str or type(test_out) == unicode:
-                    self.format_coord = usermodule.format_coord
-
-        # If not specified, choose whatever model variant is specified in the metadata
-        if model_variant is None:
-            model_variant = model_def['default_variant']
-
-        # Validate the model variant input
-        if model_variant not in self.variants:
-            raise ValueError('Unknown model variant for {:s}: {:s}.'.format(model_name,model_variant))
+                    self.usermodule = usermodule
+                else:
+                    self.def_file.close()
+                    raise UserCodeException('CAD model user function format_coord() did not return a string as required.')
 
 
-        self.model_variant = model_variant
-
-
-        # Create the feature list!
+        # Create the features!
         self.features = {}
         self.groups = {}
 
@@ -131,10 +146,11 @@ class CADModel():
                 else:
                     self.groups[group].append(feature_name)
 
-            # Create a new feature object
+            # Actually make the feature object
             self.features[feature_name] = ModelFeature(self,feature_def)
         
         # ----------------------------------------------------------------------------------------------
+
 
         self.renderers = []
         self.flat_shading = False
@@ -142,12 +158,16 @@ class CADModel():
         self.cell_locator = None
 
 
+
+
+    # Set / get the status callback function
     def set_status_callback(self,status_callback):
         self.status_callback = status_callback
 
 
     def get_status_callback(self):
         return self.status_callback
+
 
     # Add this CAD model to a vtk renderer.
     # Input: vtk.vtkRenderer object.
@@ -261,15 +281,22 @@ class CADModel():
     # Just print the position.
     def format_coord(self,coords):
 
-        phi = np.arctan2(coords[1],coords[0])
-        if phi < 0.:
-            phi = phi + 2*3.14159
-        phi = phi / 3.14159 * 180
-        
-        formatted_coord = 'X,Y,Z: ( {:.3f} m , {:.3f} m , {:.3f} m )'.format(coords[0],coords[1],coords[2])
-        formatted_coord = formatted_coord + u'\nR,Z,\u03d5: ( {:.3f} m , {:.3f}m , {:.1f}\xb0 )'.format(np.sqrt(coords[0]**2 + coords[1]**2),coords[2],phi)
+        if self.usermodule is not None:
+            try:
+                return self.usermodule.format_coord(coords)
+            except Exception as e:
+                raise UserCodeException(e)
+        else:
 
-        return  formatted_coord
+            phi = np.arctan2(coords[1],coords[0])
+            if phi < 0.:
+                phi = phi + 2*3.14159
+            phi = phi / 3.14159 * 180
+            
+            formatted_coord = 'X,Y,Z: ( {:.3f} m , {:.3f} m , {:.3f} m )'.format(coords[0],coords[1],coords[2])
+            formatted_coord = formatted_coord + u'\nR,Z,\u03d5: ( {:.3f} m , {:.3f}m , {:.1f}\xb0 )'.format(np.sqrt(coords[0]**2 + coords[1]**2),coords[2],phi)
+
+            return  formatted_coord
     
 
 
@@ -287,11 +314,19 @@ class CADModel():
 
 
     # Turn on or off the model being coloured by material
-    def colour_by_material(self):
+    def reset_colour(self,features=None):
 
-        for feature in self.features.values():
-            feature.set_colour(self.material_colours[feature.material])
+        if features is None:
+            features = self.get_feature_list()
 
+        for feature in features:
+            if feature in self.groups.keys():
+                for fname in self.groups[feature]:
+                    self.features[fname].set_colour(self.features[fname].default_colour)
+            elif feature in self.features.keys():
+                self.features[feature].set_colour(self.features[feature].default_colour)
+            else:
+                raise ValueError('Unknown feature "{:s}"!'.format(requested))
 
 
     # Set the colour of a component or the whole model
@@ -332,7 +367,7 @@ class CADModel():
             elif feature in self.features.keys():
                 clist.append( self.features[feature].colour )
             else:
-                raise ValueError('Unknown feature "{:s}"!'.format(requested))
+                raise ValueError('Unknown feature "{:s}"!'.format(feature))
             
         return clist
 
@@ -414,29 +449,65 @@ class CADModel():
 
         return 'Calcam CAD model: "{:s}" / "{:s}" from {:s}'.format(self.machine_name,self.model_variant,self.definition_filename)
 
+    def __del__(self):
+        self.unload()
+
 
     # Add a new view definition to the file.
-    def add_view(self,viewname,campos,camtar,fov):
+    def add_view(self,viewname,campos,camtar,fov,xsection):
 
-        self.views[viewname] = {'cam_pos':campos,'target':camtar,'y_fov':fov}
+        self.views[viewname] = {'cam_pos':campos,'target':camtar,'y_fov':fov,'xsection':xsection}
+        self.model_def['views'] = self.views
+        self.update_definition_file()
+
+
+    def set_default_colour(self,colour,features=None):
+
+        if features is None:
+            features = self.get_feature_list()
+
+        try:
+            0. + colour[0]
+            colour = [colour] * len(features)
+        except:
+            if len(colour) != len(features):
+                raise ValueError('The same number of colours and features must be provided!')
+
+        for i,requested in enumerate(features):
+
+            if requested in self.groups.keys():
+                for fname in self.groups[requested]:
+                    self.features[fname].default_colour = colour[i]
+                    self.model_def['features'][self.model_variant][fname]['colour'] = colour[i]
+            elif requested in self.features.keys():
+                self.features[requested].default_colour = colour[i]
+                self.model_def['features'][self.model_variant][requested]['colour'] = colour[i]
+            else:
+                raise ValueError('Unknown feature "{:s}"!'.format(requested))
+
+        self.update_definition_file()
+
+
+    def unload(self):
+
+        if self.status_callback is not None:
+            self.status_callback('Saving any changes to model definition file...')
+
+        self.def_file.close()
+
+        if self.status_callback is not None:
+            self.status_callback(None)
+
+
+    def update_definition_file(self):
 
         try:
 
-            with self.def_file.open_file( 'model.json','r' ) as f:
-                model_def = json.load(f)
-
-            model_def['views'] = self.views
-
             with self.def_file.open_file( 'model.json','w' ) as f:
-                json.dump(model_def,f,indent=4)
+                json.dump(self.model_def,f,indent=4)
         
         except Exception as e:
-            raise UserWarning('Cannot save view definition to the model dfinition file ({:s}). The view definition will only persist until this window is closed.'.format(str(e)))
-
-        
-    def unload(self):
-
-        self.def_file.close()
+            raise UserWarning('Cannot write changesto the model dfinition file ({:s}). The changes will only persist until this CAD model instance is unloaded.'.format(str(e)))        
 
 
 # Class to represent a single CAD model feature.
@@ -450,12 +521,11 @@ class ModelFeature():
         self.parent = parent
 
         self.filename = os.path.join(self.parent.mesh_path_root,definition_dict['mesh_file'])
+
+        if not os.path.isfile(self.filename):
+            raise MeshFileMissing(self.filename)
+
         self.filetype = self.filename.split('.')[-1]
-
-        if definition_dict['material'] not in parent.material_colours.keys():
-            raise Exception('Error in CAD model definition!')
-
-        self.material = definition_dict['material']
 
         self.enabled = definition_dict['default_enable']
 
@@ -465,7 +535,8 @@ class ModelFeature():
         self.solid_actor = None
         self.edge_actor = None
 
-        self.colour = self.parent.material_colours['Not Specified']
+        self.default_colour = definition_dict['colour']
+        self.colour = self.default_colour
 
 
     # Get a vtkPolyData object for this feature
@@ -477,7 +548,7 @@ class ModelFeature():
         if self.polydata is None:
 
             if self.parent.status_callback is not None:
-                self.parent.status_callback('Loading mesh file: {:s}...'.format(self.filename))
+                self.parent.status_callback('Loading mesh file: {:s}...'.format(os.path.split(self.filename)[1]))
 
             if self.filetype == 'stl':
                 reader = vtk.vtkSTLReader()
