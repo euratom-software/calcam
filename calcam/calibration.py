@@ -112,8 +112,6 @@ class ViewModel():
 
 
 
-
-
 # Class representing a perspective camera model.
 class PerspectiveViewModel(ViewModel):
 
@@ -328,16 +326,8 @@ class Calibration():
 
         self.chessboard_images = []
 
-        if cv2_output is not None:
-
-            self.reprojection_error = cv2_output[0]
-            self.cam_matrix = cv2_output[1]
-            self.kc = cv2_output[2]
-            self.rvec = cv2_output[3][0][0].T
-            self.tvec = cv2_output[4][0][0].T
-
-        elif coeffs_dict is not None:
-            self.load_from_dict(load_file)
+        if load_file is not None:
+            self._load(load_file)
 
 
     # Get the pupil position for given pixels or named sub-view.
