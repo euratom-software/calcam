@@ -5,7 +5,6 @@ Work in progress.
 '''
 
 
-
 from calcam.io import ZipSaveFile
 import sys
 import os
@@ -143,6 +142,27 @@ def convert_cadmodels(new_path= os.path.join(newpath_root,'CAD Models')):
 
     sys.path.remove(tmpdir)
     shutil.rmtree(tmpdir)
+
+
+
+# Convert a Calcam 1 FieldFit object in to a dictionary for
+# loading in Calcam 2.
+def convert_field_fit(fit):
+
+    coeff_dict = {
+                    'model':fit.model,
+                    'reprojection_error':fit.rms_error,
+                    'fx':fit.cam_matrix[0,0],
+                    'fy':fit.cam_matrix[1,1],
+                    'cx':fit.cam_matrix[0,2],
+                    'cy':fit.cam_matrix[1,2],
+                    'dist_coeffs':list(np.squeeze(fit.kc)),
+                    'rvec':list(np.squeeze(fit.rvec.astype(np.float64))),
+                    'tvec':list(np.squeeze(fit.tvec.astype(np.float64)))
+                }
+
+
+    return coeff_dict
 
 
 if __name__ == '__main__':
