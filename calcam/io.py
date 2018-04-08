@@ -282,6 +282,12 @@ class ZipSaveFile():
 		return self.tempdir
 
 
+	def mkdir(self,dirname):
+
+		if not os.path.exists(dirname):
+			os.makedirs(os.path.join(self.tempdir,dirname))
+
+
 	# For context management
 	def __enter__(self):
 

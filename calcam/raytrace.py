@@ -40,7 +40,7 @@ import random
 
 
 
-def raycast_sightlines(calibration,cadmodel,x=None,y=None,binning=1,coords='Display',verbose=True):
+def raycast_sightlines(calibration,cadmodel,x=None,y=None,binning=1,coords='Display',verbose=True,force_subview=None):
 
     if not verbose:
         original_callback = cadmodel.get_status_callback()
@@ -67,22 +67,25 @@ def raycast_sightlines(calibration,cadmodel,x=None,y=None,binning=1,coords='Disp
     fullchip = False
     if x is None and y is None:
         fullchip = True
+        
         if coords.lower() == 'display':
-            xl = np.linspace( (binning-1.)/2,float(calibration.image_display_shape[0]-1)-(binning-1.)/2,(1+float(calibration.image_display_shape[0]-1))/binning)
-            yl = np.linspace( (binning-1.)/2,float(calibration.image_display_shape[1]-1)-(binning-1.)/2,(1+float(calibration.image_display_shape[1]-1))/binning)
+            shape = calibration.geometry.get_display_shape()
+            xl = np.linspace( (binning-1.)/2,float(shape[0]-1)-(binning-1.)/2,(1+float(shape[0]-1))/binning)
+            yl = np.linspace( (binning-1.)/2,float(shape[1]-1)-(binning-1.)/2,(1+float(shape[1]-1))/binning)
             x,y = np.meshgrid(xl,yl)
         else:
-            xl = np.linspace( (binning-1.)/2,float(calibration.transform.x_pixels-1)-(binning-1.)/2,(1+float(calibration.transform.x_pixels-1))/binning)
-            yl = np.linspace( (binning-1.)/2,float(calibration.transform.y_pixels-1)-(binning-1.)/2,(1+float(calibration.transform.y_pixels-1))/binning)
+            shape = calibration.geometry.get_original_shape()
+            xl = np.linspace( (binning-1.)/2,float(shape[0]-1)-(binning-1.)/2,(1+float(shape[0]-1))/binning)
+            yl = np.linspace( (binning-1.)/2,float(shape[1]-1)-(binning-1.)/2,(1+float(shape[1]-1))/binning)
             x,y = np.meshgrid(xl,yl)
-            x,y = calibration.transform.original_to_display_coords(x,y)
+            x,y = calibration.geometry.original_to_display_coords(x,y)
         valid_mask = np.ones(x.shape,dtype=bool)
     else:
         if np.shape(x) != np.shape(y):
             raise ValueError('x and y arrays must be the same shape!')
         valid_mask = np.logical_and(np.isnan(x) == 0 , np.isnan(y) == 0 )
         if coords.lower() == 'original':
-            x,y = calibration.transform.original_to_display_coords(x,y)
+            x,y = calibration.geometry.original_to_display_coords(x,y)
 
     Results = RayData()
     Results.ResultType = 'PixelRayCast'
@@ -91,7 +94,7 @@ def raycast_sightlines(calibration,cadmodel,x=None,y=None,binning=1,coords='Disp
     Results.x[valid_mask == 0] = 0
     Results.y = np.copy(y).astype('float')
     Results.y[valid_mask == 0] = 0
-    Results.transform = calibration.transform
+    Results.transform = calibration.geometry
 
     orig_shape = np.shape(Results.x)
     Results.x = np.reshape(Results.x,np.size(Results.x),order='F')
@@ -110,8 +113,8 @@ def raycast_sightlines(calibration,cadmodel,x=None,y=None,binning=1,coords='Disp
     Results.ray_end_coords = np.ndarray([np.size(x),3])
 
     # Line of sight directions
-    LOSDir = calibration.get_los_direction(Results.x,Results.y,Coords='Display')
-    Results.ray_start_coords = calibration.get_pupilpos(Results.x,Results.y,Coords='Display')
+    LOSDir = calibration.get_los_direction(Results.x,Results.y,coords='Display',subview=force_subview)
+    Results.ray_start_coords = calibration.get_pupilpos(Results.x,Results.y,coords='Display',subview=force_subview)
 
     
     if verbose:
@@ -228,7 +231,7 @@ class RayData:
             raystart = f.createVariable('RayStartCoords','f4',('vdim','udim','pointdim'))
             x = f.createVariable('PixelXLocation','i4',('vdim','udim'))
             y = f.createVariable('PixelYLocation','i4',('vdim','udim'))
-			
+            
             rayhit[:,:,:] = self.ray_end_coords
             raystart[:,:,:] = self.ray_start_coords
             x[:,:] = self.x
@@ -345,7 +348,7 @@ class RayData:
 
     # Return unit vectors of sight-line direction for each pixel.
     def get_ray_directions(self,x=None,y=None,PositionTol=3,Coords='Display'):
-	 	
+        
         lengths = self.get_ray_lengths()
         dirs = (self.ray_end_coords - self.ray_start_coords) / np.repeat(lengths.reshape(np.shape(lengths)+(1,)),3,axis=-1)
 

@@ -38,17 +38,14 @@ import numpy as np
 
 class CoordTransformer:
 	
-	def __init__(self,transform_actions=None):
+	def __init__(self,transform_actions=[],orig_x=None,orig_y=None,paspect=1.):
 
-		if transform_actions is not None:
-			self.set_transform_actions(transform_actions)
-		else:
-			self.transform_actions = []
 
-		self.x_pixels = None
-		self.y_pixels = None
+		self.set_transform_actions(transform_actions)
+		self.x_pixels = orig_x
+		self.y_pixels = orig_y
 
-		self.pixel_aspectratio = 1.
+		self.pixel_aspectratio = paspect
 
 	# Define the actions to perform on an image to change it from original to display coordinates.
 	# Input: transform_actions: a list of strings, specifying image transform actions, in the order
@@ -219,3 +216,7 @@ class CoordTransformer:
 				display_shape = list(reversed(display_shape))
 
 		return display_shape
+
+
+	def get_original_shape(self):
+		return (self.x_pixels,self.y_pixels)

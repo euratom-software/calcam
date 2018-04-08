@@ -84,20 +84,21 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
         print('[Calcam Renderer] Preparing...')
 
     # This will be our result. To start with we always render in display coords.
-    output = np.zeros([int(calibration.image_display_shape[1]*oversampling),int(calibration.image_display_shape[0]*oversampling),3+transparency],dtype='uint8')
+    orig_display_shape = calibration.geometry.get_display_shape()
+    output = np.zeros([int(orig_display_shape[1]*oversampling),int(orig_display_shape[0]*oversampling),3+transparency],dtype='uint8')
 
     # The un-distorted FOV is over-rendered to allow for distortion.
     # FOV_factor is how much to do this by; too small and image edges might be cut off.
     models = []
-    for field in calibration.fit_params:
-        models.append(field.model)
+    for view_model in calibration.view_models:
+        models.append(view_model.model)
     if np.any( np.array(models) == 'fisheye'):
         fov_factor = 3.
     else:
         fov_factor = 1.5
 
-    x_pixels = calibration.image_display_shape[0]
-    y_pixels = calibration.image_display_shape[1]
+    x_pixels = orig_display_shape[0]
+    y_pixels = orig_display_shape[1]
 
     renwin = vtk.vtkRenderWindow()
     renwin.OffScreenRenderingOn()
@@ -123,14 +124,13 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
     try:
 
         # We need a field mask the same size as the output
-        fieldmask = cv2.resize(calibration.fieldmask,(int(x_pixels*oversampling),int(y_pixels*oversampling)),interpolation=cv2.INTER_NEAREST)
+        fieldmask = cv2.resize(calibration.subview_mask,(int(x_pixels*oversampling),int(y_pixels*oversampling)),interpolation=cv2.INTER_NEAREST)
 
+        for field in range(calibration.n_subviews):
 
-        for field in range(calibration.nfields):
-
-            cx = calibration.fit_params[field].cam_matrix[0,2]
-            cy = calibration.fit_params[field].cam_matrix[1,2]
-            fy = calibration.fit_params[field].cam_matrix[1,1]
+            cx = calibration.view_models[field].cam_matrix[0,2]
+            cy = calibration.view_models[field].cam_matrix[1,2]
+            fy = calibration.view_models[field].cam_matrix[1,1]
 
             vtk_win_im = vtk.vtkRenderLargeImage()
             vtk_win_im.SetInput(renderer)
@@ -153,16 +153,24 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
 
             # Set up CAD camera
             fov_y = 360 * np.arctan( ht / (2*fy) ) / 3.14159
-            cam_pos = calibration.get_pupilpos(field=field)
-            cam_tar = calibration.get_los_direction(cx,cy,ForceField=field) + cam_pos
-            upvec = -1.*calibration.get_cam_to_lab_rotation(field=field)[:,1]
+            cam_pos = calibration.get_pupilpos(subview=field)
+            cam_tar = calibration.get_los_direction(cx,cy,subview=field) + cam_pos
+            upvec = -1.*calibration.get_cam_to_lab_rotation(subview=field)[:,1]
             camera.SetPosition(cam_pos)
             camera.SetViewAngle(fov_y)
             camera.SetFocalPoint(cam_tar)
             camera.SetViewUp(upvec)
 
             if verbose:
-                print('[Calcam Renderer] Rendering (Field {:d}/{:d})...'.format(field + 1,calibration.nfields))
+                print('[Calcam Renderer] Rendering (Sub-view {:d}/{:d})...'.format(field + 1,calibration.n_subviews))
+
+            # Do the render and grab an image
+            #renwin.Render()
+
+            # Make sure the light lights up the whole model without annoying shadows or falloff.
+            #light = renderer.GetLights().GetItemAsObject(0)
+            #light.PositionalOn()
+            #light.SetConeAngle(180)
 
             # Do the render and grab an image
             renwin.Render()
@@ -183,7 +191,7 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
             im = cv2.resize(im,(int(dims[0]/aa*min(oversampling,1)),int(dims[1]/aa*min(oversampling,1))),interpolation=cv2.INTER_AREA)
 
             if verbose:
-                print('[Calcam Renderer] Applying lens distortion (Field {:d}/{:d})...'.format(field + 1,calibration.nfields))
+                print('[Calcam Renderer] Applying lens distortion (Sub-view {:d}/{:d})...'.format(field + 1,calibration.n_subviews))
 
             # Pixel locations we want on the final image
             [xn,yn] = np.meshgrid(np.linspace(0,x_pixels-1,x_pixels*oversampling),np.linspace(0,y_pixels-1,y_pixels*oversampling))
@@ -210,7 +218,7 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
 
 
         if coords.lower() == 'original':
-            output = FitResults.transform.display_to_original_image(output)
+            output = FitResults.geometry.display_to_original_image(output)
         
         if verbose:
             print('[Calcam Renderer] Completed in {:.1f} s.'.format(time.time() - tstart))
@@ -346,7 +354,7 @@ def get_fov_actor(cadmodel,calib,actor_type='volume',resolution=None):
     else:
         raise ValueError('"actor_type" argument must be "volume" or "lines"')
 
-    raydata = raycast_sightlines(calib,cadmodel,binning=max(calib.image_display_shape)/resolution,verbose=False)
+    raydata = raycast_sightlines(calib,cadmodel,binning=max(calib.geometry.get_display_shape())/resolution,verbose=False)
 
     # Before we do anything, we need to arrange our triangle corners
     points = vtk.vtkPoints()

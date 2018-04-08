@@ -9,35 +9,37 @@ class CalcamConfig():
 	def __init__(self,cfg_file= os.path.expanduser('~/.calcam_config'),allow_create=True):
 
 		self.filename = cfg_file
+		self.filename_filters = {'calibration':'Calcam Calibration (*.ccc)','image':'PNG Image (*.png)'}
 		
 		try:
 			self.load()
-		except IOError:
+		except:
 			if not allow_create:
 				raise
 
-			self.default_load_paths = {'calibrations':os.path.expanduser('~')}
-			self.default_save_paths = {'calibrations':os.path.expanduser('~/Desktop')}
+			self.file_dirs = {'calibration':os.path.expanduser('~'),'image':os.path.expanduser('~')}
 			self.cad_def_paths = [os.path.expanduser('~')]
+			self.default_model = None
 
 			self.save()
+
 
 	def load(self):
 
 		with open(self.filename,'r') as f:
 			load_dict = json.load(f)
 
-		self.default_load_paths = 	load_dict['default_load_paths']
-		self.default_save_paths = load_dict['default_save_paths']
+		self.file_dirs = 	load_dict['file_dirs']
+		self.default_model = load_dict['default_model']
 		self.cad_def_paths = load_dict['cad_def_paths']
 
 
 	def save(self):
 
 		save_dict = {
-						'default_load_paths' : self.default_load_paths,
-						'default_save_paths' : self.default_save_paths,
-						'cad_def_paths'		 : self.cad_def_paths
+						'file_dirs' 	: self.file_dirs,
+						'default_model' : self.default_model,
+						'cad_def_paths'	: self.cad_def_paths
 					}
 
 		with open(self.filename,'w') as f:

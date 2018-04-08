@@ -44,7 +44,7 @@ import subprocess
 from . import qt_wrapper as qt, __version__, CADModel, paths, fitting, image, pointpairs, raytrace, render, image_filters, vtkinteractorstyles, raycast_sightlines
 from .config import CalcamConfig
 from .coordtransformer import CoordTransformer
-
+from .calibration import Calibration
 cv2_version = float('.'.join(cv2.__version__.split('.')[:2]))
 cv2_micro_version = int(cv2.__version__.split('.')[2].split('-')[0])
 
@@ -292,8 +292,34 @@ class CADViewerWindow(qt.QMainWindow):
         self.model_list = self.config.get_cadmodels()
 
         self.model_name.addItems(sorted(self.model_list.keys()))
-        self.model_name.setCurrentIndex(-1)
+
+
+
+        set_model = False
+        set_variant = False
         self.load_model_button.setEnabled(0)
+
+        if self.config.default_model is not None:
+            for i,mname in enumerate(sorted(self.model_list.keys())):
+                if mname == self.config.default_model[0]:
+
+                    self.model_name.setCurrentIndex(i)
+                    self.populate_model_variants()
+                    set_model = True
+                    break
+
+            for j, vname in enumerate(self.model_list[mname][1]):
+                if self.config.default_model[1] == vname:
+
+                    self.model_variant.setCurrentIndex(j)
+                    set_variant = True
+                    break
+        
+        if not set_model:
+            self.model_name.setCurrentIndex(-1)
+        if not set_variant:
+            selt.model_variant.setCurrentIndex(-1)
+            
 
         # Callbacks for GUI elements
         self.viewlist.itemSelectionChanged.connect(self.change_cad_view)
@@ -306,7 +332,6 @@ class CADViewerWindow(qt.QMainWindow):
         self.camFOV.valueChanged.connect(self.change_cad_view)
         self.sightlines_list.itemChanged.connect(self.update_sightlines)
         self.load_model_button.clicked.connect(self.load_model)
-        self.model_name.currentIndexChanged.connect(self.populate_model_variants)
         self.feature_tree.itemChanged.connect(self.update_checked_features)
         self.feature_tree.itemSelectionChanged.connect(self.update_cadtree_selection)
         self.xsection_checkbox.toggled.connect(self.toggle_cursor_xsection)
@@ -326,6 +351,7 @@ class CADViewerWindow(qt.QMainWindow):
         self.cad_colour_choose_button.clicked.connect(self.set_cad_colour)
         self.save_view_button.clicked.connect(self.save_view_to_model)
         self.save_colours_button.clicked.connect(self.save_cad_colours)
+        self.model_name.currentIndexChanged.connect(self.populate_model_variants)
 
         self.sightlines_legend = None
         self.render_calib = None
@@ -429,14 +455,14 @@ class CADViewerWindow(qt.QMainWindow):
 
 
     def load_viewport_calib(self):
-        cals = object_from_file(self,'calibration',multiple=True)
+        cals = object_from_file(self,'calibration',self.config,multiple=True)
 
         for cal in cals:
             listitem = qt.QTreeWidgetItem(self.views_root_results,[cal.name])
-            if cal.nfields > 1:
+            if cal.n_subviews > 1:
                 self.viewport_calibs[(listitem)] = (cal,None)
                 listitem.setExpanded(True)
-                for n,fieldname in enumerate(cal.field_names):
+                for n,fieldname in enumerate(cal.subview_names):
                     self.viewport_calibs[ (qt.QTreeWidgetItem(listitem,[fieldname])) ] = (cal,n) 
             else:
                 self.viewport_calibs[(listitem)] = (cal,0)
@@ -484,7 +510,7 @@ class CADViewerWindow(qt.QMainWindow):
 
 
     def load_render_result(self):
-        cal = object_from_file(self,'Calibration')
+        cal = object_from_file(self,'calibration',self.config)
         if cal is not None:
             self.render_calib = cal
             self.render_calib_namelabel.setText(cal.name)
@@ -497,13 +523,13 @@ class CADViewerWindow(qt.QMainWindow):
         self.render_resolution.clear()
         if self.render_calib is not None:
             if self.render_coords_combobox.currentIndex() == 0:
-                base_size = self.render_calib.image_display_shape                
+                base_size = self.render_calib.geometry.get_display_shape()            
                 self.render_resolution.addItem('{:d} x {:d} (same as camera)'.format(base_size[0],base_size[1]))
                 self.render_resolution.addItem('{:d} x {:d}'.format(base_size[0]*2,base_size[1]*2))
                 self.render_resolution.addItem('{:d} x {:d}'.format(base_size[0]*4,base_size[1]*4))
 
             elif self.render_coords_combobox.currentIndex() == 1:
-                base_size = [self.render_calib.transform.x_pixels,self.render_calib.transform.y_pixels]
+                base_size = self.render_calib.geometry.get_original_shape()
                 self.render_resolution.addItem('{:d} x {:d} (same as camera)'.format(base_size[0],base_size[1]))
 
 
@@ -580,11 +606,11 @@ class CADViewerWindow(qt.QMainWindow):
                 if subfield is None:
                     return
 
-                self.camera.SetPosition(view.get_pupilpos(field=subfield))
-                self.camera.SetFocalPoint(view.get_pupilpos(field=subfield) + view.get_los_direction(view.image_display_shape[0]/2,view.image_display_shape[1]/2))
-                self.camera.SetViewAngle(view.get_fov(field=subfield)[1])
-                self.camera.SetViewUp(-1.*view.get_cam_to_lab_rotation(field=subfield)[:,1])
-                self.cadexplorer.set_xsection(view['xsection'])               
+                self.camera.SetPosition(view.get_pupilpos(subview=subfield))
+                self.camera.SetFocalPoint(view.get_pupilpos(subview=subfield) + view.get_los_direction(view.geometry.get_display_shape()[0]/2,view.geometry.get_display_shape()[1]/2))
+                self.camera.SetViewAngle(view.get_fov(subview=subfield)[1])
+                self.camera.SetViewUp(-1.*view.get_cam_to_lab_rotation(subview=subfield)[:,1])
+                self.cadexplorer.set_xsection(None)               
 
             elif view_item.parent() is self.views_root_auto:
 
@@ -676,18 +702,8 @@ class CADViewerWindow(qt.QMainWindow):
 
     def do_render(self):
 
-        # Get the file name to save as from the user.
-        dialog = qt.QFileDialog(self)
-        dialog.setAcceptMode(1)
-        dialog.setFileMode(0)
-        dialog.setWindowTitle('Export High Res Image...')
-        dialog.setNameFilter('PNG Image (*.png)')
-        dialog.exec_()
-        if dialog.result() == 1:
-            filename = str(dialog.selectedFiles()[0])
-            if not filename.endswith('.png'):
-                filename = filename + '.png'
-        else:
+        filename = get_save_filename(self,'image',self.config)
+        if filename is None:
             return
 
         self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
@@ -734,7 +750,7 @@ class CADViewerWindow(qt.QMainWindow):
             # So make a list of the other actors we need to add:
             extra_actors = []
             for listitem,sightlines in self.sightlines:
-                if listitem.isChecked():
+                if listitem.checkState() == qt.Qt.Checked:
                     extra_actors.append(sightlines[1])
 
             im = render.render_cam_view(self.cadmodel,self.render_calib,extra_actors = extra_actors,oversampling=oversampling,aa=aa,transparency=use_transparency,verbose=False)
@@ -810,6 +826,7 @@ class CADViewerWindow(qt.QMainWindow):
         # Create a new one
         self.cadmodel = CADModel( str(self.model_name.currentText()) , str(self.model_variant.currentText()) , self.update_cad_status)
 
+        self.config.default_model = (str(self.model_name.currentText()),str(self.model_variant.currentText()))
 
         if not self.cad_auto_load.isChecked():
             self.cadmodel.set_features_enabled(False)
@@ -963,7 +980,7 @@ class CADViewerWindow(qt.QMainWindow):
 
         if self.sender() is self.sightlines_load_button:
 
-            cals = object_from_file(self,'Calibration',multiple=True)
+            cals = object_from_file(self,'calibration',self.config,multiple=True)
 
             for cal in cals:
                 # Add it to the sight lines list
@@ -1186,6 +1203,7 @@ class CADViewerWindow(qt.QMainWindow):
 
     def closeEvent(self,event):
 
+        self.config.save()
         if self.cadmodel is not None:
             self.cadmodel.remove_from_renderer(self.renderer)
             self.cadmodel.unload()
@@ -1368,10 +1386,10 @@ class CalCamWindow(qt.QMainWindow):
                 view = fitting.CalibResults(str(view_item.parent().text(0)))
                 subfield = view.field_names.index(str(view_item.text(0)))
 
-                self.camera.SetPosition(view.get_pupilpos(field=subfield))
-                self.camera.SetFocalPoint(view.get_pupilpos(field=subfield) + view.get_los_direction(view.image_display_shape[0]/2,view.image_display_shape[1]/2))
-                self.camera.SetViewAngle(view.get_fov(field=subfield)[1])
-                self.camera.SetViewUp(-1.*view.get_cam_to_lab_rotation(field=subfield)[:,1])     
+                self.camera.SetPosition(view.get_pupilpos(subview=subfield))
+                self.camera.SetFocalPoint(view.get_pupilpos(subview=subfield) + view.get_los_direction(view.image_display_shape[0]/2,view.image_display_shape[1]/2))
+                self.camera.SetViewAngle(view.get_fov(subview=subfield)[1])
+                self.camera.SetViewUp(-1.*view.get_cam_to_lab_rotation(subview=subfield)[:,1])     
             elif view_item.parent() is self.views_root_model:
                 self.cadmodel.set_default_view(str(view_item.text(0)))
 
@@ -5469,14 +5487,14 @@ def rotate_3D(vect,axis,angle):
     return np.array( R * vect_)
 
 
-def object_from_file(parent,obj_type,multiple=False):
+def object_from_file(parent,obj_type,config,multiple=False):
 
-    if obj_type.lower() == 'calibration':
-        filename_filter = 'Calcam Calibration (*.pickle)'
-        start_dir = paths.root
+    filename_filter = config.filename_filters[obj_type]
+    start_dir = config.file_dirs[obj_type]
 
     filedialog = qt.QFileDialog(parent)
     filedialog.setAcceptMode(0)
+    filedialog.setDirectory(start_dir)
 
     if multiple:
         filedialog.setFileMode(3)
@@ -5495,16 +5513,11 @@ def object_from_file(parent,obj_type,multiple=False):
 
 
     objs = []
+    config.file_dirs[obj_type] = os.path.split(selected_paths[0])[0]
     for path in [str(p) for p in selected_paths]:
 
         if obj_type.lower() == 'calibration':
-            name = os.path.split(path)[-1].replace('.pickle','')
-            try:
-                obj = fitting.CalibResults(name)
-            except:
-                obj = fitting.VirtualCalib(name)
-
-            obj.name = name
+            obj = Calibration(path)
 
 
         objs.append(obj)
@@ -5515,33 +5528,33 @@ def object_from_file(parent,obj_type,multiple=False):
         return objs[0]
 
 
-def get_save_filename(parent,obj_type):
 
-    if obj_type.lower() == 'calibration':
-        filename_filter = 'Calcam Calibration (*.pickle)'
-        start_dir = paths.root
+def get_save_filename(parent,obj_type,config):
+
+    filename_filter = config.filename_filters[obj_type]
+    fext = filename_filter.split('(*')[1].split(')')[0]
+    start_dir = config.file_dirs[obj_type]
 
     filedialog = qt.QFileDialog(parent)
-    filedialog.setAcceptMode(0)
-    filedialog.setFileMode(1)
-    filedialog.setWindowTitle('Open...')
+    filedialog.setAcceptMode(1)
+    filedialog.setDirectory(start_dir)
+
+    filedialog.setFileMode(0)
+
+    filedialog.setWindowTitle('Save As...')
     filedialog.setNameFilter(filename_filter)
     filedialog.exec_()
     if filedialog.result() == 1:
-        path = str(filedialog.selectedFiles()[0])
+        selected_path = filedialog.selectedFiles()[0]
+        config.file_dirs[obj_type] = os.path.split(selected_path)[0]
+        if not selected_path.endswith(fext):
+            selected_path = selected_path + fext
+        return selected_path
     else:
         return None
 
-    if obj_type.lower() == 'calibration':
-        name = os.path.split(path)[-1].replace('.pickle','')
-        try:
-            obj = fitting.CalibResults(name)
-        except:
-            obj = fitting.VirtualCalib(name)
 
-    obj.name = name
 
-    return obj
 
 
 def pick_colour(parent,init_colour):

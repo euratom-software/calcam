@@ -66,7 +66,7 @@ class CADModel():
 
         # If not specified, choose whatever model variant is specified in the metadata
         if model_variant is None:
-            model_variant = model_def['default_variant']
+            model_variant = model_defs[model_name][2]
 
         # Validate the model variant input
         if model_variant not in self.variants:
@@ -79,7 +79,7 @@ class CADModel():
         self.set_status_callback(status_callback)
 
         if self.status_callback is not None:
-            self.status_callback('Extracting CAD model definition files...')
+            self.status_callback('Extracting CAD model...')
 
 
         # Open the definition file (ZIP file)
@@ -548,7 +548,7 @@ class CADModel():
         try:
 
             with self.def_file.open_file( 'model.json','w' ) as f:
-                json.dump(self.model_def,f,indent=4)
+                json.dump(self.model_def,f,indent=4,sort_keys=True)
         
         except Exception as e:
             raise UserWarning('Cannot write changesto the model dfinition file ({:s}). The changes will only persist until this CAD model instance is unloaded.'.format(str(e)))        
