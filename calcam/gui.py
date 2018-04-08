@@ -294,7 +294,6 @@ class CADViewerWindow(qt.QMainWindow):
         self.model_name.addItems(sorted(self.model_list.keys()))
 
 
-
         set_model = False
         set_variant = False
         self.load_model_button.setEnabled(0)
@@ -318,7 +317,7 @@ class CADViewerWindow(qt.QMainWindow):
         if not set_model:
             self.model_name.setCurrentIndex(-1)
         if not set_variant:
-            selt.model_variant.setCurrentIndex(-1)
+            self.model_variant.setCurrentIndex(-1)
             
 
         # Callbacks for GUI elements
@@ -410,6 +409,7 @@ class CADViewerWindow(qt.QMainWindow):
 
         # Start the GUI!
         self.show()
+
         self.cadexplorer.DoInit(self.renderer,self)
         self.vtkInteractor.Initialize()
 
@@ -484,6 +484,7 @@ class CADViewerWindow(qt.QMainWindow):
             # Check if we have a calibration loaded and if not, load one.
             if self.render_calib is None:
                 self.render_button.setEnabled(False)
+
 
             self.render_coords_text.setHidden(False)
             self.render_coords_combobox.setHidden(False)
@@ -5513,7 +5514,7 @@ def object_from_file(parent,obj_type,config,multiple=False):
 
 
     objs = []
-    config.file_dirs[obj_type] = os.path.split(selected_paths[0])[0]
+    config.file_dirs[obj_type] = os.path.split(str(selected_paths[0]))[0]
     for path in [str(p) for p in selected_paths]:
 
         if obj_type.lower() == 'calibration':
@@ -5545,7 +5546,7 @@ def get_save_filename(parent,obj_type,config):
     filedialog.setNameFilter(filename_filter)
     filedialog.exec_()
     if filedialog.result() == 1:
-        selected_path = filedialog.selectedFiles()[0]
+        selected_path = str(filedialog.selectedFiles()[0])
         config.file_dirs[obj_type] = os.path.split(selected_path)[0]
         if not selected_path.endswith(fext):
             selected_path = selected_path + fext

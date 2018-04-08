@@ -115,7 +115,7 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
     cadmodel.add_to_renderer(renderer)
 
     for actor in extra_actors:
-        actor.GetProperty().SetLineWidth( actor.GetProperty().GetLineWidth * aa)
+        actor.GetProperty().SetLineWidth( actor.GetProperty().GetLineWidth() * aa)
         renderer.AddActor(actor)
         
 
