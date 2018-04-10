@@ -39,7 +39,7 @@ from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
 import copy
 import webbrowser
-import subprocess
+from multiprocessing import Process
 
 from . import qt_wrapper as qt, __version__, CADModel, paths, fitting, image, pointpairs, raytrace, render, image_filters, vtkinteractorstyles, raycast_sightlines
 from .config import CalcamConfig
@@ -351,11 +351,16 @@ class CADViewerWindow(qt.QMainWindow):
         self.save_view_button.clicked.connect(self.save_view_to_model)
         self.save_colours_button.clicked.connect(self.save_cad_colours)
         self.model_name.currentIndexChanged.connect(self.populate_model_variants)
+        self.contour_off.clicked.connect(self.update_contour)
+        self.contour_2d.clicked.connect(self.update_contour)
+        self.contour_3d.clicked.connect(self.update_contour)
 
         self.sightlines_legend = None
         self.render_calib = None
 
         self.model_actors = {}
+
+        self.contour_actor = None
 
         self.sightlines = DodgyDict()
         self.colour_q = []
@@ -452,6 +457,32 @@ class CADViewerWindow(qt.QMainWindow):
 
         else:
             self.sightlines_settings_box.setEnabled(False)
+
+
+    def update_contour(self):
+
+        self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
+
+        if self.contour_actor is not None:
+            self.renderer.RemoveActor(self.contour_actor)
+            self.contour_actor = None
+
+        if self.contour_2d.isChecked():
+
+            cursor_pos = self.cadexplorer.point[0].GetFocalPoint()
+            phi = np.arctan2(cursor_pos[1],cursor_pos[0])
+            self.contour_actor = render.get_wall_contour_actor(self.cadmodel.wall_contour,'contour',phi)
+            self.contour_actor.GetProperty().SetLineWidth(3)
+            self.contour_actor.GetProperty().SetColor((1,0,0))
+            self.renderer.AddActor(self.contour_actor)
+
+        elif self.contour_3d.isChecked():
+            self.contour_actor = render.get_wall_contour_actor(self.cadmodel.wall_contour,'surface')
+            self.contour_actor.GetProperty().SetColor((1,0,0))
+            self.renderer.AddActor(self.contour_actor)
+
+        self.refresh_vtk()
+        self.app.restoreOverrideCursor()
 
 
     def load_viewport_calib(self):
@@ -754,6 +785,9 @@ class CADViewerWindow(qt.QMainWindow):
                 if listitem.checkState() == qt.Qt.Checked:
                     extra_actors.append(sightlines[1])
 
+            if self.contour_actor is not None:
+                extra_actors.append(self.contour_actor)
+
             im = render.render_cam_view(self.cadmodel,self.render_calib,extra_actors = extra_actors,oversampling=oversampling,aa=aa,transparency=use_transparency,verbose=False)
         
 
@@ -822,6 +856,9 @@ class CADViewerWindow(qt.QMainWindow):
             self.cadmodel.unload()
 
             del self.cadmodel
+
+            # Turn off any wall contour
+            self.contour_off.setChecked(True)
 
 
         # Create a new one
@@ -895,6 +932,13 @@ class CADViewerWindow(qt.QMainWindow):
         self.cad_colour_controls.setEnabled(True)
         self.cad_colour_reset_button.setEnabled(False)
         self.cad_colour_choose_button.setEnabled(False)
+
+
+        # Enable or disable contour controls as appropriate
+        contour_exists = self.cadmodel.wall_contour is not None
+        self.contour_off.setEnabled(contour_exists)
+        self.contour_2d.setEnabled(contour_exists & (self.cadexplorer.point is not None) )
+        self.contour_3d.setEnabled(contour_exists)
 
 
         # Make sure the light lights up the whole model without annoying shadows or falloff.
@@ -1179,6 +1223,11 @@ class CADViewerWindow(qt.QMainWindow):
     def update_cursor_position(self,position):
         info = 'Cursor location: ' + self.cadmodel.format_coord(position).replace('\n',' | ')
         self.statusbar.showMessage(info)
+
+        self.contour_2d.setEnabled(self.cadmodel.wall_contour is not None)
+        
+        if self.contour_2d.isChecked():
+            self.update_contour()
 
         self.xsection_checkbox.setEnabled(True)
         for i in range(self.views_root_auto.childCount()):
@@ -5433,22 +5482,22 @@ class LauncherWindow(qt.QDialog):
         self.devnull = open(os.devnull,'wb')
 
     def launch_calcam(self):
-        subprocess.Popen([sys.executable,os.path.join(paths.calcampath,'gui.py'),'launch_calcam'],stdin=None, stdout=self.devnull, stderr=self.devnull)
+        Process(target=start_calcam).start()
 
     def launch_cad_viewer(self):
-        subprocess.Popen([sys.executable,os.path.join(paths.calcampath,'gui.py'),'launch_cad_viewer'],stdin=None, stdout=self.devnull, stderr=self.devnull)
+        Process(target=start_cad_viewer).start()
 
     def launch_view_designer(self):
-        subprocess.Popen([sys.executable,os.path.join(paths.calcampath,'gui.py'),'launch_view_designer'],stdin=None, stdout=self.devnull, stderr=self.devnull)
+        Process(target=start_view_designer).start()
 
     def launch_alignment_calib(self):
-        subprocess.Popen([sys.executable,os.path.join(paths.calcampath,'gui.py'),'launch_alignment_calib'],stdin=None, stdout=self.devnull, stderr=self.devnull)
+        Process(target=start_alignment_calib).start()
 
     def open_manual(self):
         webbrowser.open('https://euratom-software.github.io/calcam/')
 
     def launch_image_analysis(self):
-        subprocess.Popen([sys.executable,os.path.join(paths.calcampath,'gui.py'),'launch_image_analysis'],stdin=None, stdout=self.devnull, stderr=self.devnull)
+        Process(target=start_image_analysis).start()
 
 def start_gui():
     app = qt.QApplication([''])
@@ -5657,21 +5706,3 @@ class DodgyDict():
 
     def keys(self):
         return self.keylist
-
-
-if __name__ == '__main__':
-    if len(sys.argv) == 2:
-        if sys.argv[1].lower() == 'launch_calcam':
-            start_calcam()
-        elif sys.argv[1].lower() == 'launch_cad_viewer':
-            start_cad_viewer()
-        elif sys.argv[1].lower() == 'launch_view_designer':
-            start_view_designer()
-        elif sys.argv[1].lower() == 'launch_alignment_calib':
-            start_alignment_calib()
-        elif sys.argv[1].lower() == 'launch_image_analysis':
-            start_image_analysis()
-        else:
-            start_gui()     
-    else:
-        start_gui()

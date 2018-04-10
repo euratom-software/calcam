@@ -111,7 +111,7 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
     camera = renderer.GetActiveCamera()
 
     cad_linewidths = np.array(cadmodel.get_linewidth())
-    cadmodel.set_linewidth(cad_linewidths*aa)
+    cadmodel.set_linewidth(list(cad_linewidths*aa))
     cadmodel.add_to_renderer(renderer)
 
     for actor in extra_actors:
@@ -244,7 +244,7 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
 
 
     # Tidy up after ourselves!
-    cadmodel.set_linewidth(cad_linewidths)
+    cadmodel.set_linewidth(list(cad_linewidths))
     cadmodel.remove_from_renderer(renderer)
 
     for actor in extra_actors:
@@ -361,7 +361,6 @@ def get_fov_actor(cadmodel,calib,actor_type='volume',resolution=None):
 
     if actor_type.lower() == 'volume': 
 
-
         x_horiz,y_horiz = np.meshgrid( np.arange(raydata.ray_start_coords.shape[1]-1), np.arange(raydata.ray_start_coords.shape[0]))
         x_horiz = x_horiz.flatten()
         y_horiz = y_horiz.flatten()
@@ -434,5 +433,125 @@ def get_fov_actor(cadmodel,calib,actor_type='volume',resolution=None):
 
     if actor_type == 'lines':
         actor.GetProperty().SetLineWidth(2)
+
+    return actor
+
+
+
+def get_wall_contour_actor(wall_contour,actor_type='contour',phi=None,toroidal_res=128):
+
+    if actor_type == 'contour' and phi is None:
+        raise ValueError('Toroidal angle must be specified if type==contour!')
+
+    points = vtk.vtkPoints()
+
+    if actor_type == 'contour':
+
+        lines = vtk.vtkCellArray()
+        x = wall_contour[-1,0]*np.cos(phi)
+        y = wall_contour[-1,0]*np.sin(phi)
+        points.InsertNextPoint(x,y,wall_contour[-1,1])
+
+        for i in range(wall_contour.shape[0]-1):
+            x = wall_contour[i,0]*np.cos(phi)
+            y = wall_contour[i,0]*np.sin(phi)
+            points.InsertNextPoint(x,y,wall_contour[i,1])
+
+            line = vtk.vtkLine()
+            line.GetPointIds().SetId(0,i)
+            line.GetPointIds().SetId(1,i+1)
+            lines.InsertNextCell(line)
+
+        line = vtk.vtkLine()
+        line.GetPointIds().SetId(0,i+1)
+        line.GetPointIds().SetId(1,0)
+        lines.InsertNextCell(line)
+
+        polydata = polydata = vtk.vtkPolyData()
+        polydata.SetPoints(points)
+        polydata.SetLines(lines)
+
+    elif actor_type == 'surface':
+
+        polygons = vtk.vtkCellArray()
+
+        npoints = 0
+        for i in range(wall_contour.shape[0]):
+            points.InsertNextPoint(wall_contour[i,0],0,wall_contour[i,1])
+            npoints = npoints + 1
+
+        tor_step = 3.14159*(360./toroidal_res)/180
+        for phi in np.linspace(tor_step,2*3.14159-tor_step,toroidal_res-1):
+
+            x = wall_contour[0,0]*np.cos(phi)
+            y = wall_contour[0,0]*np.sin(phi)
+            points.InsertNextPoint(x,y,wall_contour[0,1])
+            npoints = npoints + 1
+
+            for i in range(1,wall_contour.shape[0]):
+
+                x = wall_contour[i,0]*np.cos(phi)
+                y = wall_contour[i,0]*np.sin(phi)
+                points.InsertNextPoint(x,y,wall_contour[i,1])
+                npoints = npoints + 1
+                lasttor = npoints - wall_contour.shape[0] - 1
+
+                polygon = vtk.vtkPolygon()
+                polygon.GetPointIds().SetNumberOfIds(3)
+                polygon.GetPointIds().SetId(0,lasttor-1)
+                polygon.GetPointIds().SetId(1,lasttor)
+                polygon.GetPointIds().SetId(2,npoints-1)
+                polygons.InsertNextCell(polygon)
+                polygon = vtk.vtkPolygon()
+                polygon.GetPointIds().SetNumberOfIds(3)
+                polygon.GetPointIds().SetId(0,npoints-2)
+                polygon.GetPointIds().SetId(1,npoints-1)
+                polygon.GetPointIds().SetId(2,lasttor-1)
+                polygons.InsertNextCell(polygon)
+
+            # Close the end (poloidally)
+            polygon = vtk.vtkPolygon()
+            polygon.GetPointIds().SetNumberOfIds(3)
+            polygon.GetPointIds().SetId(0,npoints-2*wall_contour.shape[0])
+            polygon.GetPointIds().SetId(1,npoints-wall_contour.shape[0]-1)
+            polygon.GetPointIds().SetId(2,npoints-1)
+            polygons.InsertNextCell(polygon)
+            polygon = vtk.vtkPolygon()
+            polygon.GetPointIds().SetNumberOfIds(3)
+            polygon.GetPointIds().SetId(0,npoints-wall_contour.shape[0])
+            polygon.GetPointIds().SetId(1,npoints-1)
+            polygon.GetPointIds().SetId(2,npoints-2*wall_contour.shape[0])
+            polygons.InsertNextCell(polygon)
+        
+        # Close the end (toroidally)
+        startpoint = npoints - wall_contour.shape[0]
+        for i in range(1,wall_contour.shape[0]):
+            polygon = vtk.vtkPolygon()
+            polygon.GetPointIds().SetNumberOfIds(3)
+            polygon.GetPointIds().SetId(0,startpoint+i-1)
+            polygon.GetPointIds().SetId(1,startpoint+i)
+            polygon.GetPointIds().SetId(2,i)
+            polygons.InsertNextCell(polygon)
+            polygon = vtk.vtkPolygon()
+            polygon.GetPointIds().SetNumberOfIds(3)
+            polygon.GetPointIds().SetId(0,i-1)
+            polygon.GetPointIds().SetId(1,i)
+            polygon.GetPointIds().SetId(2,startpoint+i-1)
+            polygons.InsertNextCell(polygon)
+        
+
+        polydata = polydata = vtk.vtkPolyData()
+        polydata.SetPoints(points)
+        polydata.SetPolys(polygons)
+
+    mapper = vtk.vtkPolyDataMapper()
+
+    if vtk_major_version < 6:
+        mapper.SetInput(polydata)
+    else:
+        mapper.SetInputData(polydata)
+
+    actor = vtk.vtkActor()
+    actor.SetMapper(mapper)
 
     return actor

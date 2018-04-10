@@ -105,12 +105,20 @@ class CADModel():
 
 
         # Check if the mesh files are from the CAD definition file itself, in which case
-        # we need a different file path
+        # we need to point the mesh loader in the direction of out temporary extracted path
         if model_def['mesh_path_roots'][self.model_variant].startswith('.large'):
             self.mesh_path_root = os.path.join(self.def_file.get_temp_path(),model_def['mesh_path_roots'][self.model_variant])
         else:
             self.mesh_path_root = model_def['mesh_path_roots'][self.model_variant]
-        
+
+
+        # Load the wall contour, if present
+        if 'wall_contour.txt' in self.def_file.list_contents():
+            with self.def_file.open_file('wall_contour.txt','r') as cf:
+                self.wall_contour = np.loadtxt(cf)
+        else:
+            self.wall_contour = None
+
         
         # See if we have a user-written coordinate formatter, and if
         # we do, load it over the standard format_coord method
@@ -402,7 +410,7 @@ class CADModel():
             0 + linewidth
             linewidth = [linewidth] * len(features)
         except:
-            if len(linediwth) != len(features):
+            if len(linewidth) != len(features):
                 raise ValueError('The same number of line widths and features must be provided!')
 
         for i,requested in enumerate(features):
