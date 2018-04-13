@@ -36,4 +36,3 @@ from .calibration import Calibration
 from .raytrace import RayData, raycast_sightlines
 #from .roi import ROI, ROISet
 from .geometry_matrix import RectangularGeometryMatrix
-from .gui import start_gui

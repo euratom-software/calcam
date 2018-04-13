@@ -165,12 +165,12 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
                 print('[Calcam Renderer] Rendering (Sub-view {:d}/{:d})...'.format(field + 1,calibration.n_subviews))
 
             # Do the render and grab an image
-            #renwin.Render()
+            renwin.Render()
 
             # Make sure the light lights up the whole model without annoying shadows or falloff.
-            #light = renderer.GetLights().GetItemAsObject(0)
-            #light.PositionalOn()
-            #light.SetConeAngle(180)
+            light = renderer.GetLights().GetItemAsObject(0)
+            light.PositionalOn()
+            light.SetConeAngle(180)
 
             # Do the render and grab an image
             renwin.Render()
