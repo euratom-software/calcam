@@ -411,7 +411,7 @@ class ViewerWindow(CalcamGUIWindow):
 
         elif self.sender() is self.pick_sightlines_colour and len(self.sightlines_list.selectedItems()) > 0:
 
-            picked_colour = pick_colour(self,self.sightlines[self.sightlines_list.selectedItems()[0]][1].GetProperty().GetColor())
+            picked_colour = self.pick_colour(self.sightlines[self.sightlines_list.selectedItems()[0]][1].GetProperty().GetColor())
             if picked_colour is not None:
                 for item in self.sightlines_list.selectedItems():
                     self.sightlines[item][1].GetProperty().SetColor( picked_colour )

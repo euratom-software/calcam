@@ -448,7 +448,7 @@ class CalcamGUIWindow(qt.QMainWindow):
 
         if self.sender() is self.cad_colour_choose_button:
 
-            picked_colour = pick_colour(self,self.cadmodel.get_colour( selected_features )[0] )
+            picked_colour = self.pick_colour(self.cadmodel.get_colour( selected_features )[0] )
 
             if picked_colour is not None:
 
