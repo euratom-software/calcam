@@ -34,9 +34,9 @@ Written by Scott Silburn
 
 import vtk
 import numpy as np
+from ..render import get_image_actor
 
-
-class CalcamInterActorStyle3D(vtk.vtkInteractorStyleTerrain):
+class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
  
     def __init__(self,parent=None,viewport_callback=None,resize_callback=None,newpick_callback=None,cursor_move_callback=None,focus_changed_callback=None,refresh_callback=None):
         
@@ -56,6 +56,7 @@ class CalcamInterActorStyle3D(vtk.vtkInteractorStyleTerrain):
         self.cursor_move_callback = cursor_move_callback
         self.cursor_changed_callback = focus_changed_callback
         self.refresh_callback = refresh_callback
+        self.focus_changed_callback = focus_changed_callback
 
 
     # Do various initial setup things, most of which can't be done at the time of __init__
@@ -257,7 +258,7 @@ class CalcamInterActorStyle3D(vtk.vtkInteractorStyleTerrain):
 
 
             # If they held CTRL, we send a new pick callback
-            if ctrl_pressed:
+            if ctrl_pressed or self.focus_cursor is None:
 
                 if self.newpick_callback is not None:
                     self.newpick_callback(pickcoords)
@@ -334,9 +335,11 @@ class CalcamInterActorStyle3D(vtk.vtkInteractorStyleTerrain):
         self.update_cursor_style()
 
 
+    def get_cursor_focus(self):
+        return self.focus_cursor
 
 
-    def add_cursor(self,coords,change_focus=True):
+    def add_cursor(self,coords):
 
         # Create new cursor, mapper and actor
         new_cursor_id = self.next_cursor_id
@@ -361,9 +364,6 @@ class CalcamInterActorStyle3D(vtk.vtkInteractorStyleTerrain):
 
         # Add new cursor to screen
         self.renderer.AddActor(self.cursors[new_cursor_id]['actor'])
-
-        if change_focus:
-            self.focus_cursor = new_cursor_id
 
         self.update_cursor_style()
 
@@ -426,7 +426,7 @@ class CalcamInterActorStyle3D(vtk.vtkInteractorStyleTerrain):
 
 class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
  
-    def __init__(self,parent=None):
+    def __init__(self,parent=None,newpick_callback=None,cursor_move_callback=None,focus_changed_callback=None,refresh_callback=None):
         # Set callbacks for all the controls
         self.AddObserver("LeftButtonPressEvent",self.on_left_click)
         self.AddObserver("MiddleButtonPressEvent",self.middle_press)
@@ -434,7 +434,10 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
         self.AddObserver("MouseWheelForwardEvent",self.zoom_in)
         self.AddObserver("MouseWheelBackwardEvent",self.zoom_out)
         self.AddObserver("MouseMoveEvent",self.mouse_move)
-
+        self.newpick_callback = newpick_callback
+        self.cursor_move_callback = cursor_move_callback
+        self.focus_changed_callback = focus_changed_callback
+        self.refresh_callback = refresh_callback
 
     # Do various initial setup things, most of which can't be done at the time of __init__
     def init(self):
@@ -454,12 +457,12 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
         self.camera.ParallelProjectionOn()
 
 
-        # Turn off any VTK responses to keyboard input (all necessary keyboard shortcuts etc are done in Q)
+        # Turn off any VTK responses to keyboard input (all necessary keyboard shortcuts etc are done in Qt)
         self.interactor.RemoveObservers('KeyPressEvent')
         self.interactor.RemoveObservers('CharEvent')
 
         # Add observer for catching window resizing
-        self.vtkwindow.AddObserver("ModifiedEvent",self.OnWindowSizeAdjust)
+        self.vtkwindow.AddObserver("ModifiedEvent",self.on_resize)
 
 
         # Variables
@@ -467,13 +470,14 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
         self.passive_cursors = {}
         self.next_cursor_id = 0
 
+        self.focus_cursor = None
+
         self.image_actor = None
         self.overlay_actor = None
 
 
-
     # Use this image object
-    def set_image(self,image_actor,n_subviews=1,subview_lookup=lambda x,y: 0,hold_position=False):
+    def set_image(self,image,n_subviews=1,subview_lookup=lambda x,y: 0,hold_position=False):
         
         # Remove current image, if any
         if self.image_actor is not None:
@@ -487,7 +491,7 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
             self.overlay_actor = None
 
 
-        if image_actor is not None:
+        if image is not None:
 
             self.n_subviews = n_subviews
             self.subview_lookup = subview_lookup
@@ -495,8 +499,9 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
             winsize = self.vtkwindow.GetSize()
             winaspect =  float(winsize[0])/float(winsize[1])
 
-            self.renderer.AddActor2D(self.image_actor)
+            self.image_actor = get_image_actor(image)
 
+            self.renderer.AddActor2D(self.image_actor)
 
             bounds = self.image_actor.GetBounds()
             xc = bounds[0] + bounds[1] / 2
@@ -522,7 +527,8 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
                 self.camera.SetPosition(xc,yc,1.)
                 self.camera.SetFocalPoint(xc,yc,0.)
         
-        
+        if self.refresh_callback is not None:
+            self.refresh_callback()
 
     # On the CAD view, middle click + drag to pan
     def middle_press(self,obj,event):
@@ -542,14 +548,14 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
         clickcoords = self.interactor.GetEventPosition()
 
         # Check if the click was near enough an existing cursor to be considered as clicking it
-        dist = 7
+        dist = 7.
         for cid, cursor in self.active_cursors.items():
 
             if cid == self.focus_cursor:
                 continue
 
             for icursor in cursor['cursor3ds']:
-                screencoords = self.im_to_display_coords(icursor.GetFocalPoint())
+                screencoords = self.image_to_screen_coords(icursor.GetFocalPoint())
                 dist_from_cursor = np.sqrt( (screencoords[0] - clickcoords[0])**2 + (screencoords[1] - clickcoords[1])**2 )
                 if dist_from_cursor < dist:
                         clicked_cursor = cid
@@ -561,11 +567,11 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
         bounds = self.image_actor.GetBounds()
         maxind = np.array( [bounds[1] - bounds[0] - 1, bounds[3] - bounds[2] - 1] )
 
-        if np.any(pickcoords < 0) or np.any(pickcoords > indlim):
+        if np.any(pickcoords < 0) or np.any(pickcoords > maxind):
             return
 
 
-        if ctrl_pressed:
+        if ctrl_pressed or self.focus_cursor is None:
 
             if self.newpick_callback is not None:
                 self.newpick_callback(pickcoords)
@@ -580,16 +586,16 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
                     self.focus_changed_callback(clicked_cursor)
 
                 if self.cursor_move_callback is not None:
-                    self.cursor_move_callback( [cursor.GetFocalPoint() for cursor in self.cursors[clicked_cursor]['cursor3ds']] )
+                    self.cursor_move_callback( [cursor.GetFocalPoint() for cursor in self.active_cursors[clicked_cursor]['cursor3ds']] )
 
             elif self.focus_cursor is not None:
 
                 view_index = self.subview_lookup(pickcoords[0],pickcoords[1])
-                if self.active_cursors[self.focus_cursor]['cursors3d'][view_index] is None:
+                if self.active_cursors[self.focus_cursor]['cursor3ds'][view_index] is None:
                     self.add_active_cursor(pickcoords,add_to=self.focus_cursor)
                 else:
 
-                    self.active_cursors[self.focus_cursor]['cursors3d'][view_index].SetFocalPoint(pickcoords[0],pickcoords[1],0.1)
+                    self.active_cursors[self.focus_cursor]['cursor3ds'][view_index].SetFocalPoint(pickcoords[0],pickcoords[1],0.1)
 
                     if self.cursor_move_callback is not None:
                         self.cursor_move_callback( [cursor.GetFocalPoint() for cursor in self.active_cursors[clicked_cursor]['cursor3ds']] )
@@ -654,7 +660,7 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
 
             zoom_ratio = 0.2/(self.zoom_level**2 - 1.2*self.zoom_level + 0.2)
 
-            campos = self.Camera.GetPosition()
+            campos = self.camera.GetPosition()
 
             zoomvec = ( self.zoom_ref_cc[0] - campos[0] , self.zoom_ref_cc[1] - campos[1] )
 
@@ -678,6 +684,8 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
         self.update_cursor_style()
 
 
+    def get_cursor_focus(self):
+        return self.focus_cursor
 
 
     # Similar to Set3DCursorStyle but for image points
@@ -692,26 +700,26 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
 
                     pos = icursor.GetFocalPoint()
 
-                    if Focus:
+                    if self.focus_cursor == cid:
                         colour = (0,0.8,0)
                         linewidth = 3
                         size = 0.03 * camscale
                     else:
-                        if cursor['colour'] is not None:
-                            colour = cursor['colour']
-                        else:
-                            colour = (0.8,0,0)
+                        colour = (0.8,0,0)
                         linewidth = 2
                         size = size = 0.015 * camscale
 
                     icursor.SetModelBounds(pos[0]-size,pos[0]+size,pos[1]-size,pos[1]+size,0.0,0.0)
                     cursor['actors'][i].GetProperty().SetColor(colour)
-                    cursor['actors'][i].GetProperty().SetLineWidth(focus_linewidth)
+                    cursor['actors'][i].GetProperty().SetLineWidth(linewidth)
 
 
         size = size = 0.015 * camscale
         for cursor in self.passive_cursors.values():
-               cursor['cursor3d'].SetModelBounds([point[3][0]-size,point[3][0]+size,point[3][1]-size,point[3][1]+size,0.,0.])
+            cursor['cursor3d'].SetModelBounds([point[3][0]-size,point[3][0]+size,point[3][1]-size,point[3][1]+size,0.,0.])
+
+        if self.refresh_callback is not None:
+            self.refresh_callback()
 
 
     # Adjust 2D image size and cursor positions if the window is resized
@@ -720,7 +728,7 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
 
         if self.image_actor is not None:
 
-            vtk_size = self.vtkwindow.GetSize()
+            vtksize = self.vtkwindow.GetSize()
 
             winaspect = float(vtksize[0])/float(vtksize[1])
 
@@ -754,7 +762,21 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
         cc = self.camera.GetFocalPoint()
         im_coords = ( (( screen_coords[0] - vtksize[0]/2. ) / vtksize[0]) * camxscale + cc[0], (screen_coords[1] - vtksize[1]/2.)/vtksize[1] * camyscale + cc[1])
 
-        return im_coords
+        return np.array(im_coords)
+
+
+
+    def image_to_screen_coords(self,image_coords):
+
+        vtksize = self.vtkwindow.GetSize()
+
+        camyscale = self.camera.GetParallelScale() * 2.
+        camxscale = camyscale * float(vtksize[0])/float(vtksize[1])
+        cc = self.camera.GetFocalPoint()
+
+        screen_coords = ( float(image_coords[0] - cc[0]) / camxscale * vtksize[0] + vtksize[0]/2. , float(image_coords[1] - cc[1]) / camyscale*vtksize[1] + vtksize[1]/2.)
+
+        return np.array(screen_coords)
 
 
 
@@ -766,10 +788,10 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
 
         if add_to is None:
             
-            new_cursor_id = next_cursor_id
-            next_cursor_id += 1
+            new_cursor_id = self.next_cursor_id
+            self.next_cursor_id += 1
 
-            self.cursors[new_cursor_id] = {'cursor3ds':[None]*self.n_subviews,'actors':[None]*self.n_subviews}
+            self.active_cursors[new_cursor_id] = {'cursor3ds':[None]*self.n_subviews,'actors':[None]*self.n_subviews}
         else:
             new_cursor_id = add_to
 
@@ -787,7 +809,7 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
 
         new_cursor.SetFocalPoint([coords[0],coords[1],0.05])
 
-        mapper = vtl.vtkPolyDataMapper()
+        mapper = vtk.vtkPolyDataMapper()
         mapper.SetInputConnection(new_cursor.GetOutputPort())
 
         actor = vtk.vtkActor()
@@ -799,9 +821,6 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
 
         # Add new cursor to screen
         self.renderer.AddActor(actor)
-
-        if self.focus_changed_callback is not None:
-            self.focus_changed_callback(new_cursor_id)
 
         if self.cursor_move_callback is not None:
             cursor_move_callback( [cursor.GetFocalPoint() for cursor in self.active_cursors[new_cursor_id]['cursor3ds']] )
@@ -822,7 +841,7 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
 
         cursor = self.active_cursors.pop(cursor_id)
 
-        for actors in cursor['actors']:
+        for actor in cursor['actors']:
             self.renderer.RemoveActor(actor)
 
         if self.focus_cursor == cursor_id:

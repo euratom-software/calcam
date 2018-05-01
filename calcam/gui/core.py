@@ -369,17 +369,16 @@ class CalcamGUIWindow(qt.QMainWindow):
                 view_item = items[0]
             else:
                 return
-  
-            self.xsection_checkbox.setChecked(False)
+
             if view_item.parent() is self.views_root_model:
 
                 view = self.cadmodel.get_view( str(view_item.text(0)))
 
                 # Set to that view
-                self.camera.SetViewAngle(view['y_fov'])
-                self.camera.SetPosition(view['cam_pos'])
-                self.camera.SetFocalPoint(view['target'])
-                self.camera.SetViewUp(0,0,1)
+                self.camera_3d.SetViewAngle(view['y_fov'])
+                self.camera_3d.SetPosition(view['cam_pos'])
+                self.camera_3d.SetFocalPoint(view['target'])
+                self.camera_3d.SetViewUp(0,0,1)
                 self.interactor3d.set_xsection(view['xsection'])
 
             elif view_item.parent() is self.views_root_results or view_item.parent() in self.viewport_calibs.keys():
@@ -388,43 +387,25 @@ class CalcamGUIWindow(qt.QMainWindow):
                 if subfield is None:
                     return
 
-                self.camera.SetPosition(view.get_pupilpos(subview=subfield))
-                self.camera.SetFocalPoint(view.get_pupilpos(subview=subfield) + view.get_los_direction(view.geometry.get_display_shape()[0]/2,view.geometry.get_display_shape()[1]/2))
-                self.camera.SetViewAngle(view.get_fov(subview=subfield)[1])
-                self.camera.SetViewUp(-1.*view.get_cam_to_lab_rotation(subview=subfield)[:,1])
+                self.camera_3d.SetPosition(view.get_pupilpos(subview=subfield))
+                self.camera_3d.SetFocalPoint(view.get_pupilpos(subview=subfield) + view.get_los_direction(view.geometry.get_display_shape()[0]/2,view.geometry.get_display_shape()[1]/2))
+                self.camera_3d.SetViewAngle(view.get_fov(subview=subfield)[1])
+                self.camera_3d.SetViewUp(-1.*view.get_cam_to_lab_rotation(subview=subfield)[:,1])
                 self.interactor3d.set_xsection(None)               
 
-            elif view_item.parent() is self.views_root_auto and self.interactor3d.focus_cursor is not None:
 
-                cursorpos = self.interactor3d.get_cursor_coords(0)
-
-                if str(view_item.text(0)).lower() == 'horizontal cross-section thru cursor':
-                    self.camera.SetViewUp(0,1,0)
-                    self.camera.SetPosition( (0.,0.,max(self.camZ.value(),cursorpos[2]+1.)) )
-                    self.camera.SetFocalPoint( (0.,0.,cursorpos[2]-1.) )
-                    self.xsection_checkbox.setChecked(True)
-
-                elif str(view_item.text(0)).lower() == 'vertical cross-section thru cursor':
-                    self.camera.SetViewUp(0,0,1)
-                    R_cursor = np.sqrt( cursorpos[1]**2 + cursorpos[0]**2 )
-                    phi = np.arctan2(cursorpos[1],cursorpos[0])
-                    phi_cam = phi - 3.14159/2.
-                    R_cam = np.sqrt( self.camX.value()**2 + self.camY.value()**2 )
-                    self.camera.SetPosition( (max(R_cam,R_cursor + 1) * np.cos(phi_cam), max(R_cam,R_cursor + 1) * np.sin(phi_cam), 0.) )
-                    self.camera.SetFocalPoint( (0.,0.,0.) )
-                    self.xsection_checkbox.setChecked(True)
 
 
         else:
-            self.camera.SetPosition((self.camX.value(),self.camY.value(),self.camZ.value()))
-            self.camera.SetFocalPoint((self.tarX.value(),self.tarY.value(),self.tarZ.value()))
-            self.camera.SetViewAngle(self.camFOV.value())
+            self.camera_3d.SetPosition((self.camX.value(),self.camY.value(),self.camZ.value()))
+            self.camera_3d.SetFocalPoint((self.tarX.value(),self.tarY.value(),self.tarZ.value()))
+            self.camera_3d.SetViewAngle(self.camFOV.value())
 
         self.update_viewport_info(keep_selection=True)
 
         self.interactor3d.update_clipping()
 
-        self.refresh_vtk()
+        self.refresh_3d()
 
 
 
@@ -432,7 +413,7 @@ class CalcamGUIWindow(qt.QMainWindow):
 
             if self.cadmodel is not None:
                 self.cadmodel.colour_by_material()
-                self.refresh_vtk()
+                self.refresh_3d()
 
 
     def set_cad_colour(self):
@@ -459,7 +440,7 @@ class CalcamGUIWindow(qt.QMainWindow):
 
             self.cadmodel.reset_colour(selected_features)
 
-        self.refresh_vtk()
+        self.refresh_3d()
 
 
 
@@ -495,7 +476,7 @@ class CalcamGUIWindow(qt.QMainWindow):
             self.cadmodel.set_features_enabled(item.checkState(0) == qt.Qt.Checked,self.cad_tree_items[item])
             self.update_feature_tree_checks()
 
-            self.refresh_vtk()
+            self.refresh_3d()
 
             for key,item in self.sightlines:
                 recheck = False
@@ -611,9 +592,9 @@ class CalcamGUIWindow(qt.QMainWindow):
         light.SetConeAngle(180)
 
         # Put the camera in some reasonable starting position
-        self.camera.SetViewAngle(90)
-        self.camera.SetViewUp((0,0,1))
-        self.camera.SetFocalPoint(0,0,0)
+        self.camera_3d.SetViewAngle(90)
+        self.camera_3d.SetViewUp((0,0,1))
+        self.camera_3d.SetFocalPoint(0,0,0)
 
         self.update_model_views()
 
@@ -625,14 +606,14 @@ class CalcamGUIWindow(qt.QMainWindow):
         else:
             model_extent = self.cadmodel.get_extent()
             if np.abs(model_extent).max() > 0:
-                self.camera.SetPosition(((model_extent[5] - model_extent[4])/2,(model_extent[2]+model_extent[3])/2,(model_extent[4]+model_extent[5])/2))
+                self.camera_3d.SetPosition(((model_extent[5] - model_extent[4])/2,(model_extent[2]+model_extent[3])/2,(model_extent[4]+model_extent[5])/2))
             else:
-                self.camera.SetPosition((3.,0,0))
+                self.camera_3d.SetPosition((3.,0,0))
 
         self.statusbar.clearMessage()
         self.interactor3d.update_clipping()
 
-        self.refresh_vtk()
+        self.refresh_3d()
 
         self.app.restoreOverrideCursor()
 
@@ -643,9 +624,9 @@ class CalcamGUIWindow(qt.QMainWindow):
 
     def update_viewport_info(self,keep_selection = False):
 
-        campos = self.camera.GetPosition()
-        camtar = self.camera.GetFocalPoint()
-        fov = self.camera.GetViewAngle()
+        campos = self.camera_3d.GetPosition()
+        camtar = self.camera_3d.GetFocalPoint()
+        fov = self.camera_3d.GetViewAngle()
 
         self.camX.blockSignals(True)
         self.camY.blockSignals(True)
@@ -721,6 +702,30 @@ class CalcamGUIWindow(qt.QMainWindow):
             self.model_variant.setCurrentIndex(-1)
 
 
-    def refresh_vtk(self):
+    def refresh_3d(self):
         self.renderer_3d.Render()
-        self.qvtkWidget.update()
+        self.qvtkwidget_3d.update()
+
+
+    def refresh_2d(self):
+        self.renderer_2d.Render()
+        self.qvtkwidget_2d.update()
+
+
+    def debug_dialog(self,thing):
+
+        message = str(thing)
+
+        dialog = qt.QMessageBox(self)
+        dialog.setStandardButtons(qt.QMessageBox.Ok)
+        dialog.setTextFormat(qt.Qt.RichText)
+        dialog.setWindowTitle('Calcam - Debug Message')
+        dialog.setText(message)
+        dialog.setIcon(qt.QMessageBox.Information)
+        dialog.exec_()
+
+
+    def on_close(self):
+
+        self.config.save()
+        sys.excepthook = sys.__excepthook__

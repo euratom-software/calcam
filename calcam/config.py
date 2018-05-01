@@ -1,5 +1,6 @@
 import os
 import json
+import sys
 import glob
 from .io import ZipSaveFile
 
@@ -19,6 +20,7 @@ class CalcamConfig():
 
 			self.file_dirs = {'calibration':os.path.expanduser('~'),'image':os.path.expanduser('~')}
 			self.cad_def_paths = [os.path.expanduser('~')]
+			self.image_source_paths = [os.path.join(os.path.split(os.path.abspath(__file__))[0],'image_sources')]
 			self.default_model = None
 
 			self.save()
@@ -32,6 +34,7 @@ class CalcamConfig():
 		self.file_dirs = 	load_dict['file_dirs']
 		self.default_model = load_dict['default_model']
 		self.cad_def_paths = load_dict['cad_def_paths']
+		self.image_source_paths = load_dict['image_source_paths']
 
 
 	def save(self):
@@ -39,7 +42,8 @@ class CalcamConfig():
 		save_dict = {
 						'file_dirs' 	: self.file_dirs,
 						'default_model' : self.default_model,
-						'cad_def_paths'	: self.cad_def_paths
+						'cad_def_paths'	: self.cad_def_paths,
+						'image_source_paths':self.image_source_paths
 					}
 
 		with open(self.filename,'w') as f:
@@ -77,3 +81,22 @@ class CalcamConfig():
 
 		return cadmodels
 
+
+	def get_image_sources(self):
+
+		image_sources = []
+
+		for path in self.image_source_paths:
+
+			sys.path.insert(0,path)
+			filelist = glob.glob(os.path.join(path,'*'))
+
+			for fname in [os.path.split(path)[-1].split('.')[0] for path in filelist]:
+				try:
+					usermodule = __import__(fname)
+					image_sources.append(usermodule.image_source)
+				except:
+					sys.path.remove(path)
+					continue
+
+		return image_sources

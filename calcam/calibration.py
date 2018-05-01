@@ -351,6 +351,8 @@ class Calibration():
 
         self.subview_names = []
 
+        self.pixel_size = None
+
         if load_file is not None:
             self.load(load_file)
 
@@ -381,7 +383,8 @@ class Calibration():
             self.history = meta['history']
             self.subview_names = meta['subview_names']
             self.calib_type = meta['calib_type']
-
+            self.pixel_size = meta['pixel_size']
+            
             # Load the primary point pairs
             with save_file.open_file('pointpairs.csv','r') as ppf:
                 self.pointpairs = PointPairs(ppf)
@@ -412,6 +415,59 @@ class Calibration():
                 self.intrinsics_constraints.append([im,pp])
 
 
+    def set_image(self,image,coords='Display',transform_actions = [],subview_mask=None,pixel_aspect=1.,subview_names = [],pixel_size=None):
+
+        self.image = image.copy()
+
+        # If the array isn't already 8-bit int, make it 8-bit int...
+        if self.image.dtype != np.uint8:
+            # If we're given a higher bit-depth integer, it's easy to downcast it.
+            if self.image.dtype == np.uint16 or self.image.dtype == np.int16:
+                self.image = np.uint8(self.image/2**8)
+            elif self.image.dtype == np.uint32 or self.image.dtype == np.int32:
+                self.image = np.uint8(self.image/2**24)
+            elif self.image.dtype == np.uint64 or self.image.dtype == np.int64:
+                self.image = np.uint8(self.image/2**56)
+            # Otherwise, scale it in a floating point way to its own max & min
+            # and strip out any transparency info (since we can't be sure of the scale used for transparency)
+            else:
+
+                if self.image.min() < 0:
+                    self.image = self.image - self.image.min()
+
+                if len(self.image.shape) == 3:
+                    if self.image.shape[2] == 4:
+                        self.image = self.image[:,:,:-1]
+
+                self.image = np.uint8(255.*(self.image - self.image.min())/(self.image.max() - self.image.min()))
+
+        if subview_mask is None:
+            self.n_subviews = 1
+            self.subview_mask = np.zeros(image.shape[:2],dtype='uint8')
+            self.subview_names = ['Image']
+        else:
+            self.subview_mask = subview_mask
+            self.n_subviews = suview_mask.max() + 1
+            if len(subview_names) == self.n_subviews:
+                self.subview_names = subview_names
+            else:
+                self.subview_names = []
+                for n in range(self.n_subviews):
+                    self.subview_names.append('View {:d}'.format(n+1))
+
+
+        self.geometry = CoordTransformer()
+        self.geometry.x_pixels = self.image.shape[1]
+        self.geometry.y_pixels = self.image.shape[0]
+        self.geometry.set_transform_actions(transform_actions)
+        self.geometry.pixel_aspectratio = pixel_aspect
+
+        if coords.lower() == 'original':
+            self.image = self.geometry.original_to_display_image(self.image)
+
+        self.pixel_size = pixel_size
+
+
     def save(self,filename):
 
         with ZipSaveFile(filename,'w') as save_file:
@@ -432,6 +488,7 @@ class Calibration():
             meta = {
                     'n_subviews': self.n_subviews,
                     'history':self.history,
+                    'pixel_size':self.pixel_size,
                     'orig_x':self.geometry.x_pixels,
                     'orig_y':self.geometry.y_pixels,
                     'orig_paspect':self.geometry.pixel_aspectratio,

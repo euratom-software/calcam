@@ -4,6 +4,7 @@ from multiprocessing import Process
 from .. import __version__
 
 from .viewer import ViewerWindow
+from .fitting_calib import FittingCalibrationWindow
 
 # Class for the window
 class LauncherWindow(qt.QDialog):
@@ -26,7 +27,7 @@ class LauncherWindow(qt.QDialog):
         self.logolabel.setPixmap(immap)
 
         # Callbacks for GUI elements: connect the buttons to the functions we want to run
-        #self.calcam_button.clicked.connect(self.launch_calcam)
+        self.calcam_button.clicked.connect(self.launch_calcam)
         #self.alignment_calib_button.clicked.connect(self.launch_alignment_calib)
         self.cad_viewer_button.clicked.connect(self.launch_viewer)
         #self.view_designer_button.clicked.connect(self.launch_view_designer)
@@ -37,7 +38,7 @@ class LauncherWindow(qt.QDialog):
         self.show()
 
     def launch_calcam(self):
-        Process(target=start_calcam).start()
+        Process(target=open_gui,args=[FittingCalibrationWindow]).start()
 
     def launch_viewer(self):
         Process(target=open_gui,args=[ViewerWindow]).start()

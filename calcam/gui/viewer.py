@@ -1,7 +1,7 @@
 import cv2
 
 from .core import *
-from .vtkinteractorstyles import CalcamInterActorStyle3D
+from .vtkinteractorstyles import CalcamInteractorStyle3D
 from .. import render
 
 # CAD viewer window.
@@ -16,15 +16,14 @@ class ViewerWindow(CalcamGUIWindow):
         self.cadmodel = None
 
         # Set up VTK
-        self.qvtkWidget = qt.QVTKRenderWindowInteractor(self.vtk_frame)
-        self.vtk_frame.layout().addWidget(self.qvtkWidget,0,0,1,2)
-        self.interactor3d = CalcamInterActorStyle3D(refresh_callback=self.refresh_vtk,viewport_callback=self.update_viewport_info,newpick_callback=self.add_cursor,cursor_move_callback=self.update_cursor_position,resize_callback=self.on_resize)
-        self.qvtkWidget.SetInteractorStyle(self.interactor3d)
+        self.qvtkwidget_3d = qt.QVTKRenderWindowInteractor(self.vtk_frame)
+        self.vtk_frame.layout().addWidget(self.qvtkwidget_3d,0,0,1,2)
+        self.interactor3d = CalcamInteractorStyle3D(refresh_callback=self.refresh_3d,viewport_callback=self.update_viewport_info,newpick_callback=self.add_cursor,cursor_move_callback=self.update_cursor_position,resize_callback=self.on_resize)
+        self.qvtkwidget_3d.SetInteractorStyle(self.interactor3d)
         self.renderer_3d = vtk.vtkRenderer()
         self.renderer_3d.SetBackground(0, 0, 0)
-        self.qvtkWidget.GetRenderWindow().AddRenderer(self.renderer_3d)
-        self.vtkInteractor = self.qvtkWidget.GetRenderWindow().GetInteractor()
-        self.camera = self.renderer_3d.GetActiveCamera()
+        self.qvtkwidget_3d.GetRenderWindow().AddRenderer(self.renderer_3d)
+        self.camera_3d = self.renderer_3d.GetActiveCamera()
 
 
         self.populate_models()
@@ -98,12 +97,80 @@ class ViewerWindow(CalcamGUIWindow):
 
         self.interactor3d.init()
         self.views_root_auto.setHidden(False)
-        self.vtkInteractor.Initialize()
+        self.qvtkwidget_3d.GetRenderWindow().GetInteractor().Initialize()
 
         # Warn the user if we don't have any CAD models
         if self.model_list == {}:
             warn_no_models(self)
 
+
+
+    def change_cad_view(self):
+
+
+        if self.sender() is self.viewlist:
+            items = self.viewlist.selectedItems()
+            if len(items) > 0:
+                view_item = items[0]
+            else:
+                return
+  
+            self.xsection_checkbox.setChecked(False)
+            if view_item.parent() is self.views_root_model:
+
+                view = self.cadmodel.get_view( str(view_item.text(0)))
+
+                # Set to that view
+                self.camera_3d.SetViewAngle(view['y_fov'])
+                self.camera_3d.SetPosition(view['cam_pos'])
+                self.camera_3d.SetFocalPoint(view['target'])
+                self.camera_3d.SetViewUp(0,0,1)
+                self.interactor3d.set_xsection(view['xsection'])
+
+            elif view_item.parent() is self.views_root_results or view_item.parent() in self.viewport_calibs.keys():
+
+                view,subfield = self.viewport_calibs[(view_item)]
+                if subfield is None:
+                    return
+
+                self.camera_3d.SetPosition(view.get_pupilpos(subview=subfield))
+                self.camera_3d.SetFocalPoint(view.get_pupilpos(subview=subfield) + view.get_los_direction(view.geometry.get_display_shape()[0]/2,view.geometry.get_display_shape()[1]/2))
+                self.camera_3d.SetViewAngle(view.get_fov(subview=subfield)[1])
+                self.camera_3d.SetViewUp(-1.*view.get_cam_to_lab_rotation(subview=subfield)[:,1])
+                self.interactor3d.set_xsection(None)               
+
+            elif view_item.parent() is self.views_root_auto and self.interactor3d.focus_cursor is not None:
+
+                cursorpos = self.interactor3d.get_cursor_coords(0)
+
+                if str(view_item.text(0)).lower() == 'horizontal cross-section thru cursor':
+                    self.camera_3d.SetViewUp(0,1,0)
+                    self.camera_3d.SetPosition( (0.,0.,max(self.camZ.value(),cursorpos[2]+1.)) )
+                    self.camera_3d.SetFocalPoint( (0.,0.,cursorpos[2]-1.) )
+                    self.xsection_checkbox.setChecked(True)
+
+                elif str(view_item.text(0)).lower() == 'vertical cross-section thru cursor':
+                    self.camera_3d.SetViewUp(0,0,1)
+                    R_cursor = np.sqrt( cursorpos[1]**2 + cursorpos[0]**2 )
+                    phi = np.arctan2(cursorpos[1],cursorpos[0])
+                    phi_cam = phi - 3.14159/2.
+                    R_cam = np.sqrt( self.camX.value()**2 + self.camY.value()**2 )
+                    self.camera_3d.SetPosition( (max(R_cam,R_cursor + 1) * np.cos(phi_cam), max(R_cam,R_cursor + 1) * np.sin(phi_cam), 0.) )
+                    self.camera_3d.SetFocalPoint( (0.,0.,0.) )
+                    self.xsection_checkbox.setChecked(True)
+
+
+        else:
+            self.camera_3d.SetPosition((self.camX.value(),self.camY.value(),self.camZ.value()))
+            self.camera_3d.SetFocalPoint((self.tarX.value(),self.tarY.value(),self.tarZ.value()))
+            self.camera_3d.SetViewAngle(self.camFOV.value())
+
+        self.update_viewport_info(keep_selection=True)
+
+        self.interactor3d.update_clipping()
+
+        self.refresh_3d()
+        
 
  
     def toggle_wireframe(self,wireframe):
@@ -119,6 +186,7 @@ class ViewerWindow(CalcamGUIWindow):
 
         if self.interactor3d.focus_cursor is None:
             self.interactor3d.add_cursor(coords)
+            self.interactor3d.set_cursor_focus(0)
             self.update_cursor_position(coords)
 
 
@@ -469,10 +537,8 @@ class ViewerWindow(CalcamGUIWindow):
 
     def closeEvent(self,event):
 
-        self.config.save()
         if self.cadmodel is not None:
             self.cadmodel.remove_from_renderer(self.renderer_3d)
             self.cadmodel.unload()
 
-        # If we're exiting, put python'e exception handling back to normal.
-        sys.excepthook = sys.__excepthook__
+        self.on_close()
