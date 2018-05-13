@@ -384,16 +384,11 @@ class CalcamGUIWindow(qt.QMainWindow):
             elif view_item.parent() is self.views_root_results or view_item.parent() in self.viewport_calibs.keys():
 
                 view,subfield = self.viewport_calibs[(view_item)]
-                if subfield is None:
-                    return
+                
+                if subfield is not None:
+                    self.set_view_from_calib(view,subfield)
 
-                self.camera_3d.SetPosition(view.get_pupilpos(subview=subfield))
-                self.camera_3d.SetFocalPoint(view.get_pupilpos(subview=subfield) + view.get_los_direction(view.geometry.get_display_shape()[0]/2,view.geometry.get_display_shape()[1]/2))
-                self.camera_3d.SetViewAngle(view.get_fov(subview=subfield)[1])
-                self.camera_3d.SetViewUp(-1.*view.get_cam_to_lab_rotation(subview=subfield)[:,1])
-                self.interactor3d.set_xsection(None)               
-
-
+                return
 
 
         else:
@@ -407,6 +402,23 @@ class CalcamGUIWindow(qt.QMainWindow):
 
         self.refresh_3d()
 
+
+
+    def set_view_from_calib(self,calibration,subfield):
+
+        viewmodel = calibration.view_models[subfield]
+
+        self.camera_3d.SetPosition(viewmodel.get_pupilpos())
+        self.camera_3d.SetFocalPoint(viewmodel.get_pupilpos() + viewmodel.get_los_direction(calibration.geometry.get_display_shape()[0]/2,calibration.geometry.get_display_shape()[1]/2))
+        self.camera_3d.SetViewAngle(calibration.get_fov(subview=subfield)[1])
+        self.camera_3d.SetViewUp(-1.*viewmodel.get_cam_to_lab_rotation()[:,1])
+        self.interactor3d.set_xsection(None)       
+
+        self.update_viewport_info(keep_selection=True)
+
+        self.interactor3d.update_clipping()
+
+        self.refresh_3d()
 
 
     def colour_model_by_material(self):
@@ -473,21 +485,17 @@ class CalcamGUIWindow(qt.QMainWindow):
 
     def update_checked_features(self,item):
 
-            self.cadmodel.set_features_enabled(item.checkState(0) == qt.Qt.Checked,self.cad_tree_items[item])
-            self.update_feature_tree_checks()
+        self.cadmodel.set_features_enabled(item.checkState(0) == qt.Qt.Checked,self.cad_tree_items[item])
+        self.update_feature_tree_checks()
 
-            self.refresh_3d()
+        self.refresh_3d()
 
-            for key,item in self.sightlines:
-                recheck = False
-                if key.checkState() == qt.Qt.Checked:
-                    recheck = True
-                    key.setCheckState(qt.Qt.Unchecked)
-                    self.colourcycle.queue_colour(item[1].GetProperty().GetColor())
-                item[1] = None
-                if recheck:
-                    key.setCheckState(qt.Qt.Checked)
+        self.on_change_cad_features()
 
+
+
+    def on_change_cad_features(self):
+        pass
 
 
     def update_feature_tree_checks(self):

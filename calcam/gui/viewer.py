@@ -172,6 +172,18 @@ class ViewerWindow(CalcamGUIWindow):
         self.refresh_3d()
         
 
+    def on_change_cad_view(self):
+        
+        for key,item in self.sightlines:
+            recheck = False
+            if key.checkState() == qt.Qt.Checked:
+                recheck = True
+                key.setCheckState(qt.Qt.Unchecked)
+                self.colourcycle.queue_colour(item[1].GetProperty().GetColor())
+            item[1] = None
+            if recheck:
+                key.setCheckState(qt.Qt.Checked)
+
  
     def toggle_wireframe(self,wireframe):
         

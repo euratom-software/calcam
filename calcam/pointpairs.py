@@ -35,10 +35,11 @@ class PointPairs():
     
     def __init__(self,loadhandle=None):
 
-        self.n_fields = 1
+        self.n_subviews = None
         self.image_points = []
         self.object_points = []
-
+        self.image_shape = None
+        
         if loadhandle is not None:
             self.load(loadhandle)
 
@@ -76,6 +77,21 @@ class PointPairs():
 
         savefile.close()
 
+
+
+    def add_pointpair(self,obj_point,im_points):
+
+        if self.n_subviews is None:
+            self.n_subviews = len(im_points)
+        else:
+            if len(im_points) != self.n_subviews:
+                raise ValueError('{:d} image point(s) provided; expected {:d}!'.format(len(im_points),self.n_subviews))
+
+        self.object_points.append(obj_point)
+        self.image_points.append(im_points)
+
+
+
     def load(self,savefile):
 
         # First row is useless headers
@@ -86,7 +102,7 @@ class PointPairs():
         if not headrow.startswith('Machine X'):
             raise IOError('Header does not look like a Calcam point pairs file!')
         
-        n_fields = int(np.floor( (len(headrow.split(',')) - 4) / 2.))
+        self.n_subviews = int(np.floor( (len(headrow.split(',')) - 4) / 2.))
 
         # Actually read the point pairs
         self.image_points = []
@@ -96,7 +112,7 @@ class PointPairs():
             row = frow.rstrip().split(',')
             self.object_points.append((float(row[0]),float(row[1]),float(row[2])))
             self.image_points.append([])
-            for field in range(n_fields):
+            for field in range(self.n_subviews):
                 if row[1 + (field+1)*3] != '':
                     self.image_points[-1].append( [float(row[1 + (field+1)*3]) , float(row[2 + (field+1)*3])] )
                 else:

@@ -357,6 +357,14 @@ class Calibration():
             self.load(load_file)
 
 
+    def set_pointpairs(self,pointpairs):
+
+        if pointpairs is not None:
+            if pointpairs.n_subviews != self.n_subviews:
+                raise ValueError('Provided PointPairs object has a different number of sub-views ({:d}) to this calibration ({:d})!'.format(pointpairs.n_subviews,self.n_subviews))
+
+        self.pointpairs = pointpairs
+
 
     def load(self,filename):
 
@@ -447,7 +455,7 @@ class Calibration():
             self.subview_names = ['Image']
         else:
             self.subview_mask = subview_mask
-            self.n_subviews = suview_mask.max() + 1
+            self.n_subviews = subview_mask.max() + 1
             if len(subview_names) == self.n_subviews:
                 self.subview_names = subview_names
             else:
@@ -455,15 +463,19 @@ class Calibration():
                 for n in range(self.n_subviews):
                     self.subview_names.append('View {:d}'.format(n+1))
 
-
         self.geometry = CoordTransformer()
-        self.geometry.x_pixels = self.image.shape[1]
-        self.geometry.y_pixels = self.image.shape[0]
+
         self.geometry.set_transform_actions(transform_actions)
         self.geometry.pixel_aspectratio = pixel_aspect
 
         if coords.lower() == 'original':
+            self.geometry.x_pixels = self.image.shape[1]
+            self.geometry.y_pixels = self.image.shape[0]
             self.image = self.geometry.original_to_display_image(self.image)
+        else:
+            shape = self.geometry.display_to_original_shape(self.image.shape[1::-1])
+            self.geometry.x_pixels = shape[0]
+            self.geometry.y_pixels = shape[1]
 
         self.pixel_size = pixel_size
 
@@ -771,3 +783,278 @@ class Calibration():
                 subview = 0
 
         return self.view_models[subview].normalise(x,y)
+
+
+
+# The 'fitter' class 
+class Fitter:
+
+    def __init__(self,model='perspective'):
+        
+        self.pointpairs = [None]
+        self.set_model(model)
+
+        # Default fit options
+        self.fixaspectratio = True
+        self.fixk1 = False
+        self.fixk2 = False
+        self.fixk3 = True
+        self.fixk4 = False
+        self.fixskew = True
+        self.disabletangentialdist=False
+        self.fixcc = False
+
+
+    def set_model(self,model):
+
+        if model == 'perspective':
+            self.model = model
+        elif model == 'fisheye':
+            opencv_major_version = int(cv2.__version__[0])
+            if opencv_major_version < 3:
+                raise ValueError('Fisheye model fitting requires OpenCV 3 or newer, you have ' + cv2.__version__)
+            else:
+                self.model = model
+        else:
+            raise ValueError('Unknown model type ' + model)
+
+
+    # Based on the current fit parameters, returns the fit flags
+    # in the format required by OpenCV fitting functions.
+    # Output: fitflags (long int)
+    def get_fitflags(self):
+
+        if self.model == 'perspective':
+            fitflags = cv2.CALIB_USE_INTRINSIC_GUESS
+
+            if self.fixaspectratio:
+                fitflags = fitflags + cv2.CALIB_FIX_ASPECT_RATIO
+            if self.fixk1:
+                fitflags = fitflags + cv2.CALIB_FIX_K1
+            if self.fixk2:
+                fitflags = fitflags + cv2.CALIB_FIX_K2
+            if self.fixk3:
+                fitflags = fitflags + cv2.CALIB_FIX_K3
+            if self.disabletangentialdist:
+                fitflags = fitflags + cv2.CALIB_ZERO_TANGENT_DIST
+            if self.fixcc:
+                fitflags = fitflags + cv2.CALIB_FIX_PRINCIPAL_POINT
+        
+        elif self.model == 'fisheye':
+
+            fitflags = cv2.fisheye.CALIB_RECOMPUTE_EXTRINSIC + cv2.fisheye.CALIB_USE_INTRINSIC_GUESS + cv2.fisheye.CALIB_FIX_SKEW
+
+            if self.fixk1:
+                fitflags = fitflags + cv2.fisheye.CALIB_FIX_K1
+            if self.fixk2:
+                fitflags = fitflags + cv2.fisheye.CALIB_FIX_K2
+            if self.fixk3:
+                fitflags = fitflags + cv2.fisheye.CALIB_FIX_K3
+            if self.fixk4:
+                fitflags = fitflags + cv2.fisheye.CALIB_FIX_K4
+        
+        return fitflags
+
+
+
+
+    # Get a list of human-readable strings saying what fitting options are anebled. 
+    # Output: list of strings, each string describes an enabled fit option.
+    def get_fitflags_strings(self):
+        
+        Output = []
+
+        if self.model == 'perspective':
+
+            if self.fixaspectratio:
+                Output.append('Fix Fx = Fy')
+            if self.fixcc:
+                Output.append('Fix CC at ({:.1f},{:.1f})'.format(self.initial_matrix[0,2],self.initial_matrix[1,2]))
+            if self.disabletangentialdist:
+                Output.append('Disable Tangential Distortion')
+
+        if self.fixk1:    
+            Output.append('Disable k1')
+        if self.fixk2:    
+            Output.append('Disable k2')
+        if self.fixk3:    
+            Output.append('Disable k3')
+        if self.fixk4:
+            Output.append('Disable k4')
+
+        return Output
+
+
+    def set_fitflags_strings(self,fitflags_strings):
+
+        if len(fitflags_strings) != self.nfields:
+            raise ValueError('Number of fit flag string lists provided is different to number of fields!')
+
+        # Start off with resetting everything
+        self.fixaspectratio = False
+        self.fixk1 = False
+        self.fixk2 = False
+        self.fixk3 = False
+        self.fixk4 = False
+        self.fixskew = True
+        self.disabletangentialdist=False
+        self.fixcc = False
+
+        # Set fit flags based on provided strings
+        for string in fitflags_strings:
+            if string == 'Fix Fx = Fy':
+                self.fixaspectratio = True
+            elif string.startswith('Fix CC at'):
+                coords = string.split('(')[1].split(')')[0].split(',')
+                self.fix_cc(True,Cx = float(coords[0]),Cy = float(coords[1]))
+            elif string == 'Disable Tangential Distortion':
+                self.disabletangentialdist = True
+            elif string == 'Disable k1':
+                self.fixk1 = True
+            elif string == 'Disable k2':
+                self.fixk2 = True
+            elif string == 'Disable k3':
+                self.fixk3 = True
+            elif string == 'Disable k4':
+                self.fixk4 = True
+
+
+    def fix_cc(self,fix,field=0,Cx=None,Cy=None):
+        if self.model == 'fisheye':
+            raise Exception('This option is not available for the fisheye camera model.')
+
+        self.fixcc = fix
+        if Cx is not None:
+            self.initial_matrix[0,2] = Cx
+        if Cy is not None:
+            self.initial_matrix[1,2] = Cy
+
+    def fix_k1(self,fix):
+        self.fixk1 = fix
+
+    def fix_k2(self,fix):
+        self.fixk2 = fix
+
+    def fix_k3(self,fix):
+        self.fixk3 = fix
+
+    def fix_k4(self,fix):
+        self.fixk4 = fix   
+
+    def fix_k5(self,fix):
+        self.fixk5 = fix
+
+    def fix_k6(self,fix):
+        self.fixk6 = fix
+
+    def fix_tangential(self,fix):
+        self.disabletangentialdist = fix
+
+    def fix_aspect(self,fix):
+        self.fixaspectratio = fix
+
+
+    def get_n_params(self):
+        
+        # If we're doing a perspective fit...
+        if self.model == 'perspective':
+            free_params = 15
+            free_params = free_params - self.fixk1
+            free_params = free_params - self.fixk2
+            free_params = free_params - self.fixk3
+            free_params = free_params - 2*self.disabletangentialdist
+            free_params = free_params - self.fixaspectratio
+            free_params = free_params - 2*fixcc
+
+        # Or for a fisheye fit...
+        elif self.model == 'fisheye':
+            free_params = 14
+            free_params = free_params - self.fixk1
+            free_params = free_params - self.fixk2
+            free_params = free_params - self.fixk3
+            free_params = free_params - self.fixk4
+
+        return free_params
+
+
+    # Do a fit, using the current input data and specified fit options.
+    # Output: CalibResults instance containing the fit results.
+    def do_fit(self):
+
+        # Gather up the image and object points for this field
+        obj_points = []
+        img_points = []
+        for pointpairs,subfield in self.pointpairs:
+            obj_points.append([])
+            img_points.append([])
+            for point in range(len(pointpairs.object_points)):
+                    if pointpairs.image_points[point][subfield] is not None:
+                        obj_points[-1].append(pointpairs.object_points[point])
+                        img_points[-1].append(pointpairs.image_points[point][subfield])
+            if len(img_points[-1]) == 0:
+                    obj_points.remove([])
+                    img_points.remove([])
+
+            obj_points[-1] = np.array(obj_points[-1],dtype='float32')
+            img_points[-1] = np.array(img_points[-1],dtype='float32')
+            
+        obj_points = np.array(obj_points)
+        img_points = np.array(img_points)
+
+
+        # Do the fit!
+        if self.model == 'perspective':
+            if int(cv2.__version__[0]) == 3:
+                fit_output = cv2.calibrateCamera(obj_points,img_points,self.image_display_shape,self.initial_matrix,None,flags=self.get_fitflags())
+            else:
+                fit_output = cv2.calibrateCamera(obj_points,img_points,self.image_display_shape,self.initial_matrix,flags=self.get_fitflags())
+
+            fitted_model = PerspectiveViewModel(cv2_output = fit_output)
+            fitted_model.fit_options = self.get_fitflags_strings()
+
+            return fitted_model
+
+        elif self.model == 'fisheye':
+
+            # Prepare input arrays in the annoying, strange way OpenCV requires them...
+            obj_points = np.expand_dims(obj_points,1)
+            img_points = np.expand_dims(img_points,1)
+            rvecs = [np.zeros((1,1,3),dtype='float32') for i in range(len(self.pointpairs))]
+            tvecs = [np.zeros((1,1,3),dtype='float32') for i in range(len(self.pointpairs))]
+            fit_output = cv2.fisheye.calibrate(obj_points,img_points,self.image_display_shape,self.initial_matrix, np.zeros(4),rvecs,tvecs,flags = self.get_fitflags())
+        
+            fitted_model = FisheyeeViewModel(cv2_output = fit_output)
+            fitted_model.fit_options = self.get_fitflags_strings()
+
+            return fitted_model
+
+
+    # Set the primary point pairs to be fit to - these are the ones used for the extrinsics fit.
+    # Input: PointPairs, a Calcam PointPairs object containing the points you want to fit.
+    # In future, I want to add a similar function for adding additional intrinsics constraints 
+    # (e.g. test pattern images taken in the lab)
+    def set_pointpairs(self,pointpairs,subview=0):
+        # The primary point pairs are always first in the list.
+        self.pointpairs[0] = (pointpairs,subview)
+        
+        # Set up image properties from the image that belongs to these point pairs
+        self.image_display_shape = tuple(pointpairs.image_shape)
+
+
+        # Initialise initial values for fitting
+        initial_matrix = np.zeros((3,3))
+        initial_matrix[0,0] = 1200    # Fx
+        initial_matrix[1,1] = 1200    # Fy
+        initial_matrix[2,2] = 1
+        initial_matrix[0,2] = self.image_display_shape[0]/2    # Cx
+        initial_matrix[1,2] = self.image_display_shape[1]/2    # Cy
+        self.initial_matrix = initial_matrix
+
+
+    def add_intrinsics_pointpairs(self,pointpairs,subfield=0):
+        
+        self.pointpairs.append(pointpairs,subfield)
+
+
+    def clear_intrinsics_pointpairs(self):
+        del self.pointpairs[1:]

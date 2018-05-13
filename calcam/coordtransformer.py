@@ -37,186 +37,247 @@ import cv2
 import numpy as np
 
 class CoordTransformer:
-	
-	def __init__(self,transform_actions=[],orig_x=None,orig_y=None,paspect=1.):
+    
+    def __init__(self,transform_actions=[],orig_x=None,orig_y=None,paspect=1.):
 
 
-		self.set_transform_actions(transform_actions)
-		self.x_pixels = orig_x
-		self.y_pixels = orig_y
+        self.set_transform_actions(transform_actions)
+        self.x_pixels = orig_x
+        self.y_pixels = orig_y
 
-		self.pixel_aspectratio = paspect
+        self.pixel_aspectratio = paspect
 
-	# Define the actions to perform on an image to change it from original to display coordinates.
-	# Input: transform_actions: a list of strings, specifying image transform actions, in the order
-	# they should be performed. See line 37 for allowed strings.
-	def set_transform_actions(self,transform_actions):
+    # Define the actions to perform on an image to change it from original to display coordinates.
+    # Input: transform_actions: a list of strings, specifying image transform actions, in the order
+    # they should be performed. See line 37 for allowed strings.
+    def set_transform_actions(self,transform_actions):
 
-		self.transform_actions = []
-		for action in transform_actions:
-			if action.lower() in ['flip_up_down','flip_left_right','rotate_clockwise_90','rotate_clockwise_180','rotate_clockwise_270']:
-				self.transform_actions.append(action)
-			elif action == '':
-				pass			
-			else:
-				raise Exception('Unknown transformation action "' + action + '"')
-
-	# Given an array containing an image in original coordinates, returns an array containing the image in display coordinates.
-	# Inputs:	image - numpy ndarray containing the image in original coordinates.
-	#			skip_resize - 
-	#			binning - 
-	# Returns: data_out - numpy ndarray containing the image in display coordinates.
-	def original_to_display_image(self,image,skip_resize=False,binning=1):
-
-		if image.shape[1] != self.x_pixels//binning or (image.shape[0] != self.y_pixels//binning and skip_resize == False) or (image.shape[0] != self.y_pixels*self.pixel_aspectratio//binning and skip_resize == True):
-			raise Exception('This image is the wrong size!')
-
-		data_out = image.copy()
-
-		if not skip_resize:
-			data_out = cv2.resize(data_out,(int(self.x_pixels/binning),int(self.y_pixels*self.pixel_aspectratio/binning)),interpolation=cv2.INTER_NEAREST)
-
-		for action in self.transform_actions:
-			if action.lower() == 'flip_up_down':
-				data_out = np.flipud(data_out)
-			elif action.lower() == 'flip_left_right':
-				data_out = np.fliplr(data_out)
-			elif action.lower() == 'rotate_clockwise_90':
-				data_out = np.rot90(data_out,k=3)
-			elif action.lower() == 'rotate_clockwise_180':
-				data_out = np.rot90(data_out,k=2)
-			elif action.lower() == 'rotate_clockwise_270':
-				data_out = np.rot90(data_out,k=1)
+        self.transform_actions = []
+        for action in transform_actions:
+            if action.lower() in ['flip_up_down','flip_left_right','rotate_clockwise_90','rotate_clockwise_180','rotate_clockwise_270']:
+                self.transform_actions.append(action)
+            elif action == '':
+                pass            
+            else:
+                raise Exception('Unknown transformation action "' + action + '"')
 
 
-		return data_out
+    def add_transform_action(self,transform_action):
 
-	# Given an array containing an image in display coordinates, returns an array containing the image in original coordinates.
-	# Inputs:	image - numpy ndarray containing the image in display coordinates.
-	#			skip_resize - 
-	#			binning - 
-	# Returns: data_out - numpy ndarray containing the image in original coordinates.
-	def display_to_original_image(self,image, skip_resize=False,binning=1):
+        transform_action = transform_action.lower()
 
-		if image.shape[0] != self.get_display_shape()[1]//binning or image.shape[1] != self.get_display_shape()[0]//binning:
-			raise Exception('This image is the wrong size!')
+        if transform_action not in ['flip_up_down','flip_left_right','rotate_clockwise_90','rotate_clockwise_180','rotate_clockwise_270']:
+            raise ValueError('Unknown transform action {:s}'.format(transform_action))
 
-		data_out = image.copy()
-
-		for action in reversed(self.transform_actions):
-			if action.lower() == 'flip_up_down':
-				data_out = np.flipud(data_out)
-			elif action.lower() == 'flip_left_right':
-				data_out = np.fliplr(data_out)
-			elif action.lower() == 'rotate_clockwise_90':
-				data_out = np.rot90(data_out,k=1)
-			elif action.lower() == 'rotate_clockwise_180':
-				data_out = np.rot90(data_out,k=2)
-			elif action.lower() == 'rotate_clockwise_270':
-				data_out = np.rot90(data_out,k=3)
-				
-		if not skip_resize:
-			data_out = cv2.resize(data_out,(self.x_pixels//binning,self.y_pixels//binning),interpolation=cv2.INTER_NEAREST)
-
-		return data_out
+        if len(self.transform_actions) == 0:
+            self.transform_actions = [transform_action]
+        else:
+            if transform_action == 'flip_up_down' and self.transform_actions[-1] == 'flip_up_down':
+                del self.transform_actions[-1]
+            elif transform_action == 'flip_left_right' and self.transform_actions[-1] == 'flip_left_right':
+                del self.transform_actions[-1]
+            elif 'rotate_clockwise' in transform_action and 'rotate_clockwise' in self.transform_actions[-1]:
+                current_angle = int(self.transform_actions[-1].split('_')[2])
+                del self.transform_actions[-1]
+                new_angle = int(transform_action.split('_')[2])
+                total_angle = current_angle + new_angle
+                if total_angle > 270:
+                    total_angle = total_angle - 360
+                if new_angle > 0:
+                    self.transform_actions.append('rotate_clockwise_{:d}'.format(total_angle))
+            else:
+                self.transform_actions.append(transform_action)
 
 
-	# Given pixel coordinates in original coordinates, translate these to display coordinates.
-	# Inputs:	x,y - array-like objects containing the x and y pixel coordinates in the original image
-	# Outputs: x_out, y_out: numpy arrays, the same size and shape as the input x and y, giving the corresponding
-	#			coordinates in the 'display' format image.
-	def original_to_display_coords(self,x,y):
+    def set_pixel_aspect(self,pixel_aspect,relative_to='display',absolute=True):
+
+        if absolute:
+            ref_aspect = 1.
+        else:
+            ref_aspect = float(self.pixel_aspectratio)
+
+        if relative_to.lower() == 'original':
+            self.pixel_aspectratio = pixel_aspect * ref_aspect
+        else:
+            sideways = False
+            for action in self.transform_actions:
+                if action.lower() in ['rotate_clockwise_90','rotate_clockwise_270']:
+                    sideways = not sideways
+            
+            if sideways:
+                self.pixel_aspectratio = ref_aspect/pixel_aspect
+            else:
+                self.pixel_aspectratio = ref_aspect*pixel_aspect
 
 
-		# Let's not overwrite the input arrays, just in case
-		x_out = np.array(x)
-		y_out = np.array(y) * self.pixel_aspectratio
+    # Given an array containing an image in original coordinates, returns an array containing the image in display coordinates.
+    # Inputs:   image - numpy ndarray containing the image in original coordinates.
+    #           skip_resize - 
+    #           binning - 
+    # Returns: data_out - numpy ndarray containing the image in display coordinates.
+    def original_to_display_image(self,image,skip_resize=False,binning=1):
 
-		current_pixels = [self.x_pixels,int(self.y_pixels*self.pixel_aspectratio)]
+        if image.shape[1] != self.x_pixels//binning or (image.shape[0] != self.y_pixels//binning and skip_resize == False) or (image.shape[0] != self.y_pixels*self.pixel_aspectratio//binning and skip_resize == True):
+            raise Exception('Expected {:d}x{:d} pixel image, got {:d}x{:d}!'.format(self.x_pixels,self.y_pixels,image.shape[1],image.shape[0]))
 
-		for action in self.transform_actions:
-			if action.lower() == 'flip_up_down':
-				y_out = (current_pixels[1]-1) - y_out
-			elif action.lower() == 'flip_left_right':
-				x_out = (current_pixels[0]-1) - x_out
-			elif action.lower() == 'rotate_clockwise_90':
-				# Temporary values...
-				yt = y_out.copy()
-				y_out = x_out.copy()
+        data_out = image.copy()
 
-				x_out = (current_pixels[1]-1) - yt
-				current_pixels = list(reversed(current_pixels))
+        if not skip_resize:
+            data_out = cv2.resize(data_out,(int(self.x_pixels/binning),int(self.y_pixels*self.pixel_aspectratio/binning)),interpolation=cv2.INTER_NEAREST)
 
-			elif action.lower() == 'rotate_clockwise_180':
+        for action in self.transform_actions:
+            if action.lower() == 'flip_up_down':
+                data_out = np.flipud(data_out)
+            elif action.lower() == 'flip_left_right':
+                data_out = np.fliplr(data_out)
+            elif action.lower() == 'rotate_clockwise_90':
+                data_out = np.rot90(data_out,k=3)
+            elif action.lower() == 'rotate_clockwise_180':
+                data_out = np.rot90(data_out,k=2)
+            elif action.lower() == 'rotate_clockwise_270':
+                data_out = np.rot90(data_out,k=1)
 
-				y_out = (current_pixels[1]-1) - y_out
-				x_out = (current_pixels[0]-1) - x_out
-			elif action.lower() == 'rotate_clockwise_270':
-				# Temporary values...
-				yt = y_out.copy()
+        return data_out
 
-				y_out = (current_pixels[0]-1) - x_out
-				x_out = yt
-				current_pixels = list(reversed(current_pixels))
+    # Given an array containing an image in display coordinates, returns an array containing the image in original coordinates.
+    # Inputs:   image - numpy ndarray containing the image in display coordinates.
+    #           skip_resize - 
+    #           binning - 
+    # Returns: data_out - numpy ndarray containing the image in original coordinates.
+    def display_to_original_image(self,image, skip_resize=False,binning=1):
 
-		return x_out,y_out
+        if image.shape[0] != self.get_display_shape()[1]//binning or image.shape[1] != self.get_display_shape()[0]//binning:
+            raise Exception('Expected {:d}x{:d} pixel image, got {:d}x{:d}!'.format(self.x_pixels,self.y_pixels,image.shape[1],image.shape[0]))
 
+        data_out = image.copy()
 
-	# Given pixel coordinates in display coordinates, translate these to original coordinates.
-	# Inputs:	x,y - array-like objects containing the x and y pixel coordinates in the display format image
-	# Outputs: x_out, y_out: numpy arrays, the same size and shape as the input x and y, giving the corresponding
-	#			coordinates in the original image
-	def display_to_original_coords(self,x,y):
+        for action in reversed(self.transform_actions):
+            if action.lower() == 'flip_up_down':
+                data_out = np.flipud(data_out)
+            elif action.lower() == 'flip_left_right':
+                data_out = np.fliplr(data_out)
+            elif action.lower() == 'rotate_clockwise_90':
+                data_out = np.rot90(data_out,k=1)
+            elif action.lower() == 'rotate_clockwise_180':
+                data_out = np.rot90(data_out,k=2)
+            elif action.lower() == 'rotate_clockwise_270':
+                data_out = np.rot90(data_out,k=3)
+                
+        if not skip_resize:
+            data_out = cv2.resize(data_out,(self.x_pixels//binning,self.y_pixels//binning),interpolation=cv2.INTER_NEAREST)
 
-		# Let's not overwrite the input arrays, just in case
-		x_out = np.array(x)
-		y_out = np.array(y)
-
-		current_pixels = self.get_display_shape()
-
-		for action in reversed(self.transform_actions):
-			if action.lower() == 'flip_up_down':
-				y_out = (current_pixels[1]-1) - y_out
-			elif action.lower() == 'flip_left_right':
-				x_out = (current_pixels[0]-1) - x_out
-			elif action.lower() == 'rotate_clockwise_90':
-				# Temporary values...
-				yt = y_out.copy()
-
-				y_out = (current_pixels[0]-1) - x_out
-				x_out = yt
-				current_pixels = list(reversed(current_pixels))
-			elif action.lower() == 'rotate_clockwise_180':
-				# Temporary values...
-				y_out = (current_pixels[1]-1) - y_out
-				x_out = (current_pixels[0]-1) - x_out
-			elif action.lower() == 'rotate_clockwise_270':
-				# Temporary values...
-				yt = y_out.copy()
-				y_out = x_out.copy()
-
-				x_out = (current_pixels[1]-1) - yt
-				current_pixels = list(reversed(current_pixels))
-
-		y_out = y_out / self.pixel_aspectratio
-
-		return x_out,y_out
+        return data_out
 
 
-	# Return the shape of the 'display' format image.
-	# Outputs: display_shape - 2 element list [x pixels, y pixels]
-	# Note this is the opposite way around to the 'array shape' which is [y pixels, x pixels]
-	# since Python addresses image arrays [y,x]
-	def get_display_shape(self):
-
-		display_shape = [self.x_pixels,int(self.y_pixels*self.pixel_aspectratio)]
-
-		for action in self.transform_actions:
-			if action.lower() in ['rotate_clockwise_90','rotate_clockwise_270']:
-				display_shape = list(reversed(display_shape))
-
-		return display_shape
+    # Given pixel coordinates in original coordinates, translate these to display coordinates.
+    # Inputs:   x,y - array-like objects containing the x and y pixel coordinates in the original image
+    # Outputs: x_out, y_out: numpy arrays, the same size and shape as the input x and y, giving the corresponding
+    #           coordinates in the 'display' format image.
+    def original_to_display_coords(self,x,y):
 
 
-	def get_original_shape(self):
-		return (self.x_pixels,self.y_pixels)
+        # Let's not overwrite the input arrays, just in case
+        x_out = np.array(x)
+        y_out = np.array(y) * self.pixel_aspectratio
+
+        current_pixels = [self.x_pixels,int(self.y_pixels*self.pixel_aspectratio)]
+
+        for action in self.transform_actions:
+            if action.lower() == 'flip_up_down':
+                y_out = (current_pixels[1]-1) - y_out
+            elif action.lower() == 'flip_left_right':
+                x_out = (current_pixels[0]-1) - x_out
+            elif action.lower() == 'rotate_clockwise_90':
+                # Temporary values...
+                yt = y_out.copy()
+                y_out = x_out.copy()
+
+                x_out = (current_pixels[1]-1) - yt
+                current_pixels = list(reversed(current_pixels))
+
+            elif action.lower() == 'rotate_clockwise_180':
+
+                y_out = (current_pixels[1]-1) - y_out
+                x_out = (current_pixels[0]-1) - x_out
+            elif action.lower() == 'rotate_clockwise_270':
+                # Temporary values...
+                yt = y_out.copy()
+
+                y_out = (current_pixels[0]-1) - x_out
+                x_out = yt
+                current_pixels = list(reversed(current_pixels))
+
+        return x_out,y_out
+
+
+    # Given pixel coordinates in display coordinates, translate these to original coordinates.
+    # Inputs:   x,y - array-like objects containing the x and y pixel coordinates in the display format image
+    # Outputs: x_out, y_out: numpy arrays, the same size and shape as the input x and y, giving the corresponding
+    #           coordinates in the original image
+    def display_to_original_coords(self,x,y):
+
+        # Let's not overwrite the input arrays, just in case
+        x_out = np.array(x)
+        y_out = np.array(y)
+
+        current_pixels = self.get_display_shape()
+
+        for action in reversed(self.transform_actions):
+            if action.lower() == 'flip_up_down':
+                y_out = (current_pixels[1]-1) - y_out
+            elif action.lower() == 'flip_left_right':
+                x_out = (current_pixels[0]-1) - x_out
+            elif action.lower() == 'rotate_clockwise_90':
+                # Temporary values...
+                yt = y_out.copy()
+
+                y_out = (current_pixels[0]-1) - x_out
+                x_out = yt
+                current_pixels = list(reversed(current_pixels))
+            elif action.lower() == 'rotate_clockwise_180':
+                # Temporary values...
+                y_out = (current_pixels[1]-1) - y_out
+                x_out = (current_pixels[0]-1) - x_out
+            elif action.lower() == 'rotate_clockwise_270':
+                # Temporary values...
+                yt = y_out.copy()
+                y_out = x_out.copy()
+
+                x_out = (current_pixels[1]-1) - yt
+                current_pixels = list(reversed(current_pixels))
+
+        y_out = y_out / self.pixel_aspectratio
+
+        return x_out,y_out
+
+
+    # Return the shape of the 'display' format image.
+    # Outputs: display_shape - 2 element list [x pixels, y pixels]
+    # Note this is the opposite way around to the 'array shape' which is [y pixels, x pixels]
+    # since Python addresses image arrays [y,x]
+    def get_display_shape(self):
+
+        display_shape = [self.x_pixels,int(self.y_pixels*self.pixel_aspectratio)]
+
+        for action in self.transform_actions:
+            if action.lower() in ['rotate_clockwise_90','rotate_clockwise_270']:
+                display_shape = list(reversed(display_shape))
+
+        return display_shape
+
+
+    def display_to_original_shape(self,shape):
+
+        original_shape = list(shape)
+
+        for action in reversed(self.transform_actions):
+            if action.lower() in ['rotate_clockwise_90','rotate_clockwise_270']:
+                original_shape = list(reversed(original_shape))
+
+        original_shape[1] = int(original_shape[1]/self.pixel_aspectratio)
+
+        return original_shape
+
+
+    def get_original_shape(self):
+        return (self.x_pixels,self.y_pixels)

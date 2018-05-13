@@ -148,23 +148,22 @@ class Fitter:
         self.fixcc = [False] * self.nfields
 
         # Set fit flags based on provided strings
-        for field in range(self.nfields):
-            for string in fitflags_strings[field]:
-                if string == 'Fix Fx = Fy':
-                    self.fixaspectratio[field] = True
-                elif string.startswith('Fix CC at'):
-                    coords = string.split('(')[1].split(')')[0].split(',')
-                    self.fix_cc(True,field=field,Cx = float(coords[0]),Cy = float(coords[1]))
-                elif string == 'Disable Tangential Distortion':
-                    self.disabletangentialdist[field] = True
-                elif string == 'Disable k1':
-                    self.fixk1[field] = True
-                elif string == 'Disable k2':
-                    self.fixk2[field] = True
-                elif string == 'Disable k3':
-                    self.fixk3[field] = True
-                elif string == 'Disable k4':
-                    self.fixk4[field] = True
+        for string in fitflags_strings:
+            if string == 'Fix Fx = Fy':
+                self.fixaspectratio = True
+            elif string.startswith('Fix CC at'):
+                coords = string.split('(')[1].split(')')[0].split(',')
+                self.fix_cc(True,field=field,Cx = float(coords[0]),Cy = float(coords[1]))
+            elif string == 'Disable Tangential Distortion':
+                self.disabletangentialdist[field] = True
+            elif string == 'Disable k1':
+                self.fixk1[field] = True
+            elif string == 'Disable k2':
+                self.fixk2[field] = True
+            elif string == 'Disable k3':
+                self.fixk3[field] = True
+            elif string == 'Disable k4':
+                self.fixk4[field] = True
 
 
 
@@ -177,6 +176,34 @@ class Fitter:
             self.initial_matrix[field][0,2] = Cx
         if Cy is not None:
             self.initial_matrix[field][1,2] = Cy
+
+
+    def fix_k1(self,fix):
+        self.fixk1 = fix
+
+    def fix_k2(self,fix):
+        self.fixk2 = fix
+
+    def fix_k3(self,fix):
+        self.fixk3 = fix
+
+    def fix_k4(self,fix):
+        self.fixk4 = fix   
+
+    def fix_k5(self,fix):
+        self.fixk5 = fix
+
+    def fix_k6(self,fix):
+        self.fixk6 = fix
+
+    def fix_tangential(self,fix):
+        self.disabletangentialdist = fix
+
+    def fix_aspect(self,fix):
+        self.fixaspectratio = fix
+
+
+    def get_n_params(self):
 
 
     # Do a fit, using the current input data and specified fit options.
