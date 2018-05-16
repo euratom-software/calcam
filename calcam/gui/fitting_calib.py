@@ -16,8 +16,8 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         CalcamGUIWindow.init(self,'fitting_calib.ui',app,parent)
 
         # Some messing with background colours to fix annoying QT behaviour
-        self.scrollArea.setStyleSheet("QScrollArea {background-color:transparent;}");
-        self.scrollArea.viewport().setStyleSheet(".QWidget {background-color:transparent;}");
+        #self.scrollArea.setStyleSheet("QScrollArea {background-color:transparent;}");
+        #self.scrollArea.viewport().setStyleSheet(".QWidget {background-color:transparent;}");
 
         # Start up with no CAD model
         self.cadmodel = None
@@ -48,7 +48,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
 
         # Disable image transform buttons if we have no image
         self.image_settings.hide()
-        self.fit_results.hide()
+        #self.fit_results.hide()
 
         self.tabWidget.setTabEnabled(2,False)
         self.tabWidget.setTabEnabled(3,False)
@@ -74,19 +74,21 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         self.im_reset.clicked.connect(self.transform_image)
         self.im_y_stretch_button.clicked.connect(self.transform_image)
         self.load_pointpairs_button.clicked.connect(self.load_pointpairs)
-        self.fit_button.clicked.connect(self.do_fit)
+        #self.fit_button.clicked.connect(self.do_fit)
         self.fitted_points_checkbox.toggled.connect(self.toggle_reprojected)
         self.overlay_checkbox.toggled.connect(self.toggle_overlay)
-        self.save_fit_button.clicked.connect(self.save_fit)
-        self.save_points_button.clicked.connect(self.save_points)
+        #self.save_fit_button.clicked.connect(self.save_fit)
+        #self.save_points_button.clicked.connect(self.save_points)
         self.hist_eq_checkbox.stateChanged.connect(self.toggle_hist_eq)
         self.im_define_splitFOV.clicked.connect(self.edit_split_field)
-        self.pointpairs_load_name.currentIndexChanged.connect(self.update_load_pp_button_status)
+        #self.pointpairs_load_name.currentIndexChanged.connect(self.update_load_pp_button_status)
         self.pixel_size_checkbox.toggled.connect(self.update_fitopts_gui)
         self.pixel_size_box.valueChanged.connect(self.update_pixel_size)
-        self.toggle_controls_button.clicked.connect(self.toggle_controls)
+        #self.toggle_controls_button.clicked.connect(self.toggle_controls)
         self.chessboard_button.clicked.connect(self.modify_chessboard_constraints)
         self.use_chessboard_checkbox.toggled.connect(self.toggle_chessboard_constraints)
+
+        self.action_save.triggered.connect(self.save_calib)
 
         # If we have an old version of openCV, histo equilisation won't work :(
         cv2_version = float('.'.join(cv2.__version__.split('.')[:2]))
@@ -105,10 +107,6 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         sc.setContext(qt.Qt.ApplicationShortcut)
         sc.activated.connect(self.do_fit)
 
-        sc = qt.QShortcut(qt.QKeySequence("Ctrl+S"),self)
-        sc.setContext(qt.Qt.ApplicationShortcut)
-        sc.activated.connect(self.save_all)
-
         sc = qt.QShortcut(qt.QKeySequence("Ctrl+P"),self)
         sc.setContext(qt.Qt.ApplicationShortcut)
         sc.activated.connect(self.toggle_reprojected)
@@ -119,7 +117,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
 
         # Odds & sods
         self.pixel_size_box.setSuffix(u' \u00B5m')
-        self.save_fit_button.setEnabled(False)
+        #self.save_fit_button.setEnabled(False)
 
 
         # Populate image sources list and tweak GUI layout for image loading.
@@ -138,16 +136,14 @@ class FittingCalibrationWindow(CalcamGUIWindow):
 
         self.fit_overlay = None
 
+        self.fit_results = []
+
         # Start the GUI!
         self.show()
         self.interactor2d.init()
         self.interactor3d.init()
         self.qvtkwidget_3d.GetRenderWindow().GetInteractor().Initialize()
         self.qvtkwidget_2d.GetRenderWindow().GetInteractor().Initialize()
-
-        # Warn the user if we don't have any CAD models
-        if self.model_list == {}:
-            warn_no_models(self)
 
 
 
@@ -184,6 +180,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         self.interactor3d.set_cursor_focus(self.point_pairings[-1][0])
         self.interactor2d.set_cursor_focus(None)
         self.selected_pointpair = len(self.point_pairings) - 1
+
 
 
 
@@ -287,15 +284,19 @@ class FittingCalibrationWindow(CalcamGUIWindow):
     def rebuild_image_gui(self):
 
         # Build the GUI to show fit options, according to the number of fields.
-        self.fit_options_tabs.clear()
+        self.subview_tabs.clear()
 
         # List of settings widgets (for showing / hiding when changing model)
         self.perspective_settings = []
         self.fit_settings_widgets = []
         self.fisheye_settings = []
         self.fit_buttons = []
+        self.fit_results = []
 
         self.fitters = []
+
+        self.fit_results_widgets = []
+        self.view_to_fit_buttons = []
 
         for field in range(self.calibration.n_subviews):
             
@@ -303,6 +304,9 @@ class FittingCalibrationWindow(CalcamGUIWindow):
 
             new_tab = qt.QWidget()
             new_layout = qt.QVBoxLayout()
+
+            options_groupbox = qt.QGroupBox('Fit Options')
+            options_layout = qt.QGridLayout()
 
             # Selection of model
             widgetlist = [qt.QRadioButton('Perspective Model'),qt.QRadioButton('Fisheye Model')]
@@ -320,7 +324,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
             sub_layout.addWidget(widgetlist[0])
             sub_layout.addWidget(widgetlist[1])
             sub_layout.setContentsMargins(0,0,0,0)
-            new_layout.addWidget(sub_widget)
+            options_layout.addWidget(sub_widget)
 
 
             # Settings for perspective model
@@ -453,45 +457,50 @@ class FittingCalibrationWindow(CalcamGUIWindow):
             # ------- End of fisheye settings -----------------
 
 
-            new_layout.addWidget(self.perspective_settings[-1])
-            new_layout.addWidget(self.fisheye_settings[-1])
+            options_layout.addWidget(self.perspective_settings[-1])
+            options_layout.addWidget(self.fisheye_settings[-1])
             widgetlist[0].setChecked(True)
             self.fisheye_settings[-1].hide()
-            new_tab.setLayout(new_layout)
+            options_groupbox.setLayout(options_layout)
 
             fit_button = qt.QPushButton('Do Fit')
             fit_button.clicked.connect(lambda: self.do_fit(subview=field))
             #fit_button.setEnabled(False)
-            new_layout.addWidget(fit_button)
+            options_layout.addWidget(fit_button)
             self.fit_buttons.append(fit_button)
 
-            self.fit_options_tabs.addTab(new_tab,self.calibration.subview_names[field])
             self.fit_settings_widgets.append(widgetlist)
 
+            new_layout.addWidget(options_groupbox)
 
+            results_groupbox = qt.QGroupBox('Fit Results')
+            results_layout = qt.QGridLayout()
 
-        # Build GUI to show the fit results, according to the number of fields.
-        self.fit_results_widgets = []
-        self.fit_results_tabs.clear()
-        self.view_to_fit_buttons = []
-        for field in range(self.calibration.n_subviews):
-            new_tab = qt.QWidget()
-            new_layout = qt.QGridLayout()
+            self.fit_results.append(results_groupbox)
+            results_groupbox.setHidden(True)
+
+            # Build GUI to show the fit results, according to the number of fields.
+
             widgets = [ qt.QLabel('Fit RMS residual = ') , qt.QLabel('Parameter names'),  qt.QLabel('Parameter values'), qt.QPushButton('Set CAD view to match fit')]
             self.view_to_fit_buttons.append(widgets[-1])
             widgets[1].setAlignment(qt.Qt.AlignRight)
             widgets[3].clicked.connect(self.set_fit_viewport)
-            new_layout.addWidget(widgets[0],0,0,1,-1)
-            new_layout.addWidget(widgets[1],1,0)
-            new_layout.addWidget(widgets[2],1,1)
-            new_layout.addWidget(widgets[3],2,0,1,-1)
+            results_layout.addWidget(widgets[0],0,0,1,-1)
+            results_layout.addWidget(widgets[1],1,0)
+            results_layout.addWidget(widgets[2],1,1)
+            results_layout.addWidget(widgets[3],2,0,1,-1)
             self.fit_results_widgets.append(widgets)
-            new_layout.setColumnMinimumWidth(0,90)
+            results_layout.setColumnMinimumWidth(0,90)
+            results_groupbox.setLayout(results_layout)
+
+            new_layout.addWidget(results_groupbox)
+
             new_tab.setLayout(new_layout)
-            self.fit_results_tabs.addTab(new_tab,self.calibration.subview_names[field])
-        self.fit_results.hide()
-        self.tabWidget.setTabEnabled(3,True)
-        self.tabWidget.setTabEnabled(4,True)
+            self.subview_tabs.addTab(new_tab,self.calibration.subview_names[field])
+
+            #self.fit_results.hide()
+            self.tabWidget.setTabEnabled(3,True)
+            self.tabWidget.setTabEnabled(4,True)
 
 
         # Set pixel size, if the image knows its pixel size.
@@ -590,21 +599,32 @@ class FittingCalibrationWindow(CalcamGUIWindow):
 
 
     def load_pointpairs(self):
-        self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
-        self.fitted_points_checkbox.setChecked(False)
-        self.overlay_checkbox.setChecked(False)
-        self.rebuild_image_gui()
-        newPP = pointpairs.PointPairs(str(self.pointpairs_load_name.currentText()),image=self.pointpicker.Image)
-        if self.cadmodel is not None:
-            newPP.machine_name = self.cadmodel.machine_name
-        newPP.image = self.pointpicker.Image
-        self.pointpicker.PointPairs = newPP
-        self.pointpicker.Image = newPP.image
-        self.pointpicker.Fitter.set_PointPairs(self.pointpicker.PointPairs)
-        self.pointpicker.UpdateFromPPObject(not self.pointpairs_clear_before_load.isChecked())
-        self.pointpairs_changed = False
-        self.fit_changed = False
-        self.app.restoreOverrideCursor()
+
+        cal = self.object_from_file('calibration')
+
+        if cal is not None:
+            if cal.pointpairs is not None:
+
+                self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
+                self.fitted_points_checkbox.setChecked(False)
+                self.overlay_checkbox.setChecked(False)
+                self.clear_pointpairs()
+                
+                for i in range(len(cal.pointpairs.obj_points)):
+                    cursorid_3d = self.interactor3d.add_cursor(cal.pointpairs.obj_points[i])
+
+                    cursorid_2d = None
+                    for j in range(len(cal.pointpairs.im_points[i])):
+                        if cursorid_2d is None:
+                            cursorid_2d = self.interactor2d.add_active_cursor(cal.pointpairs.im_points[i][j])
+                        else:
+                            self.interactor2d.add_active_cursor(cal.pointpairs.im_points[i][j],add_to=cursorid_2d)
+
+                    self.point_pairings.append([cursorid_3d,cursorid_2d])
+
+
+                self.app.restoreOverrideCursor()
+
 
 
     def toggle_reprojected(self,show=None):
@@ -640,6 +660,21 @@ class FittingCalibrationWindow(CalcamGUIWindow):
                 self.interactor2d.remove_active_cursor(pp_to_remove[1])
 
 
+    def clear_pointpairs(self):
+
+        self.interactor3d.set_cursor_focus(None)
+        self.interactor2d.set_cursor_focus(None)
+        self.selected_pointpair = None
+
+        for pp in self.point_pairings:
+            if pp[0] is not None:
+                self.interactor3d.remove_cursor(pp[0])
+            if pp[1] is not None:
+                self.interactor2d.remove_active_cursor(pp[1])
+
+        self.point_pairings = []
+
+
     def fit_enable_check(self,subview=0):
 
         # This avoids raising errors if this function is called when we have no
@@ -647,11 +682,9 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         if len(self.fit_settings_widgets) == 0:
             return
 
-  
-
 
         # Check whether or not we have enough points to enable the fit button.
-        for i,fitter in self.fitters:
+        for i,fitter in enumerate(self.fitters):
             enable = True
 
             free_params = fitter.get_n_params()
@@ -799,7 +832,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         else:
             self.overlay_checkbox.setEnabled(True)
 
-        self.fit_results.show()
+        self.fit_results[subview].show()
         self.fitted_points_checkbox.setEnabled(True)
         self.fitted_points_checkbox.setChecked(True)
         self.fit_changed = True
@@ -850,21 +883,6 @@ class FittingCalibrationWindow(CalcamGUIWindow):
                         dialog.setIcon(qt.QMessageBox.Information)
                         dialog.exec_()
                         
-
-                except MemoryError:
-                    self.pointpicker.fit_overlay_actor = None
-                    dialog = qt.QMessageBox(self)
-                    dialog.setStandardButtons(qt.QMessageBox.Ok)
-                    dialog.setWindowTitle('Calcam - Memory Error')
-                    dialog.setTextFormat(qt.Qt.RichText)
-                    dialog.setText('Insufficient memory to render wireframe overlay.')
-                    text = 'Try using a lower resolution setting for the overlay.'
-                    if sys.maxsize < 2**32:
-                        text = text + ' Switching to 64-bit python is highly recommended when working with large data.'
-                    dialog.setInformativeText(text)
-                    dialog.setIcon(qt.QMessageBox.Warning)
-                    dialog.exec_()
-                    self.overlay_checkbox.setChecked(False) 
                 
                 except:
                     self.interactor2d.set_overlay_image(None)
@@ -937,115 +955,14 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         self.point_info_text.setText(info_string)
 
 
-    def update_fit_opts(self,state):
+    def save_calib(self):
 
-        if self.sender() is self.fix_k1:
-            if state == qt.Qt.Checked:
-                self.pointpicker.Fitter.fixk1 = True
-            else:
-                self.pointpicker.Fitter.fixk1 = False
-
-        if self.sender() is self.fix_k2:
-            if state == qt.Qt.Checked:
-                self.pointpicker.Fitter.fixk2 = True
-            else:
-                self.pointpicker.Fitter.fixk2 = False
-
-        if self.sender() is self.fix_k3:
-            if state == qt.Qt.Checked:
-                self.pointpicker.Fitter.fixk3 = True
-            else:
-                self.pointpicker.Fitter.fixk3 = False
-
-        if self.sender() is self.disable_tangential_dist:
-            if state == qt.Qt.Checked:
-                self.pointpicker.Fitter.disabletangentialdist = True
-            else:
-                self.pointpicker.Fitter.disabletangentialdist = False
-
-        if self.sender() is self.fix_aspect:
-             if state == qt.Qt.Checked:
-                self.pointpicker.Fitter.fixaspectratio = True
-             else:
-                self.pointpicker.Fitter.fixaspectratio = False
-
-    def save_all(self):
-        if self.pointpairs_changed and self.save_points_button.isEnabled():
-            if self.fit_changed:
-                if self.save_points(confirm=False):
-                    dialog = qt.QMessageBox(self)
-                    dialog.setStandardButtons(qt.QMessageBox.Yes | qt.QMessageBox.No)
-                    dialog.setWindowTitle('Calcam - Save Fit?')
-                    dialog.setText('Point pairs saved successfully. Also save fit results now?')
-                    dialog.setIcon(qt.QMessageBox.Information)
-                    dialog.exec_()
-                    if dialog.result() == 16384:
-                        self.save_fit()   
-            else:
-                self.save_points()        
-       
-        elif self.save_fit_button.isEnabled():
-            self.save_fit()
-
-
-    def save_points(self,event=None,confirm=True):
-        try:
-            dialog = SaveAsDialog(self,'Point Pairs',self.pointpairs_save_name)
-            dialog.exec_()
-            if dialog.result() == 1:
-                self.pointpairs_save_name = dialog.name
-                del dialog
-                self.image.save()
-                self.pointpicker.PointPairs.save(self.pointpairs_save_name)
-                self.pointpairs_changed = False
-                if confirm:
-                    dialog = qt.QMessageBox(self)
-                    dialog.setStandardButtons(qt.QMessageBox.Ok)
-                    dialog.setWindowTitle('Calcam - Save Complete')
-                    dialog.setText('Point pairs saved successfully')
-                    dialog.setIcon(qt.QMessageBox.Information)
-                    dialog.exec_()
-                return 1
-            else:
-                return 0
-
-        except Exception as err:
-            raise
-            dialog = qt.QMessageBox(self)
-            dialog.setStandardButtons(qt.QMessageBox.Ok)
-            dialog.setWindowTitle('Calcam - Save Error')
-            dialog.setText('Error saving point pairs:\n' + str(err))
-            dialog.setIcon(qt.QMessageBox.Warning)
-            dialog.exec_()
-            return 0
-
-
-    def save_fit(self):
-        if self.pointpairs_changed:
-            self.save_points()
-        try:
-            dialog = SaveAsDialog(self,'Fit Results',self.fit_save_name)
-            dialog.exec_()
-            if dialog.result() == 1:
-                self.fit_save_name = dialog.name
-                del dialog
-                self.image.save()          
-                self.pointpicker.FitResults.save(self.fit_save_name)
-                self.fit_changed = False
-                dialog = qt.QMessageBox(self)
-                dialog.setStandardButtons(qt.QMessageBox.Ok)
-                dialog.setWindowTitle('Calcam - Save Complete')
-                dialog.setText('Fit results saved successfully.')
-                dialog.setIcon(qt.QMessageBox.Information)
-                dialog.exec_()
-        except Exception as err:
-            dialog = qt.QMessageBox(self)
-            dialog.setStandardButtons(qt.QMessageBox.Ok)
-            dialog.setWindowTitle('Calcam - Save Error')
-            dialog.setText('Error saving fit results:\n' + str(err))
-            dialog.setIcon(qt.QMessageBox.Warning)
-            dialog.exec_()
-
+        fname = self.get_save_filename('calibration')
+        self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
+        self.statusbar.showMessage('Saving...')
+        self.calibration.save(fname)
+        self.statusbar.clearMessage()
+        self.app.restoreOverrideCursor()
 
 
 
@@ -1186,12 +1103,6 @@ class FittingCalibrationWindow(CalcamGUIWindow):
                 row = row + 1
 
 
-    def update_load_pp_button_status(self,index):
-        if index > -1:
-            self.load_pointpairs_button.setEnabled(True)
-        else:
-            self.load_pointpairs_button.setEnabled(False)
-
     
     def update_fitopts_gui(self,choice):
 
@@ -1242,7 +1153,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         self.set_view_from_calib(self.calibration,subview)
 
 
-
+    '''
     def toggle_controls(self):
         if self.tabWidget.isHidden():
             self.tabWidget.show()
@@ -1250,7 +1161,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         else:
             self.tabWidget.hide()
             self.toggle_controls_button.setText('<< Show Controls')
-
+    '''
 
     def modify_chessboard_constraints(self):
 
