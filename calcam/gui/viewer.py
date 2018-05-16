@@ -433,7 +433,6 @@ class ViewerWindow(CalcamGUIWindow):
         
 
 
-
     def update_sightlines(self,data):
 
         if self.sender() is self.sightlines_load_button:
@@ -460,7 +459,12 @@ class ViewerWindow(CalcamGUIWindow):
 
             if data.checkState() == qt.Qt.Checked:
                 
-                if len(self.interactor3d.sightline_actors) == 1:
+                n = 0
+                for item in self.sightlines.keys():
+                    if item.checkState() == qt.Qt.Checked:
+                        n = n + 1
+
+                if n > 1:
                     self.sightlines_legend_checkbox.setChecked(True)
 
                 if self.sightlines[data][1] is None:
@@ -473,15 +477,20 @@ class ViewerWindow(CalcamGUIWindow):
                     self.sightlines[data][1] = actor
                     self.renderer_3d.AddActor(actor)
                     self.app.restoreOverrideCursor()
-                    self.interactor3d.sightline_actors.append(actor)
+
                 else:
+
                     self.renderer_3d.AddActor(self.sightlines[data][1])
-                    self.interactor3d.sightline_actors.append(self.sightlines[data][1])
 
             else:
                 self.renderer_3d.RemoveActor(self.sightlines[data][1])
-                self.interactor3d.sightline_actors.remove(self.sightlines[data][1])
-                if len(self.interactor3d.sightline_actors) < 2:
+
+                n = 0
+                for item in self.sightlines.keys():
+                    if item.checkState() == qt.Qt.Checked:
+                        n = n + 1
+
+                if n < 2:
                     self.sightlines_legend_checkbox.setChecked(False)
 
         elif self.sender() is self.sightline_opacity_slider:
@@ -524,7 +533,7 @@ class ViewerWindow(CalcamGUIWindow):
         else:
             self.interactor3d.set_legend([])
 
-        self.qvtkWidget.update()
+        self.refresh_3d()
 
 
 

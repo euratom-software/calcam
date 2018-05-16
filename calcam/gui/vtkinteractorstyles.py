@@ -414,6 +414,38 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
             self.resize_callback(vtk_size)
 
 
+    def set_legend(self,legend_items):
+
+        if self.legend is not None:
+            self.renderer.RemoveActor(self.legend)
+
+        if len(legend_items) > 0:
+
+            self.longest_name = 0
+            for entry in legend_items:
+                if len(entry[0]) > self.longest_name:
+                    self.longest_name = len(entry[0])
+
+            self.n_legend_items = len(legend_items)
+
+            legend = vtk.vtkLegendBoxActor()
+            legend.SetNumberOfEntries(len(legend_items))
+
+            for i,entry in enumerate(legend_items):
+                legend.SetEntryString(i,entry[0])
+                legend.SetEntryColor(i,entry[1])
+
+ 
+            legend.UseBackgroundOn()
+            legend.SetBackgroundColor((0.1,0.1,0.1))
+            legend.SetPadding(9)
+            self.legend = legend
+
+            self.renderer.AddActor(self.legend)
+
+            self.on_resize()
+
+
     def on_mouse_move(self,obj=None,event=None):
 
         self.OnMouseMove()
