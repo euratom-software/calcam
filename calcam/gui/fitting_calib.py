@@ -22,6 +22,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         # Start up with no CAD model
         self.cadmodel = None
         self.calibration = Calibration()
+        self.calibration.calib_type = 'fit'
 
         # Set up VTK
         self.qvtkwidget_3d = qt.QVTKRenderWindowInteractor(self.vtkframe_3d)
@@ -610,15 +611,15 @@ class FittingCalibrationWindow(CalcamGUIWindow):
                 self.overlay_checkbox.setChecked(False)
                 self.clear_pointpairs()
                 
-                for i in range(len(cal.pointpairs.obj_points)):
-                    cursorid_3d = self.interactor3d.add_cursor(cal.pointpairs.obj_points[i])
+                for i in range(len(cal.pointpairs.object_points)):
+                    cursorid_3d = self.interactor3d.add_cursor(cal.pointpairs.object_points[i])
 
                     cursorid_2d = None
-                    for j in range(len(cal.pointpairs.im_points[i])):
+                    for j in range(len(cal.pointpairs.image_points[i])):
                         if cursorid_2d is None:
-                            cursorid_2d = self.interactor2d.add_active_cursor(cal.pointpairs.im_points[i][j])
+                            cursorid_2d = self.interactor2d.add_active_cursor(cal.pointpairs.image_points[i][j])
                         else:
-                            self.interactor2d.add_active_cursor(cal.pointpairs.im_points[i][j],add_to=cursorid_2d)
+                            self.interactor2d.add_active_cursor(cal.pointpairs.image_points[i][j],add_to=cursorid_2d)
 
                     self.point_pairings.append([cursorid_3d,cursorid_2d])
 

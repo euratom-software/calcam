@@ -498,7 +498,7 @@ class Calibration():
 
             # Save the general information
             meta = {
-                    'n_subviews': self.n_subviews,
+                    'n_subviews': int(self.n_subviews),
                     'history':self.history,
                     'pixel_size':self.pixel_size,
                     'orig_x':self.geometry.x_pixels,
@@ -514,6 +514,7 @@ class Calibration():
                     with save_file.open_file('calib_params_{:d}.json'.format(nview),'w') as f:
                         json.dump(self.view_models[nview].get_dict(),f,indent=4,sort_keys=True)
 
+            print(meta)
             with save_file.open_file('calibration.json','w') as f:
                 json.dump(meta,f,indent=4,sort_keys=True)
 
