@@ -737,7 +737,7 @@ class Calibration():
 
 
             # If the user asked for things in original coordinates, convert them.
-            if coords.lower() == 'display':
+            if coords.lower() == 'original':
                 p2d[:,0],p2d[:,1] = self.geometry.display_to_original_coords(p2d[:,0],p2d[:,1])
 
             points_2d.append(p2d)

@@ -90,6 +90,9 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         self.use_chessboard_checkbox.toggled.connect(self.toggle_chessboard_constraints)
 
         self.action_save.triggered.connect(self.save_calib)
+        self.action_save_as.triggered.connect(lambda: self.save_calib(saveas=True))
+        self.action_open.triggered.connect(self.load_calib)
+        #self.new_calib.triggered.connect(self.reset)
 
         # If we have an old version of openCV, histo equilisation won't work :(
         cv2_version = float('.'.join(cv2.__version__.split('.')[:2]))
@@ -138,6 +141,8 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         self.fit_overlay = None
 
         self.fit_results = []
+
+        self.filename = None
 
         # Start the GUI!
         self.show()
@@ -544,6 +549,8 @@ class FittingCalibrationWindow(CalcamGUIWindow):
 
     def transform_image(self,data):
 
+        print('Starts: {:d}x{:d}'.format(self.calibration.geometry.x_pixels,self.calibration.geometry.y_pixels))
+
         # First, back up the point pair locations in original coordinates.
         orig_coords = []
         
@@ -587,7 +594,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
 
 
         # Update the image and point pairs
-        self.calibration.set_image(self.calibration.geometry.original_to_display_image(self.original_image),subview_mask = self.calibration.geometry.original_to_display_image(self.original_subview_mask),transform_actions = self.calibration.geometry.transform_actions)
+        self.calibration.set_image(self.calibration.geometry.original_to_display_image(self.original_image),subview_mask = self.calibration.geometry.original_to_display_image(self.original_subview_mask),transform_actions = self.calibration.geometry.transform_actions, pixel_aspect = self.calibration.geometry.pixel_aspectratio)
         self.interactor2d.set_image(self.calibration.image)
         self.update_pointpairs()
 
@@ -956,16 +963,21 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         self.point_info_text.setText(info_string)
 
 
-    def save_calib(self):
+    def save_calib(self,saveas=False):
 
-        fname = self.get_save_filename('calibration')
-        self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
-        self.statusbar.showMessage('Saving...')
-        self.calibration.save(fname)
-        self.statusbar.clearMessage()
-        self.app.restoreOverrideCursor()
+        if self.filename is None or saveas:
+            self.filename = self.get_save_filename('calibration')
+        
+        if self.filename is not None:
+            self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
+            self.statusbar.showMessage('Saving...')
+            self.calibration.save(self.filename)
+            self.statusbar.clearMessage()
+            self.app.restoreOverrideCursor()
 
 
+    def load_calib(self):
+        pass
 
     def toggle_hist_eq(self,check_state):
 

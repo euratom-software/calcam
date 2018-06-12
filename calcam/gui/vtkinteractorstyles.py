@@ -258,7 +258,7 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
 
 
             # If they held CTRL, we send a new pick callback
-            if ctrl_pressed or self.focus_cursor is None:
+            if (ctrl_pressed or self.focus_cursor is None) and clicked_cursor is None:
 
                 if self.newpick_callback is not None:
                     self.newpick_callback(pickcoords)
@@ -618,7 +618,7 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
             return
 
 
-        if ctrl_pressed or self.focus_cursor is None:
+        if (ctrl_pressed or self.focus_cursor is None) and clicked_cursor is None:
 
             if self.newpick_callback is not None:
                 self.newpick_callback(pickcoords)

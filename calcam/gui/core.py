@@ -397,7 +397,7 @@ class CalcamGUIWindow(qt.QMainWindow):
             self.camera_3d.SetViewAngle(self.camFOV.value())
 
         self.update_viewport_info(keep_selection=True)
-
+        self.interactor3d.update_cursor_style()
         self.interactor3d.update_clipping()
 
         self.refresh_3d()
@@ -415,6 +415,7 @@ class CalcamGUIWindow(qt.QMainWindow):
         self.interactor3d.set_xsection(None)       
 
         self.update_viewport_info(keep_selection=True)
+        self.interactor3d.update_cursor_style()
 
         self.interactor3d.update_clipping()
 
