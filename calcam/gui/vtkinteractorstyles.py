@@ -644,7 +644,7 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
                     self.set_cursor_coords(self.focus_cursor,pickcoords,view_index)
 
                     if self.cursor_move_callback is not None:
-                        self.cursor_move_callback( self.get_cursor_coords(clicked_cursor) )
+                        self.cursor_move_callback( self.get_cursor_coords(self.focus_cursor) )
 
 
         if self.refresh_callback is not None:
@@ -877,7 +877,7 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
         self.renderer.AddActor(actor)
 
         if self.cursor_move_callback is not None:
-            cursor_move_callback( [cursor.GetFocalPoint() for cursor in self.active_cursors[new_cursor_id]['cursor3ds']] )
+            self.cursor_move_callback( [cursor.GetFocalPoint() for cursor in self.active_cursors[new_cursor_id]['cursor3ds']] )
 
         self.update_cursor_style()
 

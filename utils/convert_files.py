@@ -15,6 +15,9 @@ import tempfile
 import shutil
 import pickle
 import numpy as np
+import socket
+import getpass
+import time
 
 from calcam.io import ZipSaveFile
 from calcam.calibration import Calibration, ViewModel
@@ -171,7 +174,6 @@ def load_calib(path):
     
     cal.pointpairs = PointPairs()
     if 'PointPairs' in save:
-        print('Ooooh')
         pp = load_pointpairs(save['PointPairs'][0])
         cal.image_points.append(pp['imagepoints'])
         cal.object_points.append(pp['objectpoints'])
@@ -268,11 +270,15 @@ def convert_calibs(new_path= os.path.join(newpath_root,'Calibrations')):
 
     calib_files = [fn for fn in os.listdir(search_path) if fn.endswith('.pickle')]
 
+    hostname = socket.gethostname()
+    uname = getpass.getuser()
+
     for file in calib_files:
         new_filename = os.path.split(file)[-1][:-7]
         print('-> Converting calibration "{:s}"...'.format(new_filename))
         try:
             cal = load_calib(os.path.join(search_path,file))
+            cal.history = [(int(time.time()),uname,hostname,'Converted from Calcam 1.x calibration "{:s}"'.format(new_filename))]
             cal.save( os.path.join(new_path,'{:s}.ccc'.format(new_filename)) )
             print(' -> Calcam 2 version saved to {:s}\n'.format(os.path.join(new_path,'{:s}.ccc'.format(new_filename))))
         except:

@@ -302,6 +302,7 @@ class CalcamGUIWindow(qt.QMainWindow):
 
             if obj_type.lower() == 'calibration':
                 obj = Calibration(path)
+                obj.filename = path
 
 
             objs.append(obj)
@@ -527,9 +528,6 @@ class CalcamGUIWindow(qt.QMainWindow):
             self.cadmodel.unload()
 
             del self.cadmodel
-
-            # Turn off any wall contour
-            self.contour_off.setChecked(True)
 
 
         # Create a new one

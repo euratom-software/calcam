@@ -201,6 +201,10 @@ class ViewerWindow(CalcamGUIWindow):
             self.interactor3d.set_cursor_focus(0)
             self.update_cursor_position(coords)
 
+    def on_load_model(self):
+        
+        # Turn off any wall contour
+        self.contour_off.setChecked(True)
 
     def toggle_cursor_xsection(self,onoff):
 

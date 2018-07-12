@@ -3,7 +3,8 @@ import json
 import sys
 import glob
 from .io import ZipSaveFile
-
+import socket
+import getpass
 
 class CalcamConfig():
 
@@ -24,6 +25,9 @@ class CalcamConfig():
 			self.default_model = None
 
 			self.save()
+
+		self.username = getpass.getuser()
+		self.hostname = socket.gethostname()
 
 
 	def load(self):

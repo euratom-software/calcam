@@ -349,7 +349,7 @@ def get_fov_actor(cadmodel,calib,actor_type='volume',resolution=None):
     elif actor_type.lower() == 'lines':
 
         if resolution is None:
-            resolution = 8
+            resolution = 32
 
     else:
         raise ValueError('"actor_type" argument must be "volume" or "lines"')

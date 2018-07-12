@@ -24,7 +24,7 @@ def get_image(filename):
 
     return_dict = {
                     'image_data': dat,
-                    'from_description': 'image file {:s}'.format(filename)
+                    'from': 'image file {:s}'.format(filename)
                     }
 
     return return_dict

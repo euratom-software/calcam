@@ -1,4 +1,5 @@
 import cv2
+import time
 from scipy.ndimage.measurements import center_of_mass as CoM
 
 from .core import *
@@ -36,7 +37,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
 
         self.qvtkwidget_2d = qt.QVTKRenderWindowInteractor(self.vtkframe_2d)
         self.vtkframe_2d.layout().addWidget(self.qvtkwidget_2d)
-        self.interactor2d = CalcamInteractorStyle2D(refresh_callback=self.refresh_2d,newpick_callback = self.new_point_2d,focus_changed_callback=lambda x: self.change_point_focus('2d',x))
+        self.interactor2d = CalcamInteractorStyle2D(refresh_callback=self.refresh_2d,newpick_callback = self.new_point_2d,cursor_move_callback=self.update_cursor_position,focus_changed_callback=lambda x: self.change_point_focus('2d',x))
         self.qvtkwidget_2d.SetInteractorStyle(self.interactor2d)
         self.renderer_2d = vtk.vtkRenderer()
         self.renderer_2d.SetBackground(0, 0, 0)
@@ -54,6 +55,11 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         self.tabWidget.setTabEnabled(2,False)
         self.tabWidget.setTabEnabled(3,False)
         self.tabWidget.setTabEnabled(4,False)
+
+
+        self.point_update_timestamp = None
+        self.fit_timestamps = []
+
 
         # Callbacks for GUI elements
         self.image_sources_list.currentIndexChanged.connect(self.build_imload_gui)
@@ -154,8 +160,14 @@ class FittingCalibrationWindow(CalcamGUIWindow):
 
 
     def update_cursor_position(self,position):
-        info = 'Cursor location: ' + self.cadmodel.format_coord(position).replace('\n',' | ')
-        self.statusbar.showMessage(info)
+        
+        #info = 'Cursor location: ' + self.cadmodel.format_coord(position).replace('\n',' | ')
+
+        self.point_update_timestamp = time.time()
+        self.calibration.view_models = [None] * self.calibration.n_subviews
+        self.fit_timestamps = [None] * self.calibration.n_subviews
+
+        #self.statusbar.showMessage(info)
 
 
 
@@ -246,13 +258,14 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         if 'subview_mask' in newim:
             self.original_subview_mask = newim['subview_mask']
         else:
-            self.original_subview_mask = np.zeros(self.original_image.shape,dtype=np.uint8)
+            self.original_subview_mask = np.zeros(self.original_image.shape[:2],dtype=np.uint8)
 
         self.calibration.set_image( self.original_image , subview_mask = self.original_subview_mask )
 
         self.subview_mask = np.zeros(newim['image_data'].shape[:2],dtype='uint8')
 
         self.calibration.view_models = [None] * self.calibration.n_subviews
+        self.fit_timestamps = [None] * self.calibration.n_subviews 
 
         self.interactor2d.set_image(newim['image_data'])
 
@@ -260,7 +273,6 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         if self.hist_eq_checkbox.isChecked():
             self.hist_eq_checkbox.setChecked(False)
             self.hist_eq_checkbox.setChecked(True)
-
 
         self.rebuild_image_gui()
 
@@ -279,6 +291,8 @@ class FittingCalibrationWindow(CalcamGUIWindow):
 
             self.fitted_points_checkbox.setChecked(False)
             self.overlay_checkbox.setChecked(False)
+
+        self.calibration.history.append( (int(time.time()), self.config.username,self.config.hostname,'Image loaded from {:s}'.format(newim['from'])) )
 
         self.update_image_info_string()
         self.app.restoreOverrideCursor()
@@ -742,6 +756,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         self.fitters[subview].set_pointpairs(self.calibration.pointpairs,subview=subview)
 
         # Do the fit!
+        self.fit_timestamps[subview] = time.time()
         self.statusbar.showMessage('Performing calibration fit...')
         self.calibration.view_models[subview] = self.fitters[subview].do_fit()
         self.statusbar.clearMessage()
@@ -969,6 +984,16 @@ class FittingCalibrationWindow(CalcamGUIWindow):
             self.filename = self.get_save_filename('calibration')
         
         if self.filename is not None:
+
+            if self.point_update_timestamp is not None:
+                self.calibration.history.append((int(self.point_update_timestamp),self.config.username,self.config.hostname,'Point pairs edited'))
+            for subview in range(self.calibration.n_subviews):
+                if self.fit_timestamps[subview] is not None:
+                    self.calibration.history.append((int(self.fit_timestamps[subview]),self.config.username,self.config.hostname,'Fit performed for {:s}'.format(self.calibration.subview_names[subview])))
+
+            if self.cadmodel is not None:
+                self.calibration.cad_config = {'model_name':self.cadmodel.machine_name , 'model_variant':self.cadmodel.model_variant , 'enabled_features':self.cadmodel.get_enabled_features() }
+
             self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
             self.statusbar.showMessage('Saving...')
             self.calibration.save(self.filename)
@@ -977,7 +1002,8 @@ class FittingCalibrationWindow(CalcamGUIWindow):
 
 
     def load_calib(self):
-        pass
+        opened_calib = self.object_from_file('calibration')
+
 
     def toggle_hist_eq(self,check_state):
 

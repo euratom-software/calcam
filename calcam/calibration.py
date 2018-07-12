@@ -347,7 +347,7 @@ class Calibration():
         self.view_models = []
         self.intrinsics_constraints = []
 
-        self.history = ['']
+        self.history = []
 
         self.subview_names = []
 
@@ -514,7 +514,7 @@ class Calibration():
                     with save_file.open_file('calib_params_{:d}.json'.format(nview),'w') as f:
                         json.dump(self.view_models[nview].get_dict(),f,indent=4,sort_keys=True)
 
-            print(meta)
+
             with save_file.open_file('calibration.json','w') as f:
                 json.dump(meta,f,indent=4,sort_keys=True)
 
