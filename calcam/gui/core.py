@@ -719,7 +719,7 @@ class CalcamGUIWindow(qt.QMainWindow):
         self.qvtkwidget_2d.update()
 
 
-    def debug_dialog(self,thing):
+    def show_debug_dialog(self,thing):
 
         message = str(thing)
 

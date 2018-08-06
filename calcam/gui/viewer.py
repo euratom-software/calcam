@@ -39,6 +39,7 @@ class ViewerWindow(CalcamGUIWindow):
         self.tarZ.valueChanged.connect(self.change_cad_view)
         self.camFOV.valueChanged.connect(self.change_cad_view)
         self.sightlines_list.itemChanged.connect(self.update_sightlines)
+        self.lines_3d_list.itemChanged.connect(self.update_lines)
         self.load_model_button.clicked.connect(self.load_model)
         self.feature_tree.itemChanged.connect(self.update_checked_features)
         self.feature_tree.itemSelectionChanged.connect(self.update_cadtree_selection)
@@ -63,11 +64,16 @@ class ViewerWindow(CalcamGUIWindow):
         self.contour_off.clicked.connect(self.update_contour)
         self.contour_2d.clicked.connect(self.update_contour)
         self.contour_3d.clicked.connect(self.update_contour)
-
+        self.load_lines_button.clicked.connect(self.update_lines)
+        self.pick_lines_colour.clicked.connect(self.update_lines)
+        self.lines_3d_list.itemSelectionChanged.connect(self.update_selected_lines)
+        
         self.sightlines_legend = None
         self.render_calib = None
 
         self.model_actors = {}
+
+        self.line_actors = DodgyDict()
 
         self.contour_actor = None
 
@@ -103,6 +109,95 @@ class ViewerWindow(CalcamGUIWindow):
         if self.model_list == {}:
             warn_no_models(self)
 
+
+    # Load arbitrary 3D lines from file to display
+    def update_lines(self,data):
+
+        if self.sender() is self.load_lines_button:
+
+            filename_filter = 'ASCII Data (*.txt *.csv *.dat)'
+
+            filedialog = qt.QFileDialog(self)
+            filedialog.setAcceptMode(0)
+            filedialog.setFileMode(1)
+
+
+            filedialog.setWindowTitle('Open...')
+            filedialog.setNameFilter(filename_filter)
+            filedialog.exec_()
+            if filedialog.result() == 1:
+                fname = filedialog.selectedFiles()[0]
+
+                coords = None
+                for delimiter in ['\t',' ',',']:
+                    try:
+                        coords = np.loadtxt(fname,delimiter=delimiter)
+                        lines_name = os.path.split(fname)[1].split('.')[0]
+                    except:
+                        continue
+
+                if coords is None:
+                    raise UserWarning('Could not load coordinates from the file. Please ensure the file is formatted as N rows, 3 or 6 columns and is tab, space or comma delimited.')
+
+                elif coords.shape[1] in [3,6]:
+
+                    coords_dialog = CoordsDialog(self,coords.shape)
+                    coords_dialog.exec()
+                    if coords_dialog.result() == 1:
+
+                        if coords_dialog.line_coords_combobox.currentIndex() == 1:
+
+                            x = coords[:,0] * np.cos(coords[:,2])
+                            y = coords[:,0] * np.cos(coords[:,2])
+                            coords[:,2] = coords[:,1]
+                            coords[:,0] = x
+                            coords[:,1] = y
+
+                            if coords.shape[1] == 6:
+                                x = coords[:,3] * np.cos(coords[:,5])
+                                y = coords[:,3] * np.cos(coords[:,5])
+                                coords[:,5] = coords[:,4]
+                                coords[:,3] = x
+                                coords[:,4] = y
+
+
+                        # Add it to the lines list
+                        listitem = qt.QListWidgetItem(lines_name)
+                        self.line_actors[listitem] = render.get_lines_actor(coords)
+
+                        listitem.setFlags(listitem.flags() | qt.Qt.ItemIsEditable | qt.Qt.ItemIsSelectable)
+                        listitem.setToolTip(lines_name)
+                        self.lines_3d_list.addItem(listitem)
+                        listitem.setCheckState(qt.Qt.Checked)
+                        self.lines_3d_list.setCurrentItem(listitem)
+
+
+        elif self.sender() is self.lines_3d_list:
+
+            if data.checkState() == qt.Qt.Checked:
+                self.renderer_3d.AddActor(self.line_actors[data])
+            else:
+                self.renderer_3d.RemoveActor(self.line_actors[data])
+
+            self.refresh_3d()
+
+
+        elif self.sender() is self.pick_lines_colour and len(self.lines_3d_list.selectedItems()) > 0:
+
+            picked_colour = self.pick_colour(self.line_actors[self.lines_3d_list.selectedItems()[0]].GetProperty().GetColor())
+            if picked_colour is not None:
+                for item in self.lines_3d_list.selectedItems():
+                    self.line_actors[item].GetProperty().SetColor( picked_colour )
+
+
+    def update_selected_lines(self):
+
+        if len(self.lines_3d_list.selectedItems()) > 0:
+
+            self.lines_appearance_box.setEnabled(True)
+
+        else:
+            self.lines_appearance_box.setEnabled(False)
 
 
     def change_cad_view(self):
@@ -191,7 +286,7 @@ class ViewerWindow(CalcamGUIWindow):
 
             self.cadmodel.set_wireframe( wireframe )
 
-            self.refresh_vtk()
+            self.refresh_3d()
 
 
     def add_cursor(self,coords):
@@ -214,7 +309,7 @@ class ViewerWindow(CalcamGUIWindow):
             self.interactor3d.set_xsection(None)
 
         self.interactor3d.update_clipping()
-        self.refresh_vtk()
+        self.refresh_3d()
 
 
     def on_model_load(self):
@@ -283,7 +378,7 @@ class ViewerWindow(CalcamGUIWindow):
             self.contour_actor.GetProperty().SetColor((1,0,0))
             self.renderer_3d.AddActor(self.contour_actor)
 
-        self.refresh_vtk()
+        self.refresh_3d()
         self.app.restoreOverrideCursor()
 
 
@@ -325,7 +420,7 @@ class ViewerWindow(CalcamGUIWindow):
             self.render_current_description.setHidden(False)
             self.render_resolution.setCurrentIndex(-1)
             self.render_button.setEnabled(True)
-            self.interactor3d.OnWindowSizeAdjust()
+            self.interactor3d.on_resize()
 
 
     def load_render_result(self):
@@ -417,6 +512,9 @@ class ViewerWindow(CalcamGUIWindow):
             for listitem,sightlines in self.sightlines:
                 if listitem.checkState() == qt.Qt.Checked:
                     extra_actors.append(sightlines[1])
+            for listitem,lines_3d in self.line_actors:
+                if listitem.checkState() == qt.Qt.Checked:
+                    extra_actors.append(lines_3d)                
 
             if self.contour_actor is not None:
                 extra_actors.append(self.contour_actor)
@@ -567,3 +665,20 @@ class ViewerWindow(CalcamGUIWindow):
             self.cadmodel.unload()
 
         self.on_close()
+
+
+
+class CoordsDialog(qt.QDialog):
+
+    def __init__(self, parent,coords_shape):
+
+        # GUI initialisation
+        qt.QDialog.__init__(self, parent)
+        qt.uic.loadUi(os.path.join(guipath,'line_coords.ui'), self)
+
+        self.parent = parent
+
+        if coords_shape[1] == 6:
+            self.lines_label.setText('Importing coordinates for {:d} 3D lines from file.'.format(coords_shape[0]))
+        elif coords_shape[1] == 3:
+            self.lines_label.setText('Importing 3D line containing {:d} points from file.'.format(coords_shape[0]))

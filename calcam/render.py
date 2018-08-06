@@ -629,3 +629,51 @@ def get_image_actor(image_array,clim=None):
     mapper.SetInputConnection(vtk_im_importer.GetOutputPort())
 
     return actor
+
+
+# Get a VTK actor of 3D lines based on a set of 3D point coordinates.
+def get_lines_actor(coords):
+
+    points = vtk.vtkPoints()
+    lines = vtk.vtkCellArray()
+    point_ind = -1
+    if coords.shape[1] == 6:
+
+        for lineseg in range(coords.shape[0]):
+            points.InsertNextPoint(coords[lineseg,:3])
+            points.InsertNextPoint(coords[lineseg,3:])
+            point_ind = point_ind + 2
+            line = vtk.vtkLine()
+            line.GetPointIds().SetId(0,point_ind - 1)
+            line.GetPointIds().SetId(1,point_ind)
+            lines.InsertNextCell(line)
+
+    elif coords.shape[1] == 3:
+
+        for pointind in range(coords.shape[0]):
+
+            points.InsertNextPoint(coords[pointind,:])
+            point_ind = point_ind + 1
+
+            if point_ind > 0:
+                line = vtk.vtkLine()
+                line.GetPointIds().SetId(0,point_ind - 1)
+                line.GetPointIds().SetId(1,point_ind)
+                lines.InsertNextCell(line)
+
+    polydata = polydata = vtk.vtkPolyData()
+    polydata.SetPoints(points)
+    polydata.SetLines(lines)
+
+    mapper = vtk.vtkPolyDataMapper()
+    if vtk_major_version < 6:
+        mapper.SetInput(polydata)
+    else:
+        mapper.SetInputData(polydata)
+
+    actor = vtk.vtkActor()
+    actor.SetMapper(mapper)
+
+    actor.GetProperty().SetLineWidth(2)
+
+    return actor
