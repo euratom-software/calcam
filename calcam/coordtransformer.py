@@ -56,7 +56,7 @@ class CoordTransformer:
         for action in transform_actions:
             if action.lower() in ['flip_up_down','flip_left_right','rotate_clockwise_90','rotate_clockwise_180','rotate_clockwise_270']:
                 self.transform_actions.append(action)
-            elif action == '':
+            elif action in ['','rotate_clockwise_0']:
                 pass            
             else:
                 raise Exception('Unknown transformation action "' + action + '"')

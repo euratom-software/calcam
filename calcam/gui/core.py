@@ -10,7 +10,7 @@ from . import qt_wrapper as qt
 from ..cadmodel import CADModel
 from ..config import CalcamConfig
 from ..calibration import Calibration
-
+from ..pointpairs import PointPairs
 
 guipath = os.path.split(os.path.abspath(__file__))[0]
 
@@ -304,6 +304,12 @@ class CalcamGUIWindow(qt.QMainWindow):
                 obj = Calibration(path)
                 obj.filename = path
 
+            elif obj_type.lower() == 'pointpairs':
+                if path.endswith('.ccc'):
+                    obj = Calibration(path).pointpairs
+                elif path.endswith('.csv'):
+                    with open(path,'r') as ppf:
+                        obj = PointPairs(ppf)
 
             objs.append(obj)
 

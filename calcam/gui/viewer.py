@@ -87,6 +87,7 @@ class ViewerWindow(CalcamGUIWindow):
         self.tabWidget.setTabEnabled(1,False)
         self.tabWidget.setTabEnabled(2,False)
         self.tabWidget.setTabEnabled(3,False)
+        self.tabWidget.setTabEnabled(4,False)
 
         self.render_coords_text.setHidden(True)
         self.render_coords_combobox.setHidden(True)
@@ -318,6 +319,7 @@ class ViewerWindow(CalcamGUIWindow):
         self.tabWidget.setTabEnabled(1,True)
         self.tabWidget.setTabEnabled(2,True)
         self.tabWidget.setTabEnabled(3,True)
+        self.tabWidget.setTabEnabled(4,True)
 
         self.cad_colour_controls.setEnabled(True)
         self.cad_colour_reset_button.setEnabled(False)

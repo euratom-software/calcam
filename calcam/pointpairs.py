@@ -94,13 +94,14 @@ class PointPairs():
 
     def load(self,savefile):
 
-        # First row is useless headers
-        next(savefile)
+
+        for headrow in savefile:
+            if headrow.startswith('Machine X'):
+                break
 
         # Read header info in second row...
-        headrow = next(savefile)
         if not headrow.startswith('Machine X'):
-            raise IOError('Header does not look like a Calcam point pairs file!')
+            raise Exception('Header does not look like a Calcam point pairs file!')
         
         self.n_subviews = int(np.floor( (len(headrow.split(',')) - 4) / 2.))
 

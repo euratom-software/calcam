@@ -20,6 +20,9 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         #self.scrollArea.setStyleSheet("QScrollArea {background-color:transparent;}");
         #self.scrollArea.viewport().setStyleSheet(".QWidget {background-color:transparent;}");
 
+        self.action_open.setIcon( app.style().standardIcon(qt.QStyle.SP_DialogOpenButton) )
+        self.action_save.setIcon( app.style().standardIcon(qt.QStyle.SP_DialogSaveButton) )
+
         # Start up with no CAD model
         self.cadmodel = None
         self.calibration = Calibration()
@@ -610,7 +613,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         # Update the image and point pairs
         self.calibration.set_image(self.calibration.geometry.original_to_display_image(self.original_image),subview_mask = self.calibration.geometry.original_to_display_image(self.original_subview_mask),transform_actions = self.calibration.geometry.transform_actions, pixel_aspect = self.calibration.geometry.pixel_aspectratio)
         self.interactor2d.set_image(self.calibration.image)
-        self.update_pointpairs()
+        #self.update_pointpairs()
 
         if self.hist_eq_checkbox.isChecked():
             self.hist_eq_checkbox.setChecked(False)
@@ -622,30 +625,29 @@ class FittingCalibrationWindow(CalcamGUIWindow):
 
     def load_pointpairs(self):
 
-        cal = self.object_from_file('calibration')
+        loaded_pointpairs = self.object_from_file('pointpairs')
 
-        if cal is not None:
-            if cal.pointpairs is not None:
+        if loaded_pointpairs is not None:
 
-                self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
-                self.fitted_points_checkbox.setChecked(False)
-                self.overlay_checkbox.setChecked(False)
-                self.clear_pointpairs()
-                
-                for i in range(len(cal.pointpairs.object_points)):
-                    cursorid_3d = self.interactor3d.add_cursor(cal.pointpairs.object_points[i])
+            self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
+            self.fitted_points_checkbox.setChecked(False)
+            self.overlay_checkbox.setChecked(False)
+            self.clear_pointpairs()
+            
+            for i in range(len(loaded_pointpairs.object_points)):
+                cursorid_3d = self.interactor3d.add_cursor(loaded_pointpairs.object_points[i])
 
-                    cursorid_2d = None
-                    for j in range(len(cal.pointpairs.image_points[i])):
-                        if cursorid_2d is None:
-                            cursorid_2d = self.interactor2d.add_active_cursor(cal.pointpairs.image_points[i][j])
-                        else:
-                            self.interactor2d.add_active_cursor(cal.pointpairs.image_points[i][j],add_to=cursorid_2d)
+                cursorid_2d = None
+                for j in range(len(loaded_pointpairs.image_points[i])):
+                    if cursorid_2d is None:
+                        cursorid_2d = self.interactor2d.add_active_cursor(loaded_pointpairs.image_points[i][j])
+                    else:
+                        self.interactor2d.add_active_cursor(loaded_pointpairs.image_points[i][j],add_to=cursorid_2d)
 
-                    self.point_pairings.append([cursorid_3d,cursorid_2d])
+                self.point_pairings.append([cursorid_3d,cursorid_2d])
 
 
-                self.app.restoreOverrideCursor()
+            self.app.restoreOverrideCursor()
 
 
 
@@ -1020,8 +1022,16 @@ class FittingCalibrationWindow(CalcamGUIWindow):
 
         self.interactor2d.set_image(im_out,hold_position=True)
 
+        '''
+        # For some reason, to stop the points from disappearing I have to re-set their positions
+        for _,cursor_id in self.point_pairings:
+            self.interactor2d.set_cursor_coords(cursor_id,self.interactor2d.get_cursor_coords(cursor_id))
 
-
+        if self.fitted_points_checkbox.isChecked():
+            self.fitted_points_checkbox.setChecked(False)
+            self.fitted_points_checkbox.setChecked(True)
+        '''
+        
     def closeEvent(self,event):
 
         self.on_close()

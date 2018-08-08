@@ -559,9 +559,21 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
                 self.camera.SetPosition(xc,yc,1.)
                 self.camera.SetFocalPoint(xc,yc,0.)
         
+        # Remove and re-add cursor actors. Not sure why this is necessary
+        # but if I don't do it, the cursors disappear
+        for active_cursor in self.active_cursors.values():
+            for actor in active_cursor['actors']:
+                if actor is not None:
+                    self.renderer.RemoveActor(actor)
+                    self.renderer.AddActor(actor)
+        for passive_cursor in self.passive_cursors.values():
+                self.renderer.RemoveActor(passive_cursor['actor'])
+                self.renderer.AddActor(passive_cursor['actor'])           
+
+
         if self.refresh_callback is not None:
             self.refresh_callback()
-
+            
 
     # On the CAD view, middle click + drag to pan
     def middle_press(self,obj,event):
