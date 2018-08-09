@@ -400,9 +400,12 @@ class Calibration():
             # Load fit results
             self.view_models = []
             for nview in range(self.n_subviews):
-                with save_file.open_file('calib_params_{:d}.json'.format(nview),'r') as f:
-                    self.view_models.append(ViewModel.from_dict(json.load(f)))
-
+                try:
+                    with save_file.open_file('calib_params_{:d}.json'.format(nview),'r') as f:
+                        self.view_models.append(ViewModel.from_dict(json.load(f)))
+                except IOError:
+                    self.view_models.append(None)
+                    
             # Load CAD config
             if 'cad_config.json' in save_file.list_contents():
                 with save_file.open_file('cad_config.json','r') as f:
@@ -520,9 +523,10 @@ class Calibration():
 
 
             # Save the primary point pairs (if any)
-            if self.pointpairs.get_n_points() > 0:
-                with save_file.open_file('pointpairs.csv','w') as ppf:
-                    self.pointpairs.save(ppf)
+            if self.pointpairs is not None:
+                if self.pointpairs.get_n_points() > 0:
+                    with save_file.open_file('pointpairs.csv','w') as ppf:
+                        self.pointpairs.save(ppf)
 
             # Save CAD config
             if self.cad_config is not None:

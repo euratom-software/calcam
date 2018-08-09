@@ -217,7 +217,7 @@ class CADModel():
 
         if features is None:
             features = self.features.keys()
-        elif type(features) == str or type(features) == unicode:
+        elif type(features) is not list:
             features = [features]
 
 
@@ -237,7 +237,7 @@ class CADModel():
     # A handy function for enabling just one feature or group
     def enable_only(self,features):
         
-        if type(features) == str or type(features) == unicode:
+        if type(features) is not list:
             features = [features]
 
         self.set_features_enabled(False)

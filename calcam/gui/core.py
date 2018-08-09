@@ -525,7 +525,7 @@ class CalcamGUIWindow(qt.QMainWindow):
         self.feature_tree.blockSignals(False)
 
 
-    def load_model(self):
+    def load_model(self,data=None,featurelist=None):
 
         # Dispose of the old model
         if self.cadmodel is not None:
@@ -541,7 +541,10 @@ class CalcamGUIWindow(qt.QMainWindow):
 
         self.config.default_model = (str(self.model_name.currentText()),str(self.model_variant.currentText()))
 
-        if not self.cad_auto_load.isChecked():
+        if featurelist is not None:
+            self.cadmodel.enable_only(featurelist)
+
+        elif not self.cad_auto_load.isChecked():
             self.cadmodel.set_features_enabled(False)
 
         self.cadmodel.add_to_renderer(self.renderer_3d)

@@ -20,6 +20,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         #self.scrollArea.setStyleSheet("QScrollArea {background-color:transparent;}");
         #self.scrollArea.viewport().setStyleSheet(".QWidget {background-color:transparent;}");
 
+        self.action_new.setIcon( app.style().standardIcon(qt.QStyle.SP_FileIcon) )
         self.action_open.setIcon( app.style().standardIcon(qt.QStyle.SP_DialogOpenButton) )
         self.action_save.setIcon( app.style().standardIcon(qt.QStyle.SP_DialogSaveButton) )
 
@@ -101,6 +102,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         self.action_save.triggered.connect(self.save_calib)
         self.action_save_as.triggered.connect(lambda: self.save_calib(saveas=True))
         self.action_open.triggered.connect(self.load_calib)
+        self.action_new.triggered.connect(self.reset)
         #self.new_calib.triggered.connect(self.reset)
 
         # If we have an old version of openCV, histo equilisation won't work :(
@@ -134,7 +136,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
 
 
         # Populate image sources list and tweak GUI layout for image loading.
-        self.imload_inputs = []
+        self.imload_inputs = {}
         self.image_load_options.layout().setColumnMinimumWidth(0,100)
 
         self.image_sources = self.config.get_image_sources()
@@ -161,6 +163,51 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         self.qvtkwidget_2d.GetRenderWindow().GetInteractor().Initialize()
 
 
+
+    def reset(self):
+
+        # Start up with no CAD model
+        if self.cadmodel is not None:
+            self.cadmodel.remove_from_renderer(self.renderer_3d)
+            self.cadmodel.unload()
+            self.feature_tree.blockSignals(True)
+            self.feature_tree.clear()
+            self.feature_tree.blockSignals(False)
+            self.cadmodel = None
+
+
+        self.interactor2d.set_image(None)
+
+        self.calibration = Calibration()
+        self.calibration.calib_type = 'fit'
+        # Disable image transform buttons if we have no image
+        self.image_settings.hide()
+        #self.fit_results.hide()
+
+        self.tabWidget.setTabEnabled(2,False)
+        self.tabWidget.setTabEnabled(3,False)
+        self.tabWidget.setTabEnabled(4,False)
+
+        for pp in self.point_pairings:
+            self.interactor2d.remove_active_cursor(pp[1])
+            self.interactor3d.remove_cursor(pp[0])
+        self.point_pairings = []
+
+        self.point_update_timestamp = None
+        self.fit_timestamps = []
+
+        self.selected_pointpair = None
+
+        self.fitters = []
+
+        self.fit_overlay = None
+
+        self.fit_results = []
+
+        self.filename = None
+
+        self.refresh_2d()
+        self.refresh_3d()
 
     def update_cursor_position(self,position):
         
@@ -235,7 +282,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         #self.tabWidget.setTabEnabled(3,True)
 
 
-    def load_image(self):
+    def load_image(self,data=None,newim=None):
 
         # By default we assume we don't know the pixel size
         self.pixel_size_checkbox.setChecked(False)
@@ -243,15 +290,16 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
         self.statusbar.showMessage('Loading image...')
 
-        # Gather up the required input arguments from the image load gui
-        imload_options = {}
-        for arg_name,option in self.imload_inputs.items():
-            imload_options[arg_name] = option[1]()
-            if qt.qt_ver == 4:
-                if type(imload_options[arg_name]) == qt.QString:
-                    imload_options[arg_name] = str(imload_options[arg_name])
+        if newim is None:
+            # Gather up the required input arguments from the image load gui
+            imload_options = {}
+            for arg_name,option in self.imload_inputs.items():
+                imload_options[arg_name] = option[1]()
+                if qt.qt_ver == 4:
+                    if type(imload_options[arg_name]) == qt.QString:
+                        imload_options[arg_name] = str(imload_options[arg_name])
 
-        newim = self.imsource['get_image_function'](**imload_options)
+            newim = self.imsource['get_image_function'](**imload_options)
 
         # Some checking, user prompting etc should go here
         keep_points = False
@@ -263,14 +311,19 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         else:
             self.original_subview_mask = np.zeros(self.original_image.shape[:2],dtype=np.uint8)
 
-        self.calibration.set_image( self.original_image , subview_mask = self.original_subview_mask )
+        if 'transform_actions' in newim:
+            transform_actions = newim['transform_actions']
+        else:
+            transform_actions = ''
+
+        self.calibration.set_image( self.original_image , subview_mask = self.original_subview_mask, transform_actions = transform_actions,coords='Original' )
 
         self.subview_mask = np.zeros(newim['image_data'].shape[:2],dtype='uint8')
 
         self.calibration.view_models = [None] * self.calibration.n_subviews
         self.fit_timestamps = [None] * self.calibration.n_subviews 
 
-        self.interactor2d.set_image(newim['image_data'])
+        self.interactor2d.set_image(self.calibration.geometry.original_to_display_image(newim['image_data']))
 
         self.image_settings.show()
         if self.hist_eq_checkbox.isChecked():
@@ -535,7 +588,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
     def update_image_info_string(self):
 
         if np.any(self.calibration.geometry.get_display_shape() != self.calibration.geometry.get_original_shape()):
-            info_str = '{0:d} x {1:d} pixels ({2:.1f} MP) [ As Displayed ]<br>{3:d} x {4:d} pixels ({5:.1f} MP) [ Raw Data ]<br>'.format(self.calibration.geometry.get_display_shape()[0],self.calibration.geometry.get_display_shape()[1],np.prod(self.calibration.geometry.get_display_shape()) / 1e6 ,self.calibration.geometry.get_original_shape()[1],self.calibration.geometry.get_original_shape()[0],np.prod(self.calibration.geometry.get_original_shape()) / 1e6 )
+            info_str = '{0:d} x {1:d} pixels ({2:.1f} MP) [ As Displayed ]<br>{3:d} x {4:d} pixels ({5:.1f} MP) [ Raw Data ]<br>'.format(self.calibration.geometry.get_display_shape()[0],self.calibration.geometry.get_display_shape()[1],np.prod(self.calibration.geometry.get_display_shape()) / 1e6 ,self.calibration.geometry.get_original_shape()[0],self.calibration.geometry.get_original_shape()[1],np.prod(self.calibration.geometry.get_original_shape()) / 1e6 )
         else:
             info_str = '{0:d} x {1:d} pixels ({2:.1f} MP)<br>'.format(self.calibration.geometry.get_display_shape()[0],self.calibration.geometry.get_display_shape()[1],np.prod(self.calibration.geometry.get_display_shape()) / 1e6 )
         
@@ -623,30 +676,33 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         self.rebuild_image_gui()
 
 
-    def load_pointpairs(self):
+    def load_pointpairs(self,data=None,pointpairs=None):
 
-        loaded_pointpairs = self.object_from_file('pointpairs')
+        if pointpairs is None:
+            pointpairs = self.object_from_file('pointpairs')
 
-        if loaded_pointpairs is not None:
+        if pointpairs is not None:
 
             self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
             self.fitted_points_checkbox.setChecked(False)
             self.overlay_checkbox.setChecked(False)
-            self.clear_pointpairs()
-            
-            for i in range(len(loaded_pointpairs.object_points)):
-                cursorid_3d = self.interactor3d.add_cursor(loaded_pointpairs.object_points[i])
+
+            if self.pointpairs_clear_before_load.isChecked():
+                self.clear_pointpairs()
+
+            for i in range(len(pointpairs.object_points)):
+                cursorid_3d = self.interactor3d.add_cursor(pointpairs.object_points[i])
 
                 cursorid_2d = None
-                for j in range(len(loaded_pointpairs.image_points[i])):
+                for j in range(len(pointpairs.image_points[i])):
                     if cursorid_2d is None:
-                        cursorid_2d = self.interactor2d.add_active_cursor(loaded_pointpairs.image_points[i][j])
+                        cursorid_2d = self.interactor2d.add_active_cursor(pointpairs.image_points[i][j])
                     else:
-                        self.interactor2d.add_active_cursor(loaded_pointpairs.image_points[i][j],add_to=cursorid_2d)
+                        self.interactor2d.add_active_cursor(pointpairs.image_points[i][j],add_to=cursorid_2d)
 
                 self.point_pairings.append([cursorid_3d,cursorid_2d])
 
-
+            self.update_pointpairs()
             self.app.restoreOverrideCursor()
 
 
@@ -697,6 +753,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
                 self.interactor2d.remove_active_cursor(pp[1])
 
         self.point_pairings = []
+
 
 
     def fit_enable_check(self,subview=0):
@@ -994,7 +1051,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
                     self.calibration.history.append((int(self.fit_timestamps[subview]),self.config.username,self.config.hostname,'Fit performed for {:s}'.format(self.calibration.subview_names[subview])))
 
             if self.cadmodel is not None:
-                self.calibration.cad_config = {'model_name':self.cadmodel.machine_name , 'model_variant':self.cadmodel.model_variant , 'enabled_features':self.cadmodel.get_enabled_features() }
+                self.calibration.cad_config = {'model_name':self.cadmodel.machine_name , 'model_variant':self.cadmodel.model_variant , 'enabled_features':self.cadmodel.get_enabled_features(),'viewport':[self.camX.value(),self.camY.value(),self.camZ.value(),self.tarX.value(),self.tarY.value(),self.tarZ.value(),self.camFOV.value()] }
 
             self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
             self.statusbar.showMessage('Saving...')
@@ -1004,8 +1061,43 @@ class FittingCalibrationWindow(CalcamGUIWindow):
 
 
     def load_calib(self):
+
+        # Clear any existing stuff
         opened_calib = self.object_from_file('calibration')
 
+        if opened_calib is None:
+            return
+            
+        self.reset()
+
+        # Basic setup
+        self.filename = opened_calib.filename
+        self.calibration = opened_calib
+
+        # Load the image
+        for imsource in self.image_sources:
+            if imsource['display_name'] == 'Calcam Calibration':
+                self.load_image(newim = imsource['get_image_function'](self.filename))
+
+        # Load the point pairs
+        self.load_pointpairs(pointpairs=self.calibration.pointpairs)
+
+        # Load the appropriate CAD model, if we know what that is
+        if self.calibration.cad_config is not None:
+            cconfig = self.calibration.cad_config
+            name_index = sorted(self.model_list.keys()).index(cconfig['model_name'])
+            self.model_name.setCurrentIndex(name_index)
+            variant_index = self.model_list[ cconfig['model_name'] ][1].index(cconfig['model_variant'])
+            self.model_variant.setCurrentIndex(variant_index)
+
+            self.load_model(featurelist=cconfig['enabled_features'])
+            self.camX.setValue(cconfig['viewport'][0])
+            self.camY.setValue(cconfig['viewport'][1])
+            self.camZ.setValue(cconfig['viewport'][2])
+            self.tarX.setValue(cconfig['viewport'][3])
+            self.tarY.setValue(cconfig['viewport'][4])
+            self.tarZ.setValue(cconfig['viewport'][5])
+            self.camFOV.setValue(cconfig['viewport'][6])
 
     def toggle_hist_eq(self,check_state):
 
@@ -1073,7 +1165,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
     def build_imload_gui(self,index):
 
         layout = self.image_load_options.layout()
-        for widgets,_ in self.imload_inputs:
+        for widgets,_ in self.imload_inputs.values():
             for widget in widgets:
                 layout.removeWidget(widget)
                 widget.close()
