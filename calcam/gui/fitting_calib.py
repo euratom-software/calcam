@@ -148,12 +148,15 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         self.selected_pointpair = None
 
         self.fitters = []
+        self.fit_settings_widgets = []
 
         self.fit_overlay = None
 
         self.fit_results = []
 
         self.filename = None
+
+        self.n_data = [0]
 
         # Start the GUI!
         self.show()
@@ -166,6 +169,9 @@ class FittingCalibrationWindow(CalcamGUIWindow):
 
     def reset(self):
 
+        self.fitted_points_checkbox.setChecked(False)
+        self.overlay_checkbox.setChecked(False)
+
         # Start up with no CAD model
         if self.cadmodel is not None:
             self.cadmodel.remove_from_renderer(self.renderer_3d)
@@ -175,6 +181,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
             self.feature_tree.blockSignals(False)
             self.cadmodel = None
 
+        self.clear_pointpairs()
 
         self.interactor2d.set_image(None)
 
@@ -188,10 +195,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         self.tabWidget.setTabEnabled(3,False)
         self.tabWidget.setTabEnabled(4,False)
 
-        for pp in self.point_pairings:
-            self.interactor2d.remove_active_cursor(pp[1])
-            self.interactor3d.remove_cursor(pp[0])
-        self.point_pairings = []
+
 
         self.point_update_timestamp = None
         self.fit_timestamps = []
@@ -227,6 +231,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
             if self.point_pairings[self.selected_pointpair][1] is None:
                 self.point_pairings[self.selected_pointpair][1] = self.interactor2d.add_active_cursor(im_coords)
                 self.interactor2d.set_cursor_focus(self.point_pairings[self.selected_pointpair][1])
+                self.update_n_points()
                 return
 
         self.point_pairings.append( [None,self.interactor2d.add_active_cursor(im_coords)] )
@@ -234,6 +239,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         self.interactor3d.set_cursor_focus(None)
         self.selected_pointpair = len(self.point_pairings) - 1
 
+        self.update_n_points()
 
 
     def new_point_3d(self,coords):
@@ -242,12 +248,15 @@ class FittingCalibrationWindow(CalcamGUIWindow):
             if self.point_pairings[self.selected_pointpair][0] is None:
                 self.point_pairings[self.selected_pointpair][0] = self.interactor3d.add_cursor(coords)
                 self.interactor3d.set_cursor_focus(self.point_pairings[self.selected_pointpair][0])
+                self.update_n_points()
                 return
 
         self.point_pairings.append( [self.interactor3d.add_cursor(coords),None] )
         self.interactor3d.set_cursor_focus(self.point_pairings[-1][0])
         self.interactor2d.set_cursor_focus(None)
         self.selected_pointpair = len(self.point_pairings) - 1
+
+        self.update_n_points()
 
 
 
@@ -355,6 +364,10 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         self.statusbar.clearMessage()
 
 
+    def change_fit_params(self,fun,state):
+
+        fun(state)
+        self.fit_enable_check()
 
 
     def rebuild_image_gui(self):
@@ -422,15 +435,15 @@ class FittingCalibrationWindow(CalcamGUIWindow):
             sub_layout.setContentsMargins(0,0,0,0)
             perspective_settings_layout.addWidget(sub_widget)
 
-            widgetlist[-3].toggled.connect(self.fitters[-1].fix_k1)
-            widgetlist[-2].toggled.connect(self.fitters[-1].fix_k2)
-            widgetlist[-1].toggled.connect(self.fitters[-1].fix_k3)
+            widgetlist[-3].toggled.connect(lambda state: self.change_fit_params(self.fitters[-1].fix_k1,state))
+            widgetlist[-2].toggled.connect(lambda state: self.change_fit_params(self.fitters[-1].fix_k2,state))
+            widgetlist[-1].toggled.connect(lambda state: self.change_fit_params(self.fitters[-1].fix_k3,state))
 
             widgetlist.append(qt.QCheckBox('Disable tangential distortion'))
             perspective_settings_layout.addWidget(widgetlist[-1])
-            widgetlist[-1].clicked.connect(self.fitters[-1].fix_tangential)
+            widgetlist[-1].clicked.connect(lambda state: self.change_fit_params(self.fitters[-1].fix_tangential,state))
             widgetlist.append(qt.QCheckBox('Fix Fx = Fy'))
-            widgetlist[-1].clicked.connect(self.fitters[-1].fix_aspect)
+            widgetlist[-1].clicked.connect(lambda state: self.change_fit_params(self.fitters[-1].fix_aspect,state))
             widgetlist[-1].setChecked(True)
             perspective_settings_layout.addWidget(widgetlist[-1])
 
@@ -502,10 +515,10 @@ class FittingCalibrationWindow(CalcamGUIWindow):
             sub_layout.setContentsMargins(0,0,0,0)
             fisheye_settings_layout.addWidget(sub_widget)
             
-            widgetlist[-4].toggled.connect(self.fitters[-1].fix_k1)
-            widgetlist[-3].toggled.connect(self.fitters[-1].fix_k2)
-            widgetlist[-2].toggled.connect(self.fitters[-1].fix_k3)
-            widgetlist[-1].toggled.connect(self.fitters[-1].fix_k4)
+            widgetlist[-4].toggled.connect(lambda state: self.change_fit_params(self.fitters[-1].fix_k1,state))
+            widgetlist[-3].toggled.connect(lambda state: self.change_fit_params(self.fitters[-1].fix_k2,state))
+            widgetlist[-2].toggled.connect(lambda state: self.change_fit_params(self.fitters[-1].fix_k3,state))
+            widgetlist[-1].toggled.connect(lambda state: self.change_fit_params(self.fitters[-1].fix_4,state))
 
             for widgetno in [-4,-3,-2,-1]:
                 widgetlist[widgetno].toggled.connect(self.fit_enable_check)
@@ -570,6 +583,9 @@ class FittingCalibrationWindow(CalcamGUIWindow):
             results_groupbox.setLayout(results_layout)
 
             new_layout.addWidget(results_groupbox)
+
+            vspace = qt.QSpacerItem(20, 0, qt.QSizePolicy.Minimum, qt.QSizePolicy.Expanding)
+            new_layout.addItem(vspace)
 
             new_tab.setLayout(new_layout)
             self.subview_tabs.addTab(new_tab,self.calibration.subview_names[field])
@@ -703,6 +719,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
                 self.point_pairings.append([cursorid_3d,cursorid_2d])
 
             self.update_pointpairs()
+            self.update_n_points()
             self.app.restoreOverrideCursor()
 
 
@@ -730,14 +747,24 @@ class FittingCalibrationWindow(CalcamGUIWindow):
 
             pp_to_remove = self.point_pairings.pop(self.selected_pointpair)
 
-            self.interactor3d.set_cursor_focus(None)
-            self.interactor2d.set_cursor_focus(None)
-            self.selected_pointpair = None
+            if len(self.point_pairings) > 0:
+                self.selected_pointpair = (self.selected_pointpair - 1) % len(self.point_pairings)
+                self.interactor2d.set_cursor_focus(self.point_pairings[self.selected_pointpair][1])
+                self.interactor3d.set_cursor_focus(self.point_pairings[self.selected_pointpair][0])
+            else:
+                self.selected_pointpair = None
+                self.interactor3d.set_cursor_focus(None)
+                self.interactor2d.set_cursor_focus(None)    
 
             if pp_to_remove[0] is not None:
                 self.interactor3d.remove_cursor(pp_to_remove[0])
             if pp_to_remove[1] is not None:
                 self.interactor2d.remove_active_cursor(pp_to_remove[1])
+            
+            
+
+
+            self.update_n_points()
 
 
     def clear_pointpairs(self):
@@ -754,15 +781,15 @@ class FittingCalibrationWindow(CalcamGUIWindow):
 
         self.point_pairings = []
 
+        self.update_n_points()
 
 
-    def fit_enable_check(self,subview=0):
+    def fit_enable_check(self):
 
         # This avoids raising errors if this function is called when we have no
         # fit options GUI.
         if len(self.fit_settings_widgets) == 0:
             return
-
 
         # Check whether or not we have enough points to enable the fit button.
         for i,fitter in enumerate(self.fitters):
@@ -771,9 +798,8 @@ class FittingCalibrationWindow(CalcamGUIWindow):
             free_params = fitter.get_n_params()
 
             # And the award for most confusingly written if condition goes to...
-            if not ( (self.n_data[field] > free_params and self.n_data[field] > 9) or (self.n_data[field] > 9 and self.use_chessboard_checkbox.isChecked()) ):
+            if not ( (self.n_data[i] > free_params and self.n_data[i] > 9) or (self.n_data[i] > 9 and self.use_chessboard_checkbox.isChecked()) ):
                 enable = False
-
 
             self.fit_buttons[i].setEnabled(enable)
             if enable:
@@ -799,6 +825,112 @@ class FittingCalibrationWindow(CalcamGUIWindow):
             self.calibration.set_pointpairs(None)
 
 
+    def update_fit_results(self):
+
+        for subview in range(self.calibration.n_subviews):
+
+            if self.calibration.view_models[subview] is None:
+                continue
+
+            # Put the results in to the GUI
+            params = self.calibration.view_models[subview]
+
+            # Get CoM of this field on the chip
+            ypx,xpx = CoM( (self.calibration.subview_mask + 1) * (self.calibration.subview_mask == subview) )
+
+            # Line of sight at the field centre
+            los_centre = params.get_los_direction(xpx,ypx)
+            fov = self.calibration.get_fov(subview)
+
+            pupilpos = self.calibration.get_pupilpos(subview=subview)
+
+            widgets = self.fit_results_widgets[subview]
+
+            if self.calibration.view_models[subview].model == 'perspective':
+                widgets[0].setText( '<b>RMS Fit Residual: {: .1f} pixels<b>'.format(params.reprojection_error) )
+                widgets[1].setText( ' : <br>'.join( [  'Pupil position' , 
+                                                    'View direction' , 
+                                                    'Field of view', 
+                                                    'Focal length' , 
+                                                    'Optical centre' , 
+                                                    'Distortion coeff. k1' ,
+                                                    'Distortion coeff. k2' ,
+                                                    'Distortion coeff. k3' ,
+                                                    'Distortion coeff. p1' ,
+                                                    'Distortion coeff. p2' ,
+                                                    ''
+                                                    ] ) )
+                if self.calibration.pixel_size is not None:
+                    fx = params.cam_matrix[0,0] * self.calibration.pixel_size*1e3
+                    fy = params.cam_matrix[1,1] * self.calibration.pixel_size*1e3
+                    fl_units = 'mm'
+                else:
+                    fx = params.cam_matrix[0,0]
+                    fy = params.cam_matrix[1,1]
+                    fl_units = 'px'
+
+
+                widgets[2].setText( '<br>'.join( [ '( {: .3f} , {: .3f} , {: .3f} ) m'.format(pupilpos[0],pupilpos[1],pupilpos[2]).replace(' ','&nbsp;') ,
+                                                   '( {: .3f} , {: .3f} , {: .3f} )'.format(los_centre[0],los_centre[1],los_centre[2]).replace(' ','&nbsp;') ,
+                                                   '{:.1f}\xb0 x {:.1f}\xb0 '.format(fov[0],fov[1]).replace(' ','&nbsp;') ,
+                                                   "{0:.1f} {2:s} x {1:.1f} {2:s}".format(fx,fy,fl_units).replace(' ','&nbsp;') ,
+                                                   "( {: .0f} , {: .0f} )".format(params.cam_matrix[0,2], params.cam_matrix[1,2]).replace(' ','&nbsp;') ,
+                                                   "{: 5.4f}".format(params.kc[0][0]).replace(' ','&nbsp;') ,
+                                                   "{: 5.4f}".format(params.kc[0][1]).replace(' ','&nbsp;') ,
+                                                   "{: 5.4f}".format(params.kc[0][4]).replace(' ','&nbsp;') ,
+                                                   "{: 5.4f}".format(params.kc[0][2]).replace(' ','&nbsp;') ,
+                                                   "{: 5.4f}".format(params.kc[0][3]).replace(' ','&nbsp;') ,
+                                                   ''
+                                                   ] ) )
+            elif params.model == 'fisheye':
+                widgets[0].setText( '<b>RMS Fit Residual: {: .1f} pixels<b>'.format(params.reprojection_error) )
+                widgets[1].setText( ' : <br>'.join( [  'Pupil position' , 
+                                                    'View direction' , 
+                                                    'Field of view', 
+                                                    'Focal length' , 
+                                                    'Optical centre' , 
+                                                    'Distortion coeff. k1' ,
+                                                    'Distortion coeff. k2' ,
+                                                    'Distortion coeff. k3' ,
+                                                    'Distortion coeff. k4' ,
+                                                    ''
+                                                    ] ) )
+                if self.calibration.pixel_size is not None:
+                    fx = params.cam_matrix[0,0] * self.calibration.pixel_size*1e3
+                    fy = params.cam_matrix[1,1] * self.calibration.pixel_size*1e3
+                    fl_units = 'mm'
+                else:
+                    fx = params.cam_matrix[0,0]
+                    fy = params.cam_matrix[1,1]
+                    fl_units = 'px'
+
+                widgets[2].setText( '<br>'.join( [ '( {: .3f} , {: .3f} , {: .3f} ) m'.format(pupilpos[0],pupilpos[1],pupilpos[2]).replace(' ','&nbsp;') ,
+                                                   '( {: .3f} , {: .3f} , {: .3f} )'.format(los_centre[0],los_centre[1],los_centre[2]).replace(' ','&nbsp;') ,
+                                                   '{:.1f}\xb0 x {:.1f}\xb0 '.format(fov[0],fov[1]).replace(' ','&nbsp;') ,
+                                                   "{0:.1f} {2:s} x {1:.1f} {2:s}".format(fx,fy,fl_units).replace(' ','&nbsp;') ,
+                                                   "( {: .0f} , {: .0f} )".format(params.cam_matrix[0,2], params.cam_matrix[1,2]).replace(' ','&nbsp;') ,
+                                                   "{: 5.4f}".format(params.k1).replace(' ','&nbsp;') ,
+                                                   "{: 5.4f}".format(params.k2).replace(' ','&nbsp;') ,
+                                                   "{: 5.4f}".format(params.k3).replace(' ','&nbsp;') ,
+                                                   "{: 5.4f}".format(params.k4).replace(' ','&nbsp;') ,
+                                                   ''
+                                                   ] ) )                
+            if self.cadmodel is not None:
+                widgets[3].setEnabled(True)
+            else:
+                widgets[3].setEnabled(False)
+
+     
+            if self.cadmodel is None:
+                self.overlay_checkbox.setEnabled(False)
+            else:
+                self.overlay_checkbox.setEnabled(True)
+
+            self.fit_results[subview].show()
+            self.fitted_points_checkbox.setEnabled(True)
+            self.fitted_points_checkbox.setChecked(True)       
+
+
 
     def do_fit(self,subview=0):
 
@@ -820,104 +952,11 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         self.calibration.view_models[subview] = self.fitters[subview].do_fit()
         self.statusbar.clearMessage()
 
-        # Put the results in to the GUI
-        params = self.calibration.view_models[subview]
 
-        # Get CoM of this field on the chip
-        ypx,xpx = CoM( (self.calibration.subview_mask + 1) * (self.calibration.subview_mask == subview) )
-
-        # Line of sight at the field centre
-        los_centre = params.get_los_direction(xpx,ypx)
-        fov = self.calibration.get_fov(subview)
-
-        pupilpos = self.calibration.get_pupilpos(subview=subview)
-
-        widgets = self.fit_results_widgets[subview]
-
-        if self.calibration.view_models[subview].model == 'perspective':
-            widgets[0].setText( '<b>RMS Fit Residual: {: .1f} pixels<b>'.format(params.reprojection_error) )
-            widgets[1].setText( ' : <br>'.join( [  'Pupil position' , 
-                                                'View direction' , 
-                                                'Field of view', 
-                                                'Focal length' , 
-                                                'Optical centre' , 
-                                                'Distortion coeff. k1' ,
-                                                'Distortion coeff. k2' ,
-                                                'Distortion coeff. k3' ,
-                                                'Distortion coeff. p1' ,
-                                                'Distortion coeff. p2' ,
-                                                ''
-                                                ] ) )
-            if self.calibration.pixel_size is not None:
-                fx = params.cam_matrix[0,0] * self.calibration.pixel_size*1e3
-                fy = params.cam_matrix[1,1] * self.calibration.pixel_size*1e3
-                fl_units = 'mm'
-            else:
-                fx = params.cam_matrix[0,0]
-                fy = params.cam_matrix[1,1]
-                fl_units = 'px'
-
-
-            widgets[2].setText( '<br>'.join( [ '( {: .3f} , {: .3f} , {: .3f} ) m'.format(pupilpos[0],pupilpos[1],pupilpos[2]).replace(' ','&nbsp;') ,
-                                               '( {: .3f} , {: .3f} , {: .3f} )'.format(los_centre[0],los_centre[1],los_centre[2]).replace(' ','&nbsp;') ,
-                                               '{:.1f}\xb0 x {:.1f}\xb0 '.format(fov[0],fov[1]).replace(' ','&nbsp;') ,
-                                               "{0:.1f} {2:s} x {1:.1f} {2:s}".format(fx,fy,fl_units).replace(' ','&nbsp;') ,
-                                               "( {: .0f} , {: .0f} )".format(params.cam_matrix[0,2], params.cam_matrix[1,2]).replace(' ','&nbsp;') ,
-                                               "{: 5.4f}".format(params.kc[0][0]).replace(' ','&nbsp;') ,
-                                               "{: 5.4f}".format(params.kc[0][1]).replace(' ','&nbsp;') ,
-                                               "{: 5.4f}".format(params.kc[0][4]).replace(' ','&nbsp;') ,
-                                               "{: 5.4f}".format(params.kc[0][2]).replace(' ','&nbsp;') ,
-                                               "{: 5.4f}".format(params.kc[0][3]).replace(' ','&nbsp;') ,
-                                               ''
-                                               ] ) )
-        elif params.model == 'fisheye':
-            widgets[0].setText( '<b>RMS Fit Residual: {: .1f} pixels<b>'.format(params.reprojection_error) )
-            widgets[1].setText( ' : <br>'.join( [  'Pupil position' , 
-                                                'View direction' , 
-                                                'Field of view', 
-                                                'Focal length' , 
-                                                'Optical centre' , 
-                                                'Distortion coeff. k1' ,
-                                                'Distortion coeff. k2' ,
-                                                'Distortion coeff. k3' ,
-                                                'Distortion coeff. k4' ,
-                                                ''
-                                                ] ) )
-            if self.calibration.pixel_size is not None:
-                fx = params.cam_matrix[0,0] * self.calibration.pixel_size*1e3
-                fy = params.cam_matrix[1,1] * self.calibration.pixel_size*1e3
-                fl_units = 'mm'
-            else:
-                fx = params.cam_matrix[0,0]
-                fy = params.cam_matrix[1,1]
-                fl_units = 'px'
-
-            widgets[2].setText( '<br>'.join( [ '( {: .3f} , {: .3f} , {: .3f} ) m'.format(pupilpos[0],pupilpos[1],pupilpos[2]).replace(' ','&nbsp;') ,
-                                               '( {: .3f} , {: .3f} , {: .3f} )'.format(los_centre[0],los_centre[1],los_centre[2]).replace(' ','&nbsp;') ,
-                                               '{:.1f}\xb0 x {:.1f}\xb0 '.format(fov[0],fov[1]).replace(' ','&nbsp;') ,
-                                               "{0:.1f} {2:s} x {1:.1f} {2:s}".format(fx,fy,fl_units).replace(' ','&nbsp;') ,
-                                               "( {: .0f} , {: .0f} )".format(params.cam_matrix[0,2], params.cam_matrix[1,2]).replace(' ','&nbsp;') ,
-                                               "{: 5.4f}".format(params.k1).replace(' ','&nbsp;') ,
-                                               "{: 5.4f}".format(params.k2).replace(' ','&nbsp;') ,
-                                               "{: 5.4f}".format(params.k3).replace(' ','&nbsp;') ,
-                                               "{: 5.4f}".format(params.k4).replace(' ','&nbsp;') ,
-                                               ''
-                                               ] ) )                
-        if self.cadmodel is not None:
-            widgets[3].setEnabled(True)
-        else:
-            widgets[3].setEnabled(False)
-
- 
-        if self.cadmodel is None:
-            self.overlay_checkbox.setEnabled(False)
-        else:
-            self.overlay_checkbox.setEnabled(True)
-
-        self.fit_results[subview].show()
-        self.fitted_points_checkbox.setEnabled(True)
-        self.fitted_points_checkbox.setChecked(True)
         self.fit_changed = True
+
+        self.update_fit_results()
+
         self.app.restoreOverrideCursor()
         if self.tabWidget.isHidden():
             dialog = qt.QMessageBox(self)
@@ -987,26 +1026,35 @@ class FittingCalibrationWindow(CalcamGUIWindow):
    
 
 
-    def update_n_points(self,n_pairs,n_unpaired,n_list):
+    def update_n_points(self):
 
-        self.n_data = np.array(n_list) * 3
-        n_pairs_string = str(n_pairs) + ' Point Pairs'
-        if n_unpaired > 0:
-            n_pairs_string = n_pairs_string + ' + ' + str(n_unpaired) + ' unpaired points'
+        self.n_data = []
 
-        self.n_pointpairs_text.setText(n_pairs_string)
+        msg = ''
 
-        if n_pairs > 0:
-            self.save_points_button.setEnabled(1)
+        #self.show_debug_dialog(self.point_pairings)
+
+        for subview in range(self.calibration.n_subviews):
+            if subview > 0:
+                msg = msg + '\n'
+
+            npts = 0
+            for pp in self.point_pairings:
+                if pp[0] is not None and pp[1] is not None:
+                    im_coords = self.interactor2d.get_cursor_coords(pp[1])
+
+                    if im_coords[subview] is not None:
+                        npts += 1
+
+            msg = msg + '{:s}: {:d} point pairs'.format(self.calibration.subview_names[subview],npts)
+            self.n_data.append(npts)
+        self.n_pointpairs_text.setText(msg)
+
+        if len(self.point_pairings) > 0:
             self.clear_points_button.setEnabled(1)
         else:
-            self.save_points_button.setEnabled(0)
             self.clear_points_button.setEnabled(0)
 
-        if n_pairs > 0 or n_unpaired > 0:
-            self.any_points = True
-        else:
-            self.any_points = False
 
         self.fit_enable_check()
 
@@ -1072,7 +1120,6 @@ class FittingCalibrationWindow(CalcamGUIWindow):
 
         # Basic setup
         self.filename = opened_calib.filename
-        self.calibration = opened_calib
 
         # Load the image
         for imsource in self.image_sources:
@@ -1080,11 +1127,11 @@ class FittingCalibrationWindow(CalcamGUIWindow):
                 self.load_image(newim = imsource['get_image_function'](self.filename))
 
         # Load the point pairs
-        self.load_pointpairs(pointpairs=self.calibration.pointpairs)
+        self.load_pointpairs(pointpairs=opened_calib.pointpairs)
 
         # Load the appropriate CAD model, if we know what that is
-        if self.calibration.cad_config is not None:
-            cconfig = self.calibration.cad_config
+        if opened_calib.cad_config is not None:
+            cconfig = opened_calib.cad_config
             name_index = sorted(self.model_list.keys()).index(cconfig['model_name'])
             self.model_name.setCurrentIndex(name_index)
             variant_index = self.model_list[ cconfig['model_name'] ][1].index(cconfig['model_variant'])
@@ -1098,6 +1145,29 @@ class FittingCalibrationWindow(CalcamGUIWindow):
             self.tarY.setValue(cconfig['viewport'][4])
             self.tarZ.setValue(cconfig['viewport'][5])
             self.camFOV.setValue(cconfig['viewport'][6])
+
+        for field in range(len(self.fit_settings_widgets)):
+            if opened_calib.view_models[field] is not None:
+
+                if opened_calib.view_models[field].model == 'perspective':
+                    self.fit_settings_widgets[field][0].setChecked(True)
+                    widget_index_start = 2
+                    widget_index_end = 6
+                elif opened_calib.view_models[field].model == 'fisheye':
+                    self.fit_settings_widgets[field][1].setChecked(True)
+                    widget_index_start = 7
+                    widget_index_end = 10
+                    
+
+                for widget in self.fit_settings_widgets[field][widget_index_start:widget_index_end+1]:
+                    widget.setChecked(False)
+                    if str(widget.text()) in opened_calib.view_models[field].fit_options:
+                        widget.setChecked(True)
+
+        self.calibration = opened_calib
+
+        self.update_fit_results()
+
 
     def toggle_hist_eq(self,check_state):
 
@@ -1114,15 +1184,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
 
         self.interactor2d.set_image(im_out,hold_position=True)
 
-        '''
-        # For some reason, to stop the points from disappearing I have to re-set their positions
-        for _,cursor_id in self.point_pairings:
-            self.interactor2d.set_cursor_coords(cursor_id,self.interactor2d.get_cursor_coords(cursor_id))
 
-        if self.fitted_points_checkbox.isChecked():
-            self.fitted_points_checkbox.setChecked(False)
-            self.fitted_points_checkbox.setChecked(True)
-        '''
         
     def closeEvent(self,event):
 

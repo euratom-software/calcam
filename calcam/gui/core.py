@@ -303,7 +303,7 @@ class CalcamGUIWindow(qt.QMainWindow):
             if obj_type.lower() == 'calibration':
                 obj = Calibration(path)
                 obj.filename = path
-
+                
             elif obj_type.lower() == 'pointpairs':
                 if path.endswith('.ccc'):
                     obj = Calibration(path).pointpairs

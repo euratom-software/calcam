@@ -349,7 +349,7 @@ class Calibration():
 
         self.history = []
 
-        self.subview_names = []
+        self.subview_names = ['View 1']
 
         self.pixel_size = None
 
@@ -969,7 +969,7 @@ class Fitter:
             free_params = free_params - self.fixk3
             free_params = free_params - 2*self.disabletangentialdist
             free_params = free_params - self.fixaspectratio
-            free_params = free_params - 2*fixcc
+            free_params = free_params - 2*self.fixcc
 
         # Or for a fisheye fit...
         elif self.model == 'fisheye':
