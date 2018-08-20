@@ -13,7 +13,7 @@ setup(
 	  url='https://github.com/euratom-software/calcam',
 	  license='European Union Public License 1.1',
 	  packages=find_packages(),
-	  package_data={'calcam':['ui/*.ui','ui/*.png','usercode_examples/*.py_']},
+	  package_data={'calcam':['gui/*.ui','gui/*.png','image_sources/*.py']},
           entry_points={ 'gui_scripts': [ 'calcam = calcam.gui:start_gui'] },
           zip_safe=False
 	  )

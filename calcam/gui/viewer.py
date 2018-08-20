@@ -143,7 +143,7 @@ class ViewerWindow(CalcamGUIWindow):
                 elif coords.shape[1] in [3,6]:
 
                     coords_dialog = CoordsDialog(self,coords.shape)
-                    coords_dialog.exec()
+                    coords_dialog.exec_()
                     if coords_dialog.result() == 1:
 
                         if coords_dialog.line_coords_combobox.currentIndex() == 1:
