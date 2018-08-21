@@ -127,14 +127,14 @@ class ViewerWindow(CalcamGUIWindow):
             filedialog.setNameFilter(filename_filter)
             filedialog.exec_()
             if filedialog.result() == 1:
-                fname = filedialog.selectedFiles()[0]
+                fname = str(filedialog.selectedFiles()[0])
 
                 coords = None
                 for delimiter in ['\t',' ',',']:
                     try:
                         coords = np.loadtxt(fname,delimiter=delimiter)
                         lines_name = os.path.split(fname)[1].split('.')[0]
-                    except:
+                    except ValueError:
                         continue
 
                 if coords is None:
