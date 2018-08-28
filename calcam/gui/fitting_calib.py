@@ -1,6 +1,8 @@
 import cv2
 import time
 from scipy.ndimage.measurements import center_of_mass as CoM
+import matplotlib.cm
+import copy
 
 from .core import *
 from .vtkinteractorstyles import CalcamInteractorStyle2D, CalcamInteractorStyle3D
@@ -32,7 +34,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         # Set up VTK
         self.qvtkwidget_3d = qt.QVTKRenderWindowInteractor(self.vtkframe_3d)
         self.vtkframe_3d.layout().addWidget(self.qvtkwidget_3d)
-        self.interactor3d = CalcamInteractorStyle3D(refresh_callback=self.refresh_3d,viewport_callback=self.update_viewport_info,cursor_move_callback=self.update_cursor_position,newpick_callback=self.new_point_3d,focus_changed_callback=lambda x: self.change_point_focus('3d',x))
+        self.interactor3d = CalcamInteractorStyle3D(refresh_callback=self.refresh_3d,viewport_callback=self.update_viewport_info,cursor_move_callback=self.update_cursor_position,newpick_callback=self.new_point_3d,focus_changed_callback=lambda x: self.change_point_focus('3d',x),resize_callback=self.update_vtk_size)
         self.qvtkwidget_3d.SetInteractorStyle(self.interactor3d)
         self.renderer_3d = vtk.vtkRenderer()
         self.renderer_3d.SetBackground(0, 0, 0)
@@ -96,14 +98,19 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         self.pixel_size_checkbox.toggled.connect(self.update_fitopts_gui)
         self.pixel_size_box.valueChanged.connect(self.update_pixel_size)
         #self.toggle_controls_button.clicked.connect(self.toggle_controls)
-        self.chessboard_button.clicked.connect(self.modify_chessboard_constraints)
-        self.use_chessboard_checkbox.toggled.connect(self.toggle_chessboard_constraints)
+        self.load_chessboard_button.clicked.connect(self.modify_chessboard_constraints)
+        self.chessboard_checkbox.toggled.connect(self.toggle_chessboard_constraints)
+        self.load_intrinsics_calib_button.clicked.connect(self.modify_intrinsics_calib)
+        self.intrinsics_calib_checkbox.toggled.connect(self.toggle_intrinsics_calib)
 
         self.action_save.triggered.connect(self.save_calib)
         self.action_save_as.triggered.connect(lambda: self.save_calib(saveas=True))
         self.action_open.triggered.connect(self.load_calib)
         self.action_new.triggered.connect(self.reset)
         #self.new_calib.triggered.connect(self.reset)
+
+        self.del_pp_button.clicked.connect(self.remove_current_pointpair)
+        self.clear_points_button.clicked.connect(self.clear_pointpairs)
 
         # If we have an old version of openCV, histo equilisation won't work :(
         cv2_version = float('.'.join(cv2.__version__.split('.')[:2]))
@@ -143,6 +150,8 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         for imsource in self.image_sources:
             self.image_sources_list.addItem(imsource['display_name'])
         self.image_sources_list.setCurrentIndex(0)
+
+        self.chessboard_pointpairs = []
         
         self.point_pairings = []
         self.selected_pointpair = None
@@ -156,7 +165,9 @@ class FittingCalibrationWindow(CalcamGUIWindow):
 
         self.filename = None
 
-        self.n_data = [0]
+        self.n_points = [ [0,0] ] # One list per sub-field, which is [extrinsics_data, intrinsics_data]
+
+        self.intrinsics_calib = None
 
         # Start the GUI!
         self.show()
@@ -164,13 +175,28 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         self.interactor3d.init()
         self.qvtkwidget_3d.GetRenderWindow().GetInteractor().Initialize()
         self.qvtkwidget_2d.GetRenderWindow().GetInteractor().Initialize()
+        self.interactor3d.on_resize()
+
+
+    def modify_intrinsics_calib(self):
+        loaded_calib = self.object_from_file('calibration')
+        if loaded_calib is not None:
+            self.intrinsics_calib = loaded_calib
+            self.intrinsics_calib_checkbox.setChecked(True)
+
+
+    def toggle_intrinsics_calib(self,on):
+
+        if on and self.intrinsics_calib is None:
+            self.modify_intrinsics_calib()
+            if self.intrinsics_calib is None:
+                self.intrinsics_calib_checkbox.setChecked(False)
+
+        self.update_n_points()
 
 
 
     def reset(self):
-
-        self.fitted_points_checkbox.setChecked(False)
-        self.overlay_checkbox.setChecked(False)
 
         # Start up with no CAD model
         if self.cadmodel is not None:
@@ -195,25 +221,31 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         self.tabWidget.setTabEnabled(3,False)
         self.tabWidget.setTabEnabled(4,False)
 
-
-
         self.point_update_timestamp = None
         self.fit_timestamps = []
 
-        self.selected_pointpair = None
-
-        self.fitters = []
-
-        self.fit_overlay = None
-
-        self.fit_results = []
-
         self.filename = None
+
+        self.chessboard_pointpairs = []
+        self.chessboard_checkbox.setChecked(False)
+        self.intrinsics_calib = None
+        self.intrinsics_calib_checkbox.setChecked(False)
 
         self.refresh_2d()
         self.refresh_3d()
 
-    def update_cursor_position(self,position):
+
+    def reset_fit(self,reset_options=True):
+
+        self.fit_overlay = None
+        self.fitted_points_checkbox.setChecked(False)
+        self.fitted_points_checkbox.setEnabled(False)
+        self.overlay_checkbox.setChecked(False)
+        self.overlay_checkbox.setEnabled(False)
+        self.rebuild_image_gui(reset_fitters=reset_options)
+        self.calibration.view_models = [None] * self.calibration.n_subviews
+
+    def update_cursor_position(self,cursor_id,position):
         
         #info = 'Cursor location: ' + self.cadmodel.format_coord(position).replace('\n',' | ')
 
@@ -282,6 +314,42 @@ class FittingCalibrationWindow(CalcamGUIWindow):
                     self.interactor3d.set_cursor_focus(pointpair[0])
                     self.selected_pointpair = i
 
+        self.update_cursor_info()
+
+
+    def update_cursor_info(self):
+
+        if self.selected_pointpair is not None:
+            object_coords = self.interactor3d.get_cursor_coords(self.point_pairings[self.selected_pointpair][0])
+            image_coords = self.interactor2d.get_cursor_coords(self.point_pairings[self.selected_pointpair][1])
+
+            info_string = ''
+
+            if object_coords is not None and self.cadmodel is not None:
+                info_string = info_string + '<span style=" text-decoration: underline;">CAD Point<br></span>' + self.cadmodel.format_coord(object_coords).replace('\n','<br>') + '<br><br>'
+
+            if image_coords is not None:
+                info_string = info_string + '<span style=" text-decoration: underline;">Image Point(s)</span><br>'
+
+                for i,point in enumerate(image_coords):
+                    if point is not None:
+                        if sum(x is not None for x in image_coords) > 1:
+                            info_string = info_string + self.calibration.subview_names[i] + ': '.replace(' ','&nbsp;')
+
+                        info_string = info_string + '( {:.0f} , {:.0f} ) px'.format(point[0],point[1]).replace(' ','&nbsp;')
+
+                        if i < len(image_coords) - 1:
+                            info_string = info_string + '<br>'
+
+
+            self.del_pp_button.setEnabled(True)
+
+        else:
+            info_string = 'No selection'
+            self.del_pp_button.setEnabled(False)
+
+        self.point_info_text.setText(info_string)
+
 
 
     def on_model_load(self):
@@ -320,19 +388,22 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         else:
             self.original_subview_mask = np.zeros(self.original_image.shape[:2],dtype=np.uint8)
 
+        if 'subview_names' in newim:
+            subview_names = newim['subview_names']
+        else:
+            subview_names = []
+
         if 'transform_actions' in newim:
             transform_actions = newim['transform_actions']
         else:
             transform_actions = ''
 
-        self.calibration.set_image( self.original_image , subview_mask = self.original_subview_mask, transform_actions = transform_actions,coords='Original' )
-
-        self.subview_mask = np.zeros(newim['image_data'].shape[:2],dtype='uint8')
+        self.calibration.set_image( self.original_image , subview_mask = self.original_subview_mask, transform_actions = transform_actions,coords='Original',subview_names=subview_names )
 
         self.calibration.view_models = [None] * self.calibration.n_subviews
         self.fit_timestamps = [None] * self.calibration.n_subviews 
 
-        self.interactor2d.set_image(self.calibration.geometry.original_to_display_image(newim['image_data']))
+        self.interactor2d.set_image(self.calibration.geometry.original_to_display_image(newim['image_data']),n_subviews = self.calibration.n_subviews,subview_lookup = self.calibration.subview_lookup)
 
         self.image_settings.show()
         if self.hist_eq_checkbox.isChecked():
@@ -370,7 +441,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         self.fit_enable_check()
 
 
-    def rebuild_image_gui(self):
+    def rebuild_image_gui(self,reset_fitters = True):
 
         # Build the GUI to show fit options, according to the number of fields.
         self.subview_tabs.clear()
@@ -382,14 +453,19 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         self.fit_buttons = []
         self.fit_results = []
 
-        self.fitters = []
+        if reset_fitters:
+            self.fitters = []
+
+        if self.fitters == []:
+            reset_fitters = True
 
         self.fit_results_widgets = []
         self.view_to_fit_buttons = []
 
         for field in range(self.calibration.n_subviews):
             
-            self.fitters.append(Fitter())
+            if reset_fitters:
+                self.fitters.append(Fitter())
 
             new_tab = qt.QWidget()
             new_layout = qt.QVBoxLayout()
@@ -435,64 +511,21 @@ class FittingCalibrationWindow(CalcamGUIWindow):
             sub_layout.setContentsMargins(0,0,0,0)
             perspective_settings_layout.addWidget(sub_widget)
 
-            widgetlist[-3].toggled.connect(lambda state: self.change_fit_params(self.fitters[-1].fix_k1,state))
-            widgetlist[-2].toggled.connect(lambda state: self.change_fit_params(self.fitters[-1].fix_k2,state))
-            widgetlist[-1].toggled.connect(lambda state: self.change_fit_params(self.fitters[-1].fix_k3,state))
-
+            widgetlist[-3].setChecked(self.fitters[field].fixk1)
+            widgetlist[-3].toggled.connect(lambda state,field=field: self.change_fit_params(self.fitters[field].fix_k1,state))
+            widgetlist[-2].setChecked(self.fitters[field].fixk2)
+            widgetlist[-2].toggled.connect(lambda state,field=field: self.change_fit_params(self.fitters[field].fix_k2,state))
+            widgetlist[-1].setChecked(self.fitters[field].fixk3)
+            widgetlist[-1].toggled.connect(lambda state,field=field: self.change_fit_params(self.fitters[field].fix_k3,state))
             widgetlist.append(qt.QCheckBox('Disable tangential distortion'))
             perspective_settings_layout.addWidget(widgetlist[-1])
-            widgetlist[-1].clicked.connect(lambda state: self.change_fit_params(self.fitters[-1].fix_tangential,state))
+            widgetlist[-1].setChecked(self.fitters[field].disabletangentialdist)
+            widgetlist[-1].toggled.connect(lambda state,field=field: self.change_fit_params(self.fitters[field].fix_tangential,state))
             widgetlist.append(qt.QCheckBox('Fix Fx = Fy'))
-            widgetlist[-1].clicked.connect(lambda state: self.change_fit_params(self.fitters[-1].fix_aspect,state))
-            widgetlist[-1].setChecked(True)
+            widgetlist[-1].setChecked(self.fitters[field].fixaspectratio)
+            widgetlist[-1].toggled.connect(lambda state,field=field: self.change_fit_params(self.fitters[field].fix_aspect,state))
             perspective_settings_layout.addWidget(widgetlist[-1])
 
-            '''
-            newWidgets = [qt.QCheckBox('Fix optical centre at: ('),qt.QDoubleSpinBox(),qt.QLabel(','), qt.QDoubleSpinBox(),qt.QLabel(')')]
-            newWidgets[0].toggled.connect(self.update_fitopts_gui)
-            widgetlist = widgetlist + [newWidgets[0],newWidgets[1],newWidgets[3]]
-            newWidgets[1].setButtonSymbols(qt.QAbstractSpinBox.NoButtons)
-            newWidgets[1].setDecimals(1)
-            newWidgets[1].setMinimum(-self.calibration.geometry.get_display_shape()[0]*10)
-            newWidgets[1].setMaximum(self.calibration.geometry.get_display_shape()[0]*10)
-            newWidgets[1].setValue(self.calibration.geometry.get_display_shape()[0]/2)
-            newWidgets[1].setEnabled(False)
-            newWidgets[3].setButtonSymbols(qt.QAbstractSpinBox.NoButtons)
-            newWidgets[3].setMinimum(-self.calibration.geometry.get_display_shape()[1]*10)
-            newWidgets[3].setMaximum(self.calibration.geometry.get_display_shape()[1]*10)
-            newWidgets[3].setValue(self.calibration.geometry.get_display_shape()[1]/2)
-            newWidgets[3].setEnabled(False)
-            newWidgets[3].setDecimals(1)
-            
-            sub_widget = qt.QWidget()
-            sub_layout = qt.QHBoxLayout()
-            sub_layout.setContentsMargins(0,0,0,0)
-            sub_widget.setLayout(sub_layout)
-            sub_layout.addWidget(newWidgets[0])
-            sub_layout.addWidget(newWidgets[1])
-            sub_layout.addWidget(newWidgets[2])
-            sub_layout.addWidget(newWidgets[3])
-            sub_layout.addWidget(newWidgets[4])
-            perspective_settings_layout.addWidget(sub_widget)
-            
-
-            newWidgets = [qt.QLabel('Initial guess for focal length:'),qt.QSpinBox()]
-            widgetlist = widgetlist + [newWidgets[1]]
-            newWidgets[1].setMinimum(0)
-            newWidgets[1].setMaximum(1e9)
-            newWidgets[1].setButtonSymbols(qt.QAbstractSpinBox.NoButtons)
-            newWidgets[1].setSuffix(' px')
-            newWidgets[1].setValue(1000)   
-            
-
-            sub_widget = qt.QWidget()
-            sub_layout = qt.QHBoxLayout()
-            sub_layout.setContentsMargins(0,0,0,0)
-            sub_widget.setLayout(sub_layout)
-            sub_layout.addWidget(newWidgets[0])
-            sub_layout.addWidget(newWidgets[1])
-            perspective_settings_layout.addWidget(sub_widget)
-            '''
 
             # ------- End of perspective settings -----------------  
 
@@ -515,34 +548,18 @@ class FittingCalibrationWindow(CalcamGUIWindow):
             sub_layout.setContentsMargins(0,0,0,0)
             fisheye_settings_layout.addWidget(sub_widget)
             
-            widgetlist[-4].toggled.connect(lambda state: self.change_fit_params(self.fitters[-1].fix_k1,state))
-            widgetlist[-3].toggled.connect(lambda state: self.change_fit_params(self.fitters[-1].fix_k2,state))
-            widgetlist[-2].toggled.connect(lambda state: self.change_fit_params(self.fitters[-1].fix_k3,state))
-            widgetlist[-1].toggled.connect(lambda state: self.change_fit_params(self.fitters[-1].fix_4,state))
+            widgetlist[-4].setChecked(self.fitters[field].fixk1)
+            widgetlist[-4].toggled.connect(lambda state,field=field: self.change_fit_params(self.fitters[field].fix_k1,state))
+            widgetlist[-3].setChecked(self.fitters[field].fixk2)
+            widgetlist[-3].toggled.connect(lambda state,field=field: self.change_fit_params(self.fitters[field].fix_k2,state))
+            widgetlist[-2].setChecked(self.fitters[field].fixk3)
+            widgetlist[-2].toggled.connect(lambda state,field=field: self.change_fit_params(self.fitters[field].fix_k3,state))
+            widgetlist[-1].setChecked(self.fitters[field].fixk4)
+            widgetlist[-1].toggled.connect(lambda state,field=field: self.change_fit_params(self.fitters[field].fix_4,state))
 
             for widgetno in [-4,-3,-2,-1]:
                 widgetlist[widgetno].toggled.connect(self.fit_enable_check)
 
-
-            '''
-            newWidgets = [qt.QLabel('Initial guess for focal length:'),qt.QSpinBox()]
-            widgetlist = widgetlist + [newWidgets[1]]
-            newWidgets[1].setMinimum(0)
-            newWidgets[1].setMaximum(1e9)
-            newWidgets[1].setButtonSymbols(qt.QAbstractSpinBox.NoButtons)
-            newWidgets[1].setSuffix(' px')
-            newWidgets[1].setValue(1000)
-
-            sub_widget = qt.QWidget()
-            sub_layout = qt.QHBoxLayout()
-            sub_layout.setContentsMargins(0,0,0,0)
-            sub_widget.setLayout(sub_layout)
-            sub_layout.addWidget(newWidgets[0])
-            sub_layout.addWidget(newWidgets[1])
-            fisheye_settings_layout.addWidget(sub_widget)
-            spacer = qt.QSpacerItem(20,10,qt.QSizePolicy.Minimum,qt.QSizePolicy.Expanding)
-            fisheye_settings_layout.addItem(spacer)
-            '''
             # ------- End of fisheye settings -----------------
 
 
@@ -553,7 +570,8 @@ class FittingCalibrationWindow(CalcamGUIWindow):
             options_groupbox.setLayout(options_layout)
 
             fit_button = qt.QPushButton('Do Fit')
-            fit_button.clicked.connect(lambda: self.do_fit(subview=field))
+
+            fit_button.clicked.connect(self.do_fit)
             #fit_button.setEnabled(False)
             options_layout.addWidget(fit_button)
             self.fit_buttons.append(fit_button)
@@ -635,8 +653,6 @@ class FittingCalibrationWindow(CalcamGUIWindow):
 
     def transform_image(self,data):
 
-        print('Starts: {:d}x{:d}'.format(self.calibration.geometry.x_pixels,self.calibration.geometry.y_pixels))
-
         # First, back up the point pair locations in original coordinates.
         orig_coords = []
         
@@ -681,8 +697,8 @@ class FittingCalibrationWindow(CalcamGUIWindow):
 
         # Update the image and point pairs
         self.calibration.set_image(self.calibration.geometry.original_to_display_image(self.original_image),subview_mask = self.calibration.geometry.original_to_display_image(self.original_subview_mask),transform_actions = self.calibration.geometry.transform_actions, pixel_aspect = self.calibration.geometry.pixel_aspectratio)
-        self.interactor2d.set_image(self.calibration.image)
-        #self.update_pointpairs()
+        self.interactor2d.set_image(self.calibration.geometry.original_to_display_image(self.original_image),n_subviews = self.calibration.n_subviews,subview_lookup=self.calibration.subview_lookup)
+        self.update_pointpairs()
 
         if self.hist_eq_checkbox.isChecked():
             self.hist_eq_checkbox.setChecked(False)
@@ -711,15 +727,17 @@ class FittingCalibrationWindow(CalcamGUIWindow):
 
                 cursorid_2d = None
                 for j in range(len(pointpairs.image_points[i])):
-                    if cursorid_2d is None:
-                        cursorid_2d = self.interactor2d.add_active_cursor(pointpairs.image_points[i][j])
-                    else:
-                        self.interactor2d.add_active_cursor(pointpairs.image_points[i][j],add_to=cursorid_2d)
+                    if pointpairs.image_points[i][j] is not None:
+                        if cursorid_2d is None:
+                            cursorid_2d = self.interactor2d.add_active_cursor(pointpairs.image_points[i][j])
+                        else:
+                            self.interactor2d.add_active_cursor(pointpairs.image_points[i][j],add_to=cursorid_2d)
 
                 self.point_pairings.append([cursorid_3d,cursorid_2d])
 
             self.update_pointpairs()
             self.update_n_points()
+            self.update_cursor_info()
             self.app.restoreOverrideCursor()
 
 
@@ -760,10 +778,8 @@ class FittingCalibrationWindow(CalcamGUIWindow):
                 self.interactor3d.remove_cursor(pp_to_remove[0])
             if pp_to_remove[1] is not None:
                 self.interactor2d.remove_active_cursor(pp_to_remove[1])
-            
-            
 
-
+            self.update_cursor_info()
             self.update_n_points()
 
 
@@ -781,6 +797,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
 
         self.point_pairings = []
 
+        self.reset_fit(reset_options=False)
         self.update_n_points()
 
 
@@ -795,10 +812,8 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         for i,fitter in enumerate(self.fitters):
             enable = True
 
-            free_params = fitter.get_n_params()
-
-            # And the award for most confusingly written if condition goes to...
-            if not ( (self.n_data[i] > free_params and self.n_data[i] > 9) or (self.n_data[i] > 9 and self.use_chessboard_checkbox.isChecked()) ):
+            # We need at least 4 extrinsics points and at least as many total points as free parameters
+            if self.n_points[i][0] < 4 or np.sum(self.n_points[i]) < 6:
                 enable = False
 
             self.fit_buttons[i].setEnabled(enable)
@@ -824,6 +839,26 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         else:
             self.calibration.set_pointpairs(None)
 
+        # Add the intrinsics constraints
+        self.calibration.clear_intrinsics_constraints()
+
+        for subview in range(self.calibration.n_subviews):
+            self.fitters[subview].set_pointpairs(self.calibration.pointpairs,subview=subview)
+            self.fitters[subview].clear_intrinsics_pointpairs()
+
+        if self.intrinsics_calib_checkbox.isChecked():
+            self.calibration.add_intrinsics_constraints(calibration=self.intrinsics_calib)
+            for subview in range(self.calibration.n_subviews):
+                self.fitters[subview].add_intrinsics_pointpairs(self.intrinsics_calib.pointpairs,subview=subview)
+
+        if self.chessboard_checkbox.isChecked():
+            for chessboard_constraint in self.chessboard_pointpairs:
+                self.calibration.add_intrinsics_constraints(image=chessboard_constraint[0],pointpairs = chessboard_constraint[1]) 
+                for subview in range(self.calibration.n_subviews):
+                     self.fitters[subview].add_intrinsics_pointpairs(chessboard_constraint[1],subview=subview)
+
+
+               
 
     def update_fit_results(self):
 
@@ -932,7 +967,11 @@ class FittingCalibrationWindow(CalcamGUIWindow):
 
 
 
-    def do_fit(self,subview=0):
+    def do_fit(self):
+
+        for i,button in enumerate(self.fit_buttons):
+            if self.sender() is button:
+                subview = i
 
         # If this was called via a keyboard shortcut, we may be in no position to do a fit.
         #if not self.fit_button.isEnabled():
@@ -944,7 +983,6 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         self.fitted_points_checkbox.setChecked(False)
         self.overlay_checkbox.setChecked(False)
         self.fit_overlay = None
-        self.fitters[subview].set_pointpairs(self.calibration.pointpairs,subview=subview)
 
         # Do the fit!
         self.fit_timestamps[subview] = time.time()
@@ -987,14 +1025,12 @@ class FittingCalibrationWindow(CalcamGUIWindow):
                     orig_colours = self.cadmodel.get_colour()
                     self.cadmodel.set_wireframe(True)
                     self.cadmodel.set_colour((0,0,1))
-                    overlay_image = render_cam_view(self.cadmodel,self.calibration,transparency=True,verbose=False,aa=2)
+                    self.fit_overlay = render_cam_view(self.cadmodel,self.calibration,transparency=True,verbose=False,aa=2)
                     self.cadmodel.set_colour(orig_colours)
                     self.cadmodel.set_wireframe(False)
 
-                    self.fit_overlay = get_image_actor(overlay_image)
 
-
-                    if np.max(overlay_image) == 0:
+                    if np.max(self.fit_overlay) == 0:
                         dialog = qt.QMessageBox(self)
                         dialog.setStandardButtons(qt.QMessageBox.Ok)
                         dialog.setWindowTitle('Calcam - Information')
@@ -1028,11 +1064,12 @@ class FittingCalibrationWindow(CalcamGUIWindow):
 
     def update_n_points(self):
 
-        self.n_data = []
+        self.n_points = []
+
+        chessboard_points = 0
+        intcal_points = 0
 
         msg = ''
-
-        #self.show_debug_dialog(self.point_pairings)
 
         for subview in range(self.calibration.n_subviews):
             if subview > 0:
@@ -1046,8 +1083,14 @@ class FittingCalibrationWindow(CalcamGUIWindow):
                     if im_coords[subview] is not None:
                         npts += 1
 
-            msg = msg + '{:s}: {:d} point pairs'.format(self.calibration.subview_names[subview],npts)
-            self.n_data.append(npts)
+            self.n_points.append([npts,0])
+
+            if self.calibration.n_subviews > 1:
+                msg = msg + '{:s}: {:d} point pairs'.format(self.calibration.subview_names[subview],npts)
+            else:
+                msg = msg + '{:d} point pairs'.format(npts)
+            
+
         self.n_pointpairs_text.setText(msg)
 
         if len(self.point_pairings) > 0:
@@ -1055,34 +1098,30 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         else:
             self.clear_points_button.setEnabled(0)
 
+                
+        for chessboard_constraint in self.chessboard_pointpairs:
+            for subview in range(self.calibration.n_subviews):
+                if self.chessboard_checkbox.isChecked():
+                    self.n_points[subview][1] = self.n_points[subview][1] + chessboard_constraint[1].get_n_points(subview) - 6
+                chessboard_points = chessboard_points + chessboard_constraint[1].get_n_points(subview)
+
+        if self.intrinsics_calib is not None:
+            for subview in range(self.calibration.n_subviews):
+                if self.intrinsics_calib_checkbox.isChecked():
+                    self.n_points[subview][1] = self.n_points[subview][1] + self.intrinsics_calib.pointpairs.get_n_points(subview) - 6
+                intcal_points = intcal_points + self.intrinsics_calib.pointpairs.get_n_points(subview)
+
+        if chessboard_points > 0:
+            self.chessboard_checkbox.setText('Chessboard Images ({:d} points)'.format(chessboard_points))
+        else:
+            self.chessboard_checkbox.setText('Chessboard Images (None Loaded)')
+
+        if intcal_points > 0:
+            self.intrinsics_calib_checkbox.setText('Existing Calibration ({:d} points)'.format(intcal_points))
+        else:
+            self.intrinsics_calib_checkbox.setText('Existing Calibration (None Loaded)')
 
         self.fit_enable_check()
-
-
-    def update_current_points(self,object_coords,image_coords):
-
-        info_string = ''
-
-        if object_coords is not None and self.cadmodel is not None:
-            info_string = info_string + '<span style=" text-decoration: underline;">CAD Point<br></span>' + self.cadmodel.get_position_info(object_coords).replace('\n','<br>') + '<br><br>'
-
-        if image_coords is not None:
-            info_string = info_string + '<span style=" text-decoration: underline;">Image Point(s)</span><br>'
-
-
-            for i,point in enumerate(image_coords):
-                info_string = info_string + '( {:.0f} , {:.0f} ) px'.format(point[0],point[1]).replace(' ','&nbsp;')
-                if len(image_coords) > 1:
-                    info_string = info_string + '  [' + self.image.field_names[i] + ']'.replace(' ','&nbsp;')
-                if image_coords.index(point) < len(image_coords) - 1:
-                    info_string = info_string + '<br>'
-        if info_string == '':
-            info_string = 'None'
-            self.del_pp_button.hide()
-        else:
-            self.del_pp_button.show()
-
-        self.point_info_text.setText(info_string)
 
 
     def save_calib(self,saveas=False):
@@ -1115,7 +1154,8 @@ class FittingCalibrationWindow(CalcamGUIWindow):
 
         if opened_calib is None:
             return
-            
+        
+        self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
         self.reset()
 
         # Basic setup
@@ -1165,9 +1205,21 @@ class FittingCalibrationWindow(CalcamGUIWindow):
                         widget.setChecked(True)
 
         self.calibration = opened_calib
+        self.interactor2d.subview_lookup = self.calibration.subview_lookup
 
+        for constraint in self.calibration.intrinsics_constraints:
+            if constraint.__class__ is Calibration:
+                self.intrinsics_calib = constraint
+                self.intrinsics_calib_checkbox.setChecked(True)
+            else:
+                if len(self.chessboard_pointpairs) == 0:
+                    self.chessboard_pointpairs = []
+                self.chessboard_pointpairs.append(constraint)
+                self.chessboard_checkbox.setChecked(True)
+
+        self.update_n_points()
         self.update_fit_results()
-
+        self.app.restoreOverrideCursor()
 
     def toggle_hist_eq(self,check_state):
 
@@ -1182,7 +1234,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
                 for channel in range(3):
                     im_out[:,:,channel] = hist_equaliser.apply(im_out.astype('uint8')[:,:,channel]) 
 
-        self.interactor2d.set_image(im_out,hold_position=True)
+        self.interactor2d.set_image(im_out,n_subviews = self.calibration.n_subviews,subview_lookup=self.calibration.subview_lookup,hold_position=True)
 
 
         
@@ -1192,33 +1244,12 @@ class FittingCalibrationWindow(CalcamGUIWindow):
 
 
     def edit_split_field(self):
-        dialog = SplitFieldDialog(self,self.pointpicker.Image)
+
+        dialog = SplitFieldDialog(self,self.calibration.image)
         result = dialog.exec_()
         if result == 1:
-            self.pointpicker.clear_all()
-            self.n_data = []
-            for field in range(self.pointpicker.nFields):
-                self.n_data.append(0)
-
-            if dialog.fieldmask.max() > 0:
-                self.use_chessboard_checkbox.setChecked(False)
-                self.use_chessboard_checkbox.setEnabled(False)
-                self.chessboard_button.setEnabled(False)
-                self.chessboard_pointpairs = None
-                self.chessboard_info.setText('Cannot use chessboard images with split-field cameras.')
-            else:
-                self.use_chessboard_checkbox.setEnabled(True)
-                self.chessboard_button.setEnabled(True)
-                if self.chessboard_pointpairs is not None:
-                    self.chessboard_info.setText('{:d} chessboard pattern images loaded<br>Total additional points: {:d} '.format(len(self.chessboard_pointpairs),len(self.chessboard_pointpairs)*len(self.chessboard_pointpairs[0].objectpoints)))
-                else:   
-                    self.chessboard_info.setText('No chessboard pattern images currently loaded.')
-            
-            self.image.fieldmask = dialog.fieldmask.copy()
-            self.image.n_fields = dialog.fieldmask.max() + 1
-            self.image.field_names = dialog.field_names
-
-            self.pointpicker.init_image(self.image)
+            self.calibration.set_subview_mask(dialog.fieldmask,subview_names=dialog.field_names)
+            self.interactor2d.n_subviews = self.calibration.n_subviews
             self.rebuild_image_gui()
 
         del dialog
@@ -1356,36 +1387,314 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         self.set_view_from_calib(self.calibration,subview)
 
 
-    '''
-    def toggle_controls(self):
-        if self.tabWidget.isHidden():
-            self.tabWidget.show()
-            self.toggle_controls_button.setText('>> Hide Controls')
-        else:
-            self.tabWidget.hide()
-            self.toggle_controls_button.setText('<< Show Controls')
-    '''
 
     def modify_chessboard_constraints(self):
 
         dialog = ChessboardDialog(self)
         dialog.exec_()
 
-        if dialog.pointpairs_result is not None:
-            self.use_chessboard_checkbox.setChecked(False)
-            self.chessboard_pointpairs = copy.deepcopy(dialog.pointpairs_result)
-            self.use_chessboard_checkbox.setEnabled(True)
-            self.use_chessboard_checkbox.setChecked(True)
-            self.chessboard_info.setText('{:d} chessboard pattern images loaded<br>Total additional points: {:d} '.format(len(self.chessboard_pointpairs),len(self.chessboard_pointpairs)*len(self.chessboard_pointpairs[0].objectpoints)))
+        if dialog.results != []:
+            self.chessboard_pointpairs = copy.deepcopy(dialog.results)
+            self.chessboard_checkbox.setChecked(True)
 
         del dialog
 
 
     def toggle_chessboard_constraints(self,on):
         
-        if on:
-            self.pointpicker.Fitter.add_intrinsics_pointpairs(self.chessboard_pointpairs)
-        else:
-            self.pointpicker.Fitter.clear_intrinsics_pointpairs()
+        if on and len(self.chessboard_pointpairs) == 0:
+            self.modify_chessboard_constraints()
+            if len(self.chessboard_pointpairs) == 0:
+                self.chessboard_checkbox.setChecked(False)
 
+        self.update_n_points()
         self.fit_enable_check()
+
+
+
+
+class SplitFieldDialog(qt.QDialog):
+
+    def __init__(self, parent, image):
+
+        # GUI initialisation
+        qt.QDialog.__init__(self, parent)
+        qt.uic.loadUi(os.path.join(guipath,'split_field_dialog.ui'), self)
+
+        self.image = image
+        self.field_names_boxes = []
+        self.parent = parent
+        
+        # Set up VTK
+        self.qvtkwidget = qt.QVTKRenderWindowInteractor(self.vtkframe)
+        self.vtkframe.layout().addWidget(self.qvtkwidget)
+        self.interactor = CalcamInteractorStyle2D(refresh_callback = self.refresh_2d,newpick_callback=self.on_pick,cursor_move_callback=self.update_fieldmask)
+        self.qvtkwidget.SetInteractorStyle(self.interactor)
+        self.renderer = vtk.vtkRenderer()
+        self.renderer.SetBackground(0, 0, 0)
+        self.qvtkwidget.GetRenderWindow().AddRenderer(self.renderer)
+        self.vtkInteractor = self.qvtkwidget.GetRenderWindow().GetInteractor()
+
+        if self.parent.calibration.n_subviews == 1:
+            self.no_split.setChecked(True)
+
+        # Callbacks for GUI elements
+        self.method_mask.toggled.connect(self.change_method)
+        self.method_points.toggled.connect(self.change_method)
+        self.no_split.toggled.connect(self.change_method)
+        self.mask_alpha_slider.valueChanged.connect(self.update_mask_alpha)
+        self.cancel_button.clicked.connect(self.reject)
+        self.apply_button.clicked.connect(self.apply)
+        self.mask_browse_button.clicked.connect(self.load_mask_image)
+
+        self.points_options.hide()
+        self.mask_options.hide()
+        self.mask_image = None
+        self.points = []
+
+        self.update_mask_alpha(self.mask_alpha_slider.value())
+
+        # Start the GUI!
+        self.show()
+        self.interactor.init()
+        self.renderer.Render()
+        self.vtkInteractor.Initialize()
+        self.interactor.set_image(self.image)
+
+
+    def refresh_2d(self):
+        self.renderer.Render()
+        self.qvtkwidget.update()
+
+
+    def change_method(self,checkstate=None):
+
+        if not checkstate:
+            return
+
+        if self.method_points.isChecked():
+            self.points_options.show()
+            self.mask_options.hide()
+            self.mask_alpha_slider.setEnabled(True)
+            self.mask_alpha_label.setEnabled(True)
+            for point in self.points:
+                point[1] = self.interactor.add_active_cursor(point[0])
+            if len(self.points) == 2:
+                self.interactor.set_cursor_focus(point[1])
+
+        elif self.method_mask.isChecked():
+            self.mask_options.show()
+            self.points_options.hide()
+            for point in self.points:
+                self.interactor.remove_active_cursor(point[1])
+                point[1] = None
+
+            self.mask_alpha_slider.setEnabled(True)
+            self.mask_alpha_label.setEnabled(True)
+            self.update_fieldmask( mask = np.zeros(self.image.shape[:2],dtype=np.uint8) )
+        else:
+            self.mask_options.hide()
+            self.points_options.hide()
+            for point in self.points:
+                self.interactor.remove_active_cursor(point[1])
+                point[1] = None
+            self.mask_alpha_slider.setEnabled(False)
+            self.mask_alpha_label.setEnabled(False)
+            self.update_fieldmask( mask = np.zeros(self.image.shape[:2],dtype=np.uint8) )
+
+        self.refresh_2d()
+
+    def update_mask_alpha(self,value):
+        self.mask_alpha_label.setText('Mask Opacity: {:d}%'.format(value))
+        self.overlay_opacity = int(2.55*value)
+        if self.mask_image is not None:
+            self.mask_image[:,:,3] = self.overlay_opacity
+            self.interactor.set_overlay_image(self.mask_image)
+
+
+
+    def update_fieldnames_gui(self,n_fields,colours,names):
+
+        if n_fields > 1:
+            self.fieldnames_box.show()
+        else:
+            self.fieldnames_box.hide()
+
+        if n_fields != len(self.field_names_boxes):
+            layout = self.fieldnames_box.layout()
+            for widget in self.field_names_boxes:
+                layout.removeWidget(widget)
+            self.field_names_boxes = []
+            if n_fields > 1:
+                for field in range(n_fields):
+                    self.field_names_boxes.append(qt.QLineEdit())
+                    self.field_names_boxes[-1].setStyleSheet("background: rgb({:.0f}, {:.0f}, {:.0f}); color: rgb(255,255,255); border: 1px solid;".format(colours[field][0],colours[field][1],colours[field][2]))
+                    self.field_names_boxes[-1].setMaximumWidth(150)
+                    self.field_names_boxes[-1].setText(names[field])
+                    layout.addWidget(self.field_names_boxes[-1])
+
+
+    def apply(self):
+
+        if self.fieldmask.max() == 0:
+            self.field_names = ['Image']
+        else:
+            self.field_names = [str(namebox.text()) for namebox in self.field_names_boxes]
+
+        self.done(1)
+
+
+
+    def load_mask_image(self):
+
+        filedialog = qt.QFileDialog(self)
+        filedialog.setAcceptMode(0)
+        filedialog.setFileMode(1)
+        filedialog.setWindowTitle('Select Mask File')
+        filedialog.setNameFilter('Image Files (*.png *.bmp *.jp2 *.tiff *.tif)')
+        filedialog.setLabelText(3,'Load')
+        filedialog.exec_()
+        if filedialog.result() == 1:
+            mask_im = cv2.imread(str(filedialog.selectedFiles()[0]))
+
+            if mask_im.shape[0] != self.image.shape[0] or mask_im.shape[1] != self.image.shape[1]:
+                mask_im = self.parent.calibration.geometry.original_to_display_image(mask_im)
+
+                if mask_im.shape[0] != self.image.shape[0] or mask_im.shape[1] != self.image.shape[1]:
+                    raise UserWarning('The selected mask image is a different shape to the camera image! The mask image must be the same shape as the camera image.')
+
+            self.update_fieldmask(mask=mask_im)
+
+
+    def on_pick(self,im_coords):
+
+        if self.method_points.isChecked() and len(self.points) < 2:
+            self.points.append( [im_coords, self.interactor.add_active_cursor(im_coords) ] )
+            if len(self.points) == 2:
+                self.interactor.set_cursor_focus(self.points[-1][1])
+            self.update_fieldmask()
+
+
+
+    def update_fieldmask(self,cursor_moved=None,updated_position=None,mask=None):
+
+        if cursor_moved is not None:
+            for point in self.points:
+                if cursor_moved == point[1]:
+                    point[0] = updated_position[0]
+
+
+        # If we're doing this from points...
+        if mask is None:
+
+            if len(self.points) == 2:
+
+                points = [self.points[0][0],self.points[1][0]]
+                n0 = np.argmin([points[0][0], points[1][0]])
+                n1 = np.argmax([points[0][0], points[1][0]])
+
+                m = (points[n1][1] - points[n0][1])/(points[n1][0] - points[n0][0])
+                c = points[n0][1] - m*points[n0][0]
+
+                x,y = np.meshgrid(np.linspace(0,self.image.shape[1]-1,self.image.shape[1]),np.linspace(0,self.image.shape[0]-1,self.image.shape[0]))
+                
+                ylim = m*x + c
+                self.fieldmask = np.zeros(x.shape,int)
+
+                self.fieldmask[y > ylim] = 1
+
+                n_fields = self.fieldmask.max() + 1
+
+            else:
+                return
+
+        # or if we're doing it from a mask..
+        else:
+
+            if len(mask.shape) > 2:
+                for channel in range(mask.shape[2]):
+                    mask[:,:,channel] = mask[:,:,channel] * 2**channel
+                mask = np.sum(mask,axis=2)
+
+            lookup = list(np.unique(mask))
+            n_fields = len(lookup)
+
+            if n_fields > 5:
+                raise UserWarning('The loaded mask image contains {:d} different colours. This seems wrong.')
+
+            for value in lookup:
+                mask[mask == value] = lookup.index(value)
+
+            self.fieldmask = np.uint8(mask)
+        
+        self.field_colours = []
+
+
+        if n_fields > 1:
+    
+            colours = [matplotlib.cm.get_cmap('nipy_spectral')(i) for i in np.linspace(0.1,0.9,n_fields)]
+            
+            for colour in colours:
+                self.field_colours.append( np.uint8(np.array(colour) * 255) )
+
+            y,x = self.image.shape[:2]
+
+            mask_image = np.zeros([y,x,4],dtype=np.uint8)
+
+            for field in range(n_fields):
+                inds = np.where(self.fieldmask == field)
+                mask_image[inds[0],inds[1],0] = self.field_colours[field][0]
+                mask_image[inds[0],inds[1],1] = self.field_colours[field][1]
+                mask_image[inds[0],inds[1],2] = self.field_colours[field][2]
+
+            mask_image[:,:,3] = self.overlay_opacity
+
+            self.interactor.set_overlay_image(mask_image)
+            self.mask_image = mask_image
+        else:
+            self.interactor.set_overlay_image(None)
+            self.mask_image = None
+
+
+        if len(self.field_names_boxes) != n_fields:
+            names = []
+            if n_fields == 2:
+
+                    xpx = np.zeros(2)
+                    ypx = np.zeros(2)
+
+                    for field in range(n_fields):
+
+                        # Get CoM of this field on the chip
+                        x,y = np.meshgrid(np.linspace(0,self.image.shape[1]-1,self.image.shape[1]),np.linspace(0,self.image.shape[0]-1,self.image.shape[0]))
+                        x[self.fieldmask != field] = 0
+                        y[self.fieldmask != field] = 0
+                        xpx[field] = np.sum(x)/np.count_nonzero(x)
+                        ypx[field] = np.sum(y)/np.count_nonzero(y)
+
+                    names = ['','']
+
+                    if ypx.max() - ypx.min() > 20:
+                        names[np.argmin(ypx)] = 'Upper '
+                        names[np.argmax(ypx)] = 'Lower '
+
+                    if xpx.max() - xpx.min() > 20:
+                        names[np.argmax(xpx)] = names[np.argmax(xpx)] + 'Right '
+                        names[np.argmin(xpx)] = names[np.argmin(xpx)] + 'Left '
+
+                    if names == ['','']:
+                        names.append('Sub FOV # 1', 'Sub FOV # 2')
+                    else:
+                        names[0] = names[0] + 'View'
+                        names[1] = names[1] + 'View'
+
+            elif n_fields > 2:
+                names = []
+                for field in range(n_fields):
+                    names.append('Sub FOV # ' + str(field + 1))
+
+            elif n_fields == 1:
+                names = ['Image']
+
+
+            self.update_fieldnames_gui(n_fields,self.field_colours,names)

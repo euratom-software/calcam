@@ -70,6 +70,9 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
     If filename is provided, saves the render with the specified filename
     """
 
+    if np.any(calibration.view_models) is None:
+        raise ValueError('This calibration object does not contain any fit results! Cannot render an image without a calibration fit.')
+
     if coords.lower() == 'original' and oversampling != 1:
         raise Exception('Cannot render in original coordinates with oversampling!')
 
@@ -91,7 +94,10 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
     # FOV_factor is how much to do this by; too small and image edges might be cut off.
     models = []
     for view_model in calibration.view_models:
-        models.append(view_model.model)
+        try:
+            models.append(view_model.model)
+        except AttributeError:
+            pass
     if np.any( np.array(models) == 'fisheye'):
         fov_factor = 3.
     else:
@@ -119,128 +125,125 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
         renderer.AddActor(actor)
         
 
-    # This whole thing is in a try() except() because it is prone to memory errors, and I need to put the CAD model
-    # colour back the way it started if we have a problem.
-    try:
 
-        # We need a field mask the same size as the output
-        fieldmask = cv2.resize(calibration.subview_mask,(int(x_pixels*oversampling),int(y_pixels*oversampling)),interpolation=cv2.INTER_NEAREST)
+    # We need a field mask the same size as the output
+    fieldmask = cv2.resize(calibration.subview_mask,(int(x_pixels*oversampling),int(y_pixels*oversampling)),interpolation=cv2.INTER_NEAREST)
 
-        for field in range(calibration.n_subviews):
+    for field in range(calibration.n_subviews):
 
-            cx = calibration.view_models[field].cam_matrix[0,2]
-            cy = calibration.view_models[field].cam_matrix[1,2]
-            fy = calibration.view_models[field].cam_matrix[1,1]
+        if calibration.view_models[field] is None:
+            continue
 
-            vtk_win_im = vtk.vtkRenderLargeImage()
-            vtk_win_im.SetInput(renderer)
+        cx = calibration.view_models[field].cam_matrix[0,2]
+        cy = calibration.view_models[field].cam_matrix[1,2]
+        fy = calibration.view_models[field].cam_matrix[1,1]
 
-            # Width and height - initial render will be put optical centre in the window centre
-            wt = int(2*fov_factor*max(cx,x_pixels-cx))
-            ht = int(2*fov_factor*max(cy,y_pixels-cy))
+        vtk_win_im = vtk.vtkRenderLargeImage()
+        vtk_win_im.SetInput(renderer)
 
-            # Make sure the intended render window will fit on the screen
-            window_factor = 1
-            if wt > screensize[0] or ht > screensize[1]:
-                window_factor = int( max( np.ceil(float(wt)/float(screensize[0])) , np.ceil(float(ht)/float(screensize[1])) ) )
-        
-            vtk_win_im.SetMagnification(int(window_factor*aa*max(oversampling,1)))
+        # Width and height - initial render will be put optical centre in the window centre
+        wt = int(2*fov_factor*max(cx,x_pixels-cx))
+        ht = int(2*fov_factor*max(cy,y_pixels-cy))
 
-            width = int(wt/window_factor)
-            height = int(ht/window_factor)
-
-            renwin.SetSize(width,height)
-
-            # Set up CAD camera
-            fov_y = 360 * np.arctan( ht / (2*fy) ) / 3.14159
-            cam_pos = calibration.get_pupilpos(subview=field)
-            cam_tar = calibration.get_los_direction(cx,cy,subview=field) + cam_pos
-            upvec = -1.*calibration.get_cam_to_lab_rotation(subview=field)[:,1]
-            camera.SetPosition(cam_pos)
-            camera.SetViewAngle(fov_y)
-            camera.SetFocalPoint(cam_tar)
-            camera.SetViewUp(upvec)
-
-            if verbose:
-                print('[Calcam Renderer] Rendering (Sub-view {:d}/{:d})...'.format(field + 1,calibration.n_subviews))
-
-            # Do the render and grab an image
-            renwin.Render()
-
-            # Make sure the light lights up the whole model without annoying shadows or falloff.
-            light = renderer.GetLights().GetItemAsObject(0)
-            light.PositionalOn()
-            light.SetConeAngle(180)
-
-            # Do the render and grab an image
-            renwin.Render()
-
-            vtk_win_im.Update()
-
-            vtk_image = vtk_win_im.GetOutput()
-            vtk_array = vtk_image.GetPointData().GetScalars()
-            dims = vtk_image.GetDimensions()
-
-            im = np.flipud(vtk_to_numpy(vtk_array).reshape(dims[1], dims[0] , 3))
-            
-            if transparency:
-                alpha = 255 * np.ones([np.shape(im)[0],np.shape(im)[1]],dtype='uint8')
-                alpha[np.sum(im,axis=2) == 0] = 0
-                im = np.dstack((im,alpha))
-
-            im = cv2.resize(im,(int(dims[0]/aa*min(oversampling,1)),int(dims[1]/aa*min(oversampling,1))),interpolation=cv2.INTER_AREA)
-
-            if verbose:
-                print('[Calcam Renderer] Applying lens distortion (Sub-view {:d}/{:d})...'.format(field + 1,calibration.n_subviews))
-
-            # Pixel locations we want on the final image
-            [xn,yn] = np.meshgrid(np.linspace(0,x_pixels-1,x_pixels*oversampling),np.linspace(0,y_pixels-1,y_pixels*oversampling))
-
-            xn,yn = calibration.normalise(xn,yn,field)
-
-            # Transform back to pixel coords where we want to sample the un-distorted render.
-            # Both x and y are divided by Fy because the initial render always has Fx = Fy.
-            xmap = ((xn * fy) + (width*window_factor)/2.) * oversampling
-            ymap = ((yn * fy) + (height*window_factor)/2.) * oversampling
-            xmap = xmap.astype('float32')
-            ymap = ymap.astype('float32')
-
-
-            # Actually apply distortion
-            if remap_nearest_neighbour:
-                interp_method = cv2.INTER_NEAREST
-            else:
-                interp_method = cv2.INTER_CUBIC
-        
-            im  = cv2.remap(im,xmap,ymap,interp_method)
-
-            output[fieldmask == field,:] = im[fieldmask == field,:]
-
-
-        if coords.lower() == 'original':
-            output = FitResults.geometry.display_to_original_image(output)
-        
-        if verbose:
-            print('[Calcam Renderer] Completed in {:.1f} s.'.format(time.time() - tstart))
-
-        # Save the image if given a filename
-        if filename is not None:
-
-            # If we have transparency, we can only save as PNG.
-            if transparency and filename[-3:].lower() != 'png':
-                print('[Calcam Renderer] Images with transparency can only be saved as PNG! Overriding output file type to PNG.')
-                filename = filename[:-3] + 'png'
-
-            # Re-shuffle the colour channels for saving (openCV needs BGR / BGRA)
-            save_im = output
-            save_im[:,:,:3] = output[:,:,2::-1]
-            cv2.imwrite(filename,save_im)
-            if verbose:
-                print('[Calcam Renderer] Result saved as {:s}'.format(filename))
+        # Make sure the intended render window will fit on the screen
+        window_factor = 1
+        if wt > screensize[0] or ht > screensize[1]:
+            window_factor = int( max( np.ceil(float(wt)/float(screensize[0])) , np.ceil(float(ht)/float(screensize[1])) ) )
     
-        raise_exception = False
-    except:
-        raise_exception = True
+        vtk_win_im.SetMagnification(int(window_factor*aa*max(oversampling,1)))
+
+        width = int(wt/window_factor)
+        height = int(ht/window_factor)
+
+        renwin.SetSize(width,height)
+
+        # Set up CAD camera
+        fov_y = 360 * np.arctan( ht / (2*fy) ) / 3.14159
+        cam_pos = calibration.get_pupilpos(subview=field)
+        cam_tar = calibration.get_los_direction(cx,cy,subview=field) + cam_pos
+        upvec = -1.*calibration.get_cam_to_lab_rotation(subview=field)[:,1]
+        camera.SetPosition(cam_pos)
+        camera.SetViewAngle(fov_y)
+        camera.SetFocalPoint(cam_tar)
+        camera.SetViewUp(upvec)
+
+        if verbose:
+            print('[Calcam Renderer] Rendering (Sub-view {:d}/{:d})...'.format(field + 1,calibration.n_subviews))
+
+        # Do the render and grab an image
+        renwin.Render()
+
+        # Make sure the light lights up the whole model without annoying shadows or falloff.
+        light = renderer.GetLights().GetItemAsObject(0)
+        light.PositionalOn()
+        light.SetConeAngle(180)
+
+        # Do the render and grab an image
+        renwin.Render()
+
+        vtk_win_im.Update()
+
+        vtk_image = vtk_win_im.GetOutput()
+        vtk_array = vtk_image.GetPointData().GetScalars()
+        dims = vtk_image.GetDimensions()
+
+        im = np.flipud(vtk_to_numpy(vtk_array).reshape(dims[1], dims[0] , 3))
+        
+        if transparency:
+            alpha = 255 * np.ones([np.shape(im)[0],np.shape(im)[1]],dtype='uint8')
+            alpha[np.sum(im,axis=2) == 0] = 0
+            im = np.dstack((im,alpha))
+
+        im = cv2.resize(im,(int(dims[0]/aa*min(oversampling,1)),int(dims[1]/aa*min(oversampling,1))),interpolation=cv2.INTER_AREA)
+
+        if verbose:
+            print('[Calcam Renderer] Applying lens distortion (Sub-view {:d}/{:d})...'.format(field + 1,calibration.n_subviews))
+
+        # Pixel locations we want on the final image
+        [xn,yn] = np.meshgrid(np.linspace(0,x_pixels-1,x_pixels*oversampling),np.linspace(0,y_pixels-1,y_pixels*oversampling))
+
+        xn,yn = calibration.normalise(xn,yn,field)
+
+        # Transform back to pixel coords where we want to sample the un-distorted render.
+        # Both x and y are divided by Fy because the initial render always has Fx = Fy.
+        xmap = ((xn * fy) + (width*window_factor)/2.) * oversampling
+        ymap = ((yn * fy) + (height*window_factor)/2.) * oversampling
+        xmap = xmap.astype('float32')
+        ymap = ymap.astype('float32')
+
+
+        # Actually apply distortion
+        if remap_nearest_neighbour:
+            interp_method = cv2.INTER_NEAREST
+        else:
+            interp_method = cv2.INTER_CUBIC
+    
+        im  = cv2.remap(im,xmap,ymap,interp_method)
+
+        output[fieldmask == field,:] = im[fieldmask == field,:]
+
+
+    if coords.lower() == 'original':
+        output = FitResults.geometry.display_to_original_image(output)
+    
+    if verbose:
+        print('[Calcam Renderer] Completed in {:.1f} s.'.format(time.time() - tstart))
+
+    # Save the image if given a filename
+    if filename is not None:
+
+        # If we have transparency, we can only save as PNG.
+        if transparency and filename[-3:].lower() != 'png':
+            print('[Calcam Renderer] Images with transparency can only be saved as PNG! Overriding output file type to PNG.')
+            filename = filename[:-3] + 'png'
+
+        # Re-shuffle the colour channels for saving (openCV needs BGR / BGRA)
+        save_im = output
+        save_im[:,:,:3] = output[:,:,2::-1]
+        cv2.imwrite(filename,save_im)
+        if verbose:
+            print('[Calcam Renderer] Result saved as {:s}'.format(filename))
+    
 
 
     # Tidy up after ourselves!
@@ -253,10 +256,7 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
 
     renwin.Finalize()
 
-    if raise_exception:
-        raise
-    else:
-        return output
+    return output
 
 
 

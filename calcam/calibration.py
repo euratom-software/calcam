@@ -349,7 +349,7 @@ class Calibration():
 
         self.history = []
 
-        self.subview_names = ['View 1']
+        self.subview_names = ['Full Frame']
 
         self.pixel_size = None
 
@@ -364,6 +364,18 @@ class Calibration():
                 raise ValueError('Provided PointPairs object has a different number of sub-views ({:d}) to this calibration ({:d})!'.format(pointpairs.n_subviews,self.n_subviews))
 
         self.pointpairs = pointpairs
+
+
+
+    def add_intrinsics_constraints(self,image=None,pointpairs=None,calibration=None):
+
+        if calibration is not None:
+            self.intrinsics_constraints.append(calibration)
+        elif pointpairs is not None:
+            self.intrinsics_constraints.append((image,pointpairs))
+
+    def clear_intrinsics_constraints(self):
+        self.intrinsics_constraints = []
 
 
     def load(self,filename):
@@ -412,7 +424,7 @@ class Calibration():
                     self.cad_config = json.load(f)
 
             # Load any intrinsics constraints
-            for i in range( (len( [f for f in save_file.list_contents() if f.startswith('intrinsics_constraints')] ) - 1) // 2 ):
+            for i in range( len( [f for f in save_file.list_contents() if f.startswith('intrinsics_constraints') and 'points_' in f] ) ):
 
                 im = cv2.imread(os.path.join(save_file.get_temp_path(),'intrinsics_constraints','im_{:03d}.png'.format(i)))
                 if im is not None:
@@ -425,6 +437,9 @@ class Calibration():
 
                 self.intrinsics_constraints.append([im,pp])
 
+            if os.path.join('intrinsics_constraints','intrinsics_calib.ccc') in save_file.list_contents():
+                self.intrinsics_constraints.append( Calibration(os.path.join(save_file.get_temp_path(),'intrinsics_constraints','intrinsics_calib.ccc')) )
+                
 
     def set_image(self,image,coords='Display',transform_actions = [],subview_mask=None,pixel_aspect=1.,subview_names = [],pixel_size=None):
 
@@ -475,6 +490,7 @@ class Calibration():
             self.geometry.x_pixels = self.image.shape[1]
             self.geometry.y_pixels = self.image.shape[0]
             self.image = self.geometry.original_to_display_image(self.image)
+            self.subview_mask = self.geometry.original_to_display_image(self.subview_mask)
         else:
             shape = self.geometry.display_to_original_shape(self.image.shape[1::-1])
             self.geometry.x_pixels = shape[0]
@@ -483,15 +499,40 @@ class Calibration():
         self.pixel_size = pixel_size
 
 
+
+    def set_subview_mask(self,mask,subview_names=None):
+
+        
+        n_subviews = mask.max() + 1
+
+        if subview_names is None:
+
+            if n_subviews == 1:
+                subview_names = ['Image']
+
+            else:
+                subview_names = ['Sub-view #{:d}'.format(i + 1) for i in range(n_subviews)]
+        else:
+            if len(subview_names) != n_subviews:
+                raise ValueError('The subview mask appears to show {:d} sub-views, but {:d} names were provided!'.format(n_subviews,len(subview_names)))
+
+        self.subview_mask = mask.copy()
+        self.subview_names = subview_names
+        self.n_subviews = n_subviews
+
+
     def save(self,filename):
+
+        if not filename.endswith('.ccc'):
+            filename = filename + '.ccc'
 
         with ZipSaveFile(filename,'w') as save_file:
 
             # Save the image
             if self.image is not None:
-                im_out = self.image
-                if len(im_out) == 3:
-                    if im_out.shape[2] == 3:
+                im_out = self.image.copy()
+                if len(im_out.shape) == 3:
+                    if im_out.shape[2] > 2:
                         im_out[:,:,:3] = im_out[:,:,2::-1]
                 cv2.imwrite(os.path.join(save_file.get_temp_path(),'image.png'),im_out)
 
@@ -537,7 +578,12 @@ class Calibration():
             save_file.mkdir('intrinsics_constraints')
             for i,intrinsics in enumerate(self.intrinsics_constraints):
 
+                if intrinsics.__class__ is Calibration:
+                    intrinsics.save( os.path.join(save_file.get_temp_path(),'intrinsics_constraints','intrinsics_calib.ccc' ) )
+                    continue
+
                 if intrinsics[0] is not None:
+
                     im_out = intrinsics[0]
                     if len(im_out) == 3:
                         if im_out.shape[2] == 3:
@@ -554,12 +600,19 @@ class Calibration():
 
         good_mask = (x >= -0.5) & (y >= -0.5) & (x < self.geometry.get_display_shape()[0] - 0.5) & (y < self.geometry.get_display_shape()[1] - 0.5)
         
-        x[ good_mask == 0 ] = 0
-        y[ good_mask == 0 ] = 0
+        try:
+            x[ good_mask == 0 ] = 0
+            y[ good_mask == 0 ] = 0
 
-        out = self.subview_mask[np.round(y).astype('int'),np.round(x).astype('int')]
+            out = self.subview_mask[np.round(y).astype('int'),np.round(x).astype('int')]
 
-        out[good_mask == 0] = -1
+            out[good_mask == 0] = -1
+        except TypeError:
+
+            if good_mask:
+                out = self.subview_mask[np.round(y).astype('int'),np.round(x).astype('int')]
+            else:
+                out = -1
 
         return out
 
@@ -613,7 +666,7 @@ class Calibration():
 
 
     # Get the horizontal and vertical field of view of a given sub-view
-    def get_fov(self,subview=None):
+    def get_fov(self,subview=None,fullchip=False):
 
         if subview is None and self.n_subviews > 1:
             raise ValueError('This calibration contains multuple sub-views; subview number must be specified!')
@@ -621,24 +674,35 @@ class Calibration():
             subview = 0
 
         # Calculate FOV by looking at the angle between sight lines at the image extremes
-        vcntr,hcntr = CoM( self.subview_mask == subview )
+        if fullchip:
+            hsize,vsize = self.geometry.get_display_shape()
+            vcntr = vsize/2.
+            hcntr = hsize/2.
+        else:
+            vcntr,hcntr = CoM( self.subview_mask == subview )
 
         vcntr = int(np.round(vcntr))
         hcntr = int(np.round(hcntr))
 
         # Horizontal extent of sub-field
-        h_extent = np.argwhere(self.subview_mask[vcntr,:] == subview)
+        if fullchip:
+            h_extent = np.array([0,hsize-1])
+        else:
+            h_extent = np.argwhere(self.subview_mask[vcntr,:] == subview)
 
         # Horizontal FOV
-        norm1 = self.normalise(h_extent.min()-0.5,vcntr)
-        norm2 = self.normalise(h_extent.max()+0.5,vcntr)
+        norm1 = self.normalise(h_extent.min()-0.5,vcntr,subview=subview)
+        norm2 = self.normalise(h_extent.max()+0.5,vcntr,subview=subview)
         fov_h = 180*(np.arctan(norm2[0]) - np.arctan(norm1[0])) / 3.141592635
 
-        v_extent = np.argwhere(self.subview_mask[:,hcntr] == subview)
+        if fullchip:
+            v_extent = np.array([0,vsize-1])
+        else:
+            v_extent = np.argwhere(self.subview_mask[:,hcntr] == subview)
 
         # Vertical field of view
-        norm1 = self.normalise(hcntr,v_extent.min()-0.5)
-        norm2 = self.normalise(hcntr,v_extent.max()+0.5)
+        norm1 = self.normalise(hcntr,v_extent.min()-0.5,subview=subview)
+        norm2 = self.normalise(hcntr,v_extent.max()+0.5,subview=subview)
         fov_v = 180*(np.arctan(norm2[1]) - np.arctan(norm1[1])) / 3.141592635
 
         return fov_h, fov_v
@@ -710,34 +774,46 @@ class Calibration():
 
         for nview in range(self.n_subviews):
 
-            # Do the point projection for this sub-fov
-            p2d =  self.view_models[nview].project_points(points_3d) 
+            if self.view_models[nview] is None:
+                # Check the input points are in a suitable format
+                if np.ndim(points_3d) < 3:
+                    dims = (np.shape(points_3d)[0],2)
+                else:
+                    dims = points.shape[:-1] + (2,)
 
-            # If we're checking whether the 3D points are actually visible...
-            if fill_value is not None:
+                p2d = np.zeros(dims)
+                p2d[:] = fill_value
 
-                # Create a mask indicating where the projected points are outside their correct
-                # sub-view (including out of the image completely)
-                wrong_subview_mask = self.subview_lookup(p2d[:,0],p2d[:,1]) != nview
+            else:
 
-                # If given a CAD model to check occlusion against, compare the distances to the 3D points with
-                # the distance to a surface in the CAD model
-                if check_occlusion_by is not None:
+                # Do the point projection for this sub-fov
+                p2d =  self.view_models[nview].project_points(points_3d) 
 
-                    point_vectors = points_3d - np.tile( self.view_models[nview].get_pupilpos() , (points_3d.shape[0],1) )
-                    point_distances = np.sqrt( np.sum(point_vectors**2),axis= 1)
+                # If we're checking whether the 3D points are actually visible...
+                if fill_value is not None:
 
-                    # Ray cast to get the ray lengths
-                    ray_lengths = raycast_sightlines(self,check_occlusion_by,p2d[:,0],p2d[:,1],verbose=False,force_subview=nview)
+                    # Create a mask indicating where the projected points are outside their correct
+                    # sub-view (including out of the image completely)
+                    wrong_subview_mask = self.subview_lookup(p2d[:,0],p2d[:,1]) != nview
 
-                    # The 3D points are invisible where the distance to the point is larger than the
-                    # ray length
-                    occluded_mask = ray_lengths < point_distances
+                    # If given a CAD model to check occlusion against, compare the distances to the 3D points with
+                    # the distance to a surface in the CAD model
+                    if check_occlusion_by is not None:
 
-                    p2d[ np.tile(occluded_mask,(1,2))  ] = fill_value
+                        point_vectors = points_3d - np.tile( self.view_models[nview].get_pupilpos() , (points_3d.shape[0],1) )
+                        point_distances = np.sqrt( np.sum(point_vectors**2),axis= 1)
+
+                        # Ray cast to get the ray lengths
+                        ray_lengths = raycast_sightlines(self,check_occlusion_by,p2d[:,0],p2d[:,1],verbose=False,force_subview=nview)
+
+                        # The 3D points are invisible where the distance to the point is larger than the
+                        # ray length
+                        occluded_mask = ray_lengths < point_distances
+
+                        p2d[ np.tile(occluded_mask,(1,2))  ] = fill_value
 
 
-                p2d[ np.tile(wrong_subview_mask,(1,2)) ] = fill_value
+                    p2d[ np.tile(wrong_subview_mask[:,np.newaxis],(1,2)) ] = fill_value
 
 
             # If the user asked for things in original coordinates, convert them.
@@ -782,12 +858,22 @@ class Calibration():
     def normalise(self,x,y,subview=None):
 
         if subview is None:
-            if self.n_subviews > 1:
-                raise Exception('This calibration has multiple sub-views; you must specify a pixel location to normalise!')
-            else:
-                subview = 0
+            subview = self.subview_lookup(x,y)
+            slic = [slice(None)]*(len(subview.shape)+1)
+            slic[-1] = np.newaxis
+            subview = np.tile(subview[tuple(slic)],list(np.ones(len(subview.shape),dtype=int)) + [2])
 
-        return self.view_models[subview].normalise(x,y)
+            outp = np.zeros(x.shape + (2,))
+
+            for isubview in range(self.n_subviews):
+                if self.view_models[isubview] is not None:
+                    outp[subview == isubview] = self.view_models[isubview].normalise(x,y)[subview == isubview]
+                else:
+                    outp[subview == isubview] = np.nan
+        else:
+            outp = self.view_models[subview].normalise(x,y)
+
+        return outp
 
 
 
@@ -1056,9 +1142,9 @@ class Fitter:
         self.initial_matrix = initial_matrix
 
 
-    def add_intrinsics_pointpairs(self,pointpairs,subfield=0):
+    def add_intrinsics_pointpairs(self,pointpairs,subview=0):
         
-        self.pointpairs.append(pointpairs,subfield)
+        self.pointpairs.append( (pointpairs,subview) )
 
 
     def clear_intrinsics_pointpairs(self):

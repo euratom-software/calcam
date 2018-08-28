@@ -274,7 +274,7 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
                         self.focus_changed_callback(clicked_cursor)
 
                     if self.cursor_move_callback is not None:
-                        self.cursor_move_callback(self.cursors[clicked_cursor]['cursor3d'].GetFocalPoint())
+                        self.cursor_move_callback(clicked_cursor,self.cursors[clicked_cursor]['cursor3d'].GetFocalPoint())
 
                 # of if they didn't click another cursor, move the current cursor
                 # to where they clicked
@@ -284,7 +284,7 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
                     self.update_cursor_style()
 
                     if self.cursor_move_callback is not None:
-                        self.cursor_move_callback(pickcoords)
+                        self.cursor_move_callback(self.focus_cursor,pickcoords)
 
 
             if self.refresh_callback is not None:
@@ -575,6 +575,9 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
             self.refresh_callback()
             
 
+    def get_n_cursors(self):
+        return ( len(self.active_cursors) , len(self.passive_cursors) )
+
     # On the CAD view, middle click + drag to pan
     def middle_press(self,obj,event):
         self.im_dragging = True
@@ -583,14 +586,15 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
             self.im_dragging = False
 
 
-    def set_overlay_image(self,overlay_actor):
+    def set_overlay_image(self,overlay_image):
         
         if self.overlay_actor is not None:
             self.renderer.RemoveActor(self.overlay_actor)
             self.overlay_actor = None
 
-        self.overlay_actor = overlay_actor
-        self.renderer.AddActor2D(self.overlay_actor)
+        if overlay_image is not None:
+            self.overlay_actor = get_image_actor(overlay_image)
+            self.renderer.AddActor2D(self.overlay_actor)
 
         if self.refresh_callback is not None:
             self.refresh_callback()
@@ -614,11 +618,12 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
                 continue
 
             for icursor in cursor['cursor3ds']:
-                screencoords = self.image_to_screen_coords(icursor.GetFocalPoint())
-                dist_from_cursor = np.sqrt( (screencoords[0] - clickcoords[0])**2 + (screencoords[1] - clickcoords[1])**2 )
-                if dist_from_cursor < dist:
-                        clicked_cursor = cid
-                        dist = dist_from_cursor
+                if icursor is not None:
+                    screencoords = self.image_to_screen_coords(icursor.GetFocalPoint())
+                    dist_from_cursor = np.sqrt( (screencoords[0] - clickcoords[0])**2 + (screencoords[1] - clickcoords[1])**2 )
+                    if dist_from_cursor < dist:
+                            clicked_cursor = cid
+                            dist = dist_from_cursor
 
 
         pickcoords = self.screen_to_image_coords(clickcoords)
@@ -645,18 +650,19 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
                     self.focus_changed_callback(clicked_cursor)
 
                 if self.cursor_move_callback is not None:
-                    self.cursor_move_callback( self.get_cursor_coords(clicked_cursor) )
+                    self.cursor_move_callback( clicked_cursor,self.get_cursor_coords(clicked_cursor) )
 
             elif self.focus_cursor is not None:
 
                 view_index = self.subview_lookup(pickcoords[0],pickcoords[1])
+
                 if self.active_cursors[self.focus_cursor]['cursor3ds'][view_index] is None:
                     self.add_active_cursor(pickcoords,add_to=self.focus_cursor)
                 else:
                     self.set_cursor_coords(self.focus_cursor,pickcoords,view_index)
 
                     if self.cursor_move_callback is not None:
-                        self.cursor_move_callback( self.get_cursor_coords(self.focus_cursor) )
+                        self.cursor_move_callback( self.focus_cursor, self.get_cursor_coords(self.focus_cursor) )
 
 
         if self.refresh_callback is not None:
@@ -889,7 +895,7 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
         self.renderer.AddActor(actor)
 
         if self.cursor_move_callback is not None:
-            self.cursor_move_callback( [cursor.GetFocalPoint() for cursor in self.active_cursors[new_cursor_id]['cursor3ds']] )
+            self.cursor_move_callback(new_cursor_id,self.get_cursor_coords(new_cursor_id))
 
         self.update_cursor_style()
 
@@ -931,9 +937,12 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
         ysize = bounds[3] - bounds[2]
 
         for cursor in self.active_cursors[cursor_id]['cursor3ds']:
-            icoords = np.array(cursor.GetFocalPoint()[:2])
-            icoords[-1] = ysize - icoords[-1]
-            coords.append(icoords)
+            if cursor is not None:
+                icoords = np.array(cursor.GetFocalPoint()[:2])
+                icoords[-1] = ysize - icoords[-1]
+                coords.append(icoords)
+            else:
+                coords.append(None)
 
         return coords
 
@@ -1047,13 +1056,13 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
             # Make sure we don't pan outside the image.
             im_bounds = self.image_actor.GetBounds()
             xcamscale = camscale * float(winsize[0])/winsize[1]
-            if newX + xcamscale/2. > im_bounds[1] and newX - xcamscale/2. > im_bounds[0]:
+            if newX + xcamscale/2. > im_bounds[1] and newX - xcamscale/2. > im_bounds[0] and deltaX < 0:
                 newX = oldpos[0]
-            elif newX - xcamscale/2. < im_bounds[0] and newX + xcamscale/2. < im_bounds[1]:
+            elif newX - xcamscale/2. < im_bounds[0] and newX + xcamscale/2. < im_bounds[1] and deltaX > 0:
                 newX = oldpos[0]
-            if newY + camscale/2. > im_bounds[3] and newY - camscale/2. > im_bounds[2]:
+            if newY + camscale/2. > im_bounds[3] and newY - camscale/2. > im_bounds[2] and deltaY < 0:
                 newY = oldpos[1]
-            elif newY - camscale/2. < im_bounds[2] and newY + camscale/2. < im_bounds[3]:
+            elif newY - camscale/2. < im_bounds[2] and newY + camscale/2. < im_bounds[3] and deltaY > 0:
                 newY = oldpos[1]
 
             # Move image camera

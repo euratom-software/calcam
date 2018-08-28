@@ -1064,7 +1064,20 @@
         <string>Calibration Points</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_11">
-        <item row="0" column="0" alignment="Qt::AlignTop">
+        <item row="6" column="0">
+         <spacer name="verticalSpacer_3">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="1" column="0" alignment="Qt::AlignTop">
          <widget class="QGroupBox" name="pointpairs_section">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -1073,7 +1086,7 @@
            </sizepolicy>
           </property>
           <property name="title">
-           <string>Load existing calibration points</string>
+           <string>Load calibration points</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_10">
            <item row="1" column="0">
@@ -1105,10 +1118,53 @@
           </layout>
          </widget>
         </item>
-        <item row="1" column="0">
+        <item row="4" column="0">
+         <widget class="QGroupBox" name="groupBox_3">
+          <property name="title">
+           <string>Additional Intrinsics Constraints</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_14">
+           <item row="2" column="1">
+            <widget class="QPushButton" name="load_intrinsics_calib_button">
+             <property name="text">
+              <string>Load...</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QCheckBox" name="intrinsics_calib_checkbox">
+             <property name="text">
+              <string>Existing Calibration (None Loaded)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QCheckBox" name="chessboard_checkbox">
+             <property name="text">
+              <string>Chessboard Images (None Loaded)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QPushButton" name="load_chessboard_button">
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>Load...</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="0" column="0">
          <widget class="QGroupBox" name="pp_groupbox">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
@@ -1117,14 +1173,46 @@
            <string>Current Calibration Points</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_12">
-           <item row="1" column="0" alignment="Qt::AlignTop">
-            <widget class="QLabel" name="label_22">
+           <item row="3" column="2">
+            <spacer name="horizontalSpacer_4">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="0" column="0" colspan="3">
+            <widget class="QLabel" name="n_pointpairs_text">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="text">
-              <string>Current Point Pair:</string>
+              <string>0 Point Pairs</string>
              </property>
             </widget>
            </item>
-           <item row="2" column="1">
+           <item row="2" column="0" colspan="3">
+            <widget class="QLabel" name="point_info_text">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>No points selected</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
             <widget class="QPushButton" name="del_pp_button">
              <property name="enabled">
               <bool>true</bool>
@@ -1142,32 +1230,7 @@
               </size>
              </property>
              <property name="text">
-              <string>Remove selected point pair</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="1">
-            <widget class="QLabel" name="point_info_text">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>195</width>
-               <height>0</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>195</width>
-               <height>16777215</height>
-              </size>
-             </property>
-             <property name="text">
-              <string>No points selected</string>
+              <string>Remove selected</string>
              </property>
             </widget>
            </item>
@@ -1176,91 +1239,13 @@
              <property name="enabled">
               <bool>false</bool>
              </property>
-             <property name="maximumSize">
-              <size>
-               <width>90</width>
-               <height>16777215</height>
-              </size>
-             </property>
              <property name="text">
               <string>Clear All</string>
              </property>
             </widget>
            </item>
-           <item row="0" column="0" colspan="2">
-            <widget class="QLabel" name="n_pointpairs_text">
-             <property name="text">
-              <string>0 Point Pairs</string>
-             </property>
-            </widget>
-           </item>
           </layout>
          </widget>
-        </item>
-        <item row="3" column="0">
-         <widget class="QGroupBox" name="groupBox_3">
-          <property name="title">
-           <string>Intrinsics Constraints</string>
-          </property>
-          <layout class="QGridLayout" name="gridLayout_14">
-           <item row="2" column="0">
-            <widget class="QPushButton" name="chessboard_button">
-             <property name="maximumSize">
-              <size>
-               <width>16777215</width>
-               <height>16777215</height>
-              </size>
-             </property>
-             <property name="text">
-              <string>Load Chessboard Images...</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="1">
-            <spacer name="horizontalSpacer_4">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>40</width>
-               <height>20</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item row="1" column="0" colspan="2">
-            <widget class="QLabel" name="chessboard_info">
-             <property name="text">
-              <string>No chessboard pattern images currently loaded.</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="0" colspan="2">
-            <widget class="QCheckBox" name="use_chessboard_checkbox">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="text">
-              <string>Use chessboard pattern images to constrain intrinsics</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-        </item>
-        <item row="4" column="0">
-         <spacer name="verticalSpacer_3">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>20</width>
-            <height>40</height>
-           </size>
-          </property>
-         </spacer>
         </item>
        </layout>
       </widget>

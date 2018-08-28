@@ -38,15 +38,22 @@ class PointPairs():
         self.n_subviews = None
         self.image_points = []
         self.object_points = []
-        self.image_shape = None
         
         if loadhandle is not None:
             self.load(loadhandle)
 
 
-    def get_n_points(self):
+    def get_n_points(self,subview=0):
 
-        return len(self.object_points)
+        if subview > (self.n_subviews - 1) or subview < 0:
+            raise ValueError('Subview index out of bounds!')
+
+        npts = 0
+        for point in self.image_points:
+            if point[subview] is not None:
+                npts = npts + 1
+
+        return npts
 
 
     # Save point pairs to csv file

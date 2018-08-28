@@ -4,6 +4,7 @@ import os
 import numpy as np
 import traceback
 import vtk
+import cv2
 
 # Calcam imports
 from . import qt_wrapper as qt
@@ -11,6 +12,8 @@ from ..cadmodel import CADModel
 from ..config import CalcamConfig
 from ..calibration import Calibration
 from ..pointpairs import PointPairs
+from ..coordtransformer import CoordTransformer
+from .vtkinteractorstyles import CalcamInteractorStyle2D
 
 guipath = os.path.split(os.path.abspath(__file__))[0]
 
@@ -229,6 +232,11 @@ class CalcamGUIWindow(qt.QMainWindow):
 
 
 
+    def update_vtk_size(self,vtksize):
+
+        self.vtksize = vtksize
+
+
     def save_view_to_model(self):
 
         if str(self.view_save_name.text()) in self.cadmodel.get_view_names():
@@ -414,10 +422,23 @@ class CalcamGUIWindow(qt.QMainWindow):
     def set_view_from_calib(self,calibration,subfield):
 
         viewmodel = calibration.view_models[subfield]
+        fov = calibration.get_fov(subview=subfield,fullchip=True)
+        vtk_aspect = float(self.vtksize[1]) / float(self.vtksize[0])
+        fov_aspect = fov[1] / fov[0]
+        if vtk_aspect > fov_aspect:
+            h_fov = True
+            fov_angle = fov[0]
+        else:
+            h_fov = False
+            fov_angle = fov[1]
 
         self.camera_3d.SetPosition(viewmodel.get_pupilpos())
         self.camera_3d.SetFocalPoint(viewmodel.get_pupilpos() + viewmodel.get_los_direction(calibration.geometry.get_display_shape()[0]/2,calibration.geometry.get_display_shape()[1]/2))
-        self.camera_3d.SetViewAngle(calibration.get_fov(subview=subfield)[1])
+        
+        self.camera_3d.SetUseHorizontalViewAngle(h_fov)
+        self.camera_3d.SetViewAngle(fov_angle)
+        self.camera_3d.SetUseHorizontalViewAngle(h_fov)
+        
         self.camera_3d.SetViewUp(-1.*viewmodel.get_cam_to_lab_rotation()[:,1])
         self.interactor3d.set_xsection(None)       
 
@@ -745,3 +766,278 @@ class CalcamGUIWindow(qt.QMainWindow):
 
         self.config.save()
         sys.excepthook = sys.__excepthook__
+
+
+
+class ChessboardDialog(qt.QDialog):
+
+    def __init__(self, parent,modelselection=False):
+
+        # GUI initialisation
+        qt.QDialog.__init__(self, parent)
+        qt.uic.loadUi(os.path.join(guipath,'chessboard_image_dialog.ui'), self)
+
+        self.parent = parent
+        try:
+            self.image_transformer = self.parent.calibration.geometry
+            self.subview_lookup = self.parent.calibration.subview_lookup
+            self.n_fields = self.parent.calibration.n_subviews
+        except AttributeError:
+            self.image_transformer = CoordTransformer()
+            self.subview_lookup = lambda x,y: 0
+            self.n_fields = 1
+
+        if not modelselection:
+            self.model_options.hide()
+
+
+        # Callbacks for GUI elements
+        self.load_images_button.clicked.connect(self.load_images)
+        self.detect_chessboard_button.clicked.connect(self.detect_corners)
+        self.apply_button.clicked.connect(self.apply)
+        self.cancel_button.clicked.connect(self.reject)
+        self.next_im_button.clicked.connect(self.change_image)
+        self.prev_im_button.clicked.connect(self.change_image)
+        self.current_image = None
+
+        if int(cv2.__version__[0]) < 3:
+            self.fisheye_model.setEnabled(False)
+            self.fisheye_model.setToolTip('Requires OpenCV 3')
+
+        # Set up VTK
+        self.qvtkwidget = qt.QVTKRenderWindowInteractor(self.image_frame)
+        self.image_frame.layout().addWidget(self.qvtkwidget)
+        self.interactor = CalcamInteractorStyle2D(refresh_callback=self.refresh_vtk)
+        self.qvtkwidget.SetInteractorStyle(self.interactor)
+        self.renderer = vtk.vtkRenderer()
+        self.renderer.SetBackground(0, 0, 0)
+        self.qvtkwidget.GetRenderWindow().AddRenderer(self.renderer)
+        self.vtkInteractor = self.qvtkwidget.GetRenderWindow().GetInteractor()
+        self.image_frame.layout().addWidget(self.qvtkwidget,1)
+
+        self.detection_run = False
+
+        self.images = []
+        self.filenames = []
+        self.corner_cursors = []
+        self.results = []
+
+        self.pointpairs_result = None
+
+        # Start the GUI!
+        self.show()
+        self.interactor.init()
+        self.renderer.Render()
+        self.vtkInteractor.Initialize()
+
+
+    def load_images(self):
+
+        filedialog = qt.QFileDialog(self)
+        filedialog.setAcceptMode(0)
+        filedialog.setFileMode(3)
+        filedialog.setWindowTitle('Load chessboard images')
+        filedialog.setNameFilter('Image Files (*.jpg *.jpeg *.png *.bmp *.jp2 *.tiff *.tif)')
+        filedialog.setLabelText(3,'Load')
+        filedialog.exec_()
+        if filedialog.result() == 1:
+            self.images = []
+            self.filenames = []
+            wrong_shape = []
+            if self.image_transformer.x_pixels is None or self.image_transformer.y_pixels is None:
+                expected_shape = None
+            else:
+                expected_shape = np.array([self.image_transformer.x_pixels,self.image_transformer.y_pixels])
+
+            for n,fname in enumerate(filedialog.selectedFiles()):
+                self.status_text.setText('<b>Loading image {:d} / {:d} ...'.format(n,len(filedialog.selectedFiles())))
+                im = cv2.imread(str(fname))
+                if expected_shape is None:
+                    expected_shape = im.shape[1::-1]
+                    self.im_shape = im.shape[:2]
+                    wrong_shape.append(False)
+                else:
+                    wrong_shape.append(not np.all(expected_shape == im.shape[1::-1]))
+                
+                # OpenCV loads colour channels in BGR order.
+                if len(im.shape) == 3:
+                    im[:,:,:3] = im[:,:,3::-1]
+                self.images.append(im)
+                self.filenames.append(os.path.split(str(fname))[1])
+            
+            self.status_text.setText('')
+            if np.all(wrong_shape):
+                dialog = qt.QMessageBox(self)
+                dialog.setStandardButtons(qt.QMessageBox.Ok)
+                dialog.setTextFormat(qt.Qt.RichText)
+                dialog.setWindowTitle('Calcam - Wrong image size')
+                dialog.setText("Selected chessboard pattern images are the wrong size for this camera image and have not been loaded.")
+                dialog.setInformativeText("Chessboard images of {:d} x {:d} pixels are required for this camera image.".format(expected_shape[0],expected_shape[1]))
+                dialog.setIcon(qt.QMessageBox.Warning)
+                dialog.exec_()
+                self.images = []
+                self.filenames = []
+                return
+
+            elif np.any(wrong_shape):
+                dialog = qt.QMessageBox(self)
+                dialog.setStandardButtons(qt.QMessageBox.Ok)
+                dialog.setTextFormat(qt.Qt.RichText)
+                dialog.setWindowTitle('Calcam - Wrong image size')
+                dialog.setText("{:d} of the selected images are the wrong size for this camera image and were not loaded:".format(np.count_nonzero(wrong_shape)))
+                dialog.setInformativeText('<br>'.join([ self.filenames[i] for i in range(len(self.filenames)) if wrong_shape[i] ]))
+                dialog.setIcon(qt.QMessageBox.Warning)
+                dialog.exec_()
+                for i in range(len(self.images)-1,-1,-1):
+
+                    if wrong_shape[i]:
+                        del self.images[i]
+                        del self.filenames[i]
+
+            self.detection_run = False
+            self.chessboard_status = [False for i in range(len(self.images))]
+            self.update_image_display(0)
+            self.detect_chessboard_button.setEnabled(True)
+
+
+    def change_image(self):
+        if self.sender() is self.next_im_button:
+            self.update_image_display((self.current_image + 1) % len(self.images))
+        elif self.sender() is self.prev_im_button:
+            self.update_image_display((self.current_image - 1) % len(self.images))
+
+
+
+    def detect_corners(self):
+
+        self.parent.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
+        self.chessboard_status = []
+        self.chessboard_points_2D = [np.zeros([ (self.chessboard_squares_x.value() - 1)*(self.chessboard_squares_y.value() - 1),2]) for i in range(len(self.images))]
+        self.n_chessboard_points = (self.chessboard_squares_x.value() - 1, self.chessboard_squares_y.value() - 1 )
+        for imnum in range(len(self.images)):
+            self.status_text.setText('<b>Detecting chessboard pattern in image {:d} / {:d}...</b>'.format(imnum,len(self.images)))
+            self.parent.app.processEvents()
+            status,points = cv2.findChessboardCorners( self.images[imnum], self.n_chessboard_points, flags=cv2.CALIB_CB_ADAPTIVE_THRESH )
+            self.chessboard_status.append(not status)
+            if status:
+                for j,point in enumerate(points):
+                    self.chessboard_points_2D[imnum][j,:] = point[0]
+        self.status_text.setText('')
+        self.parent.app.restoreOverrideCursor()        
+        if np.all(self.chessboard_status):
+            dialog = qt.QMessageBox(self)
+            dialog.setStandardButtons(qt.QMessageBox.Ok)
+            dialog.setTextFormat(qt.Qt.RichText)
+            dialog.setWindowTitle('Calcam - No Chessboards Detected')
+            dialog.setText("No {:d} x {:d} square chessboard patterns were found in the images.".format(self.chessboard_squares_x.value(),self.chessboard_squares_y.value()))
+            dialog.setInformativeText("Is the number of squares set correctly?")
+            dialog.setIcon(qt.QMessageBox.Warning)
+            dialog.exec_()
+        elif np.any(self.chessboard_status):
+            dialog = qt.QMessageBox(self)
+            dialog.setStandardButtons(qt.QMessageBox.Ok)
+            dialog.setTextFormat(qt.Qt.RichText)
+            dialog.setWindowTitle('Calcam - Chessboard Detection')
+            dialog.setText("A {:d} x {:d} square chessboard pattern could not be detected in the following {:d} of {:d} images, which will therefore not be included as additional chessboard constraints:".format(self.chessboard_squares_x.value(),self.chessboard_squares_y.value(),np.count_nonzero(self.chessboard_status),len(self.images)))
+            dialog.setInformativeText('<br>'.join(['[#{:d}] '.format(i+1) + self.filenames[i] for i in range(len(self.filenames)) if self.chessboard_status[i] ]))
+            dialog.setIcon(qt.QMessageBox.Warning)
+            dialog.exec_()                
+
+        self.chessboard_status = [not status for status in self.chessboard_status]
+        self.detection_run = True
+        self.update_image_display()
+        if np.any(self.chessboard_status):
+            self.apply_button.setEnabled(True)
+            self.status_text.setText('<b>Chessboard patterns detected successfully in {:d} images. Click Apply to use these in Calcam.</b>'.format(np.count_nonzero(self.chessboard_status),len(self.images)))
+        else:
+            self.apply_button.setEnabled(False)
+            self.status_text.setText('')
+
+
+
+
+    def update_image_display(self,image_number=None):
+
+        if image_number is None:
+            image_number = self.current_image
+        else:
+            self.current_image = image_number
+
+        for cursor in self.corner_cursors:
+            self.interactor.remove_passive_cursor(cursor)
+        self.corner_cursors = []
+        
+        self.interactor.set_image(self.images[image_number])
+
+        if self.detection_run:
+            if self.chessboard_status[image_number]:
+                status_string = ' - Chessboard Detected OK'
+            else:
+                status_string = ' - Chessboard Detection FAILED'
+        else:
+            status_string = ''
+
+        self.current_filename.setText('<html><head/><body><p align="center">{:s} [#{:d}/{:d}]{:s}</p></body></html>'.format(self.filenames[image_number],image_number+1,len(self.images),status_string))
+        
+        if self.chessboard_status[image_number]:
+            for corner in range(self.chessboard_points_2D[image_number].shape[0]):
+                self.corner_cursors.append( self.interactor.add_passive_cursor(self.chessboard_points_2D[image_number][corner,:]))
+
+
+    def refresh_vtk(self):
+        self.renderer.Render()
+        self.qvtkwidget.update()
+
+
+    def apply(self):
+
+        # List of pointpairs objects for the chessboard point pairs
+        self.results = []
+
+        chessboard_points_3D = []
+
+        point_spacing = self.chessboard_square_size.value() * 1e-3
+
+
+        # Create the chessboard coordinates in 3D space. OpenCV returns chessboard corners
+        # along each row. 
+        for j in range(self.n_chessboard_points[1]):
+            for i in range(self.n_chessboard_points[0]):
+                chessboard_points_3D.append( ( i * point_spacing , j * point_spacing, 0.) )
+
+        # Loop over chessboard images
+        for i in range(len(self.images)):
+
+            # Skip images where no chessboard was found
+            if not self.chessboard_status[i]:
+                continue
+
+            # Start a new pointpairs object for this image
+            self.results.append( (self.images[i],PointPairs()) )
+
+            self.results[-1][1].n_subviews = self.n_fields
+
+            # We already have the 3D positions
+            self.results[-1][1].object_points = chessboard_points_3D
+
+            # Initialise image points
+            self.results[-1][1].image_points = []
+
+            # Get a neater looking reference to the chessboard corners for this image
+            impoints = self.chessboard_points_2D[i]
+
+            # Loop over chessboard points
+            for point in range( np.prod(self.n_chessboard_points) ):
+                self.results[-1][1].image_points.append([])
+
+                # Populate coordinates for relevant field
+                for field in range(self.n_fields):
+                    if self.subview_lookup(impoints[point,0],impoints[point,1]) == field:
+                        self.results[-1][1].image_points[-1].append([impoints[point,0], impoints[point,1]])
+                    else:
+                        self.results[-1][1].image_points[-1].append(None)
+
+        self.filenames = self.filenames[self.chessboard_status == True]
+
+        # And close the window.
+        self.done(1)

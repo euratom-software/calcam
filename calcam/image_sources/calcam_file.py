@@ -18,14 +18,15 @@ def get_image(filename):
     image_data = cal.geometry.display_to_original_image(cal.image)
     transform_actions = cal.geometry.transform_actions
     subview_mask = cal.geometry.display_to_original_image(cal.subview_mask)
-
+    subview_names = cal.subview_names
 
 
     return_dict = {
                     'image_data': image_data,
                     'transform_actions': transform_actions,
                     'subview_mask':subview_mask,
-                    'from': 'calcam calibration file {:s}'.format(filename)
+                    'from': 'calcam calibration file {:s}'.format(filename),
+                    'subview_names' : subview_names
                     }
 
     return return_dict

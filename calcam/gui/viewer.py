@@ -458,7 +458,8 @@ class ViewerWindow(CalcamGUIWindow):
             self.render_resolution.addItem('{:d} x {:d} (Window Size)'.format(vtk_size[0],vtk_size[1]))
             self.render_resolution.addItem('{:d} x {:d}'.format(vtk_size[0]*2,vtk_size[1]*2))
             self.render_resolution.addItem('{:d} x {:d}'.format(vtk_size[0]*4,vtk_size[1]*4))
-            self.render_resolution.setCurrentIndex(index)        
+            self.render_resolution.setCurrentIndex(index)
+        self.update_vtk_size(vtk_size)
 
 
     def do_render(self):
