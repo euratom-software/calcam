@@ -577,7 +577,7 @@ class ModelFeature():
         if not os.path.isfile(self.filename):
             raise MeshFileMissing(self.filename)
 
-        self.filetype = self.filename.split('.')[-1]
+        self.filetype = self.filename.split('.')[-1].lower()
 
         self.enabled = definition_dict['default_enable']
 
