@@ -5,6 +5,7 @@ from .. import __version__
 
 from .viewer import ViewerWindow
 from .fitting_calib import FittingCalibrationWindow
+from .virtual_calib import VirtualCalibrationWindow
 
 # Class for the window
 class LauncherWindow(qt.QDialog):
@@ -30,7 +31,7 @@ class LauncherWindow(qt.QDialog):
         self.calcam_button.clicked.connect(self.launch_calcam)
         #self.alignment_calib_button.clicked.connect(self.launch_alignment_calib)
         self.cad_viewer_button.clicked.connect(self.launch_viewer)
-        #self.view_designer_button.clicked.connect(self.launch_view_designer)
+        self.view_designer_button.clicked.connect(self.launch_virtual_calib_edit)
         self.userguide_button.clicked.connect(self.open_manual)
         #self.image_analysis_button.clicked.connect(self.launch_image_analysis)
 
@@ -43,8 +44,8 @@ class LauncherWindow(qt.QDialog):
     def launch_viewer(self):
         Process(target=open_gui,args=[ViewerWindow]).start()
 
-    def launch_view_designer(self):
-        Process(target=start_view_designer).start()
+    def launch_virtual_calib_edit(self):
+        Process(target=open_gui,args=[VirtualCalibrationWindow]).start()
 
     def launch_alignment_calib(self):
         Process(target=start_alignment_calib).start()

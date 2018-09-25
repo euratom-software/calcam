@@ -295,7 +295,7 @@ class ViewerWindow(CalcamGUIWindow):
         if self.interactor3d.focus_cursor is None:
             self.interactor3d.add_cursor(coords)
             self.interactor3d.set_cursor_focus(0)
-            self.update_cursor_position(coords)
+            self.update_cursor_position(0,coords)
 
     def on_load_model(self):
         
@@ -643,7 +643,7 @@ class ViewerWindow(CalcamGUIWindow):
 
 
 
-    def update_cursor_position(self,position):
+    def update_cursor_position(self,cursor_id,position):
         info = 'Cursor location: ' + self.cadmodel.format_coord(position).replace('\n',' | ')
         self.statusbar.showMessage(info)
 

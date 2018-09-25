@@ -604,6 +604,9 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
     # Left click to move a point or add a new point
     def on_left_click(self,obj,event):
 
+        if self.image_actor is None:
+            return
+
         clicked_cursor = None
 
         ctrl_pressed = self.interactor.GetControlKey()

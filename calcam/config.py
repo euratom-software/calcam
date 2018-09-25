@@ -11,7 +11,7 @@ class CalcamConfig():
 	def __init__(self,cfg_file= os.path.expanduser('~/.calcam_config'),allow_create=True):
 
 		self.filename = cfg_file
-		self.filename_filters = {'calibration':'Calcam Calibration (*.ccc)','image':'PNG Image (*.png)','pointpairs':'Calcam Point Pairs (*.ccc *.csv)'}
+		self.filename_filters = {'calibration':'Calcam Calibration (*.ccc)','image':'PNG Image (*.png)','pointpairs':'Calcam Point Pairs (*.ccc *.csv)','virtual_calibration':'Calcam Virtual Calibration (*.cvc)'}
 		
 		try:
 			self.load()
@@ -19,7 +19,7 @@ class CalcamConfig():
 			if not allow_create:
 				raise
 
-			self.file_dirs = {'calibration':os.path.expanduser('~'),'image':os.path.expanduser('~'),'pointpairs':os.path.expanduser('~')}
+			self.file_dirs = {'calibration':os.path.expanduser('~'),'virtual_calibration':os.path.expanduser('~'),'image':os.path.expanduser('~'),'pointpairs':os.path.expanduser('~')}
 			self.cad_def_paths = [os.path.expanduser('~')]
 			self.image_source_paths = [os.path.join(os.path.split(os.path.abspath(__file__))[0],'image_sources')]
 			self.default_model = None

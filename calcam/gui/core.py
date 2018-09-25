@@ -282,11 +282,14 @@ class CalcamGUIWindow(qt.QMainWindow):
     def object_from_file(self,obj_type,multiple=False):
 
         filename_filter = self.config.filename_filters[obj_type]
-        start_dir = self.config.file_dirs[obj_type]
 
         filedialog = qt.QFileDialog(self)
         filedialog.setAcceptMode(0)
-        filedialog.setDirectory(start_dir)
+
+        try:
+           filedialog.setDirectory(self.config.file_dirs[obj_type])
+        except KeyError:
+            pass
 
         if multiple:
             filedialog.setFileMode(3)
@@ -332,11 +335,15 @@ class CalcamGUIWindow(qt.QMainWindow):
 
         filename_filter = self.config.filename_filters[obj_type]
         fext = filename_filter.split('(*')[1].split(')')[0]
-        start_dir = self.config.file_dirs[obj_type]
 
         filedialog = qt.QFileDialog(self)
         filedialog.setAcceptMode(1)
-        filedialog.setDirectory(start_dir)
+
+        try:
+           filedialog.setDirectory(self.config.file_dirs[obj_type])
+        except KeyError:
+            pass
+        
 
         filedialog.setFileMode(0)
 
@@ -409,7 +416,10 @@ class CalcamGUIWindow(qt.QMainWindow):
         else:
             self.camera_3d.SetPosition((self.camX.value(),self.camY.value(),self.camZ.value()))
             self.camera_3d.SetFocalPoint((self.tarX.value(),self.tarY.value(),self.tarZ.value()))
-            self.camera_3d.SetViewAngle(self.camFOV.value())
+            try:
+                self.camera_3d.SetViewAngle(self.camFOV.value())
+            except AttributeError:
+                pass
 
         self.update_viewport_info(keep_selection=True)
         self.interactor3d.update_cursor_style()
@@ -424,7 +434,7 @@ class CalcamGUIWindow(qt.QMainWindow):
         viewmodel = calibration.view_models[subfield]
         fov = calibration.get_fov(subview=subfield,fullchip=True)
         vtk_aspect = float(self.vtksize[1]) / float(self.vtksize[0])
-        fov_aspect = fov[1] / fov[0]
+        fov_aspect = float(calibration.geometry.y_pixels) / float(calibration.geometry.x_pixels)
         if vtk_aspect > fov_aspect:
             h_fov = True
             fov_angle = fov[0]
@@ -654,8 +664,7 @@ class CalcamGUIWindow(qt.QMainWindow):
 
         self.app.restoreOverrideCursor()
 
-        if self.on_model_load is not None:
-            self.on_model_load()
+        self.on_model_load()
 
 
 
@@ -671,7 +680,10 @@ class CalcamGUIWindow(qt.QMainWindow):
         self.tarX.blockSignals(True)
         self.tarY.blockSignals(True)
         self.tarZ.blockSignals(True)
-        self.camFOV.blockSignals(True)
+        try:
+            self.camFOV.blockSignals(True)
+        except AttributeError:
+            pass
 
         self.camX.setValue(campos[0])
         self.camY.setValue(campos[1])
@@ -679,7 +691,11 @@ class CalcamGUIWindow(qt.QMainWindow):
         self.tarX.setValue(camtar[0])
         self.tarY.setValue(camtar[1])
         self.tarZ.setValue(camtar[2])
-        self.camFOV.setValue(fov)
+
+        try:
+            self.camFOV.setValue(fov)
+        except AttributeError:
+            pass
 
         self.camX.blockSignals(False)
         self.camY.blockSignals(False)
@@ -687,7 +703,11 @@ class CalcamGUIWindow(qt.QMainWindow):
         self.tarX.blockSignals(False)
         self.tarY.blockSignals(False)
         self.tarZ.blockSignals(False)
-        self.camFOV.blockSignals(False)
+
+        try:
+            self.camFOV.blockSignals(False)
+        except AttributeError:
+            pass
 
         if not keep_selection:
             self.viewlist.clearSelection() 
@@ -740,6 +760,7 @@ class CalcamGUIWindow(qt.QMainWindow):
 
 
     def refresh_3d(self):
+
         self.renderer_3d.Render()
         self.qvtkwidget_3d.update()
 
@@ -767,6 +788,9 @@ class CalcamGUIWindow(qt.QMainWindow):
         self.config.save()
         sys.excepthook = sys.__excepthook__
 
+
+    def on_model_load(self):
+        pass
 
 
 class ChessboardDialog(qt.QDialog):
@@ -1022,6 +1046,9 @@ class ChessboardDialog(qt.QDialog):
 
             # Initialise image points
             self.results[-1][1].image_points = []
+
+            # Image shape
+            self.results[-1][1].image_shape = (self.images[i].shape[1],self.images[i].shape[0])
 
             # Get a neater looking reference to the chessboard corners for this image
             impoints = self.chessboard_points_2D[i]

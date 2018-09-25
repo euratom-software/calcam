@@ -165,12 +165,18 @@ class PerspectiveViewModel(ViewModel):
         self.kc = np.zeros([1,len(coeffs_dict['dist_coeffs'])])
         self.kc[0,:] = coeffs_dict['dist_coeffs']
         
-        self.rvec = np.zeros([3,1])
-        self.rvec[:,0] = coeffs_dict['rvec']
-        self.tvec = np.zeros([3,1])
-        self.tvec[:,0] = coeffs_dict['tvec']
+        if 'rvec' in coeffs_dict and 'tvec' in coeffs_dict:
+            self.rvec = np.zeros([3,1])
+            self.rvec[:,0] = coeffs_dict['rvec']
+            self.tvec = np.zeros([3,1])
+            self.tvec[:,0] = coeffs_dict['tvec']
 
-        self.fit_options = coeffs_dict['fit_options']
+        if 'fit_options' in coeffs_dict:
+            self.fit_options = coeffs_dict['fit_options']
+        else:
+            self.fit_options = ['']
+
+
 
 
 
@@ -384,6 +390,18 @@ class Calibration():
 
         with ZipSaveFile(filename,'r') as save_file:
 
+            # Load the general information
+            try:
+                with save_file.open_file('calibration.json','r') as f:
+                    meta = json.load(f)
+            except IOError:
+                raise IOError('"{:s}" does not appear to be a Calcam calibration file!'.format(filename))
+
+            if self.__class__ is Calibration and meta['calib_type'] == 'virtual':
+                raise Exception('This is a virtual calibration file; load it using the "VirtualCalibration" class.')
+            if self.__class__ is VirtualCalibration and meta['calib_type'] != 'virtual':
+                raise Exception('This is a real calibration file; load it using the "Calibration" class.')
+
             # Load the image
             self.image = cv2.imread(os.path.join(save_file.get_temp_path(),'image.png'))
             if self.image is not None:
@@ -393,10 +411,6 @@ class Calibration():
 
             # Load the field mask
             self.subview_mask = cv2.imread(os.path.join(save_file.get_temp_path(),'subview_mask.png'))[:,:,0]
-
-            # Load the general information
-            with save_file.open_file('calibration.json','r') as f:
-                meta = json.load(f)
 
             self.geometry = CoordTransformer(meta['image_transform_actions'],meta['orig_x'],meta['orig_y'],meta['orig_paspect'])
             self.n_subviews = meta['n_subviews']
@@ -523,8 +537,12 @@ class Calibration():
 
     def save(self,filename):
 
-        if not filename.endswith('.ccc'):
-            filename = filename + '.ccc'
+        if self.__class__ is Calibration:
+            if not filename.endswith('.ccc'):
+                filename = filename + '.ccc'
+        elif self.__class__ is VirtualCalibration:
+             if not filename.endswith('.cvc'):
+                filename = filename + '.cvc'           
 
         with ZipSaveFile(filename,'w') as save_file:
 
@@ -663,6 +681,16 @@ class Calibration():
 
 
         return output
+
+    def get_cc(self,subview=None):
+
+        if self.n_subviews > 1 and subview is None:
+            raise ValueError('This calibration has more than 1 sub-view; sub-view must be specified!')
+
+        elif subview is None:
+            subview = 0
+
+        return (self.view_models[subview].cam_matrix[0,2] , self.view_models[subview].cam_matrix[1,2])
 
 
     # Get the horizontal and vertical field of view of a given sub-view
@@ -874,6 +902,76 @@ class Calibration():
             outp = self.view_models[subview].normalise(x,y)
 
         return outp
+
+
+class VirtualCalibration(Calibration):
+
+    def __init__(self,load_file=None):
+
+        Calibration.__init__(self,load_file=load_file)
+        self.calib_type = 'virtual'
+
+
+    def set_calib_intrinsics(self,intrinsics_calib):
+        
+        self.view_models = intrinsics_calib.view_models
+        self.subview_mask = intrinsics_calib.subview_mask
+        self.geometry.x_pixels = intrinsics_calib.geometry.x_pixels
+        self.geometry.y_pixels = intrinsics_calib.geometry.y_pixels
+        self.pixel_size = intrinsics_calib.pixel_size
+
+        self.intrinsics_constraints = [intrinsics_calib]
+
+
+    def set_chessboard_intrinsics(self,view_model,images_and_points):
+
+        self.view_models[0] = view_model
+
+        self.subview_mask = np.zeros(images_and_points[0][0].shape[:2],dtype=np.uint8)
+        self.geometry = CoordTransformer(orig_x=self.subview_mask.shape[1],orig_y = self.subview_mask.shape[0])
+
+        self.intrinsics_constraints = images_and_points
+
+
+    def set_pinhole_intrinsics(self,fx,fy,cx,cy,nx,ny):
+
+        coeffs_dict = {'fx':fx,'fy':fy,'cx':cx,'cy':cy,'dist_coeffs':np.zeros(5)}
+
+        self.view_models = [PerspectiveViewModel(coeffs_dict=coeffs_dict)]
+
+        self.geometry = CoordTransformer(orig_x=nx,orig_y = ny)
+
+        self.subview_mask = np.zeros([ny,nx],dtype=np.uint8)
+
+        self.intrinsics_constraints = []
+
+
+    def set_extrinsics(self,campos,upvec,camtar=None,view_dir=None):
+
+        if camtar is not None:
+            w = np.squeeze(np.array(camtar) - np.array(campos))
+        elif view_dir is not None:
+            w = view_dir
+        else:
+            raise ValueError('Either viewing target or view direction must be specified!')
+
+        w = w / np.sqrt(np.sum(w**2))
+        v = upvec / np.sqrt(np.sum(upvec**2))
+
+        u = np.cross(w,v)
+
+        Rmatrix = np.zeros([3,3])
+        Rmatrix[:,0] = u
+        Rmatrix[:,1] = -v
+        Rmatrix[:,2] = w
+        Rmatrix = np.matrix(Rmatrix)
+
+        campos = np.matrix(campos)
+        if campos.shape[0] < campos.shape[1]:
+            campos = campos.T
+
+        self.view_models[0].tvec = np.array(-Rmatrix.T * campos)
+        self.view_models[0].rvec = np.array(-cv2.Rodrigues(Rmatrix)[0])
 
 
 

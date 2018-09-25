@@ -107,7 +107,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         self.action_save_as.triggered.connect(lambda: self.save_calib(saveas=True))
         self.action_open.triggered.connect(self.load_calib)
         self.action_new.triggered.connect(self.reset)
-        #self.new_calib.triggered.connect(self.reset)
+
 
         self.del_pp_button.clicked.connect(self.remove_current_pointpair)
         self.clear_points_button.clicked.connect(self.clear_pointpairs)
@@ -1126,7 +1126,11 @@ class FittingCalibrationWindow(CalcamGUIWindow):
 
     def save_calib(self,saveas=False):
 
-        if self.filename is None or saveas:
+        if saveas:
+            orig_filename = self.filename
+            self.filename = None
+
+        if self.filename is None:
             self.filename = self.get_save_filename('calibration')
         
         if self.filename is not None:
@@ -1145,6 +1149,9 @@ class FittingCalibrationWindow(CalcamGUIWindow):
             self.calibration.save(self.filename)
             self.statusbar.clearMessage()
             self.app.restoreOverrideCursor()
+
+        elif saveas:
+            self.filename = orig_filename
 
 
     def load_calib(self):
