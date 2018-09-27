@@ -176,9 +176,9 @@ class ViewerWindow(CalcamGUIWindow):
         elif self.sender() is self.lines_3d_list:
 
             if data.checkState() == qt.Qt.Checked:
-                self.renderer_3d.AddActor(self.line_actors[data])
+                self.interactor3d.add_extra_actor(self.line_actors[data])
             else:
-                self.renderer_3d.RemoveActor(self.line_actors[data])
+                self.interactor3d.remove_extra_actor(self.line_actors[data])
 
             self.refresh_3d()
 
@@ -363,7 +363,10 @@ class ViewerWindow(CalcamGUIWindow):
         self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
 
         if self.contour_actor is not None:
-            self.renderer_3d.RemoveActor(self.contour_actor)
+            try:
+                self.interactor3d.remove_extra_actor(self.contour_actor)
+            except:
+                self.renderer_3d.RemoveActor(self.contour_actor)
             self.contour_actor = None
 
         if self.contour_2d.isChecked():
@@ -373,7 +376,7 @@ class ViewerWindow(CalcamGUIWindow):
             self.contour_actor = render.get_wall_contour_actor(self.cadmodel.wall_contour,'contour',phi)
             self.contour_actor.GetProperty().SetLineWidth(3)
             self.contour_actor.GetProperty().SetColor((1,0,0))
-            self.renderer_3d.AddActor(self.contour_actor)
+            self.interactor3d.add_extra_actor(self.contour_actor)
 
         elif self.contour_3d.isChecked():
             self.contour_actor = render.get_wall_contour_actor(self.cadmodel.wall_contour,'surface')
@@ -580,15 +583,15 @@ class ViewerWindow(CalcamGUIWindow):
                     actor.GetProperty().SetColor(next(self.colourcycle))
                     actor.GetProperty().SetOpacity(100.**(self.sightline_opacity_slider.value()/100.)/100.)
                     self.sightlines[data][1] = actor
-                    self.renderer_3d.AddActor(actor)
+                    self.interactor3d.add_extra_actor(actor)
                     self.app.restoreOverrideCursor()
 
                 else:
 
-                    self.renderer_3d.AddActor(self.sightlines[data][1])
+                    self.interactor3d.add_extra_actor(self.sightlines[data][1])
 
             else:
-                self.renderer_3d.RemoveActor(self.sightlines[data][1])
+                self.interactor3d.remove_extra_actor(self.sightlines[data][1])
 
                 n = 0
                 for item in self.sightlines.keys():

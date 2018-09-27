@@ -2,7 +2,7 @@ import cv2
 
 from .core import *
 from .vtkinteractorstyles import CalcamInteractorStyle3D
-from ..calibration import VirtualCalibration,Fitter
+from ..calibration import Calibration,Fitter
 
 # View designer window.
 # This allows creation of FitResults objects for a 'virtual' camera.
@@ -36,7 +36,7 @@ class VirtualCalibrationWindow(CalcamGUIWindow):
 
 
         # Synthetic camera object to store the results
-        self.virtual_calib = VirtualCalibration()
+        self.virtual_calib = Calibration(cal_type='virtual')
         self.chessboard_fit = None
 
         self.filename = None
@@ -185,7 +185,7 @@ class VirtualCalibrationWindow(CalcamGUIWindow):
             self.filename = None
 
         if self.filename is None:
-            self.filename = self.get_save_filename('virtual_calibration')
+            self.filename = self.get_save_filename('calibration')
 
         if self.filename is not None:
 

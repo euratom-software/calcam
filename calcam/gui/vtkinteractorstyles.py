@@ -81,6 +81,7 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
         # Add observer for catching window resizing
         self.vtkwindow.AddObserver("ModifiedEvent",self.on_resize)
 
+        self.extra_actors = []
 
         # Create a picker
         self.picker = vtk.vtkCellPicker()
@@ -190,6 +191,17 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
         return self.cursors[cursor_id]['cursor3d'].GetFocalPoint()
 
 
+    def add_extra_actor(self,actor):
+
+        self.extra_actors.append(actor)
+        self.renderer.AddActor(actor)
+
+
+    def remove_extra_actor(self,actor):
+        self.extra_actors.remove(actor)
+        self.renderer.RemoveActor(actor)
+
+
     def update_clipping(self):
 
         self.renderer.ResetCameraClippingRange()
@@ -216,6 +228,10 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
 
         # Do a pick with our picker object
         clickcoords = self.interactor.GetEventPosition()
+        
+        for actor in self.extra_actors:
+            self.renderer.RemoveActor(actor)
+        
         retval = self.picker.Pick(clickcoords[0],clickcoords[1],0,self.renderer)
 
         # If something was successfully picked, find out what it was...
@@ -286,6 +302,8 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
                     if self.cursor_move_callback is not None:
                         self.cursor_move_callback(self.focus_cursor,pickcoords)
 
+        for actor in self.extra_actors:
+            self.renderer.AddActor(actor)
 
             if self.refresh_callback is not None:
                 self.refresh_callback()

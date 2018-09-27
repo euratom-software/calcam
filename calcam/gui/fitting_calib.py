@@ -28,7 +28,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
 
         # Start up with no CAD model
         self.cadmodel = None
-        self.calibration = Calibration()
+        self.calibration = Calibration(cal_type='fit')
         self.calibration.calib_type = 'fit'
 
         # Set up VTK
@@ -211,7 +211,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
 
         self.interactor2d.set_image(None)
 
-        self.calibration = Calibration()
+        self.calibration = Calibration(cal_type='fit')
         self.calibration.calib_type = 'fit'
         # Disable image transform buttons if we have no image
         self.image_settings.hide()
@@ -1162,6 +1162,11 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         if opened_calib is None:
             return
         
+        if opened_calib._type == 'alignment':
+            raise UserWarning('The selected calibration is an alignment calibration and cannot be edited in this tool. Please open it with the alignment calibration editor instead.')
+        elif opened_calib._type == 'virtual':
+            raise UserWarning('The selected calibration is a virtual calibration and cannot be edited in this tool. Please open it in the virtual calibration editor instead.')
+
         self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
         self.reset()
 

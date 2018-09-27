@@ -338,7 +338,7 @@ class FisheyeeViewModel(ViewModel):
 # Class to represent a camera calibration.
 class Calibration():
 
-    def __init__(self,load_file = None):
+    def __init__(self,load_file = None,cal_type = None):
 
         self.image = None
         self.pointpairs = None
@@ -361,7 +361,10 @@ class Calibration():
 
         if load_file is not None:
             self.load(load_file)
-
+        elif cal_type.lower() not in ['fit','alignment','virtual']:
+            raise ValueError('To create a new empty calibration, the "type" argument must be spplied and be "fit","alignment" or "virtual".')
+        else:
+            self._type = cal_type.lower()
 
     def set_pointpairs(self,pointpairs):
 
@@ -397,12 +400,8 @@ class Calibration():
             except IOError:
                 raise IOError('"{:s}" does not appear to be a Calcam calibration file!'.format(filename))
 
-            if self.__class__ is Calibration and meta['calib_type'] == 'virtual':
-                raise Exception('This is a virtual calibration file; load it using the "VirtualCalibration" class.')
-            if self.__class__ is VirtualCalibration and meta['calib_type'] != 'virtual':
-                raise Exception('This is a real calibration file; load it using the "Calibration" class.')
 
-            # Load the image
+            # Load the image. Note with the opencv imread function, it will silently return None if the image file does not exist.
             self.image = cv2.imread(os.path.join(save_file.get_temp_path(),'image.png'))
             if self.image is not None:
                 if len(self.image.shape) == 3:
@@ -411,17 +410,19 @@ class Calibration():
 
             # Load the field mask
             self.subview_mask = cv2.imread(os.path.join(save_file.get_temp_path(),'subview_mask.png'))[:,:,0]
-
             self.geometry = CoordTransformer(meta['image_transform_actions'],meta['orig_x'],meta['orig_y'],meta['orig_paspect'])
             self.n_subviews = meta['n_subviews']
             self.history = meta['history']
             self.subview_names = meta['subview_names']
-            self.calib_type = meta['calib_type']
+            self._type = meta['calib_type']
             self.pixel_size = meta['pixel_size']
             
             # Load the primary point pairs
-            with save_file.open_file('pointpairs.csv','r') as ppf:
-                self.pointpairs = PointPairs(ppf)
+            try:
+                with save_file.open_file('pointpairs.csv','r') as ppf:
+                    self.pointpairs = PointPairs(ppf)
+            except:
+                self.pointpairs = None
 
             # Load fit results
             self.view_models = []
@@ -537,12 +538,9 @@ class Calibration():
 
     def save(self,filename):
 
-        if self.__class__ is Calibration:
-            if not filename.endswith('.ccc'):
-                filename = filename + '.ccc'
-        elif self.__class__ is VirtualCalibration:
-             if not filename.endswith('.cvc'):
-                filename = filename + '.cvc'           
+
+        if not filename.endswith('.ccc'):
+            filename = filename + '.ccc'
 
         with ZipSaveFile(filename,'w') as save_file:
 
@@ -568,7 +566,7 @@ class Calibration():
                     'orig_paspect':self.geometry.pixel_aspectratio,
                     'image_transform_actions':self.geometry.transform_actions,
                     'subview_names':self.subview_names,
-                    'calib_type':self.calib_type
+                    'calib_type':self._type
             }
 
             for nview in range(self.n_subviews):
@@ -904,15 +902,11 @@ class Calibration():
         return outp
 
 
-class VirtualCalibration(Calibration):
-
-    def __init__(self,load_file=None):
-
-        Calibration.__init__(self,load_file=load_file)
-        self.calib_type = 'virtual'
-
 
     def set_calib_intrinsics(self,intrinsics_calib):
+
+        if self._type == 'fit':
+            raise Exception('You cannot modify the intrinsics of a fitted calibration.')
         
         self.view_models = intrinsics_calib.view_models
         self.subview_mask = intrinsics_calib.subview_mask
@@ -925,6 +919,9 @@ class VirtualCalibration(Calibration):
 
     def set_chessboard_intrinsics(self,view_model,images_and_points):
 
+        if self._type == 'fit':
+            raise Exception('You cannot modify the intrinsics of a fitted calibration.')
+
         self.view_models[0] = view_model
 
         self.subview_mask = np.zeros(images_and_points[0][0].shape[:2],dtype=np.uint8)
@@ -934,6 +931,9 @@ class VirtualCalibration(Calibration):
 
 
     def set_pinhole_intrinsics(self,fx,fy,cx,cy,nx,ny):
+
+        if self._type == 'fit':
+            raise Exception('You cannot modify the intrinsics of a fitted calibration.')
 
         coeffs_dict = {'fx':fx,'fy':fy,'cx':cx,'cy':cy,'dist_coeffs':np.zeros(5)}
 
@@ -947,6 +947,9 @@ class VirtualCalibration(Calibration):
 
 
     def set_extrinsics(self,campos,upvec,camtar=None,view_dir=None):
+
+        if self._type == 'fit':
+            raise Exception('You cannot modify the extrinsics of a fitted calibration.')
 
         if camtar is not None:
             w = np.squeeze(np.array(camtar) - np.array(campos))

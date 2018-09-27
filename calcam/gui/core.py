@@ -289,7 +289,7 @@ class CalcamGUIWindow(qt.QMainWindow):
         try:
            filedialog.setDirectory(self.config.file_dirs[obj_type])
         except KeyError:
-            pass
+            filedialog.setDirectory(os.path.expanduser('~'))
 
         if multiple:
             filedialog.setFileMode(3)
@@ -342,7 +342,7 @@ class CalcamGUIWindow(qt.QMainWindow):
         try:
            filedialog.setDirectory(self.config.file_dirs[obj_type])
         except KeyError:
-            pass
+            filedialog.setDirectory(os.path.expanduser('~'))
         
 
         filedialog.setFileMode(0)

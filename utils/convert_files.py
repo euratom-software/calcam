@@ -171,19 +171,24 @@ def load_calib(path):
 
     cal.n_subviews = int(save['nfields'])
     cal.subview_mask = save['field_mask']
-    
+
+    if 'type' in save:
+	    if save['type'] != 'fit':
+	    	print('This is a manual alignment calibration; not supported yet! Sorry.')
+	    	return None
+
+    print(save.keys())
     cal.pointpairs = PointPairs()
     if 'PointPairs' in save:
-        pp = load_pointpairs(save['PointPairs'][0])
+        cal.pointpairs = load_pointpairs(save['PointPairs'][0])
         cal.image_points.append(pp['imagepoints'])
         cal.object_points.append(pp['objectpoints'])
         cal.image = load_image(pp['image'])
-
     elif 'objectpoints' in save:
         if len(save['objectpoints']) > 0:
             cal.pointpairs.object_points = save['objectpoints'][0]
             cal.pointpairs.image_points = save['imagepoints'][0]
-
+            cal.pointpairs.n_subviews = len(save['imagepoints'][0][0])
             # Intrinsics point pairs
             for i in range(1,len(save['objectpoints'])):
                 cal.intrinsics_constraints.append([None,PointPairs()])
@@ -278,9 +283,10 @@ def convert_calibs(new_path= os.path.join(newpath_root,'Calibrations')):
         print('-> Converting calibration "{:s}"...'.format(new_filename))
         try:
             cal = load_calib(os.path.join(search_path,file))
-            cal.history = [(int(time.time()),uname,hostname,'Converted from Calcam 1.x calibration "{:s}"'.format(new_filename))]
-            cal.save( os.path.join(new_path,'{:s}.ccc'.format(new_filename)) )
-            print(' -> Calcam 2 version saved to {:s}\n'.format(os.path.join(new_path,'{:s}.ccc'.format(new_filename))))
+            if cal is not None:
+	            cal.history = [(int(time.time()),uname,hostname,'Converted from Calcam 1.x calibration "{:s}"'.format(new_filename))]
+	            cal.save( os.path.join(new_path,'{:s}.ccc'.format(new_filename)) )
+	            print(' -> Calcam 2 version saved to {:s}\n'.format(os.path.join(new_path,'{:s}.ccc'.format(new_filename))))
         except:
             print(' -> Error, calibration not converted.\n')
             raise
