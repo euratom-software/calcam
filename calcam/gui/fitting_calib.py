@@ -397,6 +397,10 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         else:
             transform_actions = ''
 
+        if 'pixel_size' in newim:
+            self.pixel_size_checkbox.setChecked(True)
+            self.pixel_size_box.setValue(newim['pixel_size'])
+
         self.calibration.set_image( self.original_image , subview_mask = self.original_subview_mask, transform_actions = transform_actions,coords='Original',subview_names=subview_names )
 
         self.calibration.view_models = [None] * self.calibration.n_subviews

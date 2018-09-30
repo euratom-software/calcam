@@ -66,6 +66,7 @@ class AlignmentCalibWindow(CalcamGUIWindow):
         self.calcam_intrinsics.clicked.connect(self.update_intrinsics)
         self.chessboard_intrinsics.clicked.connect(self.update_intrinsics)
         self.pinhole_intrinsics.clicked.connect(self.update_intrinsics)
+        self.pixel_size_checkbox.toggled.connect(self.update_intrinsics)
         self.pixel_size_box.valueChanged.connect(self.update_intrinsics)
         self.focal_length_box.valueChanged.connect(self.update_intrinsics)
         self.load_chessboard_button.clicked.connect(self.update_chessboard_intrinsics)
@@ -80,6 +81,7 @@ class AlignmentCalibWindow(CalcamGUIWindow):
         self.im_edge_colour_button.clicked.connect(self.update_edge_colour)
         self.edge_threshold_1.valueChanged.connect(self.update_overlay)
         self.edge_threshold_2.valueChanged.connect(self.update_overlay)
+
 
         self.pixel_size_box.setSuffix(u' \u00B5m')
 
@@ -144,13 +146,16 @@ class AlignmentCalibWindow(CalcamGUIWindow):
 
                 fov = 3.14159 * self.camera_3d.GetViewAngle() / 180.
                 f = self.calibration.geometry.get_display_shape()[1]/(2*np.tan(fov/2.))
-                f = f * self.pixel_size_box.value() / 1e3
+                if self.pixel_size_checkbox.isChecked():
+                        f = f * self.pixel_size_box.value() / 1e3
 
+                self.focal_length_box.blockSignals(True)
                 self.focal_length_box.setValue(f)
+                self.focal_length_box.blockSignals(False)
 
 
 
-    def update_intrinsics(self,redraw=True):
+    def update_intrinsics(self):
 
         if self.original_image is None:
             return
@@ -158,11 +163,15 @@ class AlignmentCalibWindow(CalcamGUIWindow):
         if self.sender() is self.load_intrinsics_button:
             self.intrinsics_calib = None
 
+        if self.pixel_size_checkbox.isChecked():
+            self.pixel_size_box.setEnabled(True)
+        else:
+            self.pixel_size_box.setEnabled(False)
+
         if self.calcam_intrinsics.isChecked():
             self.interactor3d.zoom_enabled = False
             self.load_chessboard_button.setEnabled(False)
             self.load_intrinsics_button.setEnabled(True)
-            self.pixel_size_box.setEnabled(False)
             self.focal_length_box.setEnabled(False)
             
             if self.intrinsics_calib is None:
@@ -176,13 +185,29 @@ class AlignmentCalibWindow(CalcamGUIWindow):
 
         elif self.pinhole_intrinsics.isChecked():
             self.interactor3d.zoom_enabled = True
+
+            if self.pixel_size_checkbox.isChecked():
+                if self.focal_length_box.suffix() == ' px':
+                    self.focal_length_box.blockSignals(True)
+                    self.focal_length_box.setValue( self.focal_length_box.value() * self.pixel_size_box.value() / 1e3 )
+                    self.focal_length_box.blockSignals(False)
+                    self.focal_length_box.setSuffix(' mm')
+            else:
+                if self.focal_length_box.suffix() == ' mm':
+                    self.focal_length_box.blockSignals(True)
+                    self.focal_length_box.setValue( 1e3 * self.focal_length_box.value() / self.pixel_size_box.value() )
+                    self.focal_length_box.blockSignals(False)
+                    self.focal_length_box.setSuffix(' px')
+
             self.load_chessboard_button.setEnabled(False)
             self.focal_length_box.setEnabled(True)
 
             nx,ny = self.calibration.geometry.get_display_shape()
 
-            fov = 3.14159 * self.camera_3d.GetViewAngle() / 180.
-            f = ny/(2*np.arctan(fov/2.))
+            #fov = 3.14159 * self.camera_3d.GetViewAngle() / 180.
+            f = self.focal_length_box.value()
+            if self.pixel_size_checkbox.isChecked():
+                f = 1e3 * f / self.pixel_size_box.value()
 
             self.calibration.set_pinhole_intrinsics(fx=f,fy=f,cx=nx/2.,cy=ny/2.,nx=nx,ny=ny)
 
@@ -190,7 +215,6 @@ class AlignmentCalibWindow(CalcamGUIWindow):
             self.interactor3d.zoom_enabled = False
             self.load_chessboard_button.setEnabled(True)
             self.load_intrinsics_button.setEnabled(False)
-            self.pixel_size_box.setEnabled(False)
             self.focal_length_box.setEnabled(False)
 
             if self.chessboard_fit is None:
@@ -247,6 +271,10 @@ class AlignmentCalibWindow(CalcamGUIWindow):
             transform_actions = newim['transform_actions']
         else:
             transform_actions = ''
+
+        if 'pixel_size' in newim:
+            self.pixel_size_checkbox.setChecked(True)
+            self.pixel_size_box.setValue(newim['pixel_size'])
 
         self.calibration.set_image( self.original_image , subview_mask = self.original_subview_mask, transform_actions = transform_actions,coords='Original',subview_names=subview_names )
 

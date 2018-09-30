@@ -29,6 +29,9 @@ def get_image(filename):
                     'subview_names' : subview_names
                     }
 
+    if cal.pixel_size is not None:
+        return_dict['pixel_size'] = cal.pixel_size
+
     return return_dict
 
 

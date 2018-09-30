@@ -227,7 +227,7 @@ class PerspectiveViewModel(ViewModel):
     # Un-distort an image based on the calibration
     def undistort_image(self,image):
 
-        return cv2.undistort(im,self.cam_matrix,self.kc)
+        return cv2.undistort(image,self.cam_matrix,self.kc)
 
 
 
@@ -331,7 +331,7 @@ class FisheyeeViewModel(ViewModel):
     # Un-distort an image based on the calibration
     def undistort_image(self,image):
 
-        return cv2.fisheye.undistortImage(im,self.cam_matrix,self.kc)
+        return cv2.fisheye.undistortImage(image,self.cam_matrix,self.kc)
 
 
 
@@ -862,10 +862,18 @@ class Calibration():
 
             subview_mask = self.subview_mask == nview
 
-            im_in = im.copy()
-            im_in[ np.tile(subview_mask,(1,1,im_in.shape[2])) == 0 ] = 0
+            im_in = image.copy()
+            if len(im_in.shape) > 2:
+                im_in[ np.tile(subview_mask[:,:,np.newaxis],(1,1,im_in.shape[2])) == 0 ] = 0
+            else:
+                im_in[ subview_mask == 0 ] = 0
+
             undistorted =  self.view_models[nview].undistort_image(im_in)
-            image_out[ np.tile(subview_mask,(1,1,im_in.shape[2])) ] = undistorted[ np.tile(subview_mask,(1,1,im_in.shape[2])) ]
+
+            if len(im_in.shape) > 2:
+                image_out[ np.tile(subview_mask[:,:,np.newaxis],(1,1,im_in.shape[2])) ] = undistorted[ np.tile(subview_mask[:,:,np.newaxis],(1,1,im_in.shape[2])) ]
+            else:
+                image_out[ subview_mask ] = undistorted[ subview_mask ]
 
         return image_out
 

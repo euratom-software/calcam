@@ -115,7 +115,7 @@ class VirtualCalibrationWindow(CalcamGUIWindow):
                         self.intrinsics_calib = None
                         raise UserWarning('This calibration has multiple sub-fields; no worky; sorry.')
 
-            self.virtual_calib.set_calib_intrinsics(self.intrinsics_calib)
+                self.virtual_calib.set_calib_intrinsics(self.intrinsics_calib)
 
         elif self.pinhole_intrinsics.isChecked():
             self.interactor3d.zoom_enabled = True

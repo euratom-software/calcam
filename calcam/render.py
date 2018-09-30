@@ -559,7 +559,7 @@ def get_wall_contour_actor(wall_contour,actor_type='contour',phi=None,toroidal_r
 
 
 # Return VTK image actor and VTK image reiszer objects for this image.
-def get_image_actor(image_array,clim=None):
+def get_image_actor(image_array,clim=None,actortype='vtkImageActor'):
 
     image = image_array.copy()
 
@@ -623,12 +623,34 @@ def get_image_actor(image_array,clim=None):
     vtk_im_importer.SetDataExtent(0,image.shape[1]-1,0,image.shape[0]-1,0,0)
     vtk_im_importer.SetWholeExtent(0,image.shape[1]-1,0,image.shape[0]-1,0,0)
 
-    actor = vtk.vtkImageActor()
-    actor.InterpolateOff()
-    mapper = actor.GetMapper()
-    mapper.SetInputConnection(vtk_im_importer.GetOutputPort())
+    if actortype == 'vtkImageActor':
+        actor = vtk.vtkImageActor()
+        actor.InterpolateOff()
+        mapper = actor.GetMapper()
+        mapper.SetInputConnection(vtk_im_importer.GetOutputPort())
 
-    return actor
+        return actor
+
+    elif actortype == 'vtkActor2D':
+        resizer = vtk.vtkImageResize()
+        resizer.SetInputConnection(vtk_im_importer.GetOutputPort())
+        resizer.SetResizeMethodToOutputDimensions()
+        resizer.SetOutputDimensions((image_array.shape[1],image_array.shape[0],1))
+        resizer.InterpolateOff()
+
+        mapper = vtk.vtkImageMapper()
+        mapper.SetInputConnection(resizer.GetOutputPort())
+        mapper.SetColorWindow(255)
+        mapper.SetColorLevel(127.5)
+
+        actor = vtk.vtkActor2D()
+        actor.SetMapper(mapper)
+        actor.GetProperty().SetDisplayLocationToForeground()
+
+        return actor,resizer
+
+
+
 
 
 # Get a VTK actor of 3D lines based on a set of 3D point coordinates.
