@@ -57,6 +57,11 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
         self.cursor_changed_callback = focus_changed_callback
         self.refresh_callback = refresh_callback
         self.focus_changed_callback = focus_changed_callback
+        self.image_actor = None
+        self.image_resizer = None
+        self.force_aspect = None
+        self.im_aspect = None
+        self.zoom_enabled=True
 
 
     # Do various initial setup things, most of which can't be done at the time of __init__
@@ -132,7 +137,8 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
 
         # If ctrl + scroll, change the camera FOV
         if self.interactor.GetControlKey():
-            self.camera.SetViewAngle(max(self.camera.GetViewAngle()*0.9,1))
+            if self.zoom_enabled:
+                self.camera.SetViewAngle(max(self.camera.GetViewAngle()*0.9,1))
 
         # Otherwise, move the camera forward.
         else:
@@ -151,7 +157,8 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
 
         # If ctrl + scroll, change the camera FOV
         if self.interactor.GetControlKey():
-            self.camera.SetViewAngle(min(self.camera.GetViewAngle()*1.1,110.))
+            if self.zoom_enabled:
+                self.camera.SetViewAngle(min(self.camera.GetViewAngle()*1.1,110.))
 
         # Otherwise, move the camera backward.
         else:
@@ -404,6 +411,19 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
 
         vtk_size = self.vtkwindow.GetSize()
 
+        vtk_aspect = float(vtk_size[1]) / float(vtk_size[0])
+
+        if self.force_aspect is not None:
+            # Camera view wider than VTK panel
+            if self.force_aspect <= vtk_aspect:
+                h = self.force_aspect / vtk_aspect
+                self.renderer.SetViewport([0.,0.5-h/2.,1.0,0.5+h/2.])
+
+            # Camera view taller than VTK panel
+            elif self.force_aspect > vtk_aspect:
+                w = vtk_aspect / self.force_aspect
+                self.renderer.SetViewport([0.5-w/2.,0.,0.5+w/2.,1.])
+
         # Sizing of the legend
         if self.legend is not None:
 
@@ -427,6 +447,13 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
             # Set Legend position
             self.legend.GetPositionCoordinate().SetValue(1 - legend_offset_x - legend_width, legend_offset_y)
 
+
+        # Sizing of the overlay image
+        if self.image_actor is not None:
+            viewport = self.renderer.GetViewport()
+            h = int(vtk_size[1] * (viewport[3] - viewport[1]))
+            w = int(h / self.im_aspect)
+            self.image_resizer.SetOutputDimensions(w,h,1)
 
         if self.resize_callback is not None:
             self.resize_callback(vtk_size)
@@ -470,6 +497,23 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
         if self.xsection_coords is not None:
             self.update_clipping()
 
+
+    def set_overlay_image(self,im_array):
+
+        if self.image_actor is not None:
+            self.renderer.RemoveActor(self.image_actor)
+            self.image_actor = None
+            self.image_resizer = None
+            self.im_aspect = None
+
+        if im_array is None:
+            return
+
+        self.im_aspect = float(im_array.shape[1]) / float(im_array.shape[0])
+        self.image_actor,self.image_resizer = get_image_actor(im_array,actortype='vtkActor2D')
+
+        self.renderer.AddActor(self.image_actor)
+        self.on_resize()
 
 
 

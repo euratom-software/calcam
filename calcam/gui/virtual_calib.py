@@ -23,7 +23,7 @@ class VirtualCalibrationWindow(CalcamGUIWindow):
         # Set up VTK
         self.qvtkwidget_3d = qt.QVTKRenderWindowInteractor(self.vtk_frame)
         self.vtk_frame.layout().addWidget(self.qvtkwidget_3d,0,0)
-        self.interactor3d = CalcamInteractorStyle3D(refresh_callback=self.refresh_3d,viewport_callback=self.update_viewport_info,resize_callback=self.on_resize)
+        self.interactor3d = CalcamInteractorStyle3D(refresh_callback=self.refresh_3d,viewport_callback=self.update_viewport_info)
         self.qvtkwidget_3d.SetInteractorStyle(self.interactor3d)
         self.renderer_3d = vtk.vtkRenderer()
         self.renderer_3d.SetBackground(0, 0, 0)
@@ -32,7 +32,6 @@ class VirtualCalibrationWindow(CalcamGUIWindow):
 
 
         self.populate_models()
-
 
 
         # Synthetic camera object to store the results
@@ -68,9 +67,6 @@ class VirtualCalibrationWindow(CalcamGUIWindow):
         self.action_save_as.triggered.connect(lambda: self.save(saveas=True))
 
         self.viewport_calibs = DodgyDict()
-
-        self.view_aspect = None
-        self.vtk_aspect = None
         self.intrinsics_calib = None
 
         # Start the GUI!
@@ -85,12 +81,26 @@ class VirtualCalibrationWindow(CalcamGUIWindow):
 
 
 
-    def update_intrinsics(self,redraw=True):
+    def update_viewport_info(self,keep_selection=False):
+
+        CalcamGUIWindow.update_viewport_info(self,keep_selection)
+
+        if self.pinhole_intrinsics.isChecked():
+
+            fov = 3.14159 * self.camera_3d.GetViewAngle() / 180.
+            f = self.virtual_calib.geometry.get_display_shape()[1]/(2*np.tan(fov/2.))
+            f = f * self.pixel_size_box.value() / 1e3
+
+            self.focal_length_box.setValue(f)
+
+
+    def update_intrinsics(self):
 
         if self.sender() is self.load_intrinsics_button:
             self.intrinsics_calib = None
 
         if self.calcam_intrinsics.isChecked():
+            self.interactor3d.zoom_enabled = False
             self.load_chessboard_button.setEnabled(False)
             self.load_intrinsics_button.setEnabled(True)
             self.x_pixels_box.setEnabled(False)
@@ -108,7 +118,9 @@ class VirtualCalibrationWindow(CalcamGUIWindow):
             self.virtual_calib.set_calib_intrinsics(self.intrinsics_calib)
 
         elif self.pinhole_intrinsics.isChecked():
+            self.interactor3d.zoom_enabled = True
             self.load_chessboard_button.setEnabled(False)
+            self.load_intrinsics_button.setEnabled(False)
             self.x_pixels_box.setEnabled(True)
             self.y_pixels_box.setEnabled(True)
             self.pixel_size_box.setEnabled(True)
@@ -122,6 +134,7 @@ class VirtualCalibrationWindow(CalcamGUIWindow):
             self.virtual_calib.pixel_size = self.pixel_size_box.value()
 
         elif self.chessboard_intrinsics.isChecked():
+            self.interactor3d.zoom_enabled = False
             self.load_chessboard_button.setEnabled(True)
             self.load_intrinsics_button.setEnabled(False)
             self.x_pixels_box.setEnabled(False)
@@ -136,7 +149,15 @@ class VirtualCalibrationWindow(CalcamGUIWindow):
                 self.virtual_calib.set_chessboard_intrinsics(self.chessboard_fit,self.chessboard_pointpairs)
                 self.current_intrinsics_combobox = self.chessboard_intrinsics
 
-        self.view_aspect = float(self.virtual_calib.geometry.y_pixels) / float(self.virtual_calib.geometry.x_pixels)
+        old_aspect = self.interactor3d.force_aspect
+
+        aspect = float(self.virtual_calib.geometry.y_pixels) / float(self.virtual_calib.geometry.x_pixels)
+        aspect_changed = True
+        if old_aspect is not None:
+            if np.abs(old_aspect - aspect) < 1e-2:
+                aspect_changed = False
+
+        self.interactor3d.force_aspect = aspect
 
         cc = self.virtual_calib.get_cc()
         n = self.virtual_calib.geometry.get_display_shape()
@@ -148,12 +169,13 @@ class VirtualCalibrationWindow(CalcamGUIWindow):
         # This is a slight hack - we have to resize the window slightly
         # and resize it back again to get VTK to redraw the background.
         # More elegant solution needed here really.
-        size = self.size()
-        self.resize(size.width()+1,size.height())
-        self.resize(size.width(),size.height())
+        if aspect_changed:
+            size = self.size()
+            self.resize(size.width()+1,size.height())
+            self.refresh_3d()
+            self.resize(size.width(),size.height())
 
-
-
+        self.refresh_3d()
 
     def update_chessboard_intrinsics(self):
 
@@ -219,26 +241,6 @@ class VirtualCalibrationWindow(CalcamGUIWindow):
             self.filename = orig_filename
 
 
-
-    def on_resize(self,vtk_size=None):
-
-        if vtk_size is not None:
-            self.update_vtk_size(vtk_size)
-
-        self.vtk_aspect = float(self.vtksize[1]) / float(self.vtksize[0])
-
-        if self.view_aspect is not None and self.vtk_aspect is not None:
-            # Camera view wider than VTK panel
-            if self.view_aspect <= self.vtk_aspect:
-                h = self.view_aspect / self.vtk_aspect
-                self.renderer_3d.SetViewport([0.,0.5-h/2.,1.0,0.5+h/2.])
-
-            # Camera view taller than VTK panel
-            elif self.view_aspect > self.vtk_aspect:
-                w = self.vtk_aspect / self.view_aspect
-                self.renderer_3d.SetViewport([0.5-w/2.,0.,0.5+w/2.,1.])
-
-            self.refresh_3d()
 
 
 

@@ -5,6 +5,7 @@ import numpy as np
 import traceback
 import vtk
 import cv2
+import time
 
 # Calcam imports
 from . import qt_wrapper as qt
@@ -277,6 +278,87 @@ class CalcamGUIWindow(qt.QMainWindow):
 
         return ret_col
 
+    def build_imload_gui(self,index):
+
+        layout = self.image_load_options.layout()
+        for widgets,_ in self.imload_inputs.values():
+            for widget in widgets:
+                layout.removeWidget(widget)
+                widget.close()
+
+        #layout = qt.QGridLayout(self.image_load_options)
+        self.imsource = self.image_sources[index]
+
+        self.imload_inputs = {}
+
+        row = 0
+        for option in self.imsource['get_image_arguments']:
+
+            labelwidget = qt.QLabel(option['gui_label'] + ':')
+            layout.addWidget(labelwidget,row,0)
+
+            if option['type'] == 'filename':
+                button = qt.QPushButton('Browse...')
+                button.setMaximumWidth(80)
+                layout.addWidget(button,row+1,1)
+                fname = qt.QLineEdit()
+                button.clicked.connect(lambda : self.browse_for_file(option['filter'],fname))                
+                if 'default' in option:
+                    fname.setText(option['default'])
+                layout.addWidget(fname,row,1)
+                self.imload_inputs[option['arg_name']] = ([labelwidget,button,fname],fname.text )
+                row = row + 2
+            elif option['type'] == 'float':
+                valbox = qt.QDoubleSpinBox()
+                valbox.setButtonSymbols(qt.QAbstractSpinBox.NoButtons)
+                if 'limits' in option:
+                    valbox.setMinimum(option['limits'][0])
+                    valbox.setMaximum(option['limits'][1])
+                if 'default' in option:
+                    valbox.setValue(option['default'])
+                if 'decimals' in option:
+                    valbox.setDecimals(option['decimals'])
+                layout.addWidget(valbox,row,1)
+                self.imload_inputs[option['arg_name']] = ([labelwidget,valbox],valbox.value )
+                row = row + 1
+            elif option['type'] == 'int':
+                valbox = qt.QSpinBox()
+                valbox.setButtonSymbols(qt.QAbstractSpinBox.NoButtons)
+                if 'limits' in option:
+                    valbox.setMinimum(option['limits'][0])
+                    valbox.setMaximum(option['limits'][1])
+                if 'default' in option:
+                    valbox.setValue(option['default'])
+                layout.addWidget(valbox,row,1)
+                self.imload_inputs[option['arg_name']] = ([labelwidget,valbox],valbox.value )
+                row = row + 1
+            elif option['type'] == 'string':
+                ted = qt.QLineEdit()
+                if 'default' in option:
+                    ted.setText(option['default'])
+                layout.addWidget(ted,row,1)
+                self.imload_inputs[option['arg_name']] = ([labelwidget,ted],ted.text )
+                row = row + 1
+            elif option['type'] == 'bool':
+                checkbox = qt.QCheckBox()
+                if 'default' in option:
+                    checkbox.setChecked(option['default'])
+                layout.addWidget(checkbox,row,1)
+                self.imload_inputs[option['arg_name']] = ([labelwidget,checkbox],checkbox.isChecked )
+                row = row + 1
+            elif option['type'] == 'choice':
+                cb = qt.QComboBox()
+                set_ind = -1
+                for i,it in enumerate(option['choices']):
+                    cb.addItem(it)
+                    if 'default' in option:
+                        if option['default'] == it:
+                            set_ind = i
+                cb.setCurrentIndex(set_ind)
+                layout.addWidget(cb,row,1)
+                self.imload_inputs[option['arg_name']] = ([labelwidget,cb],cb.currentText) 
+                row = row + 1
+
 
 
     def object_from_file(self,obj_type,multiple=False):
@@ -306,9 +388,12 @@ class CalcamGUIWindow(qt.QMainWindow):
         else:
             return empty_ret
 
-
-        objs = []
+        # If we have selected one or more files...
         self.config.file_dirs[obj_type] = os.path.split(str(selected_paths[0]))[0]
+
+        self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
+        objs = []
+        
         for path in [str(p) for p in selected_paths]:
 
             if obj_type.lower() == 'calibration':
@@ -323,12 +408,28 @@ class CalcamGUIWindow(qt.QMainWindow):
                         obj = PointPairs(ppf)
 
             objs.append(obj)
-
+        self.app.restoreOverrideCursor()
         if multiple:
             return objs
         else:
             return objs[0]
 
+
+
+    def update_image_info_string(self):
+
+        if np.any(self.calibration.geometry.get_display_shape() != self.calibration.geometry.get_original_shape()):
+            info_str = '{0:d} x {1:d} pixels ({2:.1f} MP) [ As Displayed ]<br>{3:d} x {4:d} pixels ({5:.1f} MP) [ Raw Data ]<br>'.format(self.calibration.geometry.get_display_shape()[0],self.calibration.geometry.get_display_shape()[1],np.prod(self.calibration.geometry.get_display_shape()) / 1e6 ,self.calibration.geometry.get_original_shape()[0],self.calibration.geometry.get_original_shape()[1],np.prod(self.calibration.geometry.get_original_shape()) / 1e6 )
+        else:
+            info_str = '{0:d} x {1:d} pixels ({2:.1f} MP)<br>'.format(self.calibration.geometry.get_display_shape()[0],self.calibration.geometry.get_display_shape()[1],np.prod(self.calibration.geometry.get_display_shape()) / 1e6 )
+        
+        if len(self.calibration.image.shape) == 2:
+            info_str = info_str + 'Monochrome'
+        elif len(self.calibration.image.shape) == 3 and self.calibration.image.shape[2] == 3:
+            info_str = info_str + 'RGB Colour'
+
+        self.image_info.setText(info_str)
+        
 
 
     def get_save_filename(self,obj_type):
@@ -535,6 +636,23 @@ class CalcamGUIWindow(qt.QMainWindow):
 
     def on_change_cad_features(self):
         pass
+
+
+    def browse_for_file(self,name_filter,target_textbox=None):
+
+        filedialog = qt.QFileDialog(self)
+        filedialog.setAcceptMode(0)
+        filedialog.setFileMode(1)
+        filedialog.setWindowTitle('Select File')
+        filedialog.setNameFilter(name_filter)
+        filedialog.setLabelText(3,'Select')
+        filedialog.exec_()
+        if filedialog.result() == 1:
+
+            if target_textbox is not None:
+                target_textbox.setText(str(filedialog.selectedFiles()[0]))
+            else:
+                return
 
 
     def update_feature_tree_checks(self):
