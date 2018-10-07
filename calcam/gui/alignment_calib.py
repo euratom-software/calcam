@@ -2,7 +2,7 @@ import cv2
 
 from .core import *
 from .vtkinteractorstyles import CalcamInteractorStyle3D
-from ..calibration import Calibration
+from ..calibration import Calibration, Fitter
 from ..render import get_image_actor
 
 # View designer window.
@@ -99,9 +99,13 @@ class AlignmentCalibWindow(CalcamGUIWindow):
         self.image_load_options.layout().setColumnMinimumWidth(0,100)
 
         self.image_sources = self.config.get_image_sources()
-        for imsource in self.image_sources:
+        index = -1
+        for i,imsource in enumerate(self.image_sources):
             self.image_sources_list.addItem(imsource['display_name'])
-        self.image_sources_list.setCurrentIndex(0)
+            if imsource['display_name'] == self.config.default_image_source:
+                index = i
+
+        self.image_sources_list.setCurrentIndex(index)
 
         self.edge_detect_colour = (1,0,0)
         self.view_aspect = None
@@ -179,9 +183,14 @@ class AlignmentCalibWindow(CalcamGUIWindow):
                 if self.intrinsics_calib is not None:
                     if len(self.intrinsics_calib.view_models) != 1:
                         self.intrinsics_calib = None
+                        self.current_intrinsics_combobox.setChecked(True)
                         raise UserWarning('This calibration has multiple sub-fields; no worky; sorry.')
+                    
+                    self.calibration.set_calib_intrinsics(self.intrinsics_calib)
+                    self.current_intrinsics_combobox = self.calcam_intrinsics
+                else:
+                    self.current_intrinsics_combobox.setChecked(True)
 
-            self.calibration.set_calib_intrinsics(self.intrinsics_calib)
 
         elif self.pinhole_intrinsics.isChecked():
             self.interactor3d.zoom_enabled = True
@@ -210,6 +219,7 @@ class AlignmentCalibWindow(CalcamGUIWindow):
                 f = 1e3 * f / self.pixel_size_box.value()
 
             self.calibration.set_pinhole_intrinsics(fx=f,fy=f,cx=nx/2.,cy=ny/2.,nx=nx,ny=ny)
+            self.current_intrinsics_combobox = self.pinhole_intrinsics
 
         elif self.chessboard_intrinsics.isChecked():
             self.interactor3d.zoom_enabled = False
@@ -221,8 +231,10 @@ class AlignmentCalibWindow(CalcamGUIWindow):
                 self.update_chessboard_intrinsics()
 
             if self.chessboard_fit is not None:
-                self.calibration.set_chessboard_intrinsics(self.chessboard_fit,self.chessboard_pointpairs)
+                self.calibration.set_chessboard_intrinsics(self.chessboard_fit,self.chessboard_pointpairs,self.chessboard_source)
                 self.current_intrinsics_combobox = self.chessboard_intrinsics
+            else:
+                self.current_intrinsics_combobox.setChecked(True)
 
         self.update_overlay()
 
@@ -251,6 +263,7 @@ class AlignmentCalibWindow(CalcamGUIWindow):
                         imload_options[arg_name] = str(imload_options[arg_name])
 
             newim = self.imsource['get_image_function'](**imload_options)
+            self.config.default_image_source = self.imsource['display_name']
 
         # Some checking, user prompting etc should go here
         keep_points = False
@@ -276,9 +289,9 @@ class AlignmentCalibWindow(CalcamGUIWindow):
             self.pixel_size_checkbox.setChecked(True)
             self.pixel_size_box.setValue(newim['pixel_size'])
 
-        self.calibration.set_image( self.original_image , subview_mask = self.original_subview_mask, transform_actions = transform_actions,coords='Original',subview_names=subview_names )
+        self.calibration.set_image( self.original_image , newim['source'], subview_mask = self.original_subview_mask, transform_actions = transform_actions,coords='Original',subview_names=subview_names )
 
-        self.interactor3d.force_aspect = float( self.original_image.shape[1] ) / float( self.original_image.shape[0] )
+        self.interactor3d.force_aspect = float( self.original_image.shape[0] ) / float( self.original_image.shape[1] )
 
         # This is a slight hack - we have to resize the window slightly
         # and resize it back again to get VTK to redraw the background.
@@ -295,9 +308,6 @@ class AlignmentCalibWindow(CalcamGUIWindow):
 
         self.image_settings.show()
         self.image_display_settings.show()
-
-
-        self.calibration.history.append( (int(time.time()), self.config.username,self.config.hostname,'Image loaded from {:s}'.format(newim['from'])) )
 
         self.update_image_info_string()
         self.app.restoreOverrideCursor()
@@ -379,11 +389,16 @@ class AlignmentCalibWindow(CalcamGUIWindow):
         newim = self.calibration.geometry.original_to_display_image(self.original_image)
         self.calibration.set_image(newim,subview_mask = self.calibration.geometry.original_to_display_image(self.original_subview_mask),transform_actions = self.calibration.geometry.transform_actions, pixel_aspect = self.calibration.geometry.pixel_aspectratio)
 
-        self.interactor3d.force_aspect = float(newim.shape[1]) / float(newim.shape[0])
+        self.interactor3d.force_aspect = float(newim.shape[0]) / float(newim.shape[1])
  
         self.update_image_info_string()
 
         self.update_overlay()
+
+
+    def closeEvent(self,event):
+
+        self.on_close()
 
 
     def update_chessboard_intrinsics(self):
@@ -403,6 +418,7 @@ class AlignmentCalibWindow(CalcamGUIWindow):
 
             self.chessboard_pointpairs = chessboard_pointpairs
             self.chessboard_fit = fitter.do_fit()
+            self.chessboard_source = dialog.chessboard_source
 
         del dialog
 

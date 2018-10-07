@@ -1,4 +1,5 @@
 import cv2
+import os
 
 # A function which actually gets the image.
 # This can take as many arguments as you want.
@@ -24,7 +25,7 @@ def get_image(filename):
 
     return_dict = {
                     'image_data': dat,
-                    'from': 'image file {:s}'.format(filename)
+                    'source': 'Loaded from image file {:s}'.format(os.path.split(filename)[-1])
                     }
 
     return return_dict

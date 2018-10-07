@@ -62,10 +62,6 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         self.tabWidget.setTabEnabled(4,False)
 
 
-        self.point_update_timestamp = None
-        self.fit_timestamps = []
-
-
         # Callbacks for GUI elements
         self.image_sources_list.currentIndexChanged.connect(self.build_imload_gui)
         self.viewlist.itemSelectionChanged.connect(self.change_cad_view)
@@ -146,9 +142,13 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         self.image_load_options.layout().setColumnMinimumWidth(0,100)
 
         self.image_sources = self.config.get_image_sources()
-        for imsource in self.image_sources:
+        index = -1
+        for i,imsource in enumerate(self.image_sources):
             self.image_sources_list.addItem(imsource['display_name'])
-        self.image_sources_list.setCurrentIndex(0)
+            if imsource['display_name'] == self.config.default_image_source:
+                index = i
+
+        self.image_sources_list.setCurrentIndex(index)
 
         self.chessboard_pointpairs = []
         
@@ -220,9 +220,6 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         self.tabWidget.setTabEnabled(3,False)
         self.tabWidget.setTabEnabled(4,False)
 
-        self.point_update_timestamp = None
-        self.fit_timestamps = []
-
         self.filename = None
 
         self.chessboard_pointpairs = []
@@ -243,17 +240,15 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         self.overlay_checkbox.setEnabled(False)
         self.rebuild_image_gui(reset_fitters=reset_options)
         self.calibration.view_models = [None] * self.calibration.n_subviews
+        self.calibration.history['fit'] = [None] * self.calibration.n_subviews
 
     def update_cursor_position(self,cursor_id,position):
         
         #info = 'Cursor location: ' + self.cadmodel.format_coord(position).replace('\n',' | ')
 
-        self.point_update_timestamp = time.time()
-        self.calibration.view_models = [None] * self.calibration.n_subviews
-        self.fit_timestamps = [None] * self.calibration.n_subviews
+        pass
 
         #self.statusbar.showMessage(info)
-
 
 
     def new_point_2d(self,im_coords):
@@ -263,12 +258,14 @@ class FittingCalibrationWindow(CalcamGUIWindow):
                 self.point_pairings[self.selected_pointpair][1] = self.interactor2d.add_active_cursor(im_coords)
                 self.interactor2d.set_cursor_focus(self.point_pairings[self.selected_pointpair][1])
                 self.update_n_points()
+                self.on_points_changed()
                 return
 
         self.point_pairings.append( [None,self.interactor2d.add_active_cursor(im_coords)] )
         self.interactor2d.set_cursor_focus(self.point_pairings[-1][1])
         self.interactor3d.set_cursor_focus(None)
         self.selected_pointpair = len(self.point_pairings) - 1
+
 
         self.update_n_points()
 
@@ -280,6 +277,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
                 self.point_pairings[self.selected_pointpair][0] = self.interactor3d.add_cursor(coords)
                 self.interactor3d.set_cursor_focus(self.point_pairings[self.selected_pointpair][0])
                 self.update_n_points()
+                self.on_points_changed()
                 return
 
         self.point_pairings.append( [self.interactor3d.add_cursor(coords),None] )
@@ -376,6 +374,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
                         imload_options[arg_name] = str(imload_options[arg_name])
 
             newim = self.imsource['get_image_function'](**imload_options)
+            self.config.default_image_source = self.imsource['display_name']
 
         # Some checking, user prompting etc should go here
         keep_points = False
@@ -401,10 +400,9 @@ class FittingCalibrationWindow(CalcamGUIWindow):
             self.pixel_size_checkbox.setChecked(True)
             self.pixel_size_box.setValue(newim['pixel_size'])
 
-        self.calibration.set_image( self.original_image , subview_mask = self.original_subview_mask, transform_actions = transform_actions,coords='Original',subview_names=subview_names )
+        self.calibration.set_image( self.original_image , newim['source'],subview_mask = self.original_subview_mask, transform_actions = transform_actions,coords='Original',subview_names=subview_names )
 
         self.calibration.view_models = [None] * self.calibration.n_subviews
-        self.fit_timestamps = [None] * self.calibration.n_subviews 
 
         self.interactor2d.set_image(self.calibration.geometry.original_to_display_image(newim['image_data']),n_subviews = self.calibration.n_subviews,subview_lookup = self.calibration.subview_lookup)
 
@@ -431,8 +429,8 @@ class FittingCalibrationWindow(CalcamGUIWindow):
             self.fitted_points_checkbox.setChecked(False)
             self.overlay_checkbox.setChecked(False)
 
-        self.calibration.history.append( (int(time.time()), self.config.username,self.config.hostname,'Image loaded from {:s}'.format(newim['from'])) )
 
+        self.reset_fit()
         self.update_image_info_string()
         self.app.restoreOverrideCursor()
         self.statusbar.clearMessage()
@@ -681,12 +679,25 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         self.rebuild_image_gui()
 
 
-    def load_pointpairs(self,data=None,pointpairs=None):
+    def load_pointpairs(self,data=None,pointpairs=None,src=None,history=None):
 
         if pointpairs is None:
             pointpairs = self.object_from_file('pointpairs')
 
+
         if pointpairs is not None:
+
+            try:
+                history = pointpairs.history
+            except AttributeError:
+                pass
+            try:
+                src = pointpairs.src
+            except AttributeError:
+                pass
+
+            if history is None and src is None:
+                raise Exception('History or source of the loaded point pairs must be specified!')
 
             self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
             self.fitted_points_checkbox.setChecked(False)
@@ -708,7 +719,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
 
                 self.point_pairings.append([cursorid_3d,cursorid_2d])
 
-            self.update_pointpairs()
+            self.update_pointpairs(src=src,history=history)
             self.update_n_points()
             self.update_cursor_info()
             self.app.restoreOverrideCursor()
@@ -797,7 +808,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
 
 
 
-    def update_pointpairs(self):
+    def update_pointpairs(self,src=None,history=None):
 
         pp = PointPairs()
 
@@ -808,7 +819,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         pp.image_shape = self.calibration.geometry.get_display_shape()
 
         if pp.get_n_points() > 0:
-            self.calibration.set_pointpairs(pp)
+            self.calibration.set_pointpairs(pp,src=src,history=history)
         else:
             self.calibration.set_pointpairs(None)
 
@@ -823,13 +834,16 @@ class FittingCalibrationWindow(CalcamGUIWindow):
             self.calibration.add_intrinsics_constraints(calibration=self.intrinsics_calib)
             for subview in range(self.calibration.n_subviews):
                 self.fitters[subview].add_intrinsics_pointpairs(self.intrinsics_calib.pointpairs,subview=subview)
+                for ic in self.intrinsics_calib.intrinsics_constraints:
+                    self.fitters[subview].add_intrinsics_pointpairs(ic[1])
 
         if self.chessboard_checkbox.isChecked():
+            src = self.chessboard_source
             for chessboard_constraint in self.chessboard_pointpairs:
-                self.calibration.add_intrinsics_constraints(image=chessboard_constraint[0],pointpairs = chessboard_constraint[1]) 
+                self.calibration.add_intrinsics_constraints(image=chessboard_constraint[0],pointpairs = chessboard_constraint[1],src=src)
                 for subview in range(self.calibration.n_subviews):
                      self.fitters[subview].add_intrinsics_pointpairs(chessboard_constraint[1],subview=subview)
-
+                src = None
 
                
 
@@ -960,11 +974,8 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         # Do the fit!
         self.fit_timestamps[subview] = time.time()
         self.statusbar.showMessage('Performing calibration fit...')
-        self.calibration.view_models[subview] = self.fitters[subview].do_fit()
+        self.calibration.set_fit(subview, self.fitters[subview].do_fit())
         self.statusbar.clearMessage()
-
-
-        self.fit_changed = True
 
         self.update_fit_results()
 
@@ -1108,12 +1119,6 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         
         if self.filename is not None:
 
-            if self.point_update_timestamp is not None:
-                self.calibration.history.append((int(self.point_update_timestamp),self.config.username,self.config.hostname,'Point pairs edited'))
-            for subview in range(self.calibration.n_subviews):
-                if self.fit_timestamps[subview] is not None:
-                    self.calibration.history.append((int(self.fit_timestamps[subview]),self.config.username,self.config.hostname,'Fit performed for {:s}'.format(self.calibration.subview_names[subview])))
-
             if self.cadmodel is not None:
                 self.calibration.cad_config = {'model_name':self.cadmodel.machine_name , 'model_variant':self.cadmodel.model_variant , 'enabled_features':self.cadmodel.get_enabled_features(),'viewport':[self.camX.value(),self.camY.value(),self.camZ.value(),self.tarX.value(),self.tarY.value(),self.tarZ.value(),self.camFOV.value()] }
 
@@ -1152,7 +1157,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
                 self.load_image(newim = imsource['get_image_function'](self.filename))
 
         # Load the point pairs
-        self.load_pointpairs(pointpairs=opened_calib.pointpairs)
+        self.load_pointpairs(pointpairs=opened_calib.pointpairs,history=opened_calib.history['image'])
 
         # Load the appropriate CAD model, if we know what that is
         if opened_calib.cad_config is not None:
@@ -1297,7 +1302,8 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         dialog.exec_()
 
         if dialog.results != []:
-            self.chessboard_pointpairs = copy.deepcopy(dialog.results)
+            self.chessboard_pointpairs = dialog.results
+            self.chessboard_source = dialog.chessboard_source
             self.chessboard_checkbox.setChecked(True)
 
         del dialog

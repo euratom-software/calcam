@@ -146,7 +146,7 @@ class VirtualCalibrationWindow(CalcamGUIWindow):
                 self.update_chessboard_intrinsics()
 
             if self.chessboard_fit is not None:
-                self.virtual_calib.set_chessboard_intrinsics(self.chessboard_fit,self.chessboard_pointpairs)
+                self.virtual_calib.set_chessboard_intrinsics(self.chessboard_fit,self.chessboard_pointpairs,self.chessboard_src)
                 self.current_intrinsics_combobox = self.chessboard_intrinsics
 
         old_aspect = self.interactor3d.force_aspect
@@ -194,6 +194,7 @@ class VirtualCalibrationWindow(CalcamGUIWindow):
 
             self.chessboard_pointpairs = chessboard_pointpairs
             self.chessboard_fit = fitter.do_fit()
+            self.chessboard_src = dialog.chessboard_source
 
         del dialog
 
@@ -290,3 +291,9 @@ class VirtualCalibrationWindow(CalcamGUIWindow):
         self.interactor3d.update_clipping()
 
         self.refresh_3d()
+
+
+
+    def closeEvent(self,event):
+
+        self.on_close()

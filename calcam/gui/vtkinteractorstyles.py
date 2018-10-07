@@ -144,7 +144,7 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
         else:
             orig_dist = self.camera.GetDistance()
             self.camera.SetDistance(0.3)
-            self.camera.Dolly(1.5)
+            self.camera.Dolly(1.05)
             self.camera.SetDistance(orig_dist)
 
         # Update cursor sizes depending on their distance from the camera,
@@ -164,7 +164,7 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
         else:
             orig_dist = self.camera.GetDistance()
             self.camera.SetDistance(0.3)
-            self.camera.Dolly(0.75)
+            self.camera.Dolly(0.95)
             self.camera.SetDistance(orig_dist)
 
         # Update cursor sizes so they're all well visible:
@@ -509,7 +509,7 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
         if im_array is None:
             return
 
-        self.im_aspect = float(im_array.shape[1]) / float(im_array.shape[0])
+        self.im_aspect = float(im_array.shape[0]) / float(im_array.shape[1])
         self.image_actor,self.image_resizer = get_image_actor(im_array,actortype='vtkActor2D')
 
         self.renderer.AddActor(self.image_actor)

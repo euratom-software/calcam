@@ -68,6 +68,8 @@ class colourcycle():
 
 
 
+
+
 # Custom dictionary-like storage class.
 # Behaves more-or-less like a dictionary but without the requirement
 # that the keys are hashable. Needed so I can do things like use
@@ -403,9 +405,11 @@ class CalcamGUIWindow(qt.QMainWindow):
             elif obj_type.lower() == 'pointpairs':
                 if path.endswith('.ccc'):
                     obj = Calibration(path).pointpairs
+                    obj.history = obj.history['pointpairs']
                 elif path.endswith('.csv'):
                     with open(path,'r') as ppf:
                         obj = PointPairs(ppf)
+                        obj.src = 'Loaded from Calcam 1.x file "{:s}"'.format(os.path.split(path)[-1])
 
             objs.append(obj)
         self.app.restoreOverrideCursor()
@@ -902,7 +906,6 @@ class CalcamGUIWindow(qt.QMainWindow):
 
 
     def on_close(self):
-
         self.config.save()
         sys.excepthook = sys.__excepthook__
 
@@ -991,6 +994,7 @@ class ChessboardDialog(qt.QDialog):
             else:
                 expected_shape = np.array([self.image_transformer.x_pixels,self.image_transformer.y_pixels])
 
+
             for n,fname in enumerate(filedialog.selectedFiles()):
                 self.status_text.setText('<b>Loading image {:d} / {:d} ...'.format(n,len(filedialog.selectedFiles())))
                 im = cv2.imread(str(fname))
@@ -1006,7 +1010,8 @@ class ChessboardDialog(qt.QDialog):
                     im[:,:,:3] = im[:,:,3::-1]
                 self.images.append(im)
                 self.filenames.append(os.path.split(str(fname))[1])
-            
+                self.src_dir = os.path.split(str(fname))[0]
+
             self.status_text.setText('')
             if np.all(wrong_shape):
                 dialog = qt.QMessageBox(self)
@@ -1183,6 +1188,8 @@ class ChessboardDialog(qt.QDialog):
                         self.results[-1][1].image_points[-1].append(None)
 
         self.filenames = self.filenames[self.chessboard_status == True]
+
+        self.chessboard_source = '{:d} chessboard images loaded from {:s}'.format(len(self.filenames),self.src_dir)
 
         # And close the window.
         self.done(1)

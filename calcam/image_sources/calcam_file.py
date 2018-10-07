@@ -25,7 +25,7 @@ def get_image(filename):
                     'image_data': image_data,
                     'transform_actions': transform_actions,
                     'subview_mask':subview_mask,
-                    'from': 'calcam calibration file {:s}'.format(filename),
+                    'source': cal.history['image'],
                     'subview_names' : subview_names
                     }
 

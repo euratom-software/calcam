@@ -35,6 +35,23 @@ from .io import ZipSaveFile
 from scipy.ndimage.measurements import center_of_mass as CoM
 from .coordtransformer import CoordTransformer
 from .pointpairs import PointPairs
+import datetime
+import socket
+import getpass
+
+
+# This stuff is used for keeping track of calibration history
+_user = getpass.getuser()
+_host = socket.gethostname()
+
+def _get_formatted_time(timestamp=None):
+    
+    if timestamp is None:
+        when = datetime.datetime.now()
+    else:
+        when = datetime.datetime.fromtimestamp(timestamp)
+    
+    return when.strftime('%H:%M on %Y-%m-%d')
 
 
 # Superclass for camera models.
@@ -353,8 +370,6 @@ class Calibration():
         self.view_models = []
         self.intrinsics_constraints = []
 
-        self.history = []
-
         self.subview_names = ['Full Frame']
 
         self.pixel_size = None
@@ -365,23 +380,60 @@ class Calibration():
             raise ValueError('To create a new empty calibration, the "type" argument must be spplied and be "fit","alignment" or "virtual".')
         else:
             self._type = cal_type.lower()
+            self.history = {}
+            if  self._type != 'virtual':
+                self.history['image'] = None
+            if self._type != 'fit':
+                self.history['extrinsics'] = None
+                self.history['intrinsics'] = None
+            if self._type == 'fit':
+                self.history['pointpairs'] = [None,None]
+                self.history['intrinsics_constraints'] = []
 
-    def set_pointpairs(self,pointpairs):
+            if self._type != 'fit':
+                self.intrisnics_type = None
+
+
+    def set_pointpairs(self,pointpairs,src=None,history=None):
 
         if pointpairs is not None:
             if pointpairs.n_subviews != self.n_subviews:
                 raise ValueError('Provided PointPairs object has a different number of sub-views ({:d}) to this calibration ({:d})!'.format(pointpairs.n_subviews,self.n_subviews))
+        else:
+            self.history['pointpairs'] = [None,None]
 
         self.pointpairs = pointpairs
 
+        if history is not None:
+            self.history['pointpairs'] = history
+
+        elif self.history['pointpairs'][0] is None and src is None:
+            self.history['pointpairs'][0] = 'Created by {:s} on {:s} at {:s}'.format(_user,_host,_get_formatted_time())
+        elif src is not None:
+            self.history['pointpairs'][0] = src + ' by {:s} on {:s} at {:s}'.format(_user,_host,_get_formatted_time())
+            self.history['pointpairs'][1] = None
+        else:
+            self.history['pointpairs'][1] = 'Last modified by {:s} on {:s} at {:s}'.format(_user,_host,_get_formatted_time())
 
 
-    def add_intrinsics_constraints(self,image=None,pointpairs=None,calibration=None):
+
+
+    def add_intrinsics_constraints(self,image=None,pointpairs=None,calibration=None,im_history=None,pp_history=None,src=None):
 
         if calibration is not None:
-            self.intrinsics_constraints.append(calibration)
+            self.intrinsics_constraints.append((calibration.image,calibration.pointpairs))
+            self.history['intrinsics_constraints'].append( calibration.history['image'],calibration.history['pointpairs'] )
+            self.intrinsics_constraints = self.intrinsics_constraints + calibration.intrinsics_constraints
+            self.history['intrinsics_constraints'] = self.history['intrinsics_constraints'] + calibration.history['intrinsics_constraints']
+
         elif pointpairs is not None:
             self.intrinsics_constraints.append((image,pointpairs))
+
+        if im_history is not None and pp_history is not None:
+            self.history['intrinsics_constraints'].append( (im_history,pp_history) )
+        elif src is not None:
+            self.history['intrinsics_constraints'].append(src + ' by {:s} on {:s} at {:s}'.format(_user,_host,_get_formatted_time()))
+
 
     def clear_intrinsics_constraints(self):
         self.intrinsics_constraints = []
@@ -417,6 +469,9 @@ class Calibration():
             self._type = meta['calib_type']
             self.pixel_size = meta['pixel_size']
             
+            if self._type != 'fit':
+                self.intrisnics_type = meta['intrisnics_type']
+
             # Load the primary point pairs
             try:
                 with save_file.open_file('pointpairs.csv','r') as ppf:
@@ -452,11 +507,40 @@ class Calibration():
 
                 self.intrinsics_constraints.append([im,pp])
 
+            # Note: this is only needed for calibration created with Calcam 2.0.0-dev
+            # --------------------------------------------------------------------------
             if os.path.join('intrinsics_constraints','intrinsics_calib.ccc') in save_file.list_contents():
-                self.intrinsics_constraints.append( Calibration(os.path.join(save_file.get_temp_path(),'intrinsics_constraints','intrinsics_calib.ccc')) )
-                
+                self.add_intrinsics_constraints( calibration = Calibration(os.path.join(save_file.get_temp_path(),'intrinsics_constraints','intrinsics_calib.ccc')) )
+            
+            if type(self.history) is list:
+                old_history = self.history
+                self.history = {}
+                if  self._type != 'virtual':
+                    self.history['image'] = None
+                if self._type != 'fit':
+                    self.history['extrinsics'] = None
+                    self.history['intrinsics'] = None
+                if self._type == 'fit':
+                    self.history['pointpairs'] = [None,None]
+                    self.history['intrinsics_constraints'] = []
+                    self.history['fit'] = [None] * self.n_subviews
 
-    def set_image(self,image,coords='Display',transform_actions = [],subview_mask=None,pixel_aspect=1.,subview_names = [],pixel_size=None):
+                if self._type != 'fit':
+                    self.intrisnics_type = None
+
+                for event in old_history:
+                    if 'Image' in event[3]:
+                        self.history['image'] = event[3] + ' by {:s} on {:s} at {:s}'.format(event[1],event[2],_get_formatted_time(event[0]))
+                    elif 'Point pairs' in event[3]:
+                        if self.history['pointpairs'][0] is None:
+                            self.history['pointpairs'][0] = event[3] + ' by {:s} on {:s} at {:s}'.format(event[1],event[2],_get_formatted_time(event[0]))
+                        else:
+                            self.history['pointpairs'][1] = self.history['pointpairs'][1] = 'Last modified by {:s} on {:s} at {:s}'.format(event[1],event[2],_get_formatted_time(event[0]))
+                    elif 'Fit' in event[3]:
+                        subview_ind = self.subview_names.index(event[3].split('for ')[1])
+                        self.history['fit'][subview_ind] = 'Modified by {:s} on {:s} at {:s}'.format(event[1],event[2],_get_formatted_time(event[0]))
+
+    def set_image(self,image,src,coords='Display',transform_actions = [],subview_mask=None,pixel_aspect=1.,subview_names = [],pixel_size=None):
 
         self.image = image.copy()
 
@@ -513,10 +597,13 @@ class Calibration():
 
         self.pixel_size = pixel_size
 
+        if 'by' in src and 'on' in src and 'at' in src:
+            self.history['image'] = src
+        else:
+            self.history['image'] = src + ' by {:s} on {:s} at {:s}'.format(_user,_host,_get_formatted_time())
 
 
     def set_subview_mask(self,mask,subview_names=None):
-
         
         n_subviews = mask.max() + 1
 
@@ -569,6 +656,9 @@ class Calibration():
                     'calib_type':self._type
             }
 
+            if self._type != 'fit':
+                meta['intrisnics_type'] = self.intrisnics_type
+
             for nview in range(self.n_subviews):
                 if self.view_models[nview] is not None:
                     with save_file.open_file('calib_params_{:d}.json'.format(nview),'w') as f:
@@ -594,10 +684,6 @@ class Calibration():
             save_file.mkdir('intrinsics_constraints')
             for i,intrinsics in enumerate(self.intrinsics_constraints):
 
-                if intrinsics.__class__ is Calibration:
-                    intrinsics.save( os.path.join(save_file.get_temp_path(),'intrinsics_constraints','intrinsics_calib.ccc' ) )
-                    continue
-
                 if intrinsics[0] is not None:
 
                     im_out = intrinsics[0]
@@ -610,7 +696,10 @@ class Calibration():
                     intrinsics[1].save(ppf)
 
 
+    def set_fit(self,subview,view_model):
 
+        self.view_models[subview] = view_model
+        self.history['fit'][subview] = 'Modified by {:s} on {:s} at {:s}'.format(_user,_host,_get_formatted_time())
 
     def subview_lookup(self,x,y):
 
@@ -922,10 +1011,11 @@ class Calibration():
         self.geometry.y_pixels = intrinsics_calib.geometry.y_pixels
         self.pixel_size = intrinsics_calib.pixel_size
 
-        self.intrinsics_constraints = [intrinsics_calib]
+        self.add_intrinsics_constraints(calibration=intrinsics_calib)
+        self.intrisnics_type = 'calibration'
 
 
-    def set_chessboard_intrinsics(self,view_model,images_and_points):
+    def set_chessboard_intrinsics(self,view_model,images_and_points,src):
 
         if self._type == 'fit':
             raise Exception('You cannot modify the intrinsics of a fitted calibration.')
@@ -936,6 +1026,8 @@ class Calibration():
         self.geometry = CoordTransformer(orig_x=self.subview_mask.shape[1],orig_y = self.subview_mask.shape[0])
 
         self.intrinsics_constraints = images_and_points
+        self.intrisnics_type = 'chessboard'
+        self.history['intrinsics'] = src + ' by {:s} on {:s} at {:s}'.format(_user,_host,_get_formatted_time())
 
 
     def set_pinhole_intrinsics(self,fx,fy,cx,cy,nx,ny):
@@ -952,6 +1044,10 @@ class Calibration():
         self.subview_mask = np.zeros([ny,nx],dtype=np.uint8)
 
         self.intrinsics_constraints = []
+
+        self.intrisnics_type = 'pinhole'
+
+        self.history['intrinsics'] = 'Set by {:s} on {:s} at {:s}'.format(_user,_host,_get_formatted_time())
 
 
     def set_extrinsics(self,campos,upvec,camtar=None,view_dir=None):
@@ -983,6 +1079,8 @@ class Calibration():
 
         self.view_models[0].tvec = np.array(-Rmatrix.T * campos)
         self.view_models[0].rvec = np.array(-cv2.Rodrigues(Rmatrix)[0])
+
+        self.history['extrinsics'] = 'Set by {:s} on {:s} at {:s}'.format(_user,_host,_get_formatted_time())
 
 
 
@@ -1258,3 +1356,6 @@ class Fitter:
 
     def clear_intrinsics_pointpairs(self):
         del self.pointpairs[1:]
+
+
+

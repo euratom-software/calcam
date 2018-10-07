@@ -3,8 +3,7 @@ import json
 import sys
 import glob
 from .io import ZipSaveFile
-import socket
-import getpass
+
 
 class CalcamConfig():
 
@@ -20,14 +19,22 @@ class CalcamConfig():
 				raise
 
 			self.file_dirs = {}
-			self.cad_def_paths = [os.path.expanduser('~')]
-			self.image_source_paths = [os.path.join(os.path.split(os.path.abspath(__file__))[0],'image_sources')]
+			try:
+				self.cad_def_paths
+			except:
+				self.cad_def_paths = [os.path.expanduser('~')]
+
+			try:
+				self.image_source_paths
+			except:
+				self.image_source_paths = [os.path.join(os.path.split(os.path.abspath(__file__))[0],'image_sources')]
+			
 			self.default_model = None
+			self.default_image_source = 'Image File'
 
 			self.save()
 
-		self.username = getpass.getuser()
-		self.hostname = socket.gethostname()
+
 
 
 	def load(self):
@@ -35,10 +42,11 @@ class CalcamConfig():
 		with open(self.filename,'r') as f:
 			load_dict = json.load(f)
 
+		self.image_source_paths = load_dict['image_source_paths']
+		self.cad_def_paths = load_dict['cad_def_paths']
 		self.file_dirs = 	load_dict['file_dirs']
 		self.default_model = load_dict['default_model']
-		self.cad_def_paths = load_dict['cad_def_paths']
-		self.image_source_paths = load_dict['image_source_paths']
+		self.default_image_source = load_dict['default_im_source']
 
 
 	def save(self):
@@ -47,7 +55,8 @@ class CalcamConfig():
 						'file_dirs' 	: self.file_dirs,
 						'default_model' : self.default_model,
 						'cad_def_paths'	: self.cad_def_paths,
-						'image_source_paths':self.image_source_paths
+						'image_source_paths':self.image_source_paths,
+						'default_im_source':self.default_image_source
 					}
 
 		with open(self.filename,'w') as f:
@@ -100,7 +109,8 @@ class CalcamConfig():
 					usermodule = __import__(fname)
 					image_sources.append(usermodule.image_source)
 				except:
-					sys.path.remove(path)
 					continue
+		
+			sys.path.remove(path)
 
 		return image_sources
