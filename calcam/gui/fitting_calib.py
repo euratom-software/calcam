@@ -17,18 +17,9 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         # GUI initialisation
         CalcamGUIWindow.init(self,'fitting_calib.ui',app,parent)
 
-        # Some messing with background colours to fix annoying QT behaviour
-        #self.scrollArea.setStyleSheet("QScrollArea {background-color:transparent;}");
-        #self.scrollArea.viewport().setStyleSheet(".QWidget {background-color:transparent;}");
-
-        self.action_new.setIcon( app.style().standardIcon(qt.QStyle.SP_FileIcon) )
-        self.action_open.setIcon( app.style().standardIcon(qt.QStyle.SP_DialogOpenButton) )
-        self.action_save.setIcon( app.style().standardIcon(qt.QStyle.SP_DialogSaveButton) )
-
         # Start up with no CAD model
         self.cadmodel = None
         self.calibration = Calibration(cal_type='fit')
-        self.calibration.calib_type = 'fit'
 
         # Set up VTK
         self.qvtkwidget_3d = qt.QVTKRenderWindowInteractor(self.vtkframe_3d)
@@ -195,23 +186,22 @@ class FittingCalibrationWindow(CalcamGUIWindow):
 
 
 
-    def reset(self):
+    def reset(self,keep_cadmodel=False):
 
-        # Start up with no CAD model
-        if self.cadmodel is not None:
-            self.cadmodel.remove_from_renderer(self.renderer_3d)
-            self.cadmodel.unload()
-            self.feature_tree.blockSignals(True)
-            self.feature_tree.clear()
-            self.feature_tree.blockSignals(False)
-            self.cadmodel = None
+        if not keep_cadmodel:
+            if self.cadmodel is not None:
+                self.cadmodel.remove_from_renderer(self.renderer_3d)
+                self.cadmodel.unload()
+                self.feature_tree.blockSignals(True)
+                self.feature_tree.clear()
+                self.feature_tree.blockSignals(False)
+                self.cadmodel = None
 
         self.clear_pointpairs()
 
         self.interactor2d.set_image(None)
 
         self.calibration = Calibration(cal_type='fit')
-        self.calibration.calib_type = 'fit'
         # Disable image transform buttons if we have no image
         self.image_settings.hide()
         #self.fit_results.hide()
@@ -1134,7 +1124,6 @@ class FittingCalibrationWindow(CalcamGUIWindow):
 
     def load_calib(self):
 
-        # Clear any existing stuff
         opened_calib = self.object_from_file('calibration')
 
         if opened_calib is None:
@@ -1145,8 +1134,17 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         elif opened_calib._type == 'virtual':
             raise UserWarning('The selected calibration is a virtual calibration and cannot be edited in this tool. Please open it in the virtual calibration editor instead.')
 
+        if opened_calib.cad_config is not None:
+            cconfig = opened_calib.cad_config
+            if self.cadmodel is not None and self.cadmodel.machine_name == cconfig['model_name'] and self.cadmodel.model_variant == cconfig['model_variant']:
+                keep_model = True
+            else:
+                keep_model = False
+        else:
+            keep_model = False
+
         self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
-        self.reset()
+        self.reset(keep_cadmodel = keep_model)
 
         # Basic setup
         self.filename = opened_calib.filename
@@ -1161,13 +1159,27 @@ class FittingCalibrationWindow(CalcamGUIWindow):
 
         # Load the appropriate CAD model, if we know what that is
         if opened_calib.cad_config is not None:
-            cconfig = opened_calib.cad_config
-            name_index = sorted(self.model_list.keys()).index(cconfig['model_name'])
-            self.model_name.setCurrentIndex(name_index)
-            variant_index = self.model_list[ cconfig['model_name'] ][1].index(cconfig['model_variant'])
-            self.model_variant.setCurrentIndex(variant_index)
+            if keep_model:
+                self.cadmodel.enable_only(cconfig['enabled_features'])
+            else:
+                cconfig = opened_calib.cad_config
+                load_model = True
+                try:
+                    name_index = sorted(self.model_list.keys()).index(cconfig['model_name'])
+                    self.model_name.setCurrentIndex(name_index)
+                except ValueError:
+                    self.model_name.setCurrentIndex(-1)
+                    load_model=False
+                try:    
+                    variant_index = self.model_list[ cconfig['model_name'] ][1].index(cconfig['model_variant'])
+                    self.model_variant.setCurrentIndex(variant_index)
+                except ValueError:
+                    self.model_name.setCurrentIndex(-1)
+                    load_model=False
 
-            self.load_model(featurelist=cconfig['enabled_features'])
+                if load_model:
+                    self.load_model(featurelist=cconfig['enabled_features'])
+            
             self.camX.setValue(cconfig['viewport'][0])
             self.camY.setValue(cconfig['viewport'][1])
             self.camZ.setValue(cconfig['viewport'][2])

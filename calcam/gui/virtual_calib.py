@@ -13,10 +13,6 @@ class VirtualCalibrationWindow(CalcamGUIWindow):
         # GUI initialisation
         CalcamGUIWindow.init(self,'virtual_calib_editor.ui',app,parent)
 
-        self.action_new.setIcon( app.style().standardIcon(qt.QStyle.SP_FileIcon) )
-        self.action_open.setIcon( app.style().standardIcon(qt.QStyle.SP_DialogOpenButton) )
-        self.action_save.setIcon( app.style().standardIcon(qt.QStyle.SP_DialogSaveButton) )
-
         # Start up with no CAD model
         self.cadmodel = None
 
@@ -65,6 +61,8 @@ class VirtualCalibrationWindow(CalcamGUIWindow):
 
         self.action_save.triggered.connect(self.save)
         self.action_save_as.triggered.connect(lambda: self.save(saveas=True))
+        self.action_open.triggered.connect(self.open_calib)
+        self.action_new.triggered.connect(self.reset)
 
         self.viewport_calibs = DodgyDict()
         self.intrinsics_calib = None
@@ -243,6 +241,109 @@ class VirtualCalibrationWindow(CalcamGUIWindow):
 
 
 
+    def open_calib(self):
+
+        opened_calib = self.object_from_file('calibration')
+
+        if opened_calib is None:
+            return
+        
+        if opened_calib._type == 'fit':
+            raise UserWarning('The selected calibration is a point-pair fitting calibration and cannot be edited in this tool. Please open it with the point fitting calibration tool instead.')
+        elif opened_calib._type == 'alignment':
+            raise UserWarning('The selected calibration is an alignment calibration and cannot be edited in this tool. Please open it with the alignment calibration editor instead.')
+
+        if opened_calib.cad_config is not None:
+            cconfig = opened_calib.cad_config
+            if self.cadmodel is not None and self.cadmodel.machine_name == cconfig['model_name'] and self.cadmodel.model_variant == cconfig['model_variant']:
+                keep_model = True
+            else:
+                keep_model = False
+        else:
+            keep_model = False
+
+        self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
+        self.reset(keep_cadmodel = keep_model)
+
+        # Basic setup
+        self.filename = opened_calib.filename
+
+
+        # Load the appropriate CAD model, if we know what that is
+        if opened_calib.cad_config is not None:
+            if keep_model:
+                self.cadmodel.enable_only(cconfig['enabled_features'])
+            else:
+                cconfig = opened_calib.cad_config
+                load_model = True
+                try:
+                    name_index = sorted(self.model_list.keys()).index(cconfig['model_name'])
+                    self.model_name.setCurrentIndex(name_index)
+                except ValueError:
+                    self.model_name.setCurrentIndex(-1)
+                    load_model=False
+                try:    
+                    variant_index = self.model_list[ cconfig['model_name'] ][1].index(cconfig['model_variant'])
+                    self.model_variant.setCurrentIndex(variant_index)
+                except ValueError:
+                    self.model_name.setCurrentIndex(-1)
+                    load_model=False
+
+                if load_model:
+                    self.load_model(featurelist=cconfig['enabled_features'])
+
+
+        self.calibration = opened_calib
+
+        # Load the intrinsics
+        if opened_calib.intrinsics_type == 'pinhole':
+            fl = opened_calib.view_models[0].cam_matrix[0,0] * opened_calib.pixel_size  / 1000
+
+            self.pixel_size_box.setValue(opened_calib.pixel_size)
+            im_size = opened_calib.geometry.get_display_shape()
+            self.x_pixels_box.setValue(im_size[0])
+            self.y_pixels_box.setValue(im_size[1])
+
+            self.focal_length_box.setValue(fl)
+            self.pinhole_intrinsics.setChecked(True)
+
+        elif opened_calib.intrinsics_type == 'chessboard':
+            self.chessboard_fit = opened_calib.view_models[0]
+            self.chessboard_pointpairs = opened_calib.intrinsics_constraints
+            self.chessboard_source = opened_calib.history['intrinsics']
+            self.chessboard_intrinsics.setChecked(True)
+
+        elif opened_calib.intrinsics_type == 'calibration':
+            self.intrinsics_calib = self.crlibration
+            self.calcam_intrinsics.setChecked(True)
+
+        self.update_intrinsics()
+
+        self.set_view_from_calib(self.calibration,0)
+
+        self.app.restoreOverrideCursor()
+
+
+    def reset(self,keep_cadmodel=False):
+
+        if not keep_cadmodel:
+            if self.cadmodel is not None:
+                self.cadmodel.remove_from_renderer(self.renderer_3d)
+                self.cadmodel.unload()
+                self.feature_tree.blockSignals(True)
+                self.feature_tree.clear()
+                self.feature_tree.blockSignals(False)
+                self.cadmodel = None
+
+
+        self.calibration = Calibration(cal_type='virtual')
+
+        self.filename = None
+
+        self.chessboard_fit = None
+        self.intrinsics_calib = None
+
+        self.refresh_3d()
 
 
     def change_cad_view(self):

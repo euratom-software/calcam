@@ -142,6 +142,13 @@ class CalcamGUIWindow(qt.QMainWindow):
          # Let's show helpful dialog boxes if we have unhandled exceptions:
         sys.excepthook = self.show_exception_dialog
 
+        try:
+            self.action_new.setIcon( qt.QIcon(os.path.join(guipath,'new.png')) )
+            self.action_open.setIcon( qt.QIcon(os.path.join(guipath,'open.png')) )
+            self.action_save.setIcon( qt.QIcon(os.path.join(guipath,'save.png')) )
+            self.action_save_as.setIcon( qt.QIcon(os.path.join(guipath,'saveas.png')) )
+        except AttributeError:
+            pass
 
         # -------------------- Initialise View List ------------------
         self.viewlist.clear()

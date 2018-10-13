@@ -470,7 +470,7 @@ class Calibration():
             self.pixel_size = meta['pixel_size']
             
             if self._type != 'fit':
-                self.intrisnics_type = meta['intrisnics_type']
+                self.intrinsics_type = meta['intrinsics_type']
 
             # Load the primary point pairs
             try:
@@ -657,7 +657,7 @@ class Calibration():
             }
 
             if self._type != 'fit':
-                meta['intrisnics_type'] = self.intrisnics_type
+                meta['intrinsics_type'] = self.intrinsics_type
 
             for nview in range(self.n_subviews):
                 if self.view_models[nview] is not None:
@@ -1010,9 +1010,19 @@ class Calibration():
         self.geometry.x_pixels = intrinsics_calib.geometry.x_pixels
         self.geometry.y_pixels = intrinsics_calib.geometry.y_pixels
         self.pixel_size = intrinsics_calib.pixel_size
+        self.intrinsics_constraints = []
 
-        self.add_intrinsics_constraints(calibration=intrinsics_calib)
-        self.intrisnics_type = 'calibration'
+        self.view_models[0] = intrinsics_calib.view_models[0]
+
+        if intrinsics_calib._type == 'fit':
+            self.intrinsics_constraints.append((intrinsics_calib.image,intrinsics_calib.pointpairs))
+            self.intrinsics_constraints = self.intrinsics_constraints + intrinsics_calib.intrinsics_constraints
+            self.intrinsics_type = 'calibration'
+            self.history['intrinsics'] = {intrinsics_calib.history}
+        else:
+            self.intrinsics_type = intrinsics_calib.intrinsics_type
+            self.history['intrinsics'] = intrinsics_calib.history['intrinsics']
+            self.intrinsics_constraints = intrinsics_calib.intrinsics_constraints
 
 
     def set_chessboard_intrinsics(self,view_model,images_and_points,src):
@@ -1026,8 +1036,12 @@ class Calibration():
         self.geometry = CoordTransformer(orig_x=self.subview_mask.shape[1],orig_y = self.subview_mask.shape[0])
 
         self.intrinsics_constraints = images_and_points
-        self.intrisnics_type = 'chessboard'
-        self.history['intrinsics'] = src + ' by {:s} on {:s} at {:s}'.format(_user,_host,_get_formatted_time())
+        self.intrinsics_type = 'chessboard'
+
+        if 'by' in src and 'on' in src and 'at' in src:
+            self.history['intrinsics'] = src
+        else:
+            self.history['intrinsics'] = src + ' by {:s} on {:s} at {:s}'.format(_user,_host,_get_formatted_time())
 
 
     def set_pinhole_intrinsics(self,fx,fy,cx,cy,nx,ny):
@@ -1045,7 +1059,7 @@ class Calibration():
 
         self.intrinsics_constraints = []
 
-        self.intrisnics_type = 'pinhole'
+        self.intrinsics_type = 'pinhole'
 
         self.history['intrinsics'] = 'Set by {:s} on {:s} at {:s}'.format(_user,_host,_get_formatted_time())
 
