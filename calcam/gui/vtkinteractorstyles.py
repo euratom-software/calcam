@@ -36,11 +36,46 @@ import vtk
 import numpy as np
 from ..render import get_image_actor
 
+import time
+
+# Rotate a given point about the given axis by the given angle
+# Angle input is in degrees
+def rotate_3D(vect,axis,angle):
+
+    vect = np.array(vect,dtype=np.float64)
+    vect_ = np.matrix(np.zeros([3,1]),dtype=np.float64)
+    vect_[0,0] = vect[0]
+    vect_[1,0] = vect[1]
+    vect_[2,0] = vect[2]
+    axis = np.array(axis)
+
+    # Put angle in radians
+    angle = angle * 3.14159 / 180.
+
+    # Make sure the axis is normalised
+    axis = axis / np.sqrt(np.sum(axis**2))
+
+    # Make a rotation matrix!
+    R = np.matrix(np.zeros([3,3]))
+    R[0,0] = np.cos(angle) + axis[0]**2*(1 - np.cos(angle))
+    R[0,1] = axis[0]*axis[1]*(1 - np.cos(angle)) - axis[2]*np.sin(angle)
+    R[0,2] = axis[0]*axis[2]*(1 - np.cos(angle)) + axis[1]*np.sin(angle)
+    R[1,0] = axis[1]*axis[0]*(1 - np.cos(angle)) + axis[2]*np.sin(angle)
+    R[1,1] = np.cos(angle) + axis[1]**2*(1 - np.cos(angle))
+    R[1,2] = axis[1]*axis[2]*(1 - np.cos(angle)) - axis[0]*np.sin(angle)
+    R[2,0] = axis[2]*axis[0]*(1 - np.cos(angle)) - axis[1]*np.sin(angle)
+    R[2,1] = axis[2]*axis[1]*(1 - np.cos(angle)) + axis[0]*np.sin(angle)
+    R[2,2] = np.cos(angle) + axis[2]**2*(1 - np.cos(angle))
+
+    return np.array( R * vect_)
+
+
 class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
  
     def __init__(self,parent=None,viewport_callback=None,resize_callback=None,newpick_callback=None,cursor_move_callback=None,focus_changed_callback=None,refresh_callback=None):
         
         # Set callbacks for all the mouse controls
+
         self.AddObserver("LeftButtonPressEvent",self.on_left_click)
         self.AddObserver("RightButtonPressEvent",self.right_press)
         self.AddObserver("RightButtonReleaseEvent",self.right_release)
@@ -62,7 +97,12 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
         self.force_aspect = None
         self.im_aspect = None
         self.zoom_enabled=True
-
+        self.projection = 'perspective'
+        self.rightdrag_rotate = False
+        self.control_sensitivity = 0.75
+        self.cam_roll = 0.
+        self.rmb_down = False
+        self.mouse_delta = np.array([0,0])
 
     # Do various initial setup things, most of which can't be done at the time of __init__
     def init(self):
@@ -105,11 +145,59 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
         self.vtk_coord_transformer.SetCoordinateSystemToWorld()
 
 
+    def set_rmb_rotate(self,rmb_rotate):
+
+        self.rightdrag_rotate = rmb_rotate
+
+
+    def set_fov(self,fov):
+
+        if self.projection == 'perspective':
+            self.camera.SetViewAngle(fov)
+        else:
+            self.camera.SetParallelScale(fov)
+
+
+    def set_control_sensitivity(self,sensitivity):
+
+        if sensitivity < 0 or sensitivity > 1.:
+            raise ValueError('Sensitivity value must be between 0 and 1. ')
+        else:
+            self.control_sensitivity = sensitivity + 0.05
+
+
+    def set_projection(self,projection,fov=None):
+
+        if projection not in ['perspective','orthographic']:
+            raise ValueError('Projection should be "perspective" or "orthographic"')
+
+        if projection == self.projection:
+            return
+
+        if projection == 'orthographic':
+
+            if fov is None:
+                fov = np.abs(np.tan( 3.14159*self.camera.GetViewAngle()/360 ) * np.dot(self.camera.GetPosition(),self.camera.GetDirectionOfProjection()))
+
+            self.camera.SetParallelProjection(True)
+            self.camera.SetParallelScale(fov)
+
+
+        elif projection == 'perspective':
+
+            if fov is None:
+                fov = np.abs(360*np.arctan(self.camera.GetParallelScale()/np.dot(self.camera.GetPosition(),self.camera.GetDirectionOfProjection()))/3.14159)
+
+            self.camera.SetParallelProjection(False)
+            self.camera.SetViewAngle(fov)
+
+        self.projection = projection
+
 
     # Middle click + drag to pan
     def middle_press(self,obj,event):
         self.orig_dist = self.camera.GetDistance()
-        self.camera.SetDistance(0.5)
+        self.camera.SetDistance(self.control_sensitivity)
         self.OnMiddleButtonDown()
 
 
@@ -122,11 +210,16 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
     # On the CAD view, right click+drag to rotate (usually on left button in this interactorstyle)
     def right_press(self,obj,event):
         self.orig_dist = self.camera.GetDistance()
-        self.camera.SetDistance(0.01)
+        if self.rightdrag_rotate:
+            self.camera.SetDistance( np.sqrt( np.sum( np.array(self.camera.GetPosition())**2)) )
+        else:
+            self.camera.SetDistance(0.001)
+        self.rmb_down = True
         self.OnLeftButtonDown()
 
 
     def right_release(self,obj,event):
+        self.rmb_down = False
         self.OnLeftButtonUp()
         self.camera.SetDistance(self.orig_dist)
         self.on_cam_moved()
@@ -138,13 +231,16 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
         # If ctrl + scroll, change the camera FOV
         if self.interactor.GetControlKey():
             if self.zoom_enabled:
-                self.camera.SetViewAngle(max(self.camera.GetViewAngle()*0.9,1))
+                if self.projection == 'perspective':
+                    self.camera.SetViewAngle(max(self.camera.GetViewAngle()*(1 - self.control_sensitivity*0.25),1))
+                elif self.projection == 'orthographic':
+                    self.camera.SetParallelScale(max(0.01,self.camera.GetParallelScale()*(1 - self.control_sensitivity*0.25)))
 
         # Otherwise, move the camera forward.
         else:
             orig_dist = self.camera.GetDistance()
-            self.camera.SetDistance(0.3)
-            self.camera.Dolly(1.05)
+            self.camera.SetDistance(1.3 * self.control_sensitivity)
+            self.camera.Dolly(1.1)
             self.camera.SetDistance(orig_dist)
 
         # Update cursor sizes depending on their distance from the camera,
@@ -158,13 +254,16 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
         # If ctrl + scroll, change the camera FOV
         if self.interactor.GetControlKey():
             if self.zoom_enabled:
-                self.camera.SetViewAngle(min(self.camera.GetViewAngle()*1.1,110.))
+                if self.projection == 'perspective':
+                    self.camera.SetViewAngle(min(self.camera.GetViewAngle()*(1 + self.control_sensitivity*0.25),110.))
+                elif self.projection == 'orthographic':
+                    self.camera.SetParallelScale(min(500,self.camera.GetParallelScale()*(1 + self.control_sensitivity*0.25)))
 
         # Otherwise, move the camera backward.
         else:
             orig_dist = self.camera.GetDistance()
-            self.camera.SetDistance(0.3)
-            self.camera.Dolly(0.95)
+            self.camera.SetDistance(1.3 * self.control_sensitivity)
+            self.camera.Dolly(0.9)
             self.camera.SetDistance(orig_dist)
 
         # Update cursor sizes so they're all well visible:
@@ -302,18 +401,24 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
                 # of if they didn't click another cursor, move the current cursor
                 # to where they clicked
                 elif self.focus_cursor is not None:
+                    self.set_cursor_coords(self.focus_cursor,pickcoords)
 
-                    self.cursors[self.focus_cursor]['cursor3d'].SetFocalPoint(pickcoords)
-                    self.update_cursor_style()
-
-                    if self.cursor_move_callback is not None:
-                        self.cursor_move_callback(self.focus_cursor,pickcoords)
 
         for actor in self.extra_actors:
             self.renderer.AddActor(actor)
 
             if self.refresh_callback is not None:
                 self.refresh_callback()
+
+
+
+    def set_cursor_coords(self,cursor_id,coords):
+
+        self.cursors[cursor_id]['cursor3d'].SetFocalPoint(coords)
+        self.update_cursor_style()
+
+        if self.cursor_move_callback is not None:
+            self.cursor_move_callback(self.focus_cursor,coords)
 
 
     def update_cursor_style(self,refresh=True):
@@ -493,10 +598,57 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
 
     def on_mouse_move(self,obj=None,event=None):
 
-        self.OnMouseMove()
+        rerender = False
+        xy = np.array(self.interactor.GetEventPosition())
+        lastxy = np.array(self.interactor.GetLastEventPosition())
+        view_direction = self.camera.GetDirectionOfProjection()
+
+        if self.rmb_down:
+            delta = ( lastxy - xy ) * self.control_sensitivity / 1.5 + self.mouse_delta
+        else:
+            delta = ( lastxy - xy ) * self.control_sensitivity / 0.75 + self.mouse_delta
+
+        self.mouse_delta = np.mod(np.abs(delta),1) * np.sign(delta)
+        delta = np.trunc(delta).astype(int)
+        self.interactor.SetLastEventPosition(int(xy[0]+delta[0]),int(xy[1]+delta[1]))
+
+
+
+        if not (self.rmb_down and self.interactor.GetControlKey()):
+            self.OnMouseMove()
+        elif np.abs(view_direction[2]) < 0.99:
+            lastxy = xy + delta
+            cc = np.array(self.vtkwindow.GetSize())/2.
+            delta_theta = (np.arctan( (xy[0] - cc[0])/(xy[1] - cc[1]) ) - np.arctan( (lastxy[0] - cc[0])/(lastxy[1] - cc[1]) ) )
+
+            if np.abs(delta_theta) > 3:
+                delta_theta = delta_theta - 3.14159*np.sign(delta_theta)
+
+            if np.abs(self.cam_roll - 180*delta_theta/3.14159) < 90:
+                roll = self.cam_roll - 180*delta_theta/3.14159
+                self.set_roll(roll)
+        else:
+            self.interactor.SetLastEventPosition(int(xy[0]+delta[0]),xy[1])
+            self.OnMouseMove()
+
+
         if self.xsection_coords is not None:
             self.update_clipping()
 
+
+    def set_roll(self,roll,rerender=True):
+
+        self.cam_roll = roll
+        view_direction = self.camera.GetDirectionOfProjection()
+        if np.abs(view_direction[2]) < 0.99:
+            z_projection = np.array([ -view_direction[0]*view_direction[2], -view_direction[1]*view_direction[2],1-view_direction[2]**2 ])
+            upvec = rotate_3D(z_projection,view_direction,self.cam_roll)
+            self.camera.SetViewUp(upvec)
+            roll = self.camera.GetRoll()
+            self.camera.SetViewUp(0,0,1)
+            self.camera.SetRoll(roll)        
+            if rerender:
+                self.refresh_callback()  
 
     def set_overlay_image(self,im_array):
 

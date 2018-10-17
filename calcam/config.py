@@ -31,6 +31,7 @@ class CalcamConfig():
 			
 			self.default_model = None
 			self.default_image_source = 'Image File'
+			self.mouse_sensitivity = 75
 
 			self.save()
 
@@ -47,6 +48,7 @@ class CalcamConfig():
 		self.file_dirs = 	load_dict['file_dirs']
 		self.default_model = load_dict['default_model']
 		self.default_image_source = load_dict['default_im_source']
+		self.mouse_sensitivity = load_dict['mouse_sensitivity']
 
 
 	def save(self):
@@ -56,7 +58,8 @@ class CalcamConfig():
 						'default_model' : self.default_model,
 						'cad_def_paths'	: self.cad_def_paths,
 						'image_source_paths':self.image_source_paths,
-						'default_im_source':self.default_image_source
+						'default_im_source':self.default_image_source,
+						'mouse_sensitivity':self.mouse_sensitivity
 					}
 
 		with open(self.filename,'w') as f:

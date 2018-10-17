@@ -174,7 +174,7 @@
            <item row="2" column="0" colspan="4">
             <widget class="QCheckBox" name="cad_auto_load">
              <property name="text">
-              <string>Enable default features on load</string>
+              <string>Automatically load default model parts</string>
              </property>
              <property name="checked">
               <bool>true</bool>
@@ -190,7 +190,7 @@
            <bool>true</bool>
           </property>
           <property name="title">
-           <string>Enable / Disable Features</string>
+           <string>Enable / Disable Model Parts</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_4">
            <item row="1" column="0" colspan="2">
@@ -370,9 +370,45 @@
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>
+         <widget class="QGroupBox" name="groupBox_8">
+          <property name="title">
+           <string>Rendering Options</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_14">
+           <item row="0" column="0">
+            <widget class="QRadioButton" name="proj_perspective">
+             <property name="text">
+              <string>Perspective projection</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QRadioButton" name="proj_orthographic">
+             <property name="text">
+              <string>Orthographic projection</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0" colspan="2">
+            <widget class="QCheckBox" name="xsection_checkbox">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="text">
+              <string>Cut machine cross-section through cursor</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
          <widget class="QGroupBox" name="groupBox_6">
           <property name="title">
-           <string>Select from presets</string>
+           <string>Select pre-defined viewport</string>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_4">
            <item>
@@ -400,16 +436,6 @@
             </widget>
            </item>
            <item>
-            <widget class="QCheckBox" name="xsection_checkbox">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="text">
-              <string>Cut model cross-section through cursor</string>
-             </property>
-            </widget>
-           </item>
-           <item>
             <widget class="QPushButton" name="viewport_load_calib">
              <property name="text">
               <string>Add from Calibration(s)...</string>
@@ -430,6 +456,36 @@
          </widget>
         </item>
         <item>
+         <widget class="QGroupBox" name="groupBox_2">
+          <property name="title">
+           <string>Save current view as preset</string>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_3">
+           <item>
+            <widget class="QLabel" name="label_16">
+             <property name="text">
+              <string>Name:</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="view_save_name">
+             <property name="text">
+              <string>My Custom View</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="save_view_button">
+             <property name="text">
+              <string>Save</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
          <widget class="QGroupBox" name="groupBox">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
@@ -438,7 +494,7 @@
            </sizepolicy>
           </property>
           <property name="title">
-           <string>Set Manually</string>
+           <string>Current Viewport</string>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_6">
            <item>
@@ -505,6 +561,9 @@
                 <property name="buttonSymbols">
                  <enum>QAbstractSpinBox::NoButtons</enum>
                 </property>
+                <property name="keyboardTracking">
+                 <bool>false</bool>
+                </property>
                 <property name="suffix">
                  <string> m</string>
                 </property>
@@ -529,6 +588,9 @@
                 </property>
                 <property name="buttonSymbols">
                  <enum>QAbstractSpinBox::NoButtons</enum>
+                </property>
+                <property name="keyboardTracking">
+                 <bool>false</bool>
                 </property>
                 <property name="suffix">
                  <string> m</string>
@@ -555,6 +617,9 @@
                 <property name="buttonSymbols">
                  <enum>QAbstractSpinBox::NoButtons</enum>
                 </property>
+                <property name="keyboardTracking">
+                 <bool>false</bool>
+                </property>
                 <property name="suffix">
                  <string> m</string>
                 </property>
@@ -580,6 +645,9 @@
                 <property name="buttonSymbols">
                  <enum>QAbstractSpinBox::NoButtons</enum>
                 </property>
+                <property name="keyboardTracking">
+                 <bool>false</bool>
+                </property>
                 <property name="suffix">
                  <string> m</string>
                 </property>
@@ -591,19 +659,6 @@
                 </property>
                 <property name="singleStep">
                  <double>0.001000000000000</double>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="0">
-               <widget class="QLabel" name="label_12">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="text">
-                 <string>Vertical FOV:</string>
                 </property>
                </widget>
               </item>
@@ -633,34 +688,6 @@
                 </property>
                </widget>
               </item>
-              <item row="3" column="1">
-               <widget class="QDoubleSpinBox" name="camFOV">
-                <property name="maximumSize">
-                 <size>
-                  <width>55</width>
-                  <height>16777215</height>
-                 </size>
-                </property>
-                <property name="buttonSymbols">
-                 <enum>QAbstractSpinBox::NoButtons</enum>
-                </property>
-                <property name="correctionMode">
-                 <enum>QAbstractSpinBox::CorrectToNearestValue</enum>
-                </property>
-                <property name="suffix">
-                 <string> deg</string>
-                </property>
-                <property name="decimals">
-                 <number>1</number>
-                </property>
-                <property name="maximum">
-                 <double>180.000000000000000</double>
-                </property>
-                <property name="singleStep">
-                 <double>0.100000000000000</double>
-                </property>
-               </widget>
-              </item>
               <item row="2" column="0">
                <widget class="QLabel" name="label_10">
                 <property name="sizePolicy">
@@ -684,6 +711,9 @@
                 </property>
                 <property name="buttonSymbols">
                  <enum>QAbstractSpinBox::NoButtons</enum>
+                </property>
+                <property name="keyboardTracking">
+                 <bool>false</bool>
                 </property>
                 <property name="suffix">
                  <string> m</string>
@@ -709,6 +739,9 @@
                 </property>
                 <property name="buttonSymbols">
                  <enum>QAbstractSpinBox::NoButtons</enum>
+                </property>
+                <property name="keyboardTracking">
+                 <bool>false</bool>
                 </property>
                 <property name="suffix">
                  <string> m</string>
@@ -737,6 +770,82 @@
                 </property>
                </widget>
               </item>
+              <item row="3" column="3">
+               <widget class="QDoubleSpinBox" name="camFOV">
+                <property name="maximumSize">
+                 <size>
+                  <width>55</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="buttonSymbols">
+                 <enum>QAbstractSpinBox::NoButtons</enum>
+                </property>
+                <property name="correctionMode">
+                 <enum>QAbstractSpinBox::CorrectToNearestValue</enum>
+                </property>
+                <property name="keyboardTracking">
+                 <bool>false</bool>
+                </property>
+                <property name="suffix">
+                 <string> deg</string>
+                </property>
+                <property name="decimals">
+                 <number>1</number>
+                </property>
+                <property name="maximum">
+                 <double>180.000000000000000</double>
+                </property>
+                <property name="singleStep">
+                 <double>0.100000000000000</double>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="2">
+               <widget class="QLabel" name="label_12">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="text">
+                 <string>Vertical FOV:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="0">
+               <widget class="QLabel" name="label_24">
+                <property name="text">
+                 <string>Cam Roll:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="1">
+               <widget class="QDoubleSpinBox" name="cam_roll">
+                <property name="maximumSize">
+                 <size>
+                  <width>55</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="buttonSymbols">
+                 <enum>QAbstractSpinBox::NoButtons</enum>
+                </property>
+                <property name="keyboardTracking">
+                 <bool>false</bool>
+                </property>
+                <property name="suffix">
+                 <string> °</string>
+                </property>
+                <property name="minimum">
+                 <double>-90.000000000000000</double>
+                </property>
+                <property name="maximum">
+                 <double>90.000000000000000</double>
+                </property>
+               </widget>
+              </item>
              </layout>
             </widget>
            </item>
@@ -744,29 +853,61 @@
          </widget>
         </item>
         <item>
-         <widget class="QGroupBox" name="groupBox_2">
+         <widget class="QGroupBox" name="groupBox_10">
           <property name="title">
-           <string>Save current view to model definition</string>
+           <string>Mouse Control Settings</string>
           </property>
-          <layout class="QHBoxLayout" name="horizontalLayout_3">
-           <item>
-            <widget class="QLabel" name="label_16">
+          <layout class="QGridLayout" name="gridLayout_15">
+           <item row="0" column="1">
+            <widget class="QRadioButton" name="rmb_lookaround">
              <property name="text">
-              <string>Name:</string>
+              <string>Look around</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
              </property>
             </widget>
            </item>
-           <item>
-            <widget class="QLineEdit" name="view_save_name">
+           <item row="0" column="2">
+            <widget class="QRadioButton" name="rmb_rotate">
              <property name="text">
-              <string>My Custom View</string>
+              <string>Rotate model</string>
              </property>
             </widget>
            </item>
-           <item>
-            <widget class="QPushButton" name="save_view_button">
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_20">
              <property name="text">
-              <string>Save</string>
+              <string>Right click + drag:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="label_23">
+             <property name="text">
+              <string>Mouse sensitivity:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1" colspan="2">
+            <widget class="QSlider" name="control_sensitivity_slider">
+             <property name="minimum">
+              <number>1</number>
+             </property>
+             <property name="maximum">
+              <number>100</number>
+             </property>
+             <property name="singleStep">
+              <number>1</number>
+             </property>
+             <property name="value">
+              <number>75</number>
+             </property>
+             <property name="tracking">
+              <bool>false</bool>
+             </property>
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
              </property>
             </widget>
            </item>

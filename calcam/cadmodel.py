@@ -506,9 +506,9 @@ class CADModel():
 
 
     # Add a new view definition to the file.
-    def add_view(self,viewname,campos,camtar,fov,xsection):
+    def add_view(self,viewname,campos,camtar,fov,xsection,roll,projection):
 
-        self.views[viewname] = {'cam_pos':campos,'target':camtar,'y_fov':fov,'xsection':xsection}
+        self.views[viewname] = {'cam_pos':campos,'target':camtar,'y_fov':fov,'xsection':xsection,'roll':roll,'projection':projection}
         self.model_def['views'] = self.views
         self.update_definition_file()
 

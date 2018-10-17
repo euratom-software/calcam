@@ -261,9 +261,11 @@ class CalcamGUIWindow(qt.QMainWindow):
         target = (self.tarX.value(), self.tarY.value(), self.tarZ.value())
         fov = self.camFOV.value()
         xsection = self.interactor3d.get_xsection()
+        projection = self.interactor3d.projection
+        roll = self.cam_roll.value()
 
         try:
-            self.cadmodel.add_view(str(self.view_save_name.text()),cam_pos,target,fov,xsection)
+            self.cadmodel.add_view(str(self.view_save_name.text()),cam_pos,target,fov,xsection,roll,projection)
             self.update_model_views()
 
         except:
@@ -509,11 +511,13 @@ class CalcamGUIWindow(qt.QMainWindow):
                 view = self.cadmodel.get_view( str(view_item.text(0)))
 
                 # Set to that view
-                self.camera_3d.SetViewAngle(view['y_fov'])
                 self.camera_3d.SetPosition(view['cam_pos'])
                 self.camera_3d.SetFocalPoint(view['target'])
                 self.camera_3d.SetViewUp(0,0,1)
                 self.interactor3d.set_xsection(view['xsection'])
+                self.interactor3d.set_roll(view['roll'])
+                self.interactor3d.set_projection(view['projection'])
+                self.interactor3d.set_fov(view['y_fov'])
 
             elif view_item.parent() is self.views_root_results or view_item.parent() in self.viewport_calibs.keys():
 
@@ -522,18 +526,19 @@ class CalcamGUIWindow(qt.QMainWindow):
                 if subfield is not None:
                     self.set_view_from_calib(view,subfield)
 
-                return
+            self.update_viewport_info(keep_selection=True)
 
 
         else:
             self.camera_3d.SetPosition((self.camX.value(),self.camY.value(),self.camZ.value()))
             self.camera_3d.SetFocalPoint((self.tarX.value(),self.tarY.value(),self.tarZ.value()))
+            self.interactor3d.set_roll(-self.cam_roll.value())
             try:
-                self.camera_3d.SetViewAngle(self.camFOV.value())
+                self.interactor3d.set_fov(self.camFOV.value())
             except AttributeError:
                 pass
 
-        self.update_viewport_info(keep_selection=True)
+        
         self.interactor3d.update_cursor_style()
         self.interactor3d.update_clipping()
 
@@ -561,7 +566,12 @@ class CalcamGUIWindow(qt.QMainWindow):
         self.camera_3d.SetViewAngle(fov_angle)
         self.camera_3d.SetUseHorizontalViewAngle(h_fov)
         
-        self.camera_3d.SetViewUp(-1.*viewmodel.get_cam_to_lab_rotation()[:,1])
+        if np.isfinite(viewmodel.get_cam_roll()):
+            self.cam_roll.setValue(viewmodel.get_cam_roll())
+        else:
+            self.cam_roll.setValue(0)
+            self.camera_3d.SetViewUp(-1.*viewmodel.get_cam_to_lab_rotation()[:,1])
+        
         self.interactor3d.set_xsection(None)       
 
         self.update_viewport_info(keep_selection=True)
@@ -801,7 +811,20 @@ class CalcamGUIWindow(qt.QMainWindow):
 
         campos = self.camera_3d.GetPosition()
         camtar = self.camera_3d.GetFocalPoint()
-        fov = self.camera_3d.GetViewAngle()
+        if self.interactor3d.projection == 'perspective':
+            fov = self.camera_3d.GetViewAngle()
+            fov_suffix = u'\xb0'
+            fov_max = 110
+            fov_min = 1
+            decimals = 1
+        elif self.interactor3d.projection == 'orthographic':
+            fov = self.camera_3d.GetParallelScale()
+            fov_suffix = ' m'
+            fov_max = 200
+            fov_min = 0.01
+            decimals = 2
+
+        roll = -self.interactor3d.cam_roll
 
         self.camX.blockSignals(True)
         self.camY.blockSignals(True)
@@ -809,6 +832,7 @@ class CalcamGUIWindow(qt.QMainWindow):
         self.tarX.blockSignals(True)
         self.tarY.blockSignals(True)
         self.tarZ.blockSignals(True)
+        self.cam_roll.blockSignals(True)
         try:
             self.camFOV.blockSignals(True)
         except AttributeError:
@@ -820,8 +844,13 @@ class CalcamGUIWindow(qt.QMainWindow):
         self.tarX.setValue(camtar[0])
         self.tarY.setValue(camtar[1])
         self.tarZ.setValue(camtar[2])
+        self.cam_roll.setValue(roll)
 
         try:
+            self.camFOV.setSuffix(fov_suffix)
+            self.camFOV.setMinimum(fov_min)
+            self.camFOV.setMaximum(fov_max)
+            self.camFOV.setDecimals(decimals)
             self.camFOV.setValue(fov)
         except AttributeError:
             pass
@@ -832,7 +861,7 @@ class CalcamGUIWindow(qt.QMainWindow):
         self.tarX.blockSignals(False)
         self.tarY.blockSignals(False)
         self.tarZ.blockSignals(False)
-
+        self.cam_roll.blockSignals(False)
         try:
             self.camFOV.blockSignals(False)
         except AttributeError:
@@ -913,6 +942,12 @@ class CalcamGUIWindow(qt.QMainWindow):
 
 
     def on_close(self):
+
+        if self.cadmodel is not None:
+            self.cadmodel.remove_from_renderer(self.renderer_3d)
+            self.cadmodel.unload()
+
+        self.config.mouse_sensitivity = self.control_sensitivity_slider.value()
         self.config.save()
         sys.excepthook = sys.__excepthook__
 

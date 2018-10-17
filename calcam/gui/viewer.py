@@ -37,6 +37,7 @@ class ViewerWindow(CalcamGUIWindow):
         self.tarX.valueChanged.connect(self.change_cad_view)
         self.tarY.valueChanged.connect(self.change_cad_view)
         self.tarZ.valueChanged.connect(self.change_cad_view)
+        self.cam_roll.valueChanged.connect(self.change_cad_view)
         self.camFOV.valueChanged.connect(self.change_cad_view)
         self.sightlines_list.itemChanged.connect(self.update_sightlines)
         self.lines_3d_list.itemChanged.connect(self.update_lines)
@@ -67,9 +68,14 @@ class ViewerWindow(CalcamGUIWindow):
         self.load_lines_button.clicked.connect(self.update_lines)
         self.pick_lines_colour.clicked.connect(self.update_lines)
         self.lines_3d_list.itemSelectionChanged.connect(self.update_selected_lines)
-        
+        self.control_sensitivity_slider.valueChanged.connect(lambda x: self.interactor3d.set_control_sensitivity(x*0.01))
+        self.rmb_rotate.toggled.connect(self.interactor3d.set_rmb_rotate)
         self.sightlines_legend = None
         self.render_calib = None
+
+        self.control_sensitivity_slider.setValue(self.config.mouse_sensitivity)
+
+        self.proj_perspective.toggled.connect(self.set_projection)
 
         self.model_actors = {}
 
@@ -201,6 +207,17 @@ class ViewerWindow(CalcamGUIWindow):
             self.lines_appearance_box.setEnabled(False)
 
 
+    def set_projection(self):
+
+        if self.proj_perspective.isChecked():
+            self.interactor3d.set_projection('perspective')
+        elif self.proj_orthographic.isChecked():
+            self.interactor3d.set_projection('orthographic')
+
+        self.update_viewport_info()
+        self.refresh_3d()
+
+
     def change_cad_view(self):
 
 
@@ -217,13 +234,26 @@ class ViewerWindow(CalcamGUIWindow):
                 view = self.cadmodel.get_view( str(view_item.text(0)))
 
                 # Set to that view
-                self.camera_3d.SetViewAngle(view['y_fov'])
+                
                 self.camera_3d.SetPosition(view['cam_pos'])
                 self.camera_3d.SetFocalPoint(view['target'])
                 self.camera_3d.SetViewUp(0,0,1)
-                self.interactor3d.set_xsection(view['xsection'])
+                if view['xsection'] is not None:
+                    self.add_cursor(view['xsection'])
+                    self.interactor3d.set_cursor_coords(0,view['xsection'])
+                    self.xsection_checkbox.setChecked(True)
+
+                self.interactor3d.set_roll(view['roll'])
+                if view['projection'] == 'perspective':
+                    self.proj_perspective.setChecked(True)
+                else:
+                    self.proj_orthographic.setChecked(True)
+
+                self.interactor3d.set_fov(view['y_fov'])
 
             elif view_item.parent() is self.views_root_results or view_item.parent() in self.viewport_calibs.keys():
+
+                self.proj_perspective.setChecked(True)
 
                 view,subfield = self.viewport_calibs[(view_item)]
                 if subfield is None:
@@ -232,8 +262,14 @@ class ViewerWindow(CalcamGUIWindow):
                 self.camera_3d.SetPosition(view.get_pupilpos(subview=subfield))
                 self.camera_3d.SetFocalPoint(view.get_pupilpos(subview=subfield) + view.get_los_direction(view.geometry.get_display_shape()[0]/2,view.geometry.get_display_shape()[1]/2))
                 self.camera_3d.SetViewAngle(view.get_fov(subview=subfield)[1])
-                self.camera_3d.SetViewUp(-1.*view.get_cam_to_lab_rotation(subview=subfield)[:,1])
-                self.interactor3d.set_xsection(None)               
+
+                if np.isfinite(view.get_cam_roll(subview=subfield)):
+                    self.cam_roll.setValue(view.get_cam_roll(subview=subfield))
+                else:
+                    self.cam_roll.setValue(0)
+                    self.camera_3d.SetViewUp(-1.*viewmodel.get_cam_to_lab_rotation()[:,1])
+                
+                self.interactor3d.set_xsection(None)      
 
             elif view_item.parent() is self.views_root_auto and self.interactor3d.focus_cursor is not None:
 
@@ -243,6 +279,7 @@ class ViewerWindow(CalcamGUIWindow):
                     self.camera_3d.SetViewUp(0,1,0)
                     self.camera_3d.SetPosition( (0.,0.,max(self.camZ.value(),cursorpos[2]+1.)) )
                     self.camera_3d.SetFocalPoint( (0.,0.,cursorpos[2]-1.) )
+                    self.interactor3d.set_roll(0)
                     self.xsection_checkbox.setChecked(True)
 
                 elif str(view_item.text(0)).lower() == 'vertical cross-section thru cursor':
@@ -252,6 +289,7 @@ class ViewerWindow(CalcamGUIWindow):
                     phi_cam = phi - 3.14159/2.
                     R_cam = np.sqrt( self.camX.value()**2 + self.camY.value()**2 )
                     self.camera_3d.SetPosition( (max(R_cam,R_cursor + 1) * np.cos(phi_cam), max(R_cam,R_cursor + 1) * np.sin(phi_cam), 0.) )
+                    self.interactor3d.set_roll(0.)
                     self.camera_3d.SetFocalPoint( (0.,0.,0.) )
                     self.xsection_checkbox.setChecked(True)
 
@@ -259,7 +297,8 @@ class ViewerWindow(CalcamGUIWindow):
         else:
             self.camera_3d.SetPosition((self.camX.value(),self.camY.value(),self.camZ.value()))
             self.camera_3d.SetFocalPoint((self.tarX.value(),self.tarY.value(),self.tarZ.value()))
-            self.camera_3d.SetViewAngle(self.camFOV.value())
+            self.interactor3d.set_fov(self.camFOV.value())
+            self.interactor3d.set_roll(-self.cam_roll.value())
 
         self.update_viewport_info(keep_selection=True)
 
@@ -665,10 +704,6 @@ class ViewerWindow(CalcamGUIWindow):
 
 
     def closeEvent(self,event):
-
-        if self.cadmodel is not None:
-            self.cadmodel.remove_from_renderer(self.renderer_3d)
-            self.cadmodel.unload()
 
         self.on_close()
 

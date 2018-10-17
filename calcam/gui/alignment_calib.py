@@ -48,6 +48,7 @@ class AlignmentCalibWindow(CalcamGUIWindow):
         self.tarX.valueChanged.connect(self.change_cad_view)
         self.tarY.valueChanged.connect(self.change_cad_view)
         self.tarZ.valueChanged.connect(self.change_cad_view)
+        self.cam_roll.valueChanged.connect(self.change_cad_view)
         self.load_model_button.clicked.connect(self.load_model)
         self.model_name.currentIndexChanged.connect(self.populate_model_variants)
         self.feature_tree.itemChanged.connect(self.update_checked_features)
@@ -78,6 +79,9 @@ class AlignmentCalibWindow(CalcamGUIWindow):
         self.edge_threshold_1.valueChanged.connect(self.update_overlay)
         self.edge_threshold_2.valueChanged.connect(self.update_overlay)
 
+        self.control_sensitivity_slider.valueChanged.connect(lambda x: self.interactor3d.set_control_sensitivity(x*0.01))
+        self.rmb_rotate.toggled.connect(self.interactor3d.set_rmb_rotate)
+        self.interactor3d.set_control_sensitivity(self.control_sensitivity_slider.value()*0.01)
 
         self.pixel_size_box.setSuffix(u' \u00B5m')
 
@@ -166,9 +170,9 @@ class AlignmentCalibWindow(CalcamGUIWindow):
 
     def update_viewport_info(self,keep_selection=False):
 
-        if self.original_image is not None:
+        CalcamGUIWindow.update_viewport_info(self,keep_selection)
 
-            CalcamGUIWindow.update_viewport_info(self,keep_selection)
+        if self.original_image is not None:
 
             if self.pinhole_intrinsics.isChecked():
 
@@ -558,11 +562,8 @@ class AlignmentCalibWindow(CalcamGUIWindow):
             # the VTK camera. So here we explicitly ask for it to be updated then pass the correct
             # version to set_extrinsics, but then reset it back to what it was, to avoid ruining 
             # the mouse interaction.
-            cam_roll = self.camera_3d.GetRoll()
             self.camera_3d.OrthogonalizeViewUp()
             upvec = np.array(self.camera_3d.GetViewUp())
-            self.camera_3d.SetViewUp(0,0,1)
-            self.camera_3d.SetRoll(cam_roll)
 
             self.calibration.set_extrinsics(campos,upvec,camtar = camtar)
 
@@ -578,7 +579,6 @@ class AlignmentCalibWindow(CalcamGUIWindow):
 
         elif saveas:
             self.filename = orig_filename
-
 
 
 
@@ -600,6 +600,7 @@ class AlignmentCalibWindow(CalcamGUIWindow):
                 self.camera_3d.SetFocalPoint(view['target'])
                 self.camera_3d.SetViewUp(0,0,1)
                 self.interactor3d.set_xsection(None)
+                self.interactor3d.set_roll(view['roll'])
 
             elif view_item.parent() is self.views_root_results or view_item.parent() in self.viewport_calibs.keys():
 
@@ -619,7 +620,6 @@ class AlignmentCalibWindow(CalcamGUIWindow):
 
         self.camera_3d.SetPosition(viewmodel.get_pupilpos())
         self.camera_3d.SetFocalPoint(viewmodel.get_pupilpos() + viewmodel.get_los_direction(calibration.get_cc(subview=subfield)[0],calibration.get_cc(subview=subfield)[1]))
-        
         self.camera_3d.SetViewUp(-1.*viewmodel.get_cam_to_lab_rotation()[:,1])
         self.interactor3d.set_xsection(None)       
 

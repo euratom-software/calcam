@@ -62,6 +62,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         self.tarX.valueChanged.connect(self.change_cad_view)
         self.tarY.valueChanged.connect(self.change_cad_view)
         self.tarZ.valueChanged.connect(self.change_cad_view)
+        self.cam_roll.valueChanged.connect(self.change_cad_view)
         self.camFOV.valueChanged.connect(self.change_cad_view)
         self.load_model_button.clicked.connect(self.load_model)
         self.model_name.currentIndexChanged.connect(self.populate_model_variants)
@@ -94,6 +95,9 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         self.action_open.triggered.connect(self.load_calib)
         self.action_new.triggered.connect(self.reset)
 
+        self.control_sensitivity_slider.valueChanged.connect(lambda x: self.interactor3d.set_control_sensitivity(x*0.01))
+        self.rmb_rotate.toggled.connect(self.interactor3d.set_rmb_rotate)
+        self.interactor3d.set_control_sensitivity(self.control_sensitivity_slider.value()*0.01)
 
         self.del_pp_button.clicked.connect(self.remove_current_pointpair)
         self.clear_points_button.clicked.connect(self.clear_pointpairs)

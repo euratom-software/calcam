@@ -44,6 +44,7 @@ class VirtualCalibrationWindow(CalcamGUIWindow):
         self.tarX.valueChanged.connect(self.change_cad_view)
         self.tarY.valueChanged.connect(self.change_cad_view)
         self.tarZ.valueChanged.connect(self.change_cad_view)
+        self.cam_roll.valueChanged.connect(self.change_cad_view)
         self.load_model_button.clicked.connect(self.load_model)
         self.model_name.currentIndexChanged.connect(self.populate_model_variants)
         self.feature_tree.itemChanged.connect(self.update_checked_features)
@@ -58,6 +59,10 @@ class VirtualCalibrationWindow(CalcamGUIWindow):
         self.load_intrinsics_button.clicked.connect(self.update_intrinsics)
         self.load_extrinsics_button.clicked.connect(self.load_viewport_calib)
         self.pixel_size_box.setSuffix(u' \u00B5m')
+
+        self.control_sensitivity_slider.valueChanged.connect(lambda x: self.interactor3d.set_control_sensitivity(x*0.01))
+        self.rmb_rotate.toggled.connect(self.interactor3d.set_rmb_rotate)
+        self.interactor3d.set_control_sensitivity(self.control_sensitivity_slider.value()*0.01)
 
         self.action_save.triggered.connect(self.save)
         self.action_save_as.triggered.connect(lambda: self.save(saveas=True))
@@ -364,6 +369,7 @@ class VirtualCalibrationWindow(CalcamGUIWindow):
                 self.camera_3d.SetFocalPoint(view['target'])
                 self.camera_3d.SetViewUp(0,0,1)
                 self.interactor3d.set_xsection(None)
+                self.interactor3d.set_roll(view['roll'])
 
             elif view_item.parent() is self.views_root_results or view_item.parent() in self.viewport_calibs.keys():
 

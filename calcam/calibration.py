@@ -137,6 +137,27 @@ class ViewModel():
         return rotation_matrix.transpose()
 
 
+    def get_cam_roll(self):
+
+        upvec = np.squeeze(-1.*self.get_cam_to_lab_rotation()[:,1])
+        view_direction = self.get_los_direction(self.cam_matrix[0,2],self.cam_matrix[1,2])
+
+        if np.abs(view_direction[2]) < 0.99:
+            z_projection = np.array([ -view_direction[0]*view_direction[2], -view_direction[1]*view_direction[2],1-view_direction[2]**2 ])
+            h_projection = np.cross(z_projection,view_direction)
+            h_projection = h_projection / np.sqrt(np.sum(h_projection**2))
+            z_projection = z_projection / np.sqrt(np.sum(z_projection**2))
+            x = np.dot(upvec,z_projection)
+            y = np.dot(upvec,h_projection)
+            return( - np.arctan2(y,x) * 180 / 3.14159 ) 
+
+        else:
+            # If the camera is looking (close to) vertically up or down, roll is not defined.
+            return np.nan
+
+
+
+
 
 # Class representing a perspective camera model.
 class PerspectiveViewModel(ViewModel):
@@ -769,6 +790,7 @@ class Calibration():
 
         return output
 
+
     def get_cc(self,subview=None):
 
         if self.n_subviews > 1 and subview is None:
@@ -778,6 +800,17 @@ class Calibration():
             subview = 0
 
         return (self.view_models[subview].cam_matrix[0,2] , self.view_models[subview].cam_matrix[1,2])
+
+
+    def get_cam_roll(self,subview=None):
+
+        if self.n_subviews > 1 and subview is None:
+            raise ValueError('This calibration has more than 1 sub-view; sub-view must be specified!')
+
+        elif subview is None:
+            subview = 0
+
+        return self.view_models[subview].get_cam_roll()
 
 
     # Get the horizontal and vertical field of view of a given sub-view
