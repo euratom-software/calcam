@@ -44,7 +44,8 @@ class ViewerWindow(CalcamGUIWindow):
         self.load_model_button.clicked.connect(self.load_model)
         self.feature_tree.itemChanged.connect(self.update_checked_features)
         self.feature_tree.itemSelectionChanged.connect(self.update_cadtree_selection)
-        self.xsection_checkbox.toggled.connect(self.toggle_cursor_xsection)
+        self.xsection_checkbox.toggled.connect(self.update_xsection)
+        self.xsection_origin.toggled.connect(self.update_xsection)
         self.sightline_opacity_slider.valueChanged.connect(self.update_sightlines)
         self.rendertype_edges.toggled.connect(self.toggle_wireframe)
         self.viewport_load_calib.clicked.connect(self.load_viewport_calib)
@@ -220,7 +221,6 @@ class ViewerWindow(CalcamGUIWindow):
 
     def change_cad_view(self):
 
-
         if self.sender() is self.viewlist:
             items = self.viewlist.selectedItems()
             if len(items) > 0:
@@ -237,10 +237,14 @@ class ViewerWindow(CalcamGUIWindow):
                 
                 self.camera_3d.SetPosition(view['cam_pos'])
                 self.camera_3d.SetFocalPoint(view['target'])
-                self.camera_3d.SetViewUp(0,0,1)
+
                 if view['xsection'] is not None:
-                    self.add_cursor(view['xsection'])
-                    self.interactor3d.set_cursor_coords(0,view['xsection'])
+                    if view['xsection'] == (0,0,0):
+                        self.xsection_origin.setChecked(True)
+                    else:
+                        self.add_cursor(view['xsection'])
+                        self.interactor3d.set_cursor_coords(0,view['xsection'])
+                        self.xsection_cursor.setChecked(True)
                     self.xsection_checkbox.setChecked(True)
 
                 self.interactor3d.set_roll(view['roll'])
@@ -271,26 +275,57 @@ class ViewerWindow(CalcamGUIWindow):
                 
                 self.interactor3d.set_xsection(None)      
 
-            elif view_item.parent() is self.views_root_auto and self.interactor3d.focus_cursor is not None:
+            elif view_item.parent() is self.views_root_auto:
 
-                cursorpos = self.interactor3d.get_cursor_coords(0)
+                # Work out the field of view to set based on the model extent.
+                # Note: this assumes the origin is at the centre of the machine.
+                # I could not assume that, but then I might end up de-centred on otherwise well bahevd models.
+                model_extent = self.cadmodel.get_extent()
+                z_extent = model_extent[5]-model_extent[4]
+                r_extent = max(model_extent[1]-model_extent[0],model_extent[3]-model_extent[2])
 
-                if str(view_item.text(0)).lower() == 'horizontal cross-section thru cursor':
-                    self.camera_3d.SetViewUp(0,1,0)
-                    self.camera_3d.SetPosition( (0.,0.,max(self.camZ.value(),cursorpos[2]+1.)) )
-                    self.camera_3d.SetFocalPoint( (0.,0.,cursorpos[2]-1.) )
-                    self.interactor3d.set_roll(0)
+                xsec_fov = 30
+
+                if str(view_item.text(0)).lower() == 'horizontal cross-section':
+
+                    if self.interactor3d.projection == 'perspective':
+                        self.camFOV.setValue(xsec_fov)
+                    else:
+                        self.camFOV.setValue(r_extent)
+
+                    if self.xsection_cursor.isEnabled():
+                        self.xsection_cursor.setChecked(True)
+                    else:
+                        self.xsection_origin.setChecked(True)
+
+                    self.camera_3d.SetPosition( (0.,0.,r_extent/(2*np.tan(3.14159*xsec_fov/360) )))
+                    self.camera_3d.SetFocalPoint( (0.,0.001,self.camera_3d.GetPosition()[2]-1.) )
                     self.xsection_checkbox.setChecked(True)
 
-                elif str(view_item.text(0)).lower() == 'vertical cross-section thru cursor':
-                    self.camera_3d.SetViewUp(0,0,1)
-                    R_cursor = np.sqrt( cursorpos[1]**2 + cursorpos[0]**2 )
-                    phi = np.arctan2(cursorpos[1],cursorpos[0])
-                    phi_cam = phi - 3.14159/2.
-                    R_cam = np.sqrt( self.camX.value()**2 + self.camY.value()**2 )
-                    self.camera_3d.SetPosition( (max(R_cam,R_cursor + 1) * np.cos(phi_cam), max(R_cam,R_cursor + 1) * np.sin(phi_cam), 0.) )
+                elif str(view_item.text(0)).lower() == 'vertical cross-section':
+
+                    R = z_extent/(2*np.tan(3.14159*xsec_fov/360))
+
+                    if self.interactor3d.projection == 'perspective':
+                        self.camFOV.setValue(xsec_fov)
+                    else:
+                        self.camFOV.setValue(z_extent)
+
+                    if self.xsection_cursor.isEnabled():
+                        cursorpos = self.interactor3d.get_cursor_coords(0)
+                        phi = np.arctan2(cursorpos[1],cursorpos[0])
+                        phi_cam = phi - 3.14159/2.
+                        self.xsection_cursor.setChecked(True)
+
+                    else:
+                        phi_cam = np.arctan2(self.camY.value(),self.camX.value())
+                        self.xsection_origin.setChecked(True)
+
+                    self.camera_3d.SetPosition(R * np.cos(phi_cam),R * np.sin(phi_cam),0.)
                     self.interactor3d.set_roll(0.)
                     self.camera_3d.SetFocalPoint( (0.,0.,0.) )
+
+
                     self.xsection_checkbox.setChecked(True)
 
 
@@ -341,10 +376,13 @@ class ViewerWindow(CalcamGUIWindow):
         # Turn off any wall contour
         self.contour_off.setChecked(True)
 
-    def toggle_cursor_xsection(self,onoff):
+    def update_xsection(self):
 
-        if onoff:
-            self.interactor3d.set_xsection(self.interactor3d.get_cursor_coords(0))
+        if self.xsection_checkbox.isChecked():
+            if self.xsection_cursor.isChecked():
+                self.interactor3d.set_xsection(self.interactor3d.get_cursor_coords(0))
+            else:
+                self.interactor3d.set_xsection((0,0,0))
         else:
             self.interactor3d.set_xsection(None)
 
@@ -694,9 +732,7 @@ class ViewerWindow(CalcamGUIWindow):
         if self.contour_2d.isChecked():
             self.update_contour()
 
-        self.xsection_checkbox.setEnabled(True)
-        for i in range(self.views_root_auto.childCount()):
-            self.views_root_auto.child(i).setFlags(qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled)
+        self.xsection_cursor.setEnabled(True)
         if self.xsection_checkbox.isChecked():
             self.interactor3d.set_xsection(self.interactor3d.get_cursor_coords(0))
 

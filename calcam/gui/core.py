@@ -160,11 +160,8 @@ class CalcamGUIWindow(qt.QMainWindow):
 
 
         # Auto type views
-        item = qt.QTreeWidgetItem(self.views_root_auto,['Vertical cross-section thru cursor'])
-        item.setFlags(qt.Qt.NoItemFlags)
-        item = qt.QTreeWidgetItem(self.views_root_auto,['Horizontal cross-section thru cursor'])
-        item.setFlags(qt.Qt.NoItemFlags)
-
+        item = qt.QTreeWidgetItem(self.views_root_auto,['Vertical cross-section'])
+        item = qt.QTreeWidgetItem(self.views_root_auto,['Horizontal cross-section'])
 
         self.viewlist.addTopLevelItem(self.views_root_model)
         self.viewlist.addTopLevelItem(self.views_root_auto)
@@ -477,6 +474,7 @@ class CalcamGUIWindow(qt.QMainWindow):
 
     def update_model_views(self):
 
+        self.viewlist.selectionModel().clearSelection()
         self.views_root_model.setText(0,self.cadmodel.machine_name)
         self.views_root_model.takeChildren()
 
@@ -818,7 +816,7 @@ class CalcamGUIWindow(qt.QMainWindow):
             fov_min = 1
             decimals = 1
         elif self.interactor3d.projection == 'orthographic':
-            fov = self.camera_3d.GetParallelScale()
+            fov = self.camera_3d.GetParallelScale()*2
             fov_suffix = ' m'
             fov_max = 200
             fov_min = 0.01

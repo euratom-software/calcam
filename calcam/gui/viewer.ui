@@ -106,6 +106,9 @@
         <string>Machine Model</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_8">
+        <property name="rightMargin">
+         <number>9</number>
+        </property>
         <item>
          <widget class="QGroupBox" name="cad_section">
           <property name="sizePolicy">
@@ -370,37 +373,89 @@
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>
-         <widget class="QGroupBox" name="groupBox_8">
+         <widget class="QGroupBox" name="groupBox_11">
           <property name="title">
-           <string>Rendering Options</string>
+           <string>3D Projection</string>
           </property>
-          <layout class="QGridLayout" name="gridLayout_14">
-           <item row="0" column="0">
+          <layout class="QHBoxLayout" name="horizontalLayout">
+           <item>
             <widget class="QRadioButton" name="proj_perspective">
              <property name="text">
-              <string>Perspective projection</string>
+              <string>Perspective</string>
              </property>
              <property name="checked">
               <bool>true</bool>
              </property>
             </widget>
            </item>
-           <item row="0" column="1">
+           <item>
             <widget class="QRadioButton" name="proj_orthographic">
              <property name="text">
-              <string>Orthographic projection</string>
+              <string>Orthographic</string>
              </property>
             </widget>
            </item>
-           <item row="1" column="0" colspan="2">
+           <item>
+            <spacer name="horizontalSpacer_7">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="groupBox_8">
+          <property name="title">
+           <string>Cross-Sectioning</string>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_5">
+           <item>
             <widget class="QCheckBox" name="xsection_checkbox">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>Cut cross-section:</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QRadioButton" name="xsection_origin">
+             <property name="text">
+              <string>Through Origin</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QRadioButton" name="xsection_cursor">
              <property name="enabled">
               <bool>false</bool>
              </property>
              <property name="text">
-              <string>Cut machine cross-section through cursor</string>
+              <string>Through Cursor</string>
              </property>
             </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_6">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
            </item>
           </layout>
          </widget>
@@ -1284,6 +1339,9 @@
              </property>
              <property name="text">
               <string>Export an image of the current 3D scene from the point of view of a calibrated camera. The correct camera position, field of view and optical distortion will be used, so the resulting image should overlay with the real camera image to within the accuracy of the calibration.</string>
+             </property>
+             <property name="scaledContents">
+              <bool>false</bool>
              </property>
              <property name="wordWrap">
               <bool>true</bool>

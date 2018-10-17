@@ -155,7 +155,7 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
         if self.projection == 'perspective':
             self.camera.SetViewAngle(fov)
         else:
-            self.camera.SetParallelScale(fov)
+            self.camera.SetParallelScale(fov/2.)
 
 
     def set_control_sensitivity(self,sensitivity):
@@ -213,7 +213,7 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
         if self.rightdrag_rotate:
             self.camera.SetDistance( np.sqrt( np.sum( np.array(self.camera.GetPosition())**2)) )
         else:
-            self.camera.SetDistance(0.001)
+            self.camera.SetDistance(0.01)
         self.rmb_down = True
         self.OnLeftButtonDown()
 
@@ -599,23 +599,35 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
     def on_mouse_move(self,obj=None,event=None):
 
         rerender = False
+
+        # Apply the mouse sensitivity by adjusting the apparent amount the mouse has moved
+        # before calling the VTK methods
+        # -----------------------------------
         xy = np.array(self.interactor.GetEventPosition())
         lastxy = np.array(self.interactor.GetLastEventPosition())
-        view_direction = self.camera.GetDirectionOfProjection()
 
-        if self.rmb_down:
-            delta = ( lastxy - xy ) * self.control_sensitivity / 1.5 + self.mouse_delta
-        else:
-            delta = ( lastxy - xy ) * self.control_sensitivity / 0.75 + self.mouse_delta
+        delta = ( lastxy - xy ) * self.control_sensitivity + self.mouse_delta
 
         self.mouse_delta = np.mod(np.abs(delta),1) * np.sign(delta)
         delta = np.trunc(delta).astype(int)
         self.interactor.SetLastEventPosition(int(xy[0]+delta[0]),int(xy[1]+delta[1]))
+        # -----------------------------------
 
+        # Correctly handle mouse interaction:
+        view_direction = self.camera.GetDirectionOfProjection()
 
-
+        # If doing anything other than Right Click + Ctrl + Drag, we can just use 
+        # the existing VTK method
         if not (self.rmb_down and self.interactor.GetControlKey()):
+
             self.OnMouseMove()
+
+            # Make sure we maintain the set camera roll.
+            if self.rmb_down and np.abs(self.cam_roll) > 0:
+                self.set_roll(self.cam_roll,run_viewport_callback=False)
+
+        # Right click + drag rolls the camera.
+        # This first case for if we're not looking vertically
         elif np.abs(view_direction[2]) < 0.99:
             lastxy = xy + delta
             cc = np.array(self.vtkwindow.GetSize())/2.
@@ -626,17 +638,19 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
 
             if np.abs(self.cam_roll - 180*delta_theta/3.14159) < 90:
                 roll = self.cam_roll - 180*delta_theta/3.14159
-                self.set_roll(roll)
+                self.set_roll(roll,run_viewport_callback=False)
+
+        # If we are looking vertically, pretend the mouse has only moved horizontally
+        # and call the regular handler. Believe it or not this enables consistent and smooth-ish rotation.
         else:
             self.interactor.SetLastEventPosition(int(xy[0]+delta[0]),xy[1])
             self.OnMouseMove()
-
 
         if self.xsection_coords is not None:
             self.update_clipping()
 
 
-    def set_roll(self,roll,rerender=True):
+    def set_roll(self,roll,rerender=True,run_viewport_callback=True):
 
         self.cam_roll = roll
         view_direction = self.camera.GetDirectionOfProjection()
@@ -646,7 +660,9 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
             self.camera.SetViewUp(upvec)
             roll = self.camera.GetRoll()
             self.camera.SetViewUp(0,0,1)
-            self.camera.SetRoll(roll)        
+            self.camera.SetRoll(roll)
+            if self.viewport_callback is not None and run_viewport_callback:
+                self.viewport_callback(keep_selection=True)     
             if rerender:
                 self.refresh_callback()  
 
