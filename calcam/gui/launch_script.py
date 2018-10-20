@@ -8,12 +8,14 @@ if __name__ == '__main__':
         arg = '--launcher'
 
     if arg == '--launcher':
-        gui.open_gui(gui.LauncherWindow)
+        gui.open_window(gui.LauncherWindow)
     elif arg == '--fitting_calib':
-        gui.open_gui(gui.FittingCalibrationWindow)
+        gui.open_window(gui.FittingCalibrationWindow)
     elif arg == '--alignment_calib':
-        gui.open_gui(gui.AlignmentCalibWindow)
+        gui.open_window(gui.AlignmentCalibWindow)
     elif arg == '--virtual_calib':
-        gui.open_gui(gui.VirtualCalibrationWindow)
+        gui.open_window(gui.VirtualCalibrationWindow)
     elif arg == '--viewer':
-        gui.open_gui(gui.ViewerWindow)
+        gui.open_window(gui.ViewerWindow)
+    elif arg == '--image_analyser':
+        gui.open_window(gui.ImageAnalyserWindow)

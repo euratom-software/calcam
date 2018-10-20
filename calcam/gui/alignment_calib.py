@@ -148,6 +148,7 @@ class AlignmentCalibWindow(CalcamGUIWindow):
         self.intrinsics_calib = None
 
         self.refresh_3d()
+        self.unsaved_changes = False
 
 
 
@@ -171,6 +172,7 @@ class AlignmentCalibWindow(CalcamGUIWindow):
     def update_viewport_info(self,keep_selection=False):
 
         CalcamGUIWindow.update_viewport_info(self,keep_selection)
+        self.unsaved_changes = True
 
         if self.original_image is not None:
 
@@ -273,7 +275,7 @@ class AlignmentCalibWindow(CalcamGUIWindow):
         self.set_view_from_calib(self.calibration,0)
 
         self.app.restoreOverrideCursor()
-
+        self.unsaved_changes = False
 
     def update_intrinsics(self):
 
@@ -361,6 +363,7 @@ class AlignmentCalibWindow(CalcamGUIWindow):
         self.camera_3d.SetWindowCenter(wcx,wcy)
         fov = 360*np.arctan( float(n[1]) / (2*self.calibration.view_models[0].cam_matrix[1,1]))/3.14159
         self.camera_3d.SetViewAngle(fov)
+        self.unsaved_changes = True
 
 
 
@@ -428,6 +431,7 @@ class AlignmentCalibWindow(CalcamGUIWindow):
         self.update_image_info_string()
         self.app.restoreOverrideCursor()
         self.statusbar.clearMessage()
+        self.unsaved_changes = True
 
 
     def update_overlay(self):
@@ -512,11 +516,8 @@ class AlignmentCalibWindow(CalcamGUIWindow):
         self.update_image_info_string()
 
         self.update_overlay()
+        self.unsaved_changes = True
 
-
-    def closeEvent(self,event):
-
-        self.on_close()
 
 
     def update_chessboard_intrinsics(self):

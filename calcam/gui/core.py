@@ -19,15 +19,6 @@ from .vtkinteractorstyles import CalcamInteractorStyle2D
 guipath = os.path.split(os.path.abspath(__file__))[0]
 
 
-def open_gui(window_class):
-    app = qt.QApplication([])
-    win = window_class(app)
-    if qt.QDialog in window_class.__bases__:
-        return win.exec_()
-    else:
-        return app.exec_()
-
-
 class colourcycle():
 
     def __init__(self):
@@ -149,6 +140,8 @@ class CalcamGUIWindow(qt.QMainWindow):
             self.action_save_as.setIcon( qt.QIcon(os.path.join(guipath,'saveas.png')) )
         except AttributeError:
             pass
+
+        self.unsaved_changes = False
 
         # -------------------- Initialise View List ------------------
         self.viewlist.clear()
@@ -530,11 +523,11 @@ class CalcamGUIWindow(qt.QMainWindow):
         else:
             self.camera_3d.SetPosition((self.camX.value(),self.camY.value(),self.camZ.value()))
             self.camera_3d.SetFocalPoint((self.tarX.value(),self.tarY.value(),self.tarZ.value()))
-            self.interactor3d.set_roll(-self.cam_roll.value())
             try:
                 self.interactor3d.set_fov(self.camFOV.value())
             except AttributeError:
                 pass
+            self.interactor3d.set_roll(-self.cam_roll.value())
 
         
         self.interactor3d.update_cursor_style()
@@ -564,6 +557,8 @@ class CalcamGUIWindow(qt.QMainWindow):
         self.camera_3d.SetViewAngle(fov_angle)
         self.camera_3d.SetUseHorizontalViewAngle(h_fov)
         
+        self.update_viewport_info(keep_selection=True)
+        
         if np.isfinite(viewmodel.get_cam_roll()):
             self.cam_roll.setValue(viewmodel.get_cam_roll())
         else:
@@ -572,7 +567,7 @@ class CalcamGUIWindow(qt.QMainWindow):
         
         self.interactor3d.set_xsection(None)       
 
-        self.update_viewport_info(keep_selection=True)
+        
         self.interactor3d.update_cursor_style()
 
         self.interactor3d.update_clipping()
@@ -939,7 +934,23 @@ class CalcamGUIWindow(qt.QMainWindow):
         dialog.exec_()
 
 
-    def on_close(self):
+
+    def closeEvent(self,event):
+
+        self.on_close()
+
+        if self.unsaved_changes:
+            dialog = qt.QMessageBox(self)
+            dialog.setStandardButtons(qt.QMessageBox.Save|qt.QMessageBox.Discard|qt.QMessageBox.Cancel)
+            dialog.setWindowTitle('Save changes?')
+            dialog.setText('There are unsaved changes. Save before exiting?')
+            dialog.setIcon(qt.QMessageBox.Information)
+            choice = dialog.exec_()
+            if choice == qt.QMessageBox.Save:
+                self.action_save.trigger()
+            elif choice == qt.QMessageBox.Cancel:
+                event.ignore()
+                return
 
         if self.cadmodel is not None:
             self.cadmodel.remove_from_renderer(self.renderer_3d)
@@ -951,6 +962,9 @@ class CalcamGUIWindow(qt.QMainWindow):
 
 
     def on_model_load(self):
+        pass
+
+    def on_close(self):
         pass
 
 

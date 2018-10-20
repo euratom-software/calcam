@@ -35,6 +35,7 @@ from .io import ZipSaveFile
 from scipy.ndimage.measurements import center_of_mass as CoM
 from .coordtransformer import CoordTransformer
 from .pointpairs import PointPairs
+from .raytrace import raycast_sightlines
 import datetime
 import socket
 import getpass
@@ -914,7 +915,9 @@ class Calibration():
         return np.squeeze(output)
 
 
-    def project_points(self,points_3d,coords='display',check_occlusion_by=None,fill_value=np.nan):
+    def project_points(self,points_3d,coords='display',check_occlusion_by=None,fill_value=np.nan,occlusion_tol=1e-3):
+
+        points_3d = np.array(points_3d)
 
         # This will be the output
         points_2d = []
@@ -935,7 +938,10 @@ class Calibration():
             else:
 
                 # Do the point projection for this sub-fov
-                p2d =  self.view_models[nview].project_points(points_3d) 
+                p2d =  self.view_models[nview].project_points(points_3d)
+
+                if len(p2d.shape) == 1:
+                    p2d = p2d[np.newaxis,:]
 
                 # If we're checking whether the 3D points are actually visible...
                 if fill_value is not None:
@@ -949,17 +955,16 @@ class Calibration():
                     if check_occlusion_by is not None:
 
                         point_vectors = points_3d - np.tile( self.view_models[nview].get_pupilpos() , (points_3d.shape[0],1) )
-                        point_distances = np.sqrt( np.sum(point_vectors**2),axis= 1)
+                        point_distances = np.sqrt( np.sum(point_vectors**2,axis= 1))
 
                         # Ray cast to get the ray lengths
-                        ray_lengths = raycast_sightlines(self,check_occlusion_by,p2d[:,0],p2d[:,1],verbose=False,force_subview=nview)
+                        ray_lengths = raycast_sightlines(self,check_occlusion_by,p2d[:,0],p2d[:,1],verbose=False,force_subview=nview).get_ray_lengths()
 
                         # The 3D points are invisible where the distance to the point is larger than the
                         # ray length
-                        occluded_mask = ray_lengths < point_distances
+                        occluded_mask = ray_lengths < (point_distances - occlusion_tol)
 
                         p2d[ np.tile(occluded_mask,(1,2))  ] = fill_value
-
 
                     p2d[ np.tile(wrong_subview_mask[:,np.newaxis],(1,2)) ] = fill_value
 

@@ -103,6 +103,8 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
         self.cam_roll = 0.
         self.rmb_down = False
         self.mouse_delta = np.array([0,0])
+        self.allow_focus_change = True
+
 
     # Do various initial setup things, most of which can't be done at the time of __init__
     def init(self):
@@ -388,7 +390,7 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
             else:
 
                 # Otherwise, if they clicked an existing cursor, change the focus to it
-                if clicked_cursor is not None:
+                if clicked_cursor is not None and self.allow_focus_change:
 
                     self.set_cursor_focus(clicked_cursor)
 
@@ -700,6 +702,7 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
         self.cursor_move_callback = cursor_move_callback
         self.focus_changed_callback = focus_changed_callback
         self.refresh_callback = refresh_callback
+        self.allow_focus_change = True
 
     # Do various initial setup things, most of which can't be done at the time of __init__
     def init(self):
@@ -803,7 +806,11 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
 
         if self.refresh_callback is not None:
             self.refresh_callback()
-            
+
+
+    def set_subview_lookup(self,n_subviews,subview_lookup):
+        self.n_subviews = n_subviews
+        self.subview_lookup = subview_lookup
 
     def get_n_cursors(self):
         return ( len(self.active_cursors) , len(self.passive_cursors) )
@@ -875,7 +882,7 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
 
         else:
 
-            if clicked_cursor is not None:
+            if clicked_cursor is not None and self.allow_focus_change:
 
                 self.set_cursor_focus(clicked_cursor)
 
@@ -1085,7 +1092,7 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
 
 
     # Add a new point on the image
-    def add_active_cursor(self,coords,add_to=None):
+    def add_active_cursor(self,coords,add_to=None,run_move_callback=True):
 
         subview = self.subview_lookup(coords[0],coords[1])
 
@@ -1127,7 +1134,7 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
         # Add new cursor to screen
         self.renderer.AddActor(actor)
 
-        if self.cursor_move_callback is not None:
+        if self.cursor_move_callback is not None and run_move_callback:
             self.cursor_move_callback(new_cursor_id,self.get_cursor_coords(new_cursor_id))
 
         self.update_cursor_style()

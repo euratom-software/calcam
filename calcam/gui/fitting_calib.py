@@ -177,6 +177,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         if loaded_calib is not None:
             self.intrinsics_calib = loaded_calib
             self.intrinsics_calib_checkbox.setChecked(True)
+            self.unsaved_changes = True
 
 
     def toggle_intrinsics_calib(self,on):
@@ -187,6 +188,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
                 self.intrinsics_calib_checkbox.setChecked(False)
 
         self.update_n_points()
+        self.unsaved_changes = True
 
 
 
@@ -223,6 +225,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
 
         self.refresh_2d()
         self.refresh_3d()
+        self.unsaved_changes = False
 
 
     def reset_fit(self,reset_options=True):
@@ -235,9 +238,10 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         self.rebuild_image_gui(reset_fitters=reset_options)
         self.calibration.view_models = [None] * self.calibration.n_subviews
         self.calibration.history['fit'] = [None] * self.calibration.n_subviews
+        self.unsaved_changes = True
 
     def update_cursor_position(self,cursor_id,position):
-        
+        self.unsaved_changes = True
         #info = 'Cursor location: ' + self.cadmodel.format_coord(position).replace('\n',' | ')
 
         pass
@@ -406,6 +410,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
             self.hist_eq_checkbox.setChecked(True)
 
         self.rebuild_image_gui()
+        self.unsaved_changes = True
 
 
         if keep_points:
@@ -671,6 +676,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
  
         self.update_image_info_string()
         self.rebuild_image_gui()
+        self.unsaved_changes = True
 
 
     def load_pointpairs(self,data=None,pointpairs=None,src=None,history=None):
@@ -717,6 +723,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
             self.update_n_points()
             self.update_cursor_info()
             self.app.restoreOverrideCursor()
+            self.unsaved_changes = True
 
 
 
@@ -838,6 +845,8 @@ class FittingCalibrationWindow(CalcamGUIWindow):
                 for subview in range(self.calibration.n_subviews):
                      self.fitters[subview].add_intrinsics_pointpairs(chessboard_constraint[1],subview=subview)
                 src = None
+
+        self.unsaved_changes = True
 
                
 
@@ -983,6 +992,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
             dialog.setIcon(qt.QMessageBox.Information)
             dialog.exec_()
 
+        self.unsaved_changes = True
 
 
     def toggle_overlay(self,show=None):
@@ -1100,6 +1110,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
             self.intrinsics_calib_checkbox.setText('Existing Calibration (None Loaded)')
 
         self.fit_enable_check()
+        self.unsaved_changes = True
 
 
     def save_calib(self,saveas=False):
@@ -1226,6 +1237,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         self.update_n_points()
         self.update_fit_results()
         self.app.restoreOverrideCursor()
+        self.unsaved_changes = False
 
     def toggle_hist_eq(self,check_state):
 
@@ -1243,11 +1255,6 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         self.interactor2d.set_image(im_out,n_subviews = self.calibration.n_subviews,subview_lookup=self.calibration.subview_lookup,hold_position=True)
 
 
-        
-    def closeEvent(self,event):
-
-        self.on_close()
-
 
     def edit_split_field(self):
 
@@ -1257,6 +1264,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
             self.calibration.set_subview_mask(dialog.fieldmask,subview_names=dialog.field_names)
             self.interactor2d.n_subviews = self.calibration.n_subviews
             self.rebuild_image_gui()
+            self.unsaved_changes = True
 
         del dialog
 
@@ -1303,6 +1311,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
             self.calibration.pixel_size = self.pixel_size_box.value() / 1e6
         else:
             self.calibration.pixel_size = None
+        self.unsaved_changes = True
 
 
     def set_fit_viewport(self):

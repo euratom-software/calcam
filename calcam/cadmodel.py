@@ -25,6 +25,7 @@ import numpy as np
 import json
 import zipfile
 import os
+import atexit
 from .config import CalcamConfig
 from .io import ZipSaveFile
 from .exceptions import MeshFileMissing, UserCodeException
@@ -73,7 +74,6 @@ class CADModel():
             raise ValueError('Unknown model variant for {:s}: {:s}.'.format(model_name,model_variant))
 
         self.model_variant = model_variant
-
 
 
         self.set_status_callback(status_callback)
@@ -166,7 +166,7 @@ class CADModel():
         self.edges = False
         self.cell_locator = None
 
-
+        atexit.register(self.unload)
 
 
     # Set / get the status callback function
@@ -501,9 +501,6 @@ class CADModel():
 
         return 'Calcam CAD model: "{:s}" / "{:s}" from {:s}'.format(self.machine_name,self.model_variant,self.definition_filename)
 
-    def __del__(self):
-        self.unload()
-
 
     # Add a new view definition to the file.
     def add_view(self,viewname,campos,camtar,fov,xsection,roll,projection):
@@ -543,7 +540,7 @@ class CADModel():
     def unload(self):
 
         if self.status_callback is not None:
-            self.status_callback('Saving changes to model definition {:s}/{:s}...'.format(self.machine_name,self.model_variant))
+            self.status_callback('Closing model definition {:s}/{:s}...'.format(self.machine_name,self.model_variant))
 
         self.def_file.close()
 

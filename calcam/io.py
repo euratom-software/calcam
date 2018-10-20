@@ -4,6 +4,7 @@ import sys
 import os
 import shutil
 import hashlib
+import atexit
 
 # Get a list of directory contents, including sub-directories.
 # Returned list has absolute paths.
@@ -51,6 +52,7 @@ class ZipSaveFile():
 		self.is_open = False
 		self.open(self.mode)
 
+		atexit.register(self.close)
 
 	def open(self,mode):
 
@@ -305,7 +307,7 @@ class ZipSaveFile():
 
 
 	# If we forget to close the object properly
-	# before it's garbage collected, make sure the 
+	# before it's garbage collected or whatever, make sure the 
 	# temp files get cleaned up.
 	def __del__(self):
 		self.close()
