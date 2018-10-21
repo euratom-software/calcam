@@ -4,6 +4,7 @@ import sys
 import glob
 from .io import ZipSaveFile
 
+builtin_imsource_path = os.path.join(os.path.split(os.path.abspath(__file__))[0],'image_sources')
 
 class CalcamConfig():
 
@@ -27,7 +28,7 @@ class CalcamConfig():
 			try:
 				self.image_source_paths
 			except:
-				self.image_source_paths = [os.path.join(os.path.split(os.path.abspath(__file__))[0],'image_sources')]
+				self.image_source_paths = []
 			
 			self.default_model = None
 			self.default_image_source = 'Image File'
@@ -102,7 +103,7 @@ class CalcamConfig():
 
 		image_sources = []
 
-		for path in self.image_source_paths:
+		for path in [builtin_imsource_path] + self.image_source_paths:
 
 			sys.path.insert(0,path)
 			filelist = glob.glob(os.path.join(path,'*'))
@@ -114,6 +115,28 @@ class CalcamConfig():
 				except:
 					continue
 		
+			sys.path.remove(path)
+
+		return image_sources
+
+
+	def get_imsource_list(self):
+
+		image_sources = []
+
+		for path in [builtin_imsource_path] + self.image_source_paths:
+
+			sys.path.insert(0,path)
+			filelist = glob.glob(os.path.join(path,'*'))
+
+			for fname in [os.path.split(path)[-1].split('.')[0] for path in filelist]:
+				if fname != '__pycache__':
+					try:
+						usermodule = __import__(fname)
+						image_sources.append([usermodule.image_source['display_name'],True,None])
+					except Exception as e:
+						image_sources.append([fname,False,str(e)])
+
 			sys.path.remove(path)
 
 		return image_sources

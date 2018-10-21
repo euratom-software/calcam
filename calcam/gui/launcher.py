@@ -32,6 +32,7 @@ class LauncherWindow(qt.QDialog):
         self.view_designer_button.clicked.connect(lambda : self.launch('--virtual_calib'))
         self.userguide_button.clicked.connect(self.open_manual)
         self.image_analysis_button.clicked.connect(lambda : self.launch('--image_analyser'))
+        self.settings_button.clicked.connect(lambda : self.launch('--settings'))
 
         # Open the window!
         self.show()

@@ -4,6 +4,8 @@ from .virtual_calib import VirtualCalibrationWindow
 from .fitting_calib import FittingCalibrationWindow
 from .alignment_calib import AlignmentCalibWindow
 from .image_analysis import ImageAnalyserWindow
+from .settings import SettingsWindow
+
 from . import qt_wrapper as qt
 
 def open_window(window_class):

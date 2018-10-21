@@ -19,3 +19,5 @@ if __name__ == '__main__':
         gui.open_window(gui.ViewerWindow)
     elif arg == '--image_analyser':
         gui.open_window(gui.ImageAnalyserWindow)
+    elif arg == '--settings':
+        gui.open_window(gui.SettingsWindow)
