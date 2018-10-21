@@ -739,11 +739,6 @@ class ViewerWindow(CalcamGUIWindow):
 
 
 
-    def closeEvent(self,event):
-
-        self.on_close()
-
-
 
 class CoordsDialog(qt.QDialog):
 

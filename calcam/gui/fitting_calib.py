@@ -975,7 +975,6 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         self.fit_overlay = None
 
         # Do the fit!
-        self.fit_timestamps[subview] = time.time()
         self.statusbar.showMessage('Performing calibration fit...')
         self.calibration.set_fit(subview, self.fitters[subview].do_fit())
         self.statusbar.clearMessage()
@@ -1130,6 +1129,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
             self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
             self.statusbar.showMessage('Saving...')
             self.calibration.save(self.filename)
+            self.unsaved_changes = False
             self.statusbar.clearMessage()
             self.app.restoreOverrideCursor()
 

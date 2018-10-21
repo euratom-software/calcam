@@ -241,6 +241,7 @@ class VirtualCalibrationWindow(CalcamGUIWindow):
             self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
             self.statusbar.showMessage('Saving...')
             self.virtual_calib.save(self.filename)
+            self.unsaved_changes = False
             self.statusbar.clearMessage()
             self.app.restoreOverrideCursor()
 

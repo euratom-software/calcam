@@ -12,7 +12,7 @@ class LauncherWindow(qt.QDialog):
 
 
         # GUI initialisation
-        qt.QDialog.__init__(self, parent)
+        qt.QDialog.__init__(self, parent, qt.Qt.WindowTitleHint | qt.Qt.WindowCloseButtonHint)
         # Load the Qt designer file, assumed to be in the same directory as this python file and named gui.ui.
         qt.uic.loadUi(os.path.join(guipath,'launcher.ui'), self)
         

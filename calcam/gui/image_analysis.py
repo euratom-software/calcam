@@ -283,18 +283,19 @@ class ImageAnalyserWindow(CalcamGUIWindow):
 
 
 
-            coords_2d = image_pos_nocheck
-
-            self.update_position_info(coords_2d,coords_3d,visible)
-
+            self.coords_2d = image_pos_nocheck
             self.coords_3d = coords_3d
+
+            self.update_position_info(self.coords_2d,self.coords_3d,visible)
+
+            
 
 
     def update_from_2d(self,coords_2d):
 
         if self.calibration is not None and self.original_image is not None:
-            for coords in coords_2d:
-                if coords is not None:
+            for i,coords in enumerate(coords_2d):
+                if coords is not None and np.any(coords != self.coords_2d[i]):
                     raydata = raycast_sightlines(self.calibration,self.cadmodel,coords[0],coords[1])
                     self.update_from_3d(raydata.ray_end_coords)
                     return
@@ -367,6 +368,11 @@ class ImageAnalyserWindow(CalcamGUIWindow):
                         self.load_model(featurelist=cconfig['enabled_features'])            
 
             self.set_view_from_calib(self.calibration,0)
+
+            if self.cursor_ids['3d'] is not None:
+                self.update_from_3d(self.coords_3d)
+            else:
+                self.coords_2d = [None] * self.calibration.n_subviews
 
 
     def set_view_to_cursor(self):
@@ -565,10 +571,6 @@ class ImageAnalyserWindow(CalcamGUIWindow):
         self.interactor2d.set_image(im_out,n_subviews = self.calibration.n_subviews,subview_lookup=self.calibration.subview_lookup,hold_position=True)
 
 
-        
-    def closeEvent(self,event):
-
-        self.on_close()
 
 
     def on_change_cad_features(self):
@@ -597,43 +599,43 @@ class ImageAnalyserWindow(CalcamGUIWindow):
 
         for field_index in range(self.calibration.n_subviews):
 
-            prefix = ' '
-
             if field_index > 0:
-                prefix = prefix + '<br>'
-     
+                impos_fieldnames_str = impos_fieldnames_str + '<br><br>'
+                sightline_fieldnames_str = sightline_fieldnames_str + '<br><br>'
+                iminfo_str = iminfo_str + '<br><br>'
+                sightline_info_string = sightline_info_string + '<br><br>'
 
             sightline_exists = False
 
             
-            impos_fieldnames_str = impos_fieldnames_str + prefix + '[' + self.calibration.subview_names[field_index] + ']&nbsp;'
+            impos_fieldnames_str = impos_fieldnames_str + '[{:s}]&nbsp;'.format( self.calibration.subview_names[field_index] )
 
             if np.any(np.isnan(coords_2d[field_index][0])):
-                iminfo_str = iminfo_str + prefix +  'Cursor outside field of view.'
+                iminfo_str = iminfo_str + ' Cursor outside field of view.'
             elif not visible[field_index]:
-                iminfo_str = iminfo_str + prefix + 'Cursor hidden from view.'
+                iminfo_str = iminfo_str +  ' Cursor hidden from view.'
             else:
-                iminfo_str = iminfo_str + prefix + 'X,Y : ( {:.0f} , {:.0f} ) px'.format(coords_2d[field_index][0][0],coords_2d[field_index][0][1])
+                iminfo_str = iminfo_str + ' X,Y : ( {:.0f} , {:.0f} ) px'.format(coords_2d[field_index][0][0],coords_2d[field_index][0][1])
                 sightline_exists = True
- 
 
-            sightline_fieldnames_str = sightline_fieldnames_str + prefix*3 + '[' + self.calibration.subview_names[field_index] + ']&nbsp;'
+
+            sightline_fieldnames_str = sightline_fieldnames_str + '[{:s}]&nbsp;'.format( self.calibration.subview_names[field_index] )
             if sightline_exists:
-                sightline_fieldnames_str = sightline_fieldnames_str + '<br>'
+                sightline_fieldnames_str = sightline_fieldnames_str + '<br><br>'
                 pupilpos = self.calibration.get_pupilpos(subview=field_index)
                 sightline = coords_3d - pupilpos
                 sdir = sightline / np.sqrt(np.sum(sightline**2))
 
 
-                sightline_info_string = sightline_info_string + prefix*2 + 'Origin X,Y,Z : ( {:.3f} , {:.3f} , {:.3f} )<br>'.format(pupilpos[0],pupilpos[1],pupilpos[2])
-                sightline_info_string = sightline_info_string + 'Direction X,Y,Z : ( {:.3f} , {:.3f} , {:.3f} )<br>'.format(sdir[0],sdir[1],sdir[2])
+                sightline_info_string = sightline_info_string + ' Origin X,Y,Z : ( {:.3f} , {:.3f} , {:.3f} )<br>'.format(pupilpos[0],pupilpos[1],pupilpos[2])
+                sightline_info_string = sightline_info_string + ' Direction X,Y,Z : ( {:.3f} , {:.3f} , {:.3f} )<br>'.format(sdir[0],sdir[1],sdir[2])
                 if np.sqrt(np.sum(sightline**2)) < (max_ray_length-1e-3):
-                    sightline_info_string = sightline_info_string  +'Distance to camera : {:.3f} m'.format(np.sqrt(np.sum(sightline**2)))
+                    sightline_info_string = sightline_info_string  +' Distance to camera : {:.3f} m'.format(np.sqrt(np.sum(sightline**2)))
                 else:
-                    sightline_info_string = sightline_info_string + 'Sight line does not inersect CAD model.'
-                    cadinfo_str = 'Sight line does not intersect CAD model.'
+                    sightline_info_string = sightline_info_string + ' Sight line does not inersect CAD model.'
+                    cadinfo_str = ' Sight line does not intersect CAD model.'
             else:
-                sightline_info_string = sightline_info_string + prefix*2 + 'No line-of-sight to cursor'
+                sightline_info_string = sightline_info_string + ' No line-of-sight to cursor<br>'
 
         if self.calibration.n_subviews > 1:
             self.impos_fieldnames.setText(impos_fieldnames_str)

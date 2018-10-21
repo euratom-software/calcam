@@ -575,6 +575,7 @@ class AlignmentCalibWindow(CalcamGUIWindow):
             self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
             self.statusbar.showMessage('Saving...')
             self.calibration.save(self.filename)
+            self.unsaved_changes = False
             self.statusbar.clearMessage()
             self.app.restoreOverrideCursor()
 
