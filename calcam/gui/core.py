@@ -3,18 +3,23 @@ import sys
 import os
 import numpy as np
 import traceback
+import inspect
 import vtk
 import cv2
 import time
+import copy
+import webbrowser
 
 # Calcam imports
-from . import qt_wrapper as qt
+from .. import __path__ as calcampath
+from .. import __version__ as calcamversion
 from ..cadmodel import CADModel
 from ..config import CalcamConfig
 from ..calibration import Calibration
 from ..pointpairs import PointPairs
 from ..coordtransformer import CoordTransformer
 from .vtkinteractorstyles import CalcamInteractorStyle2D
+from . import qt_wrapper as qt
 
 guipath = os.path.split(os.path.abspath(__file__))[0]
 
@@ -174,29 +179,33 @@ class CalcamGUIWindow(qt.QMainWindow):
     # Handle exceptions with a dialog giving the user (hopefully) useful information about the error that occured.
     def show_exception_dialog(self,excep_type,excep_value,tb):
 
-        UserCode = False
         self.app.restoreOverrideCursor()
         self.statusbar.clearMessage()
 
-        # First, see if we can blame code the user has written and plugged in.
-        for traceback_line in traceback.format_exception(excep_type,excep_value,tb):
-            if 'dummystring' in traceback_line or 'otherdummystring' in traceback_line:
-                userexc_info = traceback_line
-                UserCode = True
+        # Check if we can blame user-written code for what's gone wrong
+        # by checking if the originating python file is inside the calcam
+        # code directory or not.
+        fpath = traceback.extract_tb(tb)[-1].filename
+        if calcampath[0] in fpath:
+            usercode = False
+        else:
+            usercode = True
 
-        if UserCode and excep_type != UserWarning:
+        traceback_lines = traceback.format_exception(excep_type,excep_value,tb)
+
+        if usercode and excep_type != UserWarning:
             dialog = qt.QMessageBox(self)
             dialog.setStandardButtons(qt.QMessageBox.Ok)
             dialog.setTextFormat(qt.Qt.RichText)
             dialog.setWindowTitle('Calcam - User Code Error')
-            ex_text = traceback.format_exception(excep_type,excep_value,tb)
-            dialog.setText(ex_text[-1])
+            dialog.setText('An error was raised by user-written code.')
             
-            dialog.setInformativeText('This unhandled exception was raised by user plugin code at:\n{:s}'.format(userexc_info.replace(',','\n')))#,''.join(ex_text[:-1])))
+            dialog.setInformativeText(''.join(traceback_lines))
             dialog.setIcon(qt.QMessageBox.Warning)
             dialog.exec_()
 
         else:
+
             # I'm using user warnings for information boxes which need to be raised:
             if excep_type == UserWarning:
                 dialog = qt.QMessageBox(self)
@@ -206,29 +215,43 @@ class CalcamGUIWindow(qt.QMainWindow):
                 dialog.setText(str(excep_value))
                 dialog.setIcon(qt.QMessageBox.Information)
                 dialog.exec_()
-            # Check if we've run out of memory:
-            elif excep_type == MemoryError:
-                dialog = qt.QMessageBox(self)
-                dialog.setStandardButtons(qt.QMessageBox.Ok)
-                dialog.setTextFormat(qt.Qt.RichText)
-                dialog.setWindowTitle('Calcam - Memory Errror')
-                text = 'Insufficient memory. '
-                if sys.maxsize < 2**32:
-                    text = text + 'Switching to 64-bit python is highly recommended when working with large data!'
-                dialog.setText(text)
-                dialog.setInformativeText('Ran out of memory at:<br>'+ traceback.format_exception(excep_type,excep_value,tb)[1])
-                dialog.setIcon(qt.QMessageBox.Warning)
-                dialog.exec_()                
-            # otherwise it's something really unexpected:
+
+            # otherwise it's really an unexpected exception:
             else:
                 dialog = qt.QMessageBox(self)
-                dialog.setStandardButtons(qt.QMessageBox.Ok)
+                dialog.setStandardButtons(dialog.Save | dialog.Discard)
                 dialog.setTextFormat(qt.Qt.RichText)
                 dialog.setWindowTitle('Calcam - Error')
-                dialog.setText('An unhandled exception has been raised. This is probably a bug in Calcam; please report it <a href="https://github.com/euratom-software/calcam/issues">here</a> and/or consider contributing a fix!')
-                dialog.setInformativeText(''.join(traceback.format_exception(excep_type,excep_value,tb)))
+                dialog.setText('An unhandled exception has been raised; the action you were performing may have partially or completely failed. This is probably a bug in Calcam; to report it please save an error report file and report the problem at <a href="https://github.com/euratom-software/calcam/issues">here</a> and/or consider contributing a fix!')
+                dialog.setInformativeText(''.join(traceback_lines) + '\nWould you like to save an error report file?')
                 dialog.setIcon(qt.QMessageBox.Warning)
                 dialog.exec_()
+
+                if dialog.result() == dialog.Save:
+
+                    filedialog = qt.QFileDialog(self)
+                    filedialog.setAcceptMode(1)
+                    filedialog.setFileMode(0)
+                    filedialog.setWindowTitle('Save error report')
+                    filedialog.setNameFilter('Text files (*.txt)')
+                    filedialog.exec_()
+                    if filedialog.result() == 1:
+                        fname = filedialog.selectedFiles()[0]
+                        if not fname.endswith('.txt'):
+                            fname = fname + '.txt'
+
+                        with open(fname,'w') as dumpfile:
+                            dumpfile.write('CALCAM ERROR REPORT\n===================\n\nThis file was generated by Calcam to help report/debug an unhandled exception.\nTo report the error, please go to:\n\n      github.com/euratom-software/calcam/issues\n\nand open an issue describing when the error happened, and attach this file.\n\n\nDIAGNOSTIC INFORMATION\n----------------------\n\n')
+                            dumpfile.write('Platform:       {:s}\n'.format(sys.platform))
+                            dumpfile.write('Python version: {:s}\n'.format(sys.version))
+                            dumpfile.write('Calcam version: {:s}\n'.format(calcamversion))
+                            dumpfile.write('VTK version:    {:s}\n'.format(vtk.vtkVersion().GetVTKVersion()))
+                            dumpfile.write('OpenCV version: {:s}\n'.format(cv2.__version__))
+                            dumpfile.write('PyQt version:   {:s}\n\n'.format(qt.QT_VERSION_STR))
+                            for line in traceback_lines:
+                                dumpfile.write(line)
+
+                        webbrowser.open('file://{:s}'.format(fname))
 
 
 
@@ -237,7 +260,10 @@ class CalcamGUIWindow(qt.QMainWindow):
         self.vtksize = vtksize
 
 
-    def save_view_to_model(self):
+    def save_view_to_model(self,show_default=False):
+
+        if '*' in str(self.view_save_name.text()):
+            raise UserWarning('Cannot save view with this name: asterisk character (*) not allowed in view names!')
 
         if str(self.view_save_name.text()) in self.cadmodel.get_view_names():
 
@@ -256,10 +282,12 @@ class CalcamGUIWindow(qt.QMainWindow):
 
         try:
             self.cadmodel.add_view(str(self.view_save_name.text()),cam_pos,target,fov,xsection,roll,projection)
-            self.update_model_views()
+            if len(self.cadmodel.views.keys()) == 1:
+                self.cadmodel.initial_view = str(self.view_save_name.text())
+            self.update_model_views(show_default=show_default)
 
         except:
-            self.update_model_views()
+            self.update_model_views(show_default=show_default)
             raise
 
 
@@ -293,7 +321,7 @@ class CalcamGUIWindow(qt.QMainWindow):
         self.imload_inputs = {}
 
         row = 0
-        for option in self.imsource['get_image_arguments']:
+        for option in self.imsource.get_image_arguments:
 
             labelwidget = qt.QLabel(option['gui_label'] + ':')
             layout.addWidget(labelwidget,row,0)
@@ -465,7 +493,16 @@ class CalcamGUIWindow(qt.QMainWindow):
 
 
 
-    def update_model_views(self):
+    def update_model_views(self,show_default=False,keep_selection=False):
+
+        if keep_selection:
+            to_select = self.viewlist.selectedItems()
+            if len(to_select) == 1:
+                to_select = str(to_select[0].text(0))
+            else:
+                to_select = None
+        else:
+            to_select = None
 
         self.viewlist.selectionModel().clearSelection()
         self.views_root_model.setText(0,self.cadmodel.machine_name)
@@ -473,8 +510,12 @@ class CalcamGUIWindow(qt.QMainWindow):
 
         # Add views to list
         for view in self.cadmodel.get_view_names():
-            qt.QTreeWidgetItem(self.views_root_model,[view])
-
+            if view == self.cadmodel.initial_view and show_default:
+                item = qt.QTreeWidgetItem(self.views_root_model,[view + '*'])
+            else:
+                item = qt.QTreeWidgetItem(self.views_root_model,[view])
+            if view == to_select:
+                item.setSelected(True)
 
 
     def update_cadtree_selection(self):
@@ -638,7 +679,6 @@ class CalcamGUIWindow(qt.QMainWindow):
 
 
     def update_checked_features(self,item):
-
         self.cadmodel.set_features_enabled(item.checkState(0) == qt.Qt.Checked,self.cad_tree_items[item])
         self.update_feature_tree_checks()
 
@@ -779,7 +819,7 @@ class CalcamGUIWindow(qt.QMainWindow):
 
         if self.cadmodel.initial_view is not None:
             for i in range(self.views_root_model.childCount()):
-                if self.views_root_model.child(i).text(0) == self.cadmodel.initial_view:
+                if self.views_root_model.child(i).text(0).replace('*','') == self.cadmodel.initial_view:
                     self.views_root_model.child(i).setSelected(True)
                     break
         else:
@@ -880,7 +920,54 @@ class CalcamGUIWindow(qt.QMainWindow):
 
     # Populate CAD model list
     def populate_models(self):
+
         self.model_list = self.config.get_cadmodels()
+
+        if len(self.model_list) == 0:
+                dialog = qt.QMessageBox(self)
+                dialog.setStandardButtons(dialog.Open | dialog.Yes | dialog.Cancel)
+                dialog.setButtonText(qt.QMessageBox.Open,'Browse...')
+                dialog.setButtonText(qt.QMessageBox.Yes,'Create New...')
+                dialog.setTextFormat(qt.Qt.RichText)
+                dialog.setWindowTitle('No CAD Models')
+                dialog.setText('This tool uses CAD models but you seem to have no CAD models set up in calcam.')
+                dialog.setInformativeText('You can either browse for a folder containing existing Calcam CAD definition (.ccm) files, or create a new CAD model definition.')
+                dialog.setIcon(qt.QMessageBox.Information)
+                dialog.exec_()
+
+                if dialog.result() == dialog.Cancel:
+                    self.timer = qt.QTimer.singleShot(0,self.app.quit)
+
+                elif dialog.result() == dialog.Open:
+
+                    filedialog = qt.QFileDialog(self)
+                    filedialog.setAcceptMode(0)
+                    filedialog.setFileMode(2)
+                    filedialog.setWindowTitle('Select CAD definition Location')
+                    filedialog.exec_()
+
+                    if filedialog.result() == 1:
+                        path = filedialog.selectedFiles()[0]
+                        self.config.cad_def_paths.append(path)
+
+                        self.model_list = self.config.get_cadmodels()
+
+                        if len(self.model_list) == 0:
+                            dialog = qt.QMessageBox(self)
+                            dialog.setStandardButtons(dialog.Ok)
+                            dialog.setWindowTitle('No CAD Models')
+                            dialog.setText('The selected directory does not seem to contain any CAD definition files. The application will now close.')
+                            dialog.setIcon(qt.QMessageBox.Information)
+                            dialog.exec_()
+                            self.timer = qt.QTimer.singleShot(0,self.app.quit)
+                        else:                      
+                            self.config.save()
+
+                elif dialog.result() == dialog.Yes:
+                    from .launcher import launch
+                    launch(['--cad_edit'])
+                    self.timer = qt.QTimer.singleShot(0,self.app.quit)
+
 
         self.model_name.addItems(sorted(self.model_list.keys()))
 
@@ -889,6 +976,7 @@ class CalcamGUIWindow(qt.QMainWindow):
         self.load_model_button.setEnabled(0)
 
         if self.config.default_model is not None:
+            mname = None
             for i,mname in enumerate(sorted(self.model_list.keys())):
                 if mname == self.config.default_model[0]:
 
@@ -897,12 +985,14 @@ class CalcamGUIWindow(qt.QMainWindow):
                     set_model = True
                     break
 
-            for j, vname in enumerate(self.model_list[mname][1]):
-                if self.config.default_model[1] == vname:
+            if mname in self.model_list.keys():
 
-                    self.model_variant.setCurrentIndex(j)
-                    set_variant = True
-                    break
+                for j, vname in enumerate(self.model_list[mname][1]):
+                    if self.config.default_model[1] == vname:
+
+                        self.model_variant.setCurrentIndex(j)
+                        set_variant = True
+                        break
         
         if not set_model:
             self.model_name.setCurrentIndex(-1)
@@ -1247,3 +1337,39 @@ class ChessboardDialog(qt.QDialog):
 
         # And close the window.
         self.done(1)
+
+
+class NameInputDialog(qt.QDialog):
+
+    def __init__(self,parent,title,question,init_text=None):
+
+        qt.QDialog.__init__(self, parent,qt.Qt.WindowTitleHint | qt.Qt.WindowCloseButtonHint)
+        layout = qt.QVBoxLayout()
+        label = qt.QLabel(question)
+        buttonbox = qt.QDialogButtonBox(qt.QDialogButtonBox.Ok | qt.QDialogButtonBox.Cancel,qt.Qt.Horizontal,self)
+        buttonbox.accepted.connect(self.accept)
+        buttonbox.rejected.connect(self.reject)
+        self.text_input = qt.QLineEdit()
+        if init_text is not None:
+            self.text_input.setText(init_text)
+        layout.addWidget(label)
+        layout.addWidget(self.text_input)
+        layout.addWidget(buttonbox)
+        self.setLayout(layout)
+        self.setWindowTitle(title)
+
+
+class AReYouSureDialog(qt.QDialog):
+
+    def __init__(self,parent,title,question):
+
+        qt.QDialog.__init__(self, parent,qt.Qt.WindowTitleHint | qt.Qt.WindowCloseButtonHint)
+        layout = qt.QVBoxLayout()
+        label = qt.QLabel(question)
+        buttonbox = qt.QDialogButtonBox(qt.QDialogButtonBox.Yes | qt.QDialogButtonBox.No,qt.Qt.Horizontal,self)
+        buttonbox.accepted.connect(self.accept)
+        buttonbox.rejected.connect(self.reject)
+        layout.addWidget(label)
+        layout.addWidget(buttonbox)
+        self.setLayout(layout)
+        self.setWindowTitle(title)

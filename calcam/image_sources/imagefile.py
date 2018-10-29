@@ -1,6 +1,8 @@
 import cv2
 import os
 
+
+
 # A function which actually gets the image.
 # This can take as many arguments as you want.
 # It must return a dictionary, see below
@@ -31,12 +33,13 @@ def get_image(filename):
     return return_dict
 
 
-image_source = {
-				'display_name':'Image File',
-
-				'get_image_function':get_image,
-                
-				'get_image_arguments': [
-										{'arg_name':'filename','gui_label': 'File Name' , 'type': 'filename' , 'filter':'Image Files (*.png *.jpg *.jpeg *.bmp *.jp2 *.tiff *.tif)' },
-										]
-				}
+display_name = 'Image File'
+get_image_function = get_image
+get_image_arguments =  [
+                            {
+                            'arg_name':'filename',
+                            'gui_label': 'File Name' , 
+                            'type': 'filename' , 
+                            'filter':'Image Files (*.png *.jpg *.jpeg *.bmp *.jp2 *.tiff *.tif)' 
+                            },
+                        ]

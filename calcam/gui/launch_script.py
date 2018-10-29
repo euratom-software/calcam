@@ -21,3 +21,9 @@ if __name__ == '__main__':
         gui.open_window(gui.ImageAnalyserWindow)
     elif arg == '--settings':
         gui.open_window(gui.SettingsWindow)
+    elif arg == '--cad_edit':
+        try:
+            filepath = sys.argv[2]
+        except:
+            filepath = None
+        gui.open_window(gui.CADEditorWindow,filepath)

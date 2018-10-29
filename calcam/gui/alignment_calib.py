@@ -103,8 +103,8 @@ class AlignmentCalibWindow(CalcamGUIWindow):
         self.image_sources = self.config.get_image_sources()
         index = -1
         for i,imsource in enumerate(self.image_sources):
-            self.image_sources_list.addItem(imsource['display_name'])
-            if imsource['display_name'] == self.config.default_image_source:
+            self.image_sources_list.addItem(imsource.display_name)
+            if imsource.display_name == self.config.default_image_source:
                 index = i
 
         self.image_sources_list.setCurrentIndex(index)
@@ -120,9 +120,6 @@ class AlignmentCalibWindow(CalcamGUIWindow):
         self.interactor3d.init()
         self.update_intrinsics()
         self.qvtkwidget_3d.GetRenderWindow().GetInteractor().Initialize()
-        # Warn the user if we don't have any CAD models
-        if self.model_list == {}:
-            warn_no_models(self)
 
 
     def reset(self,keep_cadmodel=False):
@@ -217,8 +214,8 @@ class AlignmentCalibWindow(CalcamGUIWindow):
 
         # Load the image
         for imsource in self.image_sources:
-            if imsource['display_name'] == 'Calcam Calibration':
-                self.load_image(newim = imsource['get_image_function'](self.filename))
+            if imsource.display_name == 'Calcam Calibration':
+                self.load_image(newim = imsource.get_image_function(self.filename))
 
         # Load the appropriate CAD model, if we know what that is
         if opened_calib.cad_config is not None:
@@ -381,8 +378,8 @@ class AlignmentCalibWindow(CalcamGUIWindow):
                     if type(imload_options[arg_name]) == qt.QString:
                         imload_options[arg_name] = str(imload_options[arg_name])
 
-            newim = self.imsource['get_image_function'](**imload_options)
-            self.config.default_image_source = self.imsource['display_name']
+            newim = self.imsource.get_image_function(**imload_options)
+            self.config.default_image_source = self.imsource.display_name
 
         # Some checking, user prompting etc should go here
         keep_points = False

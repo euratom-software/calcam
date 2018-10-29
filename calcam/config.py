@@ -2,6 +2,9 @@ import os
 import json
 import sys
 import glob
+import traceback
+import imp
+
 from .io import ZipSaveFile
 
 builtin_imsource_path = os.path.join(os.path.split(os.path.abspath(__file__))[0],'image_sources')
@@ -23,7 +26,7 @@ class CalcamConfig():
 			try:
 				self.cad_def_paths
 			except:
-				self.cad_def_paths = [os.path.expanduser('~')]
+				self.cad_def_paths = []
 
 			try:
 				self.image_source_paths
@@ -60,7 +63,7 @@ class CalcamConfig():
 						'cad_def_paths'	: self.cad_def_paths,
 						'image_source_paths':self.image_source_paths,
 						'default_im_source':self.default_image_source,
-						'mouse_sensitivity':self.mouse_sensitivity
+						'mouse_sensitivity':self.mouse_sensitivity,
 					}
 
 		with open(self.filename,'w') as f:
@@ -89,54 +92,65 @@ class CalcamConfig():
 				else:
 					
 					existing_model = cadmodels.pop(caddef['machine_name'])
-					existing_key = '{:s} [{:s}]'.format(caddef['machine_name'], os.path.split(existing_model[0])[1] )
+					existing_key = '{:s} [{:s}/{:s}]'.format(caddef['machine_name'], existing_model[0].split(os.sep)[-2],os.path.split(existing_model[0])[-1] )
 					cadmodels[existing_key] = existing_model
 
-					key = '{:s} [{:s}]'.format(caddef['machine_name'], os.path.split(fname)[1] )
+					key = '{:s} [{:s}/{:s}]'.format(caddef['machine_name'], fname.split(os.sep)[-2],os.path.split(fname)[1] )
 
 				cadmodels[key] = [fname,[str(x) for x in caddef['features'].keys()],caddef['default_variant']]
 
 		return cadmodels
 
 
-	def get_image_sources(self):
+	def get_image_sources(self,meta_only=False):
 
 		image_sources = []
+		displaynames = []
+		meta = []
 
 		for path in [builtin_imsource_path] + self.image_source_paths:
 
-			sys.path.insert(0,path)
 			filelist = glob.glob(os.path.join(path,'*'))
 
-			for fname in [os.path.split(path)[-1].split('.')[0] for path in filelist]:
+			trylist = []
+			for f in filelist:
+				if os.path.isdir(f) and os.path.isfile(os.path.join(f,'__init__.py')):
+					trylist.append(os.path.join(f,'__init__.py'))
+				elif f.endswith('.py'):
+					trylist.append(f)
+
+			for fname in trylist:
+				if fname.endswith('__init__.py'):
+					tidy_name = os.sep.join(fname.split(os.sep)[-3:-1])
+				else:
+					tidy_name = os.sep.join(fname.split(os.sep)[-2:])
 				try:
-					usermodule = __import__(fname)
-					image_sources.append(usermodule.image_source)
+					usermodule = imp.load_source(tidy_name,fname)
+					usermodule.get_image_function
+					usermodule.get_image_arguments
+					if usermodule.display_name in displaynames:
+						old_ind = displaynames.index(usermodule.display_name)
+						for i,metadata in enumerate(meta):
+							if metadata[0] == usermodule.display_name:
+								old_meta_ind = i
+								break
+
+						usermodule.display_name = usermodule.display_name + ' [{:s}]'.format(tidy_name)
+						other_path = image_sources[old_ind].__file__
+						if other_path.endswith('__init__.py'):
+							tidyname = os.sep.join(other_path.split(os.sep)[-3:-1])
+						else:
+							tidyname = os.sep.join(other_path.split(os.sep)[-2:])
+						image_sources[old_ind].display_name = image_sources[old_ind].display_name + ' [{:s}]'.format(tidyname)
+						meta[old_meta_ind][0] = image_sources[old_ind].display_name
+					displaynames.append(usermodule.display_name)
+					image_sources.append(usermodule)
+					meta.append([usermodule.display_name,None])
 				except:
+					meta.append([tidy_name,''.join(traceback.format_exception_only(sys.exc_info()[0],sys.exc_info()[1]))])
 					continue
 		
-			sys.path.remove(path)
-
-		return image_sources
-
-
-	def get_imsource_list(self):
-
-		image_sources = []
-
-		for path in [builtin_imsource_path] + self.image_source_paths:
-
-			sys.path.insert(0,path)
-			filelist = glob.glob(os.path.join(path,'*'))
-
-			for fname in [os.path.split(path)[-1].split('.')[0] for path in filelist]:
-				if fname != '__pycache__':
-					try:
-						usermodule = __import__(fname)
-						image_sources.append([usermodule.image_source['display_name'],True,None])
-					except Exception as e:
-						image_sources.append([fname,False,str(e)])
-
-			sys.path.remove(path)
-
-		return image_sources
+		if meta_only:
+			return meta
+		else:
+			return image_sources

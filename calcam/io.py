@@ -54,6 +54,7 @@ class ZipSaveFile():
 
 		atexit.register(self.close)
 
+
 	def open(self,mode):
 
 		# Maybe we're re-opening the file, in which case
@@ -65,10 +66,6 @@ class ZipSaveFile():
 
 		# Check the file exists, and that if we're going to try to write to it,
 		# that we have the necessary permissions.
-		if 'r' in self.mode:
-			if not os.path.isfile(self.filename):
-				raise IOError('No such file: {:s}'.format(self.filename))
-
 		if 'w' in self.mode:
 			if os.path.isfile(self.filename):
 				if not os.access(self.filename,os.W_OK):
@@ -79,6 +76,10 @@ class ZipSaveFile():
 				savepath = os.path.split(self.filename)[0]
 				if not os.access(savepath,os.W_OK):
 					raise IOError('Cannot write to directory {:s}'.format(savepath))
+
+		if 'r' in self.mode and 'w' not in self.mode:
+			if not os.path.isfile(self.filename):
+				raise IOError('No such file: {:s}'.format(self.filename))
 
 
 		# Create a temporary directory which we'll use 
@@ -98,9 +99,9 @@ class ZipSaveFile():
 					zf.extractall(self.tempdir,members=loadlist)
 			
 			except:
-			
-				shutil.rmtree(self.tempdir)
-				raise
+				if 'w' not in self.mode:
+					shutil.rmtree(self.tempdir)
+					raise
 
 		self.file_handles = []
 		self.is_open = True
@@ -121,7 +122,7 @@ class ZipSaveFile():
 			raise Exception('File is not open!')
 
 
-	def close(self):
+	def close(self,discard_changes=False):
 		
 		if self.is_open:
 			for h in self.file_handles:
@@ -129,13 +130,8 @@ class ZipSaveFile():
 
 			# If we're in write mode, and the file contents have been modified since being loaded,
 			# we need to re-save the ZIP file with the new contents.
-			if 'w' in self.mode and self.get_hashes() != self.initial_hashes:
-
-				with zipfile.ZipFile(self.filename,'w',zipfile.ZIP_DEFLATED,True) as zf:
-
-					for fname in listdir(self.tempdir):
-
-						zf.write(fname,os.path.relpath(fname,self.tempdir))
+			if 'w' in self.mode and not discard_changes and self.get_hashes() != self.initial_hashes:
+				self.update()
 
 			# Tidy up the temp directory after ourselves
 			shutil.rmtree(self.tempdir)
@@ -143,6 +139,12 @@ class ZipSaveFile():
 			self.tempdir = None
 			self.is_open = False
 
+
+	def update(self):
+
+		with zipfile.ZipFile(self.filename,'w',zipfile.ZIP_DEFLATED,True) as zf:
+			for fname in listdir(self.tempdir):
+				zf.write(fname,os.path.relpath(fname,self.tempdir))
 
 
 	# Open a file inside the zip for doing stuff with.
@@ -175,7 +177,7 @@ class ZipSaveFile():
 		if 'r' not in self.mode or not self.is_open:
 			raise IOError('File not open in read mode!')
 
-		if 'usercode/__init__.py' in self.list_contents() or 'usercode.py' in self.list_contents():
+		if os.path.join('usercode','__init__.py') in self.list_contents() or 'usercode.py' in self.list_contents():
 
 			sys.path.insert(0,self.tempdir)
 			try:
@@ -228,7 +230,10 @@ class ZipSaveFile():
 				os.remove(dst_path)
 			else:
 				raise IOError('This file already exists in this file! Use replace=True to allow overwriting.')
-
+		
+		dst_folder = os.path.split(dst_path)[0]
+		if not os.path.isdir(dst_folder):
+			os.makedirs(dst_folder)
 
 		if os.path.isfile(from_path):
 			shutil.copy2(from_path,dst_path)
@@ -268,8 +273,6 @@ class ZipSaveFile():
 		if 'w' not in self.mode:
 			raise IOError('File is open in read-only mode!')
 
-		if fname not in self.list_contents():
-			raise IOError('File or directory "{:s}" not in here!'.format(fname))
 
 		fullpath = os.path.join(self.tempdir, fname)
 
@@ -277,6 +280,8 @@ class ZipSaveFile():
 			os.remove(fullpath)
 		elif os.path.isdir( fullpath ):
 			shutil.rmtree( fullpath )
+		else:
+			raise IOError('File or directory "{:s}" not in here!'.format(fname))
 
 	# Return the temporary path for manually playing with / using contents.
 	def get_temp_path(self):

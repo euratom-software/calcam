@@ -35,12 +35,15 @@ def get_image(filename):
     return return_dict
 
 
-image_source = {
-				'display_name':'Calcam Calibration',
+display_name = 'Calcam Calibration'
 
-				'get_image_function': get_image,
+get_image_function =  get_image,
                 
-				'get_image_arguments': [
-										{'arg_name':'filename','gui_label': 'File Name' , 'type': 'filename' , 'filter':'Calcam Calibration (*.ccc)' },
-										]
-				}
+get_image_arguments = [
+						{
+                        'arg_name':'filename',
+                        'gui_label': 'File Name' ,
+                        'type': 'filename' ,
+                        'filter':'Calcam Calibration (*.ccc)' 
+                        },
+					  ]

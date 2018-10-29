@@ -1,8 +1,10 @@
 import os
+import sys
 
 from .core import guipath
 from ..config import CalcamConfig
 from . import qt_wrapper as qt
+from .launcher import launch
 
 class SettingsWindow(qt.QMainWindow):
 
@@ -20,9 +22,18 @@ class SettingsWindow(qt.QMainWindow):
         self.cad_path_list.itemSelectionChanged.connect(self.update_cadpath_selection)
         self.imsource_path_list.itemChanged.connect(self.change_imsource_paths)
         self.imsource_path_list.itemSelectionChanged.connect(self.update_imsource_selection)
+        self.model_list.itemSelectionChanged.connect(self.update_model_selection)
         self.add_impath_button.clicked.connect(self.add_imsource_path)
         self.rem_modelpath_button.clicked.connect(self.remove_cad_path)
         self.rem_impath_button.clicked.connect(self.remove_imsource_path)
+        self.edit_model_button.clicked.connect(self.open_model_edit)
+        self.new_model_button.clicked.connect(self.open_model_edit)
+
+        self.refresh_timer = qt.QTimer()
+        self.refresh_timer.setInterval(5000)
+        self.refresh_timer.timeout.connect(self.update)
+        self.refresh_timer.start()
+
 
         self.app = app
 
@@ -32,12 +43,14 @@ class SettingsWindow(qt.QMainWindow):
 
 
     def remove_cad_path(self):
-
-        path =  str(self.cad_path_list.selectedItems()[0].text())
+        path = str(self.cad_path_list.selectedItems()[0].text())
         self.config.cad_def_paths.remove(path)
         self.config.save()
         self.update()
 
+
+    def update_model_selection(self):
+        self.edit_model_button.setEnabled(True)
 
     def remove_imsource_path(self):
 
@@ -75,6 +88,17 @@ class SettingsWindow(qt.QMainWindow):
             self.config.save()
             self.update()
 
+    def open_model_edit(self):
+
+        if self.sender() is self.edit_model_button:
+            model_name = str(self.model_list.selectedItems()[0].text())
+            model_info =  self.config.get_cadmodels()
+            for model in model_info.keys():
+                if model_name == model:
+                    launch(['--cad_edit',model_info[model][0]])
+                    return
+        else:
+            launch(['--cad_edit'])
 
     def add_imsource_path(self):
 
@@ -94,15 +118,17 @@ class SettingsWindow(qt.QMainWindow):
 
     def update(self):
 
-        self.cad_path_list.clear()
-        self.imsource_path_list.clear()
-        self.model_list.clear()
-        self.imsource_list.clear()
-
         self.config = CalcamConfig()
 
         # Populate lists
-        for path in self.config.cad_def_paths:
+        try:
+            to_select = str(self.cad_path_list.selectedItems()[0].text())
+        except IndexError:
+            to_select = None
+
+        self.cad_path_list.clear()
+
+        for path in sorted(self.config.cad_def_paths):
 
             listitem = qt.QListWidgetItem(path)
             listitem.setFlags(listitem.flags() | qt.Qt.ItemIsEditable | qt.Qt.ItemIsSelectable)
@@ -112,12 +138,29 @@ class SettingsWindow(qt.QMainWindow):
                 listitem.setToolTip('Path does not exist or cannot be accessed.')
             
             self.cad_path_list.addItem(listitem)
+            if path == to_select:
+                listitem.setSelected(True)
 
-        for model in self.config.get_cadmodels().keys():
+        try:
+            to_select = str(self.model_list.selectedItems()[0].text())
+        except IndexError:
+            to_select = None
+        self.model_list.clear()
+        self.edit_model_button.setEnabled(False)
+        for model in sorted(self.config.get_cadmodels().keys()):
             listitem = qt.QListWidgetItem(model)
             self.model_list.addItem(listitem)
+            if model == to_select:
+                listitem.setSelected(True)
 
-        for path in self.config.image_source_paths:
+        try:
+            to_select = str(self.imsource_path_list.selectedItems()[0].text())
+        except IndexError:
+            to_select = None
+
+        self.imsource_path_list.clear()
+
+        for path in sorted(self.config.image_source_paths):
 
             listitem = qt.QListWidgetItem(path)
             listitem.setFlags(listitem.flags() | qt.Qt.ItemIsEditable | qt.Qt.ItemIsSelectable)
@@ -126,16 +169,26 @@ class SettingsWindow(qt.QMainWindow):
                 listitem.setForeground(qt.Qt.red)
                 listitem.setToolTip('Path does not exist or cannot be accessed.')
                 
-
             self.imsource_path_list.addItem(listitem)
+            if path == to_select:
+                listitem.setSelected(True)  
 
-        for imsource in self.config.get_imsource_list():
+        try:
+            to_select = str(self.imsource_list.selectedItems()[0].text())
+        except IndexError:
+            to_select = None   
+
+        self.imsource_list.clear()
+
+        for imsource in sorted(self.config.get_image_sources(meta_only=True)):
             listitem = qt.QListWidgetItem(imsource[0])
-            if not imsource[1]:
+            if imsource[1]:
                 listitem.setForeground(qt.Qt.red)
-                listitem.setToolTip(imsource[2])
+                listitem.setToolTip(imsource[1])
 
             self.imsource_list.addItem(listitem)
+            if imsource[0] == to_select:
+                listitem.setSelected(True)
 
 
     def browse_for_folder(self):

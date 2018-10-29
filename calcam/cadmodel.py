@@ -51,121 +51,143 @@ class CADModel():
 
 
     # Create a new CAD model object from a .ccm model definition file.
-    def __init__(self,model_name,model_variant=None,status_callback=print_status):
+    def __init__(self,model_name=None,model_variant=None,status_callback=print_status):
 
 
-        # -------------------------------Loading model definition-------------------------------------
-        
+        if model_name is not None:
+            # -------------------------------Loading model definition-------------------------------------
+            
+            if not os.path.isfile(model_name):
+                # Check whether we know what model definition file to use
+                model_defs = CalcamConfig().get_cadmodels()
+                if model_name not in model_defs.keys():
+                    raise ValueError('Unknown machine model "{:s}". Available models are: {:s}.'.format(model_name,', '.join(model_defs.keys())))
+                else:
+                    definition_filename = model_defs[model_name][0]
 
-        # Check whether we know what model definition file to use
-        model_defs = CalcamConfig().get_cadmodels()
-        if model_name not in model_defs.keys():
-            raise ValueError('Unknown machine model "{:s}". Available models are: {:s}.'.format(model_name,', '.join(model_defs.keys())))
+                # If not specified, choose whatever model variant is specified in the metadata
+                if model_variant is None:
+                    model_variant = model_defs[model_name][2]
+                else:
+                    self.model_variant = model_variant
+
+            
+            else:
+                definition_filename = model_name
+                self.model_variant = model_variant
+            
+
+            if status_callback is not None:
+                status_callback('Extracting CAD model...')
+
+
+            # Open the definition file (ZIP file)
+            try:
+                self.def_file = ZipSaveFile(definition_filename,'rw')
+            except:
+                self.def_file = ZipSaveFile(definition_filename,'r')
+
+            if status_callback is not None:
+                status_callback(None)
+
+
+            # Load the model definition and grab some properties from it
+            with self.def_file.open_file( 'model.json','r' ) as f:
+                model_def = json.load(f)
+
+            self.model_def = model_def
+            self.machine_name = model_def['machine_name']
+            self.views = model_def['views']
+            self.initial_view = model_def['initial_view']
+            self.linewidth = 1
+            self.mesh_path_roots = model_def['mesh_path_roots']
+
+            if self.model_variant is None:
+                self.model_variant = model_def['default_variant']
+
+            self.variants = [str(x) for x in model_def['features'].keys()]
+
+            # Validate the model variant input
+            if self.model_variant not in self.variants:
+                raise ValueError('Unknown model variant for {:s}: {:s}.'.format(self.machine_name,self.model_variant))
+
+            # Check if the mesh files are from the CAD definition file itself, in which case
+            # we need to point the mesh loader in the direction of out temporary extracted path
+            if model_def['mesh_path_roots'][self.model_variant].startswith('.large'):
+                self.mesh_path_root = os.path.join(self.def_file.get_temp_path(),model_def['mesh_path_roots'][self.model_variant])
+            else:
+                self.mesh_path_root = model_def['mesh_path_roots'][self.model_variant]
+
+
+            # Load the wall contour, if present
+            if 'wall_contour.txt' in self.def_file.list_contents():
+                with self.def_file.open_file('wall_contour.txt','r') as cf:
+                    self.wall_contour = np.loadtxt(cf)
+            else:
+                self.wall_contour = None
+
+            
+            # See if we have a user-written coordinate formatter, and if
+            # we do, load it over the standard format_coord method
+            self.usermodule = None
+            usermodule = self.def_file.get_usercode()
+            if usermodule is not None:
+                if callable(usermodule.format_coord):
+                    # Check the user function returns a string as expected, and use
+                    # it only if it does.
+                    try:
+                        test_out = usermodule.format_coord( (0.1,0.1,0.1) )
+                    except Exception as e:
+                        self.def_file.close()
+                        raise UserCodeException(e)
+
+                    if type(test_out) == str or type(test_out) == unicode:
+                        self.usermodule = usermodule
+                    else:
+                        self.def_file.close()
+                        raise UserCodeException('CAD model user function format_coord() did not return a string as required.')
+
+
+            # Create the features!
+            self.features = {}
+            self.groups = {}
+
+            for feature_name,feature_def in model_def['features'][self.model_variant].items():
+
+                # Get the feature's group, if any
+                if len(feature_name.split('/')) > 1:
+                    group = feature_name.split('/')[0]
+                    if group not in self.groups.keys():
+                        self.groups[group] = [feature_name]
+                    else:
+                        self.groups[group].append(feature_name)
+
+                # Actually make the feature object
+                self.features[feature_name] = ModelFeature(self,feature_def)
+            
+            # ----------------------------------------------------------------------------------------------
+
         else:
-            self.variants = model_defs[model_name][1]
-            definition_filename = model_defs[model_name][0]
-
-        # If not specified, choose whatever model variant is specified in the metadata
-        if model_variant is None:
-            model_variant = model_defs[model_name][2]
-
-        # Validate the model variant input
-        if model_variant not in self.variants:
-            raise ValueError('Unknown model variant for {:s}: {:s}.'.format(model_name,model_variant))
-
-        self.model_variant = model_variant
-
-
-        self.set_status_callback(status_callback)
-
-        if self.status_callback is not None:
-            self.status_callback('Extracting CAD model...')
-
-
-        # Open the definition file (ZIP file)
-        try:
-            self.def_file = ZipSaveFile(definition_filename,'rw')
-        except:
-            self.def_file = ZipSaveFile(definition_filename,'r')
-
-        if self.status_callback is not None:
-            self.status_callback(None)
-
-
-
-        # Load the model definition and grab some properties from it
-        with self.def_file.open_file( 'model.json','r' ) as f:
-            model_def = json.load(f)
-
-        self.model_def = model_def
-        self.machine_name = model_def['machine_name']
-        self.views = model_def['views']
-        self.initial_view = model_def['initial_view']
-        self.linewidth = 1
-
-
-        # Check if the mesh files are from the CAD definition file itself, in which case
-        # we need to point the mesh loader in the direction of out temporary extracted path
-        if model_def['mesh_path_roots'][self.model_variant].startswith('.large'):
-            self.mesh_path_root = os.path.join(self.def_file.get_temp_path(),model_def['mesh_path_roots'][self.model_variant])
-        else:
-            self.mesh_path_root = model_def['mesh_path_roots'][self.model_variant]
-
-
-        # Load the wall contour, if present
-        if 'wall_contour.txt' in self.def_file.list_contents():
-            with self.def_file.open_file('wall_contour.txt','r') as cf:
-                self.wall_contour = np.loadtxt(cf)
-        else:
+            self.variants = []
+            self.model_def = {}
+            self.groups = {}
+            self.features = {}
+            self.usermodule = None
             self.wall_contour = None
-
-        
-        # See if we have a user-written coordinate formatter, and if
-        # we do, load it over the standard format_coord method
-        self.usermodule = None
-        usermodule = self.def_file.get_usercode()
-        if usermodule is not None:
-            if callable(usermodule.format_coord):
-                # Check the user function returns a string as expected, and use
-                # it only if it does.
-                try:
-                    test_out = usermodule.format_coord( (0.1,0.1,0.1) )
-                except Exception as e:
-                    self.def_file.close()
-                    raise UserCodeException(e)
-
-                if type(test_out) == str or type(test_out) == unicode:
-                    self.usermodule = usermodule
-                else:
-                    self.def_file.close()
-                    raise UserCodeException('CAD model user function format_coord() did not return a string as required.')
-
-
-        # Create the features!
-        self.features = {}
-        self.groups = {}
-
-        for feature_name,feature_def in model_def['features'][self.model_variant].items():
-
-            # Get the feature's group, if any
-            if len(feature_name.split('/')) > 1:
-                group = feature_name.split('/')[0]
-                if group not in self.groups.keys():
-                    self.groups[group] = [feature_name]
-                else:
-                    self.groups[group].append(feature_name)
-
-            # Actually make the feature object
-            self.features[feature_name] = ModelFeature(self,feature_def)
-        
-        # ----------------------------------------------------------------------------------------------
-
+            self.def_file = None
+            self.mesh_path_root = ''
+            self.machine_name = ''
+            self.model_variant = ''
+            self.views = {}
+            self.initial_view = None
 
         self.renderers = []
         self.flat_shading = False
         self.edges = False
         self.cell_locator = None
+        self.discard_changes = False
 
+        self.set_status_callback(status_callback)
         atexit.register(self.unload)
 
 
@@ -493,7 +515,7 @@ class CADModel():
 
     def get_view(self,view_name):
 
-        return self.views[view_name]
+        return self.views[view_name.replace('*','')]
 
 
     # Some slightly useful print formatting
@@ -507,7 +529,8 @@ class CADModel():
 
         self.views[viewname] = {'cam_pos':campos,'target':camtar,'y_fov':fov,'xsection':xsection,'roll':roll,'projection':projection}
         self.model_def['views'] = self.views
-        self.update_definition_file()
+        if not self.discard_changes:
+            self.update_definition_file()
 
 
     def set_default_colour(self,colour,features=None):
@@ -542,7 +565,8 @@ class CADModel():
         if self.status_callback is not None:
             self.status_callback('Closing model definition {:s}/{:s}...'.format(self.machine_name,self.model_variant))
 
-        self.def_file.close()
+        if self.def_file is not None:
+            self.def_file.close(discard_changes=self.discard_changes)
 
         if self.status_callback is not None:
             self.status_callback(None)
@@ -565,11 +589,14 @@ class ModelFeature():
 
     # Initialise with the parent CAD mdel and a dictionary
     # defining the feature
-    def __init__(self,parent,definition_dict):
+    def __init__(self,parent,definition_dict,abs_path=False):
 
         self.parent = parent
 
-        self.filename = os.path.join(self.parent.mesh_path_root,definition_dict['mesh_file'])
+        if abs_path:
+            self.filename = definition_dict['mesh_file']
+        else:
+            self.filename = os.path.join(self.parent.mesh_path_root,definition_dict['mesh_file'])
 
         if not os.path.isfile(self.filename):
             raise MeshFileMissing(self.filename)
@@ -588,7 +615,7 @@ class ModelFeature():
         self.colour = self.default_colour
         self.linewidth = 1
 
-    # Get a vtkPolyData object for this feature
+    # Get a vtkPolyData object for this
     def get_polydata(self):
 
         if not self.enabled:

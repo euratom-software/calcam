@@ -5,6 +5,9 @@ from .. import __version__
 import sys
 import os
 
+def launch(args):
+    subprocess.Popen([sys.executable,os.path.join( os.path.split(__file__)[0],'launch_script.py' )] + args,stdin=None, stdout=open(os.devnull,'wb'), stderr=open(os.devnull,'wb'))
+
 # Class for the window
 class LauncherWindow(qt.QDialog):
  
@@ -26,19 +29,18 @@ class LauncherWindow(qt.QDialog):
         self.logolabel.setPixmap(immap)
 
         # Callbacks for GUI elements: connect the buttons to the functions we want to run
-        self.calcam_button.clicked.connect(lambda : self.launch('--fitting_calib'))
-        self.alignment_calib_button.clicked.connect(lambda : self.launch('--alignment_calib'))
-        self.cad_viewer_button.clicked.connect(lambda : self.launch('--viewer'))
-        self.view_designer_button.clicked.connect(lambda : self.launch('--virtual_calib'))
+        self.calcam_button.clicked.connect(lambda : launch(['--fitting_calib']))
+        self.alignment_calib_button.clicked.connect(lambda : launch(['--alignment_calib']))
+        self.cad_viewer_button.clicked.connect(lambda : launch(['--viewer']))
+        self.view_designer_button.clicked.connect(lambda : launch(['--virtual_calib']))
         self.userguide_button.clicked.connect(self.open_manual)
-        self.image_analysis_button.clicked.connect(lambda : self.launch('--image_analyser'))
-        self.settings_button.clicked.connect(lambda : self.launch('--settings'))
+        self.image_analysis_button.clicked.connect(lambda : launch(['--image_analyser']))
+        self.settings_button.clicked.connect(lambda : launch(['--settings']))
 
         # Open the window!
         self.show()
 
-    def launch(self,argument):
-        subprocess.Popen([sys.executable,os.path.join( os.path.split(__file__)[0],'launch_script.py' ),argument],stdin=None, stdout=open(os.devnull,'wb'), stderr=open(os.devnull,'wb'))
+
 
     def open_manual(self):
         webbrowser.open('https://euratom-software.github.io/calcam/')

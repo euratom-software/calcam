@@ -113,10 +113,6 @@ class ViewerWindow(CalcamGUIWindow):
         self.views_root_auto.setHidden(False)
         self.qvtkwidget_3d.GetRenderWindow().GetInteractor().Initialize()
 
-        # Warn the user if we don't have any CAD models
-        if self.model_list == {}:
-            warn_no_models(self)
-
 
     # Load arbitrary 3D lines from file to display
     def update_lines(self,data):
