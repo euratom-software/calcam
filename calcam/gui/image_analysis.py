@@ -108,8 +108,8 @@ class ImageAnalyserWindow(CalcamGUIWindow):
         self.image_sources = self.config.get_image_sources()
         index = -1
         for i,imsource in enumerate(self.image_sources):
-            self.image_sources_list.addItem(imsource['display_name'])
-            if imsource['display_name'] == self.config.default_image_source:
+            self.image_sources_list.addItem(imsource.display_name)
+            if imsource.display_name == self.config.default_image_source:
                 index = i
 
         self.image_sources_list.setCurrentIndex(index)
@@ -424,8 +424,8 @@ class ImageAnalyserWindow(CalcamGUIWindow):
                     if type(imload_options[arg_name]) == qt.QString:
                         imload_options[arg_name] = str(imload_options[arg_name])
 
-            newim = self.imsource['get_image_function'](**imload_options)
-            self.config.default_image_source = self.imsource['display_name']
+            newim = self.imsource.get_image_function(**imload_options)
+            self.config.default_image_source = self.imsource.display_name
 
 
         self.original_image = newim['image_data']
