@@ -167,7 +167,7 @@ class CADEditorWindow(CalcamGUIWindow):
     def add_group(self):
 
         namedialog = NameInputDialog(self,'Add new part group','Enter a name for the new part group:')
-        namedialog.exec()
+        namedialog.exec_()
 
         if namedialog.result() == 1:
 
@@ -215,7 +215,7 @@ class CADEditorWindow(CalcamGUIWindow):
     def remove_wall_contour(self):
 
         dialog = AReYouSureDialog('Remove wall contour?','Are you sure you want to remove the wall contour?')
-        dialog.exec()
+        dialog.exec_()
         if dialog.result() == 1:
             self.show_contour_checkbox.setChecked(False)
             self.show_contour_checkbox.setEnabled(False)
@@ -263,7 +263,7 @@ class CADEditorWindow(CalcamGUIWindow):
         elif self.sender() is self.del_feature_button:
 
             dialog = AReYouSureDialog(self,'Confirm Delete Model Part','Are you sure you want to remove the model part "{:s}"?'.format(self.selected_feature))
-            dialog.exec()
+            dialog.exec_()
             if dialog.result():
                 self.cadmodel.set_features_enabled(False,self.selected_feature)
                 defdict = self.model_features[self.cadmodel.model_variant].pop(self.selected_feature)
@@ -285,7 +285,7 @@ class CADEditorWindow(CalcamGUIWindow):
         if variant_name is None:
             dialog = NameInputDialog(self,'Add Model Variant','Enter a name for the new model variant:')
 
-            dialog.exec()
+            dialog.exec_()
             if dialog.result() == 1:
                 variant_name = str(dialog.text_input.text())
             else:
@@ -389,7 +389,7 @@ class CADEditorWindow(CalcamGUIWindow):
 
         dialog = NameInputDialog(self,'Rename Model Variant','Enter a new name for the "{:s}" model variant:'.format(self.cadmodel.model_variant),init_text=self.cadmodel.model_variant)
 
-        dialog.exec()
+        dialog.exec_()
         if dialog.result() == 1:
             new_name = str(dialog.text_input.text())
         else:
@@ -1154,7 +1154,7 @@ class CADEditorWindow(CalcamGUIWindow):
 
         if add_path_prompt:
             dialog = AReYouSureDialog(self,'Add to calcam configuration?',"Model saved.<br><br>The folder it is saved in:<br><br> {:s}<br><br>is currently not in Calcam's cad model search path,<br>so this model will not yet be detected by Calcam.<br><br>Would you like to add this path to Calcam's<br>model search path configuration now?".format(add_path_prompt))
-            dialog.exec()
+            dialog.exec_()
             if dialog.result() == 1:
                 self.config.cad_def_paths.append(add_path_prompt)
                 self.config.save()
