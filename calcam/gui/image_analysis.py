@@ -423,10 +423,34 @@ class ImageAnalyserWindow(CalcamGUIWindow):
         self.image_geometry.set_transform_actions(newim['transform_actions'])
         self.image_geometry.set_image_shape(newim['image_data'].shape[1],newim['image_data'].shape[0],coords=newim['coords'])
 
+        image = newim['image_data']
+        
+        # If the array isn't already 8-bit int, make it 8-bit int...
+        if image.dtype != np.uint8:
+            # If we're given a higher bit-depth integer, it's easy to downcast it.
+            if image.dtype == np.uint16 or image.dtype == np.int16:
+                image = np.uint8(image/2**8)
+            elif image.dtype == np.uint32 or image.dtype == np.int32:
+                image = np.uint8(image/2**24)
+            elif image.dtype == np.uint64 or image.dtype == np.int64:
+                image = np.uint8(image/2**56)
+            # Otherwise, scale it in a floating point way to its own max & min
+            # and strip out any transparency info (since we can't be sure of the scale used for transparency)
+            else:
+
+                if image.min() < 0:
+                    image = image - image.min()
+
+                if len(image.shape) == 3:
+                    if image.shape[2] == 4:
+                        image = image[:,:,:-1]
+
+                image = np.uint8(255.*(image - image.min())/(image.max() - image.min()))
+
         if newim['coords'].lower() == 'original':
-            self.original_image = newim['image_data']
+            self.original_image = image
         else:
-            self.original_image = self.image_geometry.display_to_original_image(newim['image_data'])
+            self.original_image = self.image_geometry.display_to_original_image(image)
 
         self.interactor2d.set_image(self.image_geometry.original_to_display_image(self.original_image))
 
