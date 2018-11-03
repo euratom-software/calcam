@@ -28,7 +28,6 @@ import os
 import atexit
 from .config import CalcamConfig
 from .io import ZipSaveFile
-from .exceptions import MeshFileMissing, UserCodeException
 
 vtk_major_version = vtk.vtkVersion().GetVTKMajorVersion()
 
@@ -139,13 +138,13 @@ class CADModel():
                         test_out = usermodule.format_coord( (0.1,0.1,0.1) )
                     except Exception as e:
                         self.def_file.close()
-                        raise UserCodeException(e)
+                        raise
 
                     if type(test_out) == str or type(test_out) == unicode:
                         self.usermodule = usermodule
                     else:
                         self.def_file.close()
-                        raise UserCodeException('CAD model user function format_coord() did not return a string as required.')
+                        raise Exception('CAD model user function format_coord() did not return a string as required.')
 
 
             # Create the features!
@@ -314,10 +313,8 @@ class CADModel():
     def format_coord(self,coords):
 
         if self.usermodule is not None:
-            try:
-                return self.usermodule.format_coord(coords)
-            except Exception as e:
-                raise UserCodeException(e)
+            return self.usermodule.format_coord(coords)
+
         else:
 
             phi = np.arctan2(coords[1],coords[0])
@@ -599,7 +596,7 @@ class ModelFeature():
             self.filename = os.path.join(self.parent.mesh_path_root,definition_dict['mesh_file'])
 
         if not os.path.isfile(self.filename):
-            raise MeshFileMissing(self.filename)
+            raise IOError('CAD mesh file {:s} not found.'.format(self.filename))
 
         self.filetype = self.filename.split('.')[-1].lower()
 

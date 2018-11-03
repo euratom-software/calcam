@@ -1,3 +1,24 @@
+'''
+* Copyright 2015-2018 European Atomic Energy Community (EURATOM)
+*
+* Licensed under the EUPL, Version 1.1 or - as soon they
+  will be approved by the European Commission - subsequent
+  versions of the EUPL (the "Licence");
+* You may not use this work except in compliance with the
+  Licence.
+* You may obtain a copy of the Licence at:
+*
+* https://joinup.ec.europa.eu/software/page/eupl
+*
+* Unless required by applicable law or agreed to in
+  writing, software distributed under the Licence is
+  distributed on an "AS IS" basis,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+  express or implied.
+* See the Licence for the specific language governing
+  permissions and limitations under the Licence.
+'''
+
 import cv2
 import copy
 
@@ -8,7 +29,7 @@ from ..render import get_image_actor
 
 # View designer window.
 # This allows creation of FitResults objects for a 'virtual' camera.
-class AlignmentCalibWindow(CalcamGUIWindow):
+class AlignmentCalib(CalcamGUIWindow):
  
     def __init__(self, app, parent = None):
 
@@ -113,6 +134,16 @@ class AlignmentCalibWindow(CalcamGUIWindow):
         self.view_aspect = None
         self.vtk_aspect = None
         self.intrinsics_calib = None
+
+
+        # If we have an old version of openCV, histo equilisation won't work :(
+        cv2_version = float('.'.join(cv2.__version__.split('.')[:2]))
+        cv2_micro_version = int(cv2.__version__.split('.')[2].split('-')[0])
+        if cv2_version < 2.4 or (cv2_version == 2.4 and cv2_micro_version < 6):
+            self.hist_eq.setEnabled(False)
+            self.hist_eq.setToolTip('Requires OpenCV 2.4.6 or newer; you have {:s}'.format(cv2.__version__))
+            self.edge_detect.setEnabled(False)
+            self.edge_detect.setToolTip('Requires OpenCV 2.4.6 or newer; you have {:s}'.format(cv2.__version__))
 
         # Start the GUI!
         self.show()
@@ -242,6 +273,11 @@ class AlignmentCalibWindow(CalcamGUIWindow):
 
 
         self.calibration = opened_calib
+
+        if self.calibration.readonly:
+            self.action_save.setEnabled(False)
+        else:
+            self.action_save.setEnabled(True)
 
         # Load the intrinsics
         if opened_calib.intrinsics_type == 'pinhole':

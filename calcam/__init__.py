@@ -1,5 +1,5 @@
 '''
-* Copyright 2015-2017 European Atomic Energy Community (EURATOM)
+* Copyright 2015-2018 European Atomic Energy Community (EURATOM)
 *
 * Licensed under the EUPL, Version 1.1 or - as soon they
   will be approved by the European Commission - subsequent
@@ -30,9 +30,7 @@ __version__ = '2.0.0-dev'
 
 # Import the top level "public facing" classes & functions
 from .cadmodel import CADModel
-
-
 from .calibration import Calibration
-from .raytrace import RayData, raycast_sightlines
-#from .roi import ROI, ROISet
+from .raycast import RayData, raycast_sightlines
 from .geometry_matrix import RectangularGeometryMatrix
+from . import gui

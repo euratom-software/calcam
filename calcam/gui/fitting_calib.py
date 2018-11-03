@@ -1,3 +1,24 @@
+'''
+* Copyright 2015-2018 European Atomic Energy Community (EURATOM)
+*
+* Licensed under the EUPL, Version 1.1 or - as soon they
+  will be approved by the European Commission - subsequent
+  versions of the EUPL (the "Licence");
+* You may not use this work except in compliance with the
+  Licence.
+* You may obtain a copy of the Licence at:
+*
+* https://joinup.ec.europa.eu/software/page/eupl
+*
+* Unless required by applicable law or agreed to in
+  writing, software distributed under the Licence is
+  distributed on an "AS IS" basis,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+  express or implied.
+* See the Licence for the specific language governing
+  permissions and limitations under the Licence.
+'''
+
 import cv2
 from scipy.ndimage.measurements import center_of_mass as CoM
 import matplotlib.cm
@@ -10,7 +31,7 @@ from ..pointpairs import PointPairs
 from ..render import render_cam_view,get_image_actor
 
 # Main calcam window class for actually creating calibrations.
-class FittingCalibrationWindow(CalcamGUIWindow):
+class FittingCalib(CalcamGUIWindow):
  
     def __init__(self, app, parent = None):
 
@@ -1179,6 +1200,11 @@ class FittingCalibrationWindow(CalcamGUIWindow):
 
         self.calibration = opened_calib
         self.interactor2d.subview_lookup = self.calibration.subview_lookup
+
+        if self.calibration.readonly:
+            self.action_save.setEnabled(False)
+        else:
+            self.action_save.setEnabled(True)
 
         for constraint in self.calibration.intrinsics_constraints:
             if constraint.__class__ is Calibration:

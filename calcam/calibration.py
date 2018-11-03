@@ -1,5 +1,5 @@
 '''
-* Copyright 2015-2017 European Atomic Energy Community (EURATOM)
+* Copyright 2015-2018 European Atomic Energy Community (EURATOM)
 *
 * Licensed under the EUPL, Version 1.1 or - as soon they
   will be approved by the European Commission - subsequent
@@ -36,7 +36,7 @@ from .io import ZipSaveFile
 from scipy.ndimage.measurements import center_of_mass as CoM
 from .coordtransformer import CoordTransformer
 from .pointpairs import PointPairs
-from .raytrace import raycast_sightlines
+from .raycast import raycast_sightlines
 import datetime
 import socket
 import getpass
@@ -397,6 +397,8 @@ class Calibration():
 
         self.pixel_size = None
 
+        self.readonly = None
+
         if load_file is not None:
             self.load(load_file)
         elif cal_type.lower() not in ['fit','alignment','virtual']:
@@ -569,6 +571,8 @@ class Calibration():
                     elif 'Fit' in event[3]:
                         subview_ind = self.subview_names.index(event[3].split('for ')[1])
                         self.history['fit'][subview_ind] = 'Modified by {:s} on {:s} at {:s}'.format(event[1],event[2],_get_formatted_time(event[0]))
+
+            self.readonly = save_file.is_readonly()
 
     def set_image(self,image,src,coords='Display',transform_actions = [],subview_mask=None,pixel_aspect=1.,subview_names = [],pixel_size=None):
 

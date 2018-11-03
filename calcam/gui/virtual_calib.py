@@ -1,3 +1,24 @@
+'''
+* Copyright 2015-2018 European Atomic Energy Community (EURATOM)
+*
+* Licensed under the EUPL, Version 1.1 or - as soon they
+  will be approved by the European Commission - subsequent
+  versions of the EUPL (the "Licence");
+* You may not use this work except in compliance with the
+  Licence.
+* You may obtain a copy of the Licence at:
+*
+* https://joinup.ec.europa.eu/software/page/eupl
+*
+* Unless required by applicable law or agreed to in
+  writing, software distributed under the Licence is
+  distributed on an "AS IS" basis,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+  express or implied.
+* See the Licence for the specific language governing
+  permissions and limitations under the Licence.
+'''
+
 import cv2
 
 from .core import *
@@ -6,7 +27,7 @@ from ..calibration import Calibration,Fitter
 
 # View designer window.
 # This allows creation of FitResults objects for a 'virtual' camera.
-class VirtualCalibrationWindow(CalcamGUIWindow):
+class VirtualCalib(CalcamGUIWindow):
  
     def __init__(self, app, parent = None):
 
@@ -329,6 +350,11 @@ class VirtualCalibrationWindow(CalcamGUIWindow):
         self.update_intrinsics()
 
         self.set_view_from_calib(self.calibration,0)
+
+        if self.calibration.readonly:
+            self.action_save.setEnabled(False)
+        else:
+            self.action_save.setEnabled(True)
 
         self.app.restoreOverrideCursor()
         self.unsaved_changes = False

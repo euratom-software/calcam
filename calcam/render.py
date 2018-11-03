@@ -1,5 +1,5 @@
 '''
-* Copyright 2015-2017 European Atomic Energy Community (EURATOM)
+* Copyright 2015-2018 European Atomic Energy Community (EURATOM)
 *
 * Licensed under the EUPL, Version 1.1 or - as soon they
   will be approved by the European Commission - subsequent
@@ -34,7 +34,7 @@ import numpy as np
 import os
 import sys
 import time
-from .raytrace import raycast_sightlines
+from .raycast import raycast_sightlines
 
 vtk_major_version = vtk.vtkVersion().GetVTKMajorVersion()
 

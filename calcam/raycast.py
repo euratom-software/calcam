@@ -1,5 +1,5 @@
 '''
-* Copyright 2015-2017 European Atomic Energy Community (EURATOM)
+* Copyright 2015-2018 European Atomic Energy Community (EURATOM)
 *
 * Licensed under the EUPL, Version 1.1 or - as soon they
   will be approved by the European Commission - subsequent
@@ -33,7 +33,7 @@ import datetime
 import time
 import sys
 import os
-from . import paths, coordtransformer
+from . import coordtransformer
 from scipy.io.netcdf import netcdf_file
 import random
 
