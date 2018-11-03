@@ -333,7 +333,7 @@ class AlignmentCalibWindow(CalcamGUIWindow):
             if self.pixel_size_checkbox.isChecked():
                 f = 1e3 * f / self.pixel_size_box.value()
 
-            self.calibration.set_pinhole_intrinsics(fx=f,fy=f,cx=nx/2.,cy=ny/2.,nx=nx,ny=ny)
+            self.calibration.set_pinhole_intrinsics(fx=f,fy=f)
             self.current_intrinsics_combobox = self.pinhole_intrinsics
 
         elif self.chessboard_intrinsics.isChecked():

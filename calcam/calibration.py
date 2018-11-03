@@ -1118,16 +1118,27 @@ class Calibration():
             self.history['intrinsics'] = src + ' by {:s} on {:s} at {:s}'.format(_user,_host,_get_formatted_time())
 
 
-    def set_pinhole_intrinsics(self,fx,fy,cx,cy,nx,ny):
+    def set_pinhole_intrinsics(self,fx,fy,cx=None,cy=None,nx=None,ny=None):
 
         if self._type == 'fit':
             raise Exception('You cannot modify the intrinsics of a fitted calibration.')
+        
+        elif self._type == 'virtual':
+            if (cx is None or cy is None or nx is None or ny is None):
+                raise ValueError('All of fx,fy,cx,cy,nx and ny must be specified for a virtual calibration.')
+            else:
+                self.geometry = CoordTransformer(orig_x=nx,orig_y = ny)
+
+        elif self._type == 'alignment':
+            shape = self.geometry.get_display_shape()
+            if cx is None:
+                cx = shape[0]/2
+            if cy is None:
+                cy = shape[1]/2
 
         coeffs_dict = {'fx':fx,'fy':fy,'cx':cx,'cy':cy,'dist_coeffs':np.zeros(5)}
 
         self.view_models = [PerspectiveViewModel(coeffs_dict=coeffs_dict)]
-
-        self.geometry = CoordTransformer(orig_x=nx,orig_y = ny)
 
         self.subview_mask = np.zeros([ny,nx],dtype=np.uint8)
 
