@@ -1132,6 +1132,7 @@ class Calibration():
                 raise ValueError('All of fx,fy,cx,cy,nx and ny must be specified for a virtual calibration.')
             else:
                 self.geometry = CoordTransformer(orig_x=nx,orig_y = ny)
+                self.subview_mask = np.zeros([ny,nx],dtype=np.uint8)
 
         elif self._type == 'alignment':
             shape = self.geometry.get_display_shape()
@@ -1143,8 +1144,6 @@ class Calibration():
         coeffs_dict = {'fx':fx,'fy':fy,'cx':cx,'cy':cy,'dist_coeffs':np.zeros(5)}
 
         self.view_models = [PerspectiveViewModel(coeffs_dict=coeffs_dict)]
-
-        self.subview_mask = np.zeros([ny,nx],dtype=np.uint8)
 
         self.intrinsics_constraints = []
 
