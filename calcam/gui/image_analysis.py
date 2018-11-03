@@ -373,6 +373,11 @@ class ImageAnalyserWindow(CalcamGUIWindow):
                 self.update_from_3d(self.coords_3d)
             else:
                 self.coords_2d = [None] * self.calibration.n_subviews
+                
+            if self.original_image is not None:
+                self.image_settings.setEnabled(True)
+            else:
+                self.image_settings.setEnabled(False)
 
 
     def set_view_to_cursor(self):
@@ -443,6 +448,12 @@ class ImageAnalyserWindow(CalcamGUIWindow):
             self.interactor2d.set_subview_lookup(self.calibration.n_subviews,self.calibration.subview_lookup)
 
         self.image_settings.show()
+        
+        if self.calibration is not None:
+            self.image_settings.setEnabled(True)
+        else:
+            self.image_settings.setEnabled(False)
+            
         if self.hist_eq_checkbox.isChecked():
             self.hist_eq_checkbox.setChecked(False)
             self.hist_eq_checkbox.setChecked(True)

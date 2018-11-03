@@ -199,7 +199,7 @@ class SettingsWindow(qt.QMainWindow):
         filedialog.setWindowTitle('Select Directory')
         filedialog.exec_()
         if filedialog.result() == 1:
-            path = filedialog.selectedFiles()[0]
+            path = str(filedialog.selectedFiles()[0])
             return path.replace('/',os.path.sep)
         else:
             return None

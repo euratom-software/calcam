@@ -506,7 +506,7 @@ class AlignmentCalibWindow(CalcamGUIWindow):
 
         # Update the image and point pairs
         newim = self.calibration.geometry.original_to_display_image(self.original_image)
-        self.calibration.set_image(newim,subview_mask = self.calibration.geometry.original_to_display_image(self.original_subview_mask),transform_actions = self.calibration.geometry.transform_actions, pixel_aspect = self.calibration.geometry.pixel_aspectratio)
+        self.calibration.set_image(newim,self.calibration.history['image'],subview_mask = self.calibration.geometry.original_to_display_image(self.original_subview_mask),transform_actions = self.calibration.geometry.transform_actions, pixel_aspect = self.calibration.geometry.pixel_aspectratio)
 
         self.interactor3d.force_aspect = float(newim.shape[0]) / float(newim.shape[1])
  

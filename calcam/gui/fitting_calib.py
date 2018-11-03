@@ -377,32 +377,32 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         # Some checking, user prompting etc should go here
         keep_points = False
 
-        self.original_image = newim['image_data']
+        if 'subview_mask' not in newim:
+            newim['subview_mask'] = np.zeros(newim['image_data'].shape[:2],dtype=np.uint8)
 
-        if 'subview_mask' in newim:
-            self.original_subview_mask = newim['subview_mask']
+        if 'subview_names' not in newim:
+            newim['subview_names'] = []
+
+        if 'transform_actions' not in newim:
+            newim['transform_actions'] = []
+
+        if 'pixel_size' not in newim:
+            newim['pixel_size'] = None
         else:
-            self.original_subview_mask = np.zeros(self.original_image.shape[:2],dtype=np.uint8)
-
-        if 'subview_names' in newim:
-            subview_names = newim['subview_names']
-        else:
-            subview_names = []
-
-        if 'transform_actions' in newim:
-            transform_actions = newim['transform_actions']
-        else:
-            transform_actions = ''
-
-        if 'pixel_size' in newim:
             self.pixel_size_checkbox.setChecked(True)
             self.pixel_size_box.setValue(newim['pixel_size'])
 
-        self.calibration.set_image( self.original_image , newim['source'],subview_mask = self.original_subview_mask, transform_actions = transform_actions,coords='Original',subview_names=subview_names )
+        if 'coords' not in newim:
+            newim['coords'] = 'display'
+            
+        if 'pixel_aspect' not in newim:
+            newim['pixel_aspect'] = 1.
+
+        self.calibration.set_image( newim['image_data'] , newim['source'],subview_mask = newim['subview_mask'], transform_actions = newim['transform_actions'],coords=newim['coords'],subview_names=newim['subview_names'],pixel_aspect=newim['pixel_aspect'] )
 
         self.calibration.view_models = [None] * self.calibration.n_subviews
 
-        self.interactor2d.set_image(self.calibration.geometry.original_to_display_image(newim['image_data']),n_subviews = self.calibration.n_subviews,subview_lookup = self.calibration.subview_lookup)
+        self.interactor2d.set_image(self.calibration.get_image(coords='Display'),n_subviews = self.calibration.n_subviews,subview_lookup = self.calibration.subview_lookup)
 
         self.image_settings.show()
         if self.hist_eq_checkbox.isChecked():
@@ -646,9 +646,8 @@ class FittingCalibrationWindow(CalcamGUIWindow):
             self.calibration.geometry.set_pixel_aspect(self.im_y_stretch_factor.value(),absolute=False)
  
         elif self.sender() is self.im_reset:
-            self.calibration.geometry.transform_actions = []
-            self.calibration.geometry.pixel_aspectratio = 1
-
+            self.calibration.geometry.set_transform_actions([])
+            self.calibration.geometry.set_pixel_aspect(1)
 
         if self.overlay_checkbox.isChecked():
             self.overlay_checkbox.setChecked(False)
@@ -666,8 +665,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
 
 
         # Update the image and point pairs
-        self.calibration.set_image(self.calibration.geometry.original_to_display_image(self.original_image),subview_mask = self.calibration.geometry.original_to_display_image(self.original_subview_mask),transform_actions = self.calibration.geometry.transform_actions, pixel_aspect = self.calibration.geometry.pixel_aspectratio)
-        self.interactor2d.set_image(self.calibration.geometry.original_to_display_image(self.original_image),n_subviews = self.calibration.n_subviews,subview_lookup=self.calibration.subview_lookup)
+        self.interactor2d.set_image(self.calibration.get_image(coords='Display'),n_subviews = self.calibration.n_subviews,subview_lookup=self.calibration.subview_lookup)
         self.update_pointpairs()
 
         if self.hist_eq_checkbox.isChecked():
@@ -827,9 +825,10 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         # Add the intrinsics constraints
         self.calibration.clear_intrinsics_constraints()
 
-        for subview in range(self.calibration.n_subviews):
-            self.fitters[subview].set_pointpairs(self.calibration.pointpairs,subview=subview)
-            self.fitters[subview].clear_intrinsics_pointpairs()
+        if self.calibration.pointpairs is not None:
+            for subview in range(self.calibration.n_subviews):
+                self.fitters[subview].set_pointpairs(self.calibration.pointpairs,subview=subview)
+                self.fitters[subview].clear_intrinsics_pointpairs()
 
         if self.intrinsics_calib_checkbox.isChecked():
             self.calibration.add_intrinsics_constraints(calibration=self.intrinsics_calib)

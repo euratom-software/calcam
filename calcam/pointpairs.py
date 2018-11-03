@@ -35,7 +35,7 @@ class PointPairs():
     
     def __init__(self,loadhandle=None):
 
-        self.n_subviews = None
+        self.n_subviews = 0
         self.image_points = []
         self.object_points = []
         
@@ -45,6 +45,9 @@ class PointPairs():
 
     def get_n_points(self,subview=0):
 
+        if self.n_subviews == 0:
+            return 0
+            
         if subview > (self.n_subviews - 1) or subview < 0:
             raise ValueError('Subview index out of bounds!')
 
@@ -88,7 +91,7 @@ class PointPairs():
 
     def add_pointpair(self,obj_point,im_points):
 
-        if self.n_subviews is None:
+        if self.n_subviews == 0:
             self.n_subviews = len(im_points)
         else:
             if len(im_points) != self.n_subviews:

@@ -30,6 +30,7 @@ import numpy as np
 import cv2
 import os
 import json
+import copy
 
 from .io import ZipSaveFile
 from scipy.ndimage.measurements import center_of_mass as CoM
@@ -474,17 +475,22 @@ class Calibration():
             except IOError:
                 raise IOError('"{:s}" does not appear to be a Calcam calibration file!'.format(filename))
 
-
+            # Load the field mask and set up geometry object
+            subview_mask = cv2.imread(os.path.join(save_file.get_temp_path(),'subview_mask.png'))[:,:,0]
+            self.geometry = CoordTransformer(meta['image_transform_actions'],meta['orig_paspect'])
+            self.geometry.set_image_size(subview_mask.shape[1],subview_mask.shape[0],coords='Display')
+            
+            self.subview_mask = self.geometry.display_to_original_image(subview_mask)
+            
             # Load the image. Note with the opencv imread function, it will silently return None if the image file does not exist.
-            self.image = cv2.imread(os.path.join(save_file.get_temp_path(),'image.png'))
-            if self.image is not None:
-                if len(self.image.shape) == 3:
-                    if self.image.shape[2] == 3:
-                        self.image[:,:,:3] = self.image[:,:,2::-1]
-
-            # Load the field mask
-            self.subview_mask = cv2.imread(os.path.join(save_file.get_temp_path(),'subview_mask.png'))[:,:,0]
-            self.geometry = CoordTransformer(meta['image_transform_actions'],meta['orig_x'],meta['orig_y'],meta['orig_paspect'])
+            image = cv2.imread(os.path.join(save_file.get_temp_path(),'image.png'))
+            if image is not None:
+                if len(image.shape) == 3:
+                    if image.shape[2] == 3:
+                        image[:,:,:3] = self.image[:,:,2::-1]
+                
+                self.image = self.geometry.display_to_original_image(image)        
+            
             self.n_subviews = meta['n_subviews']
             self.history = meta['history']
             self.subview_names = meta['subview_names']
@@ -564,36 +570,35 @@ class Calibration():
 
     def set_image(self,image,src,coords='Display',transform_actions = [],subview_mask=None,pixel_aspect=1.,subview_names = [],pixel_size=None):
 
-        self.image = image.copy()
+        image = image.copy()
 
         # If the array isn't already 8-bit int, make it 8-bit int...
-        if self.image.dtype != np.uint8:
+        if image.dtype != np.uint8:
             # If we're given a higher bit-depth integer, it's easy to downcast it.
-            if self.image.dtype == np.uint16 or self.image.dtype == np.int16:
-                self.image = np.uint8(self.image/2**8)
-            elif self.image.dtype == np.uint32 or self.image.dtype == np.int32:
-                self.image = np.uint8(self.image/2**24)
-            elif self.image.dtype == np.uint64 or self.image.dtype == np.int64:
-                self.image = np.uint8(self.image/2**56)
+            if image.dtype == np.uint16 or image.dtype == np.int16:
+                image = np.uint8(image/2**8)
+            elif image.dtype == np.uint32 or image.dtype == np.int32:
+                image = np.uint8(image/2**24)
+            elif image.dtype == np.uint64 or image.dtype == np.int64:
+                image = np.uint8(image/2**56)
             # Otherwise, scale it in a floating point way to its own max & min
             # and strip out any transparency info (since we can't be sure of the scale used for transparency)
             else:
 
-                if self.image.min() < 0:
-                    self.image = self.image - self.image.min()
+                if image.min() < 0:
+                    image = image - image.min()
 
-                if len(self.image.shape) == 3:
-                    if self.image.shape[2] == 4:
-                        self.image = self.image[:,:,:-1]
+                if len(image.shape) == 3:
+                    if image.shape[2] == 4:
+                        image = image[:,:,:-1]
 
-                self.image = np.uint8(255.*(self.image - self.image.min())/(self.image.max() - self.image.min()))
+                image = np.uint8(255.*(image - image.min())/(image.max() - image.min()))
 
         if subview_mask is None:
             self.n_subviews = 1
-            self.subview_mask = np.zeros(image.shape[:2],dtype='uint8')
+            subview_mask = np.zeros(image.shape[:2],dtype='uint8')
             self.subview_names = ['Image']
         else:
-            self.subview_mask = subview_mask
             self.n_subviews = subview_mask.max() + 1
             if len(subview_names) == self.n_subviews:
                 self.subview_names = subview_names
@@ -605,17 +610,15 @@ class Calibration():
         self.geometry = CoordTransformer()
 
         self.geometry.set_transform_actions(transform_actions)
-        self.geometry.pixel_aspectratio = pixel_aspect
+        self.geometry.set_pixel_aspect(pixel_aspect,relative_to='Original')
+        self.geometry.set_image_shape(image.shape[1],image.shape[0],coords=coords)
 
         if coords.lower() == 'original':
-            self.geometry.x_pixels = self.image.shape[1]
-            self.geometry.y_pixels = self.image.shape[0]
-            self.image = self.geometry.original_to_display_image(self.image)
-            self.subview_mask = self.geometry.original_to_display_image(self.subview_mask)
+            self.image = image
+            self.subview_mask = subview_mask
         else:
-            shape = self.geometry.display_to_original_shape(self.image.shape[1::-1])
-            self.geometry.x_pixels = shape[0]
-            self.geometry.y_pixels = shape[1]
+            self.image = self.geometry.display_to_original_image(image)
+            self.subview_mask = self.geometry.display_to_original_image(subview_mask)
 
         self.pixel_size = pixel_size
 
@@ -645,6 +648,25 @@ class Calibration():
         self.n_subviews = n_subviews
 
 
+    def get_image(self,coords='Display'):
+        
+        im_out = self.image.copy()
+        if coords.lower() == 'display':
+            im_out = self.geometry.original_to_display_image(im_out)
+       
+        return im_out
+        
+        
+    def get_subview_mask(self,coords='Display'):
+        
+        mask_out = self.subview_mask.copy()
+        if coords.lower() == 'display':
+            mask_out = self.geometry.original_to_display_image(mask_out)
+       
+        return mask_out        
+      
+
+
     def save(self,filename):
 
 
@@ -655,23 +677,22 @@ class Calibration():
 
             # Save the image
             if self.image is not None:
-                im_out = self.image.copy()
+                im_out = self.get_image(coords='Display')
                 if len(im_out.shape) == 3:
                     if im_out.shape[2] > 2:
-                        im_out[:,:,:3] = im_out[:,:,2::-1]
+                        im_out[:,:,:3] = im_out[:,:,2::-1]  
+                        
                 cv2.imwrite(os.path.join(save_file.get_temp_path(),'image.png'),im_out)
 
 
             # Save the field mask
-            cv2.imwrite(os.path.join(save_file.get_temp_path(),'subview_mask.png'),self.subview_mask)
+            cv2.imwrite(os.path.join(save_file.get_temp_path(),'subview_mask.png'),self.get_subview_mask(coords='display'))
 
             # Save the general information
             meta = {
                     'n_subviews': int(self.n_subviews),
                     'history':self.history,
                     'pixel_size':self.pixel_size,
-                    'orig_x':self.geometry.x_pixels,
-                    'orig_y':self.geometry.y_pixels,
                     'orig_paspect':self.geometry.pixel_aspectratio,
                     'image_transform_actions':self.geometry.transform_actions,
                     'subview_names':self.subview_names,
@@ -723,21 +744,30 @@ class Calibration():
         self.view_models[subview] = view_model
         self.history['fit'][subview] = 'Modified by {:s} on {:s} at {:s}'.format(_user,_host,_get_formatted_time())
 
-    def subview_lookup(self,x,y):
 
-        good_mask = (x >= -0.5) & (y >= -0.5) & (x < self.geometry.get_display_shape()[0] - 0.5) & (y < self.geometry.get_display_shape()[1] - 0.5)
+    def subview_lookup(self,x,y,coords='Display'):
+
+        if coords.lower() == 'display':
+            shape = self.geometry.get_display_shape()
+            mask = self.geometry.original_to_display_image(self.subview_mask)
+        else:
+            shape = self.geometry.get_original_shape()
+            mask = self.subview_mask
+
+
+        good_mask = (x >= -0.5) & (y >= -0.5) & (x < shape[0] - 0.5) & (y < shape()[1] - 0.5)
         
         try:
             x[ good_mask == 0 ] = 0
             y[ good_mask == 0 ] = 0
 
-            out = self.subview_mask[np.round(y).astype('int'),np.round(x).astype('int')]
+            out = mask[np.round(y).astype('int'),np.round(x).astype('int')]
 
             out[good_mask == 0] = -1
         except TypeError:
 
             if good_mask:
-                out = self.subview_mask[np.round(y).astype('int'),np.round(x).astype('int')]
+                out = mask[np.round(y).astype('int'),np.round(x).astype('int')]
             else:
                 out = -1
 
@@ -822,13 +852,15 @@ class Calibration():
         elif subview is None and self.n_subviews == 1:
             subview = 0
 
+        subview_mask = self.geometry.original_to_display_image(self.subview_mask)
+
         # Calculate FOV by looking at the angle between sight lines at the image extremes
         if fullchip:
             hsize,vsize = self.geometry.get_display_shape()
             vcntr = vsize/2.
             hcntr = hsize/2.
         else:
-            vcntr,hcntr = CoM( self.subview_mask == subview )
+            vcntr,hcntr = CoM( subview_mask == subview )
 
         vcntr = int(np.round(vcntr))
         hcntr = int(np.round(hcntr))
@@ -837,7 +869,7 @@ class Calibration():
         if fullchip:
             h_extent = np.array([0,hsize-1])
         else:
-            h_extent = np.argwhere(self.subview_mask[vcntr,:] == subview)
+            h_extent = np.argwhere(subview_mask[vcntr,:] == subview)
 
         # Horizontal FOV
         norm1 = self.normalise(h_extent.min()-0.5,vcntr,subview=subview)
@@ -847,7 +879,7 @@ class Calibration():
         if fullchip:
             v_extent = np.array([0,vsize-1])
         else:
-            v_extent = np.argwhere(self.subview_mask[:,hcntr] == subview)
+            v_extent = np.argwhere(subview_mask[:,hcntr] == subview)
 
         # Vertical field of view
         norm1 = self.normalise(hcntr,v_extent.min()-0.5,subview=subview)
@@ -884,11 +916,11 @@ class Calibration():
         # If not given any, generate our own image coordinates covering every pixel.
         else:
             if coords.lower() == 'original':
-                shape = self.image.get_original_shape()
+                shape = self.geometry.get_original_shape()
                 x,y = np.meshgrid(np.arange(shape[0]),np.arange(shape[1]))
-                x,y = self.image.transform.original_to_display_coords(x,y)
+                x,y = self.geometry.original_to_display_coords(x,y)
             else:
-                shape = self.image.get_display_shape()
+                shape = self.geometry.get_display_shape()
                 x,y = np.meshgrid(np.arange(shape[0]),np.arange(shape[1]))
 
 
@@ -985,9 +1017,11 @@ class Calibration():
 
         image_out = np.zeros(image.shape)
 
+        subview_mask_display = self.original_to_display_image(self.subview_mask)
+        
         for nview in range(self.n_subviews):
 
-            subview_mask = self.subview_mask == nview
+            subview_mask = subview_mask_display == nview
 
             im_in = image.copy()
             if len(im_in.shape) > 2:
@@ -1044,16 +1078,15 @@ class Calibration():
             raise Exception('You cannot modify the intrinsics of a fitted calibration.')
         
         self.view_models = intrinsics_calib.view_models
-        self.subview_mask = intrinsics_calib.subview_mask
-        self.geometry.x_pixels = intrinsics_calib.geometry.x_pixels
-        self.geometry.y_pixels = intrinsics_calib.geometry.y_pixels
+        self.subview_mask = intrinsics_calib.subview_mask.copy()
+        self.geometry = copy.copy(intrinsics_calib.geometry)
         self.pixel_size = intrinsics_calib.pixel_size
         self.intrinsics_constraints = []
 
         self.view_models[0] = intrinsics_calib.view_models[0]
 
         if intrinsics_calib._type == 'fit':
-            self.intrinsics_constraints.append((intrinsics_calib.image,intrinsics_calib.pointpairs))
+            self.intrinsics_constraints.append((intrinsics_calib.get_image(coords='Display'),intrinsics_calib.pointpairs))
             self.intrinsics_constraints = self.intrinsics_constraints + intrinsics_calib.intrinsics_constraints
             self.intrinsics_type = 'calibration'
             self.history['intrinsics'] = {intrinsics_calib.history}
@@ -1061,6 +1094,7 @@ class Calibration():
             self.intrinsics_type = intrinsics_calib.intrinsics_type
             self.history['intrinsics'] = intrinsics_calib.history['intrinsics']
             self.intrinsics_constraints = intrinsics_calib.intrinsics_constraints
+
 
 
     def set_chessboard_intrinsics(self,view_model,images_and_points,src):

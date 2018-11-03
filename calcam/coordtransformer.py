@@ -35,6 +35,7 @@ Written by Scott Silburn
 
 import cv2
 import numpy as np
+import copy
 
 class CoordTransformer:
     
@@ -46,6 +47,7 @@ class CoordTransformer:
         self.y_pixels = orig_y
 
         self.pixel_aspectratio = paspect
+
 
     # Define the actions to perform on an image to change it from original to display coordinates.
     # Input: transform_actions: a list of strings, specifying image transform actions, in the order
@@ -60,6 +62,25 @@ class CoordTransformer:
                 pass            
             else:
                 raise Exception('Unknown transformation action "' + action + '"')
+                
+
+    def get_transform_actions(self):
+        return copy.copy(self.transform_actions)
+
+    def set_image_shape(self,w,h,coords='Original'):
+        
+        shape = [w,h]
+        
+        if coords.lower() == 'display':
+            for action in self.transform_actions:
+                if action.lower() in ['rotate_clockwise_90','rotate_clockwise_270']:
+                    shape = list(reversed(shape))
+            shape[1] = shape[1] / self.pixel_aspectratio
+            
+        self.x_pixels = int(shape[0])
+        self.y_pixels = int(shape[1])
+            
+            
 
 
     def add_transform_action(self,transform_action):
@@ -89,6 +110,7 @@ class CoordTransformer:
                 self.transform_actions.append(transform_action)
 
 
+
     def set_pixel_aspect(self,pixel_aspect,relative_to='display',absolute=True):
 
         if absolute:
@@ -108,6 +130,8 @@ class CoordTransformer:
                 self.pixel_aspectratio = ref_aspect/pixel_aspect
             else:
                 self.pixel_aspectratio = ref_aspect*pixel_aspect
+                
+
 
 
     # Given an array containing an image in original coordinates, returns an array containing the image in display coordinates.
@@ -138,6 +162,7 @@ class CoordTransformer:
                 data_out = np.rot90(data_out,k=1)
 
         return data_out
+
 
     # Given an array containing an image in display coordinates, returns an array containing the image in original coordinates.
     # Inputs:   image - numpy ndarray containing the image in display coordinates.
@@ -264,19 +289,6 @@ class CoordTransformer:
                 display_shape = list(reversed(display_shape))
 
         return display_shape
-
-
-    def display_to_original_shape(self,shape):
-
-        original_shape = list(shape)
-
-        for action in reversed(self.transform_actions):
-            if action.lower() in ['rotate_clockwise_90','rotate_clockwise_270']:
-                original_shape = list(reversed(original_shape))
-
-        original_shape[1] = int(original_shape[1]/self.pixel_aspectratio)
-
-        return original_shape
 
 
     def get_original_shape(self):

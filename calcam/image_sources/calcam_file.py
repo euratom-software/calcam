@@ -15,22 +15,18 @@ def get_image(filename):
     if cal.image is None:
         raise UserWarning('This calibration file does not contain an image!')
 
-    image_data = cal.geometry.display_to_original_image(cal.image)
-    transform_actions = cal.geometry.transform_actions
-    subview_mask = cal.geometry.display_to_original_image(cal.subview_mask)
-    subview_names = cal.subview_names
-
 
     return_dict = {
-                    'image_data': image_data,
-                    'transform_actions': transform_actions,
-                    'subview_mask':subview_mask,
+                    'image_data': cal.get_image(coords='original'),
+                    'transform_actions': cal.geometry.get_transform_actions(),
+                    'subview_mask':cal.get_subview_mask(coords='original'),
                     'source': cal.history['image'],
-                    'subview_names' : subview_names
+                    'subview_names' : cal.subview_names,
+                    'coords': 'original',
+                    'pixel_aspect':cal.geometry.pixel_aspectratio,
+                    'pixel_size':cal.pixel_size
                     }
 
-    if cal.pixel_size is not None:
-        return_dict['pixel_size'] = cal.pixel_size
 
     return return_dict
 

@@ -1,4 +1,5 @@
 # External imports
+# External imports
 import sys
 import os
 import numpy as np
@@ -185,7 +186,7 @@ class CalcamGUIWindow(qt.QMainWindow):
         # Check if we can blame user-written code for what's gone wrong
         # by checking if the originating python file is inside the calcam
         # code directory or not.
-        fpath = traceback.extract_tb(tb)[-1].filename
+        fpath = traceback.extract_tb(tb)[-1][0]
         if calcampath[0] in fpath:
             usercode = False
         else:
@@ -236,7 +237,7 @@ class CalcamGUIWindow(qt.QMainWindow):
                     filedialog.setNameFilter('Text files (*.txt)')
                     filedialog.exec_()
                     if filedialog.result() == 1:
-                        fname = filedialog.selectedFiles()[0]
+                        fname = str(filedialog.selectedFiles()[0])
                         if not fname.endswith('.txt'):
                             fname = fname + '.txt'
 
