@@ -311,6 +311,9 @@ class CoordTransformer:
 
     def display_to_original_pointpairs(self,pointpairs):
 
+        if pointpairs is None:
+            return None
+
         pp_out = copy.copy(pointpairs)
 
         for ipoint in range(pp_out.get_n_points()):
@@ -321,6 +324,9 @@ class CoordTransformer:
 
 
     def original_to_display_pointpairs(self,pointpairs):
+
+        if pointpairs is None:
+            return None
 
         pp_out = copy.copy(pointpairs)
 

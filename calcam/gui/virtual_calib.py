@@ -263,6 +263,7 @@ class VirtualCalib(CalcamGUIWindow):
             self.statusbar.showMessage('Saving...')
             self.virtual_calib.save(self.filename)
             self.unsaved_changes = False
+            self.action_save.setEnabled(True)
             self.statusbar.clearMessage()
             self.app.restoreOverrideCursor()
 

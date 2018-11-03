@@ -666,6 +666,11 @@ class CADEdit(CalcamGUIWindow):
 
         self.refresh_3d()
 
+        if self.cadmodel.def_file.is_readonly():
+            self.action_save.setEnabled(False)
+        else:
+            self.action_save.setEnabled(True)
+
         self.app.restoreOverrideCursor()
 
 
@@ -1113,6 +1118,9 @@ class CADEdit(CalcamGUIWindow):
             self.cadmodel.def_file = ZipSaveFile(filename,'rw')
 
             model_def_dict['mesh_path_roots'] = {}
+
+            self.action_save.setEnabled(True)
+
         else:
             model_def_dict['mesh_path_roots'] = self.cadmodel.mesh_path_roots
 
@@ -1130,10 +1138,12 @@ class CADEdit(CalcamGUIWindow):
                 current_path = self.model_features[variant][feature]['mesh_file'].replace(os.sep,'/')
                 fname = os.path.split(current_path)[1]
                 model_def_dict['features'][variant][feature]['mesh_file'] = os.path.join(self.cadmodel.def_file.get_temp_path(),model_def_dict['mesh_path_roots'][variant],fname)
-                self.model_features[variant][feature]['mesh_file'] = fname
+                
                 if tmp_path not in current_path:
                     self.cadmodel.def_file.add(current_path,os.path.join(model_def_dict['mesh_path_roots'][variant],fname),replace=True)
-
+                    self.model_features[variant][feature]['mesh_file'] = fname
+                else:
+                    self.model_features[variant][feature]['mesh_file'] = current_path.replace(tmp_path,'').lstrip('/').replace(model_def_dict['mesh_path_roots'][variant],'').lstrip('/')
         
         model_def_dict['views'] = self.cadmodel.views
         model_def_dict['default_variant'] = self.cadmodel.model_variant

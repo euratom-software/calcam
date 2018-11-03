@@ -638,7 +638,8 @@ class FittingCalib(CalcamGUIWindow):
 
         # Update the image and point pairs
         self.interactor2d.set_image(self.calibration.get_image(coords='Display'),n_subviews = self.calibration.n_subviews,subview_lookup=self.calibration.subview_lookup)
-        self.load_pointpairs(pointpairs = self.calibration.geometry.original_to_display_pointpairs(orig_pointpairs),history=self.calibration.history['pointpairs'],force_clear=True)       
+        if orig_pointpairs is not None:
+            self.load_pointpairs(pointpairs = self.calibration.geometry.original_to_display_pointpairs(orig_pointpairs),history=self.calibration.history['pointpairs'],force_clear=True)       
 
         for i in range(len(self.chessboard_pointpairs)):
             self.chessboard_pointpairs[i][0] = self.calibration.geometry.original_to_display_image(self.chessboard_pointpairs[i][0])
@@ -1107,6 +1108,7 @@ class FittingCalib(CalcamGUIWindow):
             self.statusbar.showMessage('Saving...')
             self.calibration.save(self.filename)
             self.unsaved_changes = False
+            self.action_save.setEnabled(True)
             self.statusbar.clearMessage()
             self.app.restoreOverrideCursor()
 
@@ -1240,10 +1242,10 @@ class FittingCalib(CalcamGUIWindow):
 
     def edit_split_field(self):
 
-        dialog = SplitFieldDialog(self,self.calibration.image)
+        dialog = SplitFieldDialog(self,self.calibration.get_image(coords='Display'))
         result = dialog.exec_()
         if result == 1:
-            self.calibration.set_subview_mask(dialog.fieldmask,subview_names=dialog.field_names)
+            self.calibration.set_subview_mask(dialog.fieldmask,subview_names=dialog.field_names,coords='Display')
             self.interactor2d.n_subviews = self.calibration.n_subviews
             self.rebuild_image_gui()
             self.unsaved_changes = True

@@ -575,6 +575,8 @@ class AlignmentCalib(CalcamGUIWindow):
             self.statusbar.clearMessage()
             self.app.restoreOverrideCursor()
 
+            self.action_save.setEnabled(True)
+
         elif saveas:
             self.filename = orig_filename
 

@@ -634,7 +634,7 @@ class Calibration():
             self.history['image'] = src + ' by {:s} on {:s} at {:s}'.format(_user,_host,_get_formatted_time())
 
 
-    def set_subview_mask(self,mask,subview_names=None):
+    def set_subview_mask(self,mask,subview_names=None,coords='Original'):
         
         n_subviews = mask.max() + 1
 
@@ -649,7 +649,13 @@ class Calibration():
             if len(subview_names) != n_subviews:
                 raise ValueError('The subview mask appears to show {:d} sub-views, but {:d} names were provided!'.format(n_subviews,len(subview_names)))
 
-        self.subview_mask = mask.copy()
+        mask = mask.copy()
+
+        if coords.lower() == 'original':
+            self.subview_mask = mask
+        elif coords.lower() == 'display':
+            self.subview_mask = self.geometry.display_to_original_image(mask)
+            
         self.subview_names = subview_names
         self.n_subviews = n_subviews
 
