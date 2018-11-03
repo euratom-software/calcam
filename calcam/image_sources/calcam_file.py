@@ -33,7 +33,7 @@ def get_image(filename):
 
 display_name = 'Calcam Calibration'
 
-get_image_function =  get_image,
+get_image_function =  get_image
                 
 get_image_arguments = [
 						{

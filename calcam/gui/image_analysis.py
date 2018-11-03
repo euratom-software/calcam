@@ -415,34 +415,20 @@ class ImageAnalyserWindow(CalcamGUIWindow):
         self.app.restoreOverrideCursor()
 
 
-    def load_image(self,data=None,newim=None):
-
-        self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
-        self.statusbar.showMessage('Loading image...')
-
-        if newim is None:
-            # Gather up the required input arguments from the image load gui
-            imload_options = {}
-            for arg_name,option in self.imload_inputs.items():
-                imload_options[arg_name] = option[1]()
-                if qt.qt_ver == 4:
-                    if type(imload_options[arg_name]) == qt.QString:
-                        imload_options[arg_name] = str(imload_options[arg_name])
-
-            newim = self.imsource.get_image_function(**imload_options)
-            self.config.default_image_source = self.imsource.display_name
+    def on_load_image(self,newim):
 
 
-        self.original_image = newim['image_data']
+        self.image_geometry = CoordTransformer()
+        self.image_geometry.set_pixel_aspect(newim['pixel_aspect'],relative_to='original')
+        self.image_geometry.set_transform_actions(newim['transform_actions'])
+        self.image_geometry.set_image_shape(newim['image_data'].shape[1],newim['image_data'].shape[0],coords=newim['coords'])
 
-        if 'transform_actions' in newim:
-            transform_actions = newim['transform_actions']
+        if newim['coords'].lower() == 'original':
+            self.original_image = newim['image_data']
         else:
-            transform_actions = ''
+            self.original_image = self.image_geometry.display_to_original_image(newim['image_data'])
 
-        self.image_geometry = CoordTransformer(transform_actions,orig_x = newim['image_data'].shape[1],orig_y = newim['image_data'].shape[0])
-
-        self.interactor2d.set_image(self.image_geometry.original_to_display_image(newim['image_data']))
+        self.interactor2d.set_image(self.image_geometry.original_to_display_image(self.original_image))
 
         if self.calibration is not None:
             self.interactor2d.set_subview_lookup(self.calibration.n_subviews,self.calibration.subview_lookup)

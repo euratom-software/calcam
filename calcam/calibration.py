@@ -444,7 +444,9 @@ class Calibration():
     def add_intrinsics_constraints(self,image=None,pointpairs=None,calibration=None,im_history=None,pp_history=None,src=None):
 
         if calibration is not None:
-            self.intrinsics_constraints.append((calibration.image,calibration.pointpairs))
+            im = self.geometry.original_to_display_image(calibration.get_image(coords='original'))
+            pp = self.geometry.original_to_display_pointpairs( calibration.geometry.display_to_original_pointpairs(calibration.pointpairs) )
+            self.intrinsics_constraints.append((im,pp))
             self.history['intrinsics_constraints'].append( calibration.history['image'],calibration.history['pointpairs'] )
             self.intrinsics_constraints = self.intrinsics_constraints + calibration.intrinsics_constraints
             self.history['intrinsics_constraints'] = self.history['intrinsics_constraints'] + calibration.history['intrinsics_constraints']
@@ -478,7 +480,7 @@ class Calibration():
             # Load the field mask and set up geometry object
             subview_mask = cv2.imread(os.path.join(save_file.get_temp_path(),'subview_mask.png'))[:,:,0]
             self.geometry = CoordTransformer(meta['image_transform_actions'],meta['orig_paspect'])
-            self.geometry.set_image_size(subview_mask.shape[1],subview_mask.shape[0],coords='Display')
+            self.geometry.set_image_shape(subview_mask.shape[1],subview_mask.shape[0],coords='Display')
             
             self.subview_mask = self.geometry.display_to_original_image(subview_mask)
             
@@ -487,7 +489,7 @@ class Calibration():
             if image is not None:
                 if len(image.shape) == 3:
                     if image.shape[2] == 3:
-                        image[:,:,:3] = self.image[:,:,2::-1]
+                        image[:,:,:3] = image[:,:,2::-1]
                 
                 self.image = self.geometry.display_to_original_image(image)        
             
@@ -755,7 +757,7 @@ class Calibration():
             mask = self.subview_mask
 
 
-        good_mask = (x >= -0.5) & (y >= -0.5) & (x < shape[0] - 0.5) & (y < shape()[1] - 0.5)
+        good_mask = (x >= -0.5) & (y >= -0.5) & (x < shape[0] - 0.5) & (y < shape[1] - 0.5)
         
         try:
             x[ good_mask == 0 ] = 0
@@ -1017,7 +1019,7 @@ class Calibration():
 
         image_out = np.zeros(image.shape)
 
-        subview_mask_display = self.original_to_display_image(self.subview_mask)
+        subview_mask_display = self.geometry.original_to_display_image(self.subview_mask)
         
         for nview in range(self.n_subviews):
 

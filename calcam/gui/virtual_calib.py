@@ -188,7 +188,7 @@ class VirtualCalibrationWindow(CalcamGUIWindow):
         dialog = ChessboardDialog(self,modelselection=True)
         dialog.exec_()
 
-        if dialog.results is not None:
+        if dialog.results != []:
             chessboard_pointpairs = dialog.results
             if dialog.perspective_model.isChecked():
                 fitter = Fitter('perspective')

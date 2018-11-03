@@ -276,7 +276,7 @@ class AlignmentCalibWindow(CalcamGUIWindow):
 
     def update_intrinsics(self):
 
-        if self.original_image is None:
+        if self.calibration.image is None:
             return
 
         if self.sender() is self.load_intrinsics_button:
@@ -364,50 +364,18 @@ class AlignmentCalibWindow(CalcamGUIWindow):
 
 
 
-    def load_image(self,data=None,newim=None):
+    def on_load_image(self,newim):
 
-        self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
-        self.statusbar.showMessage('Loading image...')
-
-        if newim is None:
-            # Gather up the required input arguments from the image load gui
-            imload_options = {}
-            for arg_name,option in self.imload_inputs.items():
-                imload_options[arg_name] = option[1]()
-                if qt.qt_ver == 4:
-                    if type(imload_options[arg_name]) == qt.QString:
-                        imload_options[arg_name] = str(imload_options[arg_name])
-
-            newim = self.imsource.get_image_function(**imload_options)
-            self.config.default_image_source = self.imsource.display_name
-
-        # Some checking, user prompting etc should go here
-        keep_points = False
-
-        self.original_image = newim['image_data']
-
-        if 'subview_mask' in newim:
-            self.original_subview_mask = newim['subview_mask']
-        else:
-            self.original_subview_mask = np.zeros(self.original_image.shape[:2],dtype=np.uint8)
-
-        if 'subview_names' in newim:
-            subview_names = newim['subview_names']
-        else:
-            subview_names = []
-
-        if 'transform_actions' in newim:
-            transform_actions = newim['transform_actions']
-        else:
-            transform_actions = ''
-
-        if 'pixel_size' in newim:
+        if newim['pixel_size'] is not None:
             self.pixel_size_checkbox.setChecked(True)
             self.pixel_size_box.setValue(newim['pixel_size'])
+        else:
+            self.pixel_size_checkbox.setChecked(False)
 
-        self.calibration.set_image( self.original_image , newim['source'], subview_mask = self.original_subview_mask, transform_actions = transform_actions,coords='Original',subview_names=subview_names )
+        self.calibration.set_image( newim['image_data'] , newim['source'],subview_mask = newim['subview_mask'], transform_actions = newim['transform_actions'],coords=newim['coords'],subview_names=newim['subview_names'],pixel_aspect=newim['pixel_aspect'] )
 
-        self.interactor3d.force_aspect = float( self.original_image.shape[0] ) / float( self.original_image.shape[1] )
+        imshape = self.calibration.geometry.get_display_shape()
+        self.interactor3d.force_aspect = float( imshape[1] ) / float( imshape[0] )
 
         # This is a slight hack - we have to resize the window slightly
         # and resize it back again to get VTK to redraw the background.
@@ -426,14 +394,13 @@ class AlignmentCalibWindow(CalcamGUIWindow):
         self.image_display_settings.show()
 
         self.update_image_info_string()
-        self.app.restoreOverrideCursor()
-        self.statusbar.clearMessage()
+        self.update_overlay()
         self.unsaved_changes = True
 
 
     def update_overlay(self):
 
-        self.overlay_image = self.calibration.undistort_image( self.calibration.geometry.original_to_display_image(self.original_image) )
+        self.overlay_image = self.calibration.undistort_image( self.calibration.get_image(coords='display') )
 
         if self.hist_eq.isChecked() or self.edge_detect.isChecked():
             hist_equaliser = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
@@ -499,16 +466,12 @@ class AlignmentCalibWindow(CalcamGUIWindow):
             self.calibration.geometry.set_pixel_aspect(self.im_y_stretch_factor.value(),absolute=False)
  
         elif self.sender() is self.im_reset:
-            self.calibration.geometry.transform_actions = []
-            self.calibration.geometry.pixel_aspectratio = 1
-
-
+            self.calibration.geometry.set_transform_actions([])
+            self.calibration.geometry.set_pixel_aspect(1.)
 
         # Update the image and point pairs
-        newim = self.calibration.geometry.original_to_display_image(self.original_image)
-        self.calibration.set_image(newim,self.calibration.history['image'],subview_mask = self.calibration.geometry.original_to_display_image(self.original_subview_mask),transform_actions = self.calibration.geometry.transform_actions, pixel_aspect = self.calibration.geometry.pixel_aspectratio)
-
-        self.interactor3d.force_aspect = float(newim.shape[0]) / float(newim.shape[1])
+        imshape = self.calibration.geometry.get_display_shape()
+        self.interactor3d.force_aspect = float(imshape[1]) / float(imshape[0])
  
         self.update_image_info_string()
 
@@ -522,7 +485,7 @@ class AlignmentCalibWindow(CalcamGUIWindow):
         dialog = ChessboardDialog(self,modelselection=True)
         dialog.exec_()
 
-        if dialog.results is not None:
+        if dialog.results != []:
             chessboard_pointpairs = dialog.results
             if dialog.perspective_model.isChecked():
                 fitter = Fitter('perspective')

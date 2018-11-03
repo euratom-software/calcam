@@ -391,6 +391,47 @@ class CalcamGUIWindow(qt.QMainWindow):
 
 
 
+    def load_image(self,data=None,newim=None):
+
+        self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
+        self.statusbar.showMessage('Loading image...')
+
+        if newim is None:
+            # Gather up the required input arguments from the image load gui
+            imload_options = {}
+            for arg_name,option in self.imload_inputs.items():
+                imload_options[arg_name] = option[1]()
+                if qt.qt_ver == 4:
+                    if type(imload_options[arg_name]) == qt.QString:
+                        imload_options[arg_name] = str(imload_options[arg_name])
+
+            newim = self.imsource.get_image_function(**imload_options)
+            self.config.default_image_source = self.imsource.display_name
+
+
+        if 'subview_mask' not in newim:
+            newim['subview_mask'] = np.zeros(newim['image_data'].shape[:2],dtype=np.uint8)
+
+        if 'subview_names' not in newim:
+            newim['subview_names'] = []
+
+        if 'transform_actions' not in newim:
+            newim['transform_actions'] = []
+
+        if 'pixel_size' not in newim:
+            newim['pixel_size'] = None
+
+        if 'coords' not in newim:
+            newim['coords'] = 'display'
+            
+        if 'pixel_aspect' not in newim:
+            newim['pixel_aspect'] = 1.
+
+        self.on_load_image(newim)
+        self.statusbar.clearMessage()
+        self.app.restoreOverrideCursor()
+
+
     def object_from_file(self,obj_type,multiple=False):
 
         filename_filter = self.config.filename_filters[obj_type]
@@ -1061,21 +1102,31 @@ class CalcamGUIWindow(qt.QMainWindow):
 
 class ChessboardDialog(qt.QDialog):
 
-    def __init__(self, parent,modelselection=False):
+    def __init__(self, parent,modelselection=False,calibration=None):
 
         # GUI initialisation
         qt.QDialog.__init__(self, parent)
         qt.uic.loadUi(os.path.join(guipath,'chessboard_image_dialog.ui'), self)
 
         self.parent = parent
-        try:
-            self.image_transformer = self.parent.calibration.geometry
-            self.subview_lookup = self.parent.calibration.subview_lookup
-            self.n_fields = self.parent.calibration.n_subviews
-        except AttributeError:
-            self.image_transformer = CoordTransformer()
-            self.subview_lookup = lambda x,y: 0
+        if calibration is not None:
+            self.image_transformer = calibration.geometry
+            if np.any(self.image_transformer.get_display_shape() != self.image_transformer.get_original_shape()):
+                self.orientation_label.hide()
+                self.original_coords.hide()
+                self.display_coords.hide()
+
+            self.subview_lookup = calibration.subview_lookup
+            self.n_fields = calibration.n_subviews
+        else:
+            self.image_transformer = None
+            self.subview_lookup = lambda x,y,coords: 0
             self.n_fields = 1
+
+            self.display_coords.setChecked(True)
+            self.orientation_label.hide()
+            self.original_coords.hide()
+            self.display_coords.hide()
 
         if not modelselection:
             self.model_options.hide()
@@ -1089,6 +1140,10 @@ class ChessboardDialog(qt.QDialog):
         self.next_im_button.clicked.connect(self.change_image)
         self.prev_im_button.clicked.connect(self.change_image)
         self.current_image = None
+
+        self.next_im_button.setEnabled(False)
+        self.prev_im_button.setEnabled(False)
+        self.current_filename.hide()
 
         if int(cv2.__version__[0]) < 3:
             self.fisheye_model.setEnabled(False)
@@ -1134,28 +1189,46 @@ class ChessboardDialog(qt.QDialog):
             self.images = []
             self.filenames = []
             wrong_shape = []
-            if self.image_transformer.x_pixels is None or self.image_transformer.y_pixels is None:
-                expected_shape = None
-            else:
-                expected_shape = np.array([self.image_transformer.x_pixels,self.image_transformer.y_pixels])
 
+
+            self.im_shape = None
 
             for n,fname in enumerate(filedialog.selectedFiles()):
                 self.status_text.setText('<b>Loading image {:d} / {:d} ...'.format(n,len(filedialog.selectedFiles())))
                 im = cv2.imread(str(fname))
-                if expected_shape is None:
-                    expected_shape = im.shape[1::-1]
-                    self.im_shape = im.shape[:2]
-                    wrong_shape.append(False)
+                
+                if self.im_shape is None:
+
+                    if self.image_transformer is not None:
+                        imshape = im.shape[1::-1]
+                        if np.all(imshape == self.image_transformer.get_display_shape()):
+                            self.display_coords.setChecked(True)
+                            expected_shape = self.image_transformer.get_display_shape()
+                            wrong_shape.append(False)
+                            self.im_shape = im.shape[:2]
+                        elif np.all(imshape == self.image_transformer.get_original_shape()):
+                            self.original_coords.setChecked(True)
+                            expected_shape = self.image_transformer.get_original_shape()
+                            wrong_shape.append(False)
+                            self.im_shape = im.shape[:2]
+                        else:
+                            wrong_shape.append(True)
+                    else:
+                        wrong_shape.append(False)
+                        self.im_shape = im.shape[:2]
+                    
                 else:
-                    wrong_shape.append(not np.all(expected_shape == im.shape[1::-1]))
+                    wrong_shape.append(np.any(self.im_shape != im.shape[:2]))
                 
                 # OpenCV loads colour channels in BGR order.
                 if len(im.shape) == 3:
                     im[:,:,:3] = im[:,:,3::-1]
+
                 self.images.append(im)
+
                 self.filenames.append(os.path.split(str(fname))[1])
                 self.src_dir = os.path.split(str(fname))[0]
+
 
             self.status_text.setText('')
             if np.all(wrong_shape):
@@ -1163,8 +1236,8 @@ class ChessboardDialog(qt.QDialog):
                 dialog.setStandardButtons(qt.QMessageBox.Ok)
                 dialog.setTextFormat(qt.Qt.RichText)
                 dialog.setWindowTitle('Calcam - Wrong image size')
-                dialog.setText("Selected chessboard pattern images are the wrong size for this camera image and have not been loaded.")
-                dialog.setInformativeText("Chessboard images of {:d} x {:d} pixels are required for this camera image.".format(expected_shape[0],expected_shape[1]))
+                dialog.setText("The selected chessboard pattern images are the wrong dimensions for this camera calibration and have not been loaded.")
+                dialog.setInformativeText("Chessboard images of {:d} x {:d} pixels or {:d} x {:d} pixels are required for this camera image.".format(self.image_transformer.get_original_shape()[0],self.image_transformer.get_original_shape()[1],self.image_transformer.get_display_shape()[0],self.image_transformer.get_display_shape()[1]))
                 dialog.setIcon(qt.QMessageBox.Warning)
                 dialog.exec_()
                 self.images = []
@@ -1191,12 +1264,17 @@ class ChessboardDialog(qt.QDialog):
             self.update_image_display(0)
             self.detect_chessboard_button.setEnabled(True)
 
+            self.next_im_button.setEnabled(True)
+            self.prev_im_button.setEnabled(True)
+            self.current_filename.show()
+
 
     def change_image(self):
         if self.sender() is self.next_im_button:
             self.update_image_display((self.current_image + 1) % len(self.images))
         elif self.sender() is self.prev_im_button:
             self.update_image_display((self.current_image - 1) % len(self.images))
+
 
 
 
@@ -1331,6 +1409,10 @@ class ChessboardDialog(qt.QDialog):
                         self.results[-1][1].image_points[-1].append([impoints[point,0], impoints[point,1]])
                     else:
                         self.results[-1][1].image_points[-1].append(None)
+
+            if self.original_coords.isChecked():
+                self.results[-1][0] = self.image_transformer.original_to_display_image(self.results[-1][0])
+                self.results[-1][1] = self.image_transformer.original_to_display_pointpairs(self.results[-1][1])
 
         self.filenames = self.filenames[self.chessboard_status == True]
 

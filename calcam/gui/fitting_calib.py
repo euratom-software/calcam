@@ -354,49 +354,13 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         #self.tabWidget.setTabEnabled(3,True)
 
 
-    def load_image(self,data=None,newim=None):
+    def on_load_image(self,newim):
 
-        # By default we assume we don't know the pixel size
-        self.pixel_size_checkbox.setChecked(False)
-
-        self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
-        self.statusbar.showMessage('Loading image...')
-
-        if newim is None:
-            # Gather up the required input arguments from the image load gui
-            imload_options = {}
-            for arg_name,option in self.imload_inputs.items():
-                imload_options[arg_name] = option[1]()
-                if qt.qt_ver == 4:
-                    if type(imload_options[arg_name]) == qt.QString:
-                        imload_options[arg_name] = str(imload_options[arg_name])
-
-            newim = self.imsource.get_image_function(**imload_options)
-            self.config.default_image_source = self.imsource.display_name
-
-        # Some checking, user prompting etc should go here
-        keep_points = False
-
-        if 'subview_mask' not in newim:
-            newim['subview_mask'] = np.zeros(newim['image_data'].shape[:2],dtype=np.uint8)
-
-        if 'subview_names' not in newim:
-            newim['subview_names'] = []
-
-        if 'transform_actions' not in newim:
-            newim['transform_actions'] = []
-
-        if 'pixel_size' not in newim:
-            newim['pixel_size'] = None
-        else:
+        if newim['pixel_size'] is not None:
             self.pixel_size_checkbox.setChecked(True)
             self.pixel_size_box.setValue(newim['pixel_size'])
-
-        if 'coords' not in newim:
-            newim['coords'] = 'display'
-            
-        if 'pixel_aspect' not in newim:
-            newim['pixel_aspect'] = 1.
+        else:
+            self.pixel_size_checkbox.setChecked(False)
 
         self.calibration.set_image( newim['image_data'] , newim['source'],subview_mask = newim['subview_mask'], transform_actions = newim['transform_actions'],coords=newim['coords'],subview_names=newim['subview_names'],pixel_aspect=newim['pixel_aspect'] )
 
@@ -412,7 +376,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         self.rebuild_image_gui()
         self.unsaved_changes = True
 
-
+        keep_points = False
         if keep_points:
 
             if self.overlay_checkbox.isChecked():
@@ -428,11 +392,9 @@ class FittingCalibrationWindow(CalcamGUIWindow):
             self.fitted_points_checkbox.setChecked(False)
             self.overlay_checkbox.setChecked(False)
 
-
         self.reset_fit()
         self.update_image_info_string()
-        self.app.restoreOverrideCursor()
-        self.statusbar.clearMessage()
+
 
 
     def change_fit_params(self,fun,state):
@@ -624,14 +586,11 @@ class FittingCalibrationWindow(CalcamGUIWindow):
     def transform_image(self,data):
 
         # First, back up the point pair locations in original coordinates.
-        orig_coords = []
-        
-        # Loop over sub-fields
-        for _,cursor_id in self.point_pairings:
-            orig_coords.append([])
-            for coords in self.interactor2d.get_cursor_coords(cursor_id):
-                orig_coords[-1].append(self.calibration.geometry.display_to_original_coords(coords[0],coords[1]))
+        orig_pointpairs = self.calibration.geometry.display_to_original_pointpairs(self.calibration.pointpairs)
 
+        for i in range(len(self.chessboard_pointpairs)):
+            self.chessboard_pointpairs[i][0] = self.calibration.geometry.display_to_original_image(self.chessboard_pointpairs[i][0])
+            self.chessboard_pointpairs[i][1] = self.calibration.geometry.display_to_original_pointpairs(self.chessboard_pointpairs[i][1])
 
         if self.sender() is self.im_flipud:
             self.calibration.geometry.add_transform_action('flip_up_down')
@@ -655,29 +614,26 @@ class FittingCalibrationWindow(CalcamGUIWindow):
         if self.fitted_points_checkbox.isChecked():
             self.fitted_points_checkbox.setChecked(False)
 
-        # Transform all the point pairs in to the new coordinates
-        for i,(_,cursor_id) in enumerate(self.point_pairings):
-            old_coords = orig_coords[i]
-            new_coords = []
-            for coords in old_coords:
-                new_coords.append( self.calibration.geometry.original_to_display_coords(*coords ) )
-            self.interactor2d.set_cursor_coords(cursor_id,new_coords)
-
 
         # Update the image and point pairs
         self.interactor2d.set_image(self.calibration.get_image(coords='Display'),n_subviews = self.calibration.n_subviews,subview_lookup=self.calibration.subview_lookup)
-        self.update_pointpairs()
+        self.load_pointpairs(pointpairs = self.calibration.geometry.original_to_display_pointpairs(orig_pointpairs),history=self.calibration.history['pointpairs'],force_clear=True)       
+
+        for i in range(len(self.chessboard_pointpairs)):
+            self.chessboard_pointpairs[i][0] = self.calibration.geometry.original_to_display_image(self.chessboard_pointpairs[i][0])
+            self.chessboard_pointpairs[i][1] = self.calibration.geometry.original_to_display_pointpairs(self.chessboard_pointpairs[i][1])
 
         if self.hist_eq_checkbox.isChecked():
             self.hist_eq_checkbox.setChecked(False)
             self.hist_eq_checkbox.setChecked(True)
  
+
         self.update_image_info_string()
         self.rebuild_image_gui()
         self.unsaved_changes = True
 
 
-    def load_pointpairs(self,data=None,pointpairs=None,src=None,history=None):
+    def load_pointpairs(self,data=None,pointpairs=None,src=None,history=None,force_clear=False):
 
         if pointpairs is None:
             pointpairs = self.object_from_file('pointpairs')
@@ -701,7 +657,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
             self.fitted_points_checkbox.setChecked(False)
             self.overlay_checkbox.setChecked(False)
 
-            if self.pointpairs_clear_before_load.isChecked():
+            if self.pointpairs_clear_before_load.isChecked() or force_clear:
                 self.clear_pointpairs()
 
             for i in range(len(pointpairs.object_points)):
@@ -1126,6 +1082,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
                 self.calibration.cad_config = {'model_name':self.cadmodel.machine_name , 'model_variant':self.cadmodel.model_variant , 'enabled_features':self.cadmodel.get_enabled_features(),'viewport':[self.camX.value(),self.camY.value(),self.camZ.value(),self.tarX.value(),self.tarY.value(),self.tarZ.value(),self.camFOV.value()] }
 
             self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
+            self.update_pointpairs()
             self.statusbar.showMessage('Saving...')
             self.calibration.save(self.filename)
             self.unsaved_changes = False
@@ -1240,7 +1197,7 @@ class FittingCalibrationWindow(CalcamGUIWindow):
 
     def toggle_hist_eq(self,check_state):
 
-        im_out = self.calibration.geometry.original_to_display_image(self.original_image)
+        im_out = self.calibration.get_image(coords='display')
 
         # Enable / disable adaptive histogram equalisation
         if check_state == qt.Qt.Checked:
