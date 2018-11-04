@@ -36,7 +36,12 @@ from .io import ZipSaveFile
 from scipy.ndimage.measurements import center_of_mass as CoM
 from .coordtransformer import CoordTransformer
 from .pointpairs import PointPairs
-from .raycast import raycast_sightlines
+
+try:
+	from .raycast import raycast_sightlines
+except ImportError:
+	raycast_sightlines = None
+
 import datetime
 import socket
 import getpass
@@ -966,6 +971,8 @@ class Calibration():
         # This will be the output
         points_2d = []
 
+        if check_occlusion_by is not None and raycast_sightlines is None:
+        	raise Exception('VTK not available; cannot check occlusion without VTK.')
 
         for nview in range(self.n_subviews):
 

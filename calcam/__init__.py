@@ -25,12 +25,19 @@ CalCam package.
 """
 
 # Calcam version
-__version__ = '2.0.0-dev'
+__version__ = '2.0.0-beta1'
 
 
 # Import the top level "public facing" classes & functions
-from .cadmodel import CADModel
 from .calibration import Calibration
-from .raycast import RayData, raycast_sightlines
-from .geometry_matrix import RectangularGeometryMatrix
-from . import gui
+
+try:
+	from .cadmodel import CADModel
+	from .raycast import RayData, raycast_sightlines
+	from .geometry_matrix import RectangularGeometryMatrix
+	from . import gui
+except ImportError as e:
+	if "No module named 'vtk'" in str(e):
+		print('[Calcam Import] Could not import VTK; only calcam.Calibration class will be available.')
+	else:
+		raise
