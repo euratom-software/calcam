@@ -42,7 +42,7 @@ class AlignmentCalib(CalcamGUIWindow):
         # Set up VTK
         self.qvtkwidget_3d = qt.QVTKRenderWindowInteractor(self.vtk_frame)
         self.vtk_frame.layout().addWidget(self.qvtkwidget_3d,0,0)
-        self.interactor3d = CalcamInteractorStyle3D(refresh_callback=self.refresh_3d,viewport_callback=self.update_viewport_info)
+        self.interactor3d = CalcamInteractorStyle3D(refresh_callback=self.refresh_3d,viewport_callback=self.update_viewport_info,resize_callback=self.update_vtk_size)
         self.qvtkwidget_3d.SetInteractorStyle(self.interactor3d)
         self.renderer_3d = vtk.vtkRenderer()
         self.renderer_3d.SetBackground(0, 0, 0)
@@ -70,7 +70,7 @@ class AlignmentCalib(CalcamGUIWindow):
         self.tarY.valueChanged.connect(self.change_cad_view)
         self.tarZ.valueChanged.connect(self.change_cad_view)
         self.cam_roll.valueChanged.connect(self.change_cad_view)
-        self.load_model_button.clicked.connect(self.load_model)
+        self.load_model_button.clicked.connect(self._load_model)
         self.model_name.currentIndexChanged.connect(self.populate_model_variants)
         self.feature_tree.itemChanged.connect(self.update_checked_features)
         self.feature_tree.itemSelectionChanged.connect(self.update_cadtree_selection)
@@ -135,6 +135,8 @@ class AlignmentCalib(CalcamGUIWindow):
         self.vtk_aspect = None
         self.intrinsics_calib = None
 
+        self.calibration = None
+
 
         # If we have an old version of openCV, histo equilisation won't work :(
         cv2_version = float('.'.join(cv2.__version__.split('.')[:2]))
@@ -145,12 +147,19 @@ class AlignmentCalib(CalcamGUIWindow):
             self.edge_detect.setEnabled(False)
             self.edge_detect.setToolTip('Requires OpenCV 2.4.6 or newer; you have {:s}'.format(cv2.__version__))
 
+        self.fov_enabled = False
+        self.viewdir_at_cc = True
+
         # Start the GUI!
         self.show()
 
         self.interactor3d.init()
         self.update_intrinsics()
         self.qvtkwidget_3d.GetRenderWindow().GetInteractor().Initialize()
+
+
+    def _load_model(self):
+        self.load_model(hold_view = self.calibration is not None)
 
 
     def reset(self,keep_cadmodel=False):
@@ -246,7 +255,10 @@ class AlignmentCalib(CalcamGUIWindow):
         # Load the image
         for imsource in self.image_sources:
             if imsource.display_name == 'Calcam Calibration':
-                self.load_image(newim = imsource.get_image_function(self.filename))
+                try:
+                    self.load_image(newim = imsource.get_image_function(self.filename))
+                except Exception as e:
+                    self.show_msgbox(e)
 
         # Load the appropriate CAD model, if we know what that is
         if opened_calib.cad_config is not None:
@@ -269,7 +281,7 @@ class AlignmentCalib(CalcamGUIWindow):
                     load_model=False
 
                 if load_model:
-                    self.load_model(featurelist=cconfig['enabled_features'])
+                    self.load_model(featurelist=cconfig['enabled_features'],hold_view=True)
 
 
         self.calibration = opened_calib
@@ -300,7 +312,7 @@ class AlignmentCalib(CalcamGUIWindow):
             self.chessboard_intrinsics.setChecked(True)
 
         elif opened_calib.intrinsics_type == 'calibration':
-            self.intrinsics_calib = self.crlibration
+            self.intrinsics_calib = self.calibration
             self.calcam_intrinsics.setChecked(True)
 
         self.update_intrinsics()
@@ -309,6 +321,7 @@ class AlignmentCalib(CalcamGUIWindow):
 
         self.app.restoreOverrideCursor()
         self.unsaved_changes = False
+
 
     def update_intrinsics(self):
 
@@ -429,7 +442,7 @@ class AlignmentCalib(CalcamGUIWindow):
         self.image_settings.show()
         self.image_display_settings.show()
 
-        self.update_image_info_string()
+        self.update_image_info_string(newim['image_data'],self.calibration.geometry)
         self.update_overlay()
         self.unsaved_changes = True
 
@@ -488,7 +501,6 @@ class AlignmentCalib(CalcamGUIWindow):
 
     def transform_image(self,data):
 
-
         if self.sender() is self.im_flipud:
             self.calibration.geometry.add_transform_action('flip_up_down')
 
@@ -509,7 +521,7 @@ class AlignmentCalib(CalcamGUIWindow):
         imshape = self.calibration.geometry.get_display_shape()
         self.interactor3d.force_aspect = float(imshape[1]) / float(imshape[0])
  
-        self.update_image_info_string()
+        self.update_image_info_string(self.calibration.get_image(),self.calibration.geometry)
 
         self.update_overlay()
         self.unsaved_changes = True
@@ -579,52 +591,3 @@ class AlignmentCalib(CalcamGUIWindow):
 
         elif saveas:
             self.filename = orig_filename
-
-
-
-    def change_cad_view(self):
-
-        if self.sender() is self.viewlist:
-            items = self.viewlist.selectedItems()
-            if len(items) > 0:
-                view_item = items[0]
-            else:
-                return
-
-            if view_item.parent() is self.views_root_model:
-
-                view = self.cadmodel.get_view( str(view_item.text(0)))
-
-                # Set to that view
-                self.camera_3d.SetPosition(view['cam_pos'])
-                self.camera_3d.SetFocalPoint(view['target'])
-                self.camera_3d.SetViewUp(0,0,1)
-                self.interactor3d.set_xsection(None)
-                self.interactor3d.set_roll(view['roll'])
-
-            elif view_item.parent() is self.views_root_results or view_item.parent() in self.viewport_calibs.keys():
-
-                view,subfield = self.viewport_calibs[(view_item)]
-                
-                if subfield is not None:
-                    self.set_view_from_calib(view,subfield)
-
-                return
-
-        self.update_viewport_info(keep_selection=True)
-
-
-    def set_view_from_calib(self,calibration,subfield):
-
-        viewmodel = calibration.view_models[subfield]
-
-        self.camera_3d.SetPosition(viewmodel.get_pupilpos())
-        self.camera_3d.SetFocalPoint(viewmodel.get_pupilpos() + viewmodel.get_los_direction(calibration.get_cc(subview=subfield)[0],calibration.get_cc(subview=subfield)[1]))
-        self.camera_3d.SetViewUp(-1.*viewmodel.get_cam_to_lab_rotation()[:,1])
-        self.interactor3d.set_xsection(None)       
-
-        self.update_viewport_info(keep_selection=True)
-
-        self.interactor3d.update_clipping()
-
-        self.refresh_3d()

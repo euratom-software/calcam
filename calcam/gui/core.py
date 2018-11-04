@@ -172,6 +172,9 @@ class CalcamGUIWindow(qt.QMainWindow):
         # -------------------- Initialise View List ------------------
         self.viewlist.clear()
 
+        self.fov_enabled = True
+        self.viewdir_at_cc = False
+
         # Populate viewports list
         self.views_root_model = qt.QTreeWidgetItem(['Defined in Model'])
         self.views_root_auto = qt.QTreeWidgetItem(['Auto Cross-Sections'])
@@ -509,17 +512,22 @@ class CalcamGUIWindow(qt.QMainWindow):
 
 
 
-    def update_image_info_string(self):
+    def update_image_info_string(self,im_array,geometry):
 
-        if np.any(self.calibration.geometry.get_display_shape() != self.calibration.geometry.get_original_shape()):
-            info_str = '{0:d} x {1:d} pixels ({2:.1f} MP) [ As Displayed ]<br>{3:d} x {4:d} pixels ({5:.1f} MP) [ Raw Data ]<br>'.format(self.calibration.geometry.get_display_shape()[0],self.calibration.geometry.get_display_shape()[1],np.prod(self.calibration.geometry.get_display_shape()) / 1e6 ,self.calibration.geometry.get_original_shape()[0],self.calibration.geometry.get_original_shape()[1],np.prod(self.calibration.geometry.get_original_shape()) / 1e6 )
+        if np.any(geometry.get_display_shape() != geometry.get_original_shape()):
+            info_str = '{0:d} x {1:d} pixels ({2:.1f} MP) [ As Displayed ]<br>{3:d} x {4:d} pixels ({5:.1f} MP) [ Raw Data ]<br>'.format(geometry.get_display_shape()[0],geometry.get_display_shape()[1],np.prod(geometry.get_display_shape()) / 1e6 ,geometry.get_original_shape()[0],geometry.get_original_shape()[1],np.prod(geometry.get_original_shape()) / 1e6 )
         else:
-            info_str = '{0:d} x {1:d} pixels ({2:.1f} MP)<br>'.format(self.calibration.geometry.get_display_shape()[0],self.calibration.geometry.get_display_shape()[1],np.prod(self.calibration.geometry.get_display_shape()) / 1e6 )
+            info_str = '{0:d} x {1:d} pixels ({2:.1f} MP)<br>'.format(geometry.get_display_shape()[0],geometry.get_display_shape()[1],np.prod(geometry.get_display_shape()) / 1e6 )
         
-        if len(self.calibration.image.shape) == 2:
+        if len(im_array.shape) == 2:
             info_str = info_str + 'Monochrome'
-        elif len(self.calibration.image.shape) == 3 and self.calibration.image.shape[2] == 3:
-            info_str = info_str + 'RGB Colour'
+        elif len(im_array.shape) == 3:
+            if np.all(im_array[:,:,0] == im_array[:,:,1]) and np.all(im_array[:,:,2] == im_array[:,:,1]):
+                info_str = info_str + 'Monochrome'
+            else:
+                info_str = info_str + 'RGB Colour'
+            if im_array.shape[2] == 4:
+                info_str = info_str + ' + Transparency'
 
         self.image_info.setText(info_str)
         
@@ -626,10 +634,8 @@ class CalcamGUIWindow(qt.QMainWindow):
         else:
             self.camera_3d.SetPosition((self.camX.value(),self.camY.value(),self.camZ.value()))
             self.camera_3d.SetFocalPoint((self.tarX.value(),self.tarY.value(),self.tarZ.value()))
-            try:
+            if self.fov_enabled:
                 self.interactor3d.set_fov(self.camFOV.value())
-            except AttributeError:
-                pass
             self.interactor3d.set_roll(-self.cam_roll.value())
 
         
@@ -638,27 +644,36 @@ class CalcamGUIWindow(qt.QMainWindow):
 
         self.refresh_3d()
 
+        self.on_view_changed()
+
 
 
     def set_view_from_calib(self,calibration,subfield):
 
         viewmodel = calibration.view_models[subfield]
-        fov = calibration.get_fov(subview=subfield,fullchip=True)
-        vtk_aspect = float(self.vtksize[1]) / float(self.vtksize[0])
-        fov_aspect = float(calibration.geometry.y_pixels) / float(calibration.geometry.x_pixels)
-        if vtk_aspect > fov_aspect:
-            h_fov = True
-            fov_angle = fov[0]
-        else:
-            h_fov = False
-            fov_angle = fov[1]
+
+        if self.fov_enabled:
+            fov = calibration.get_fov(subview=subfield,fullchip=True)
+            vtk_aspect = float(self.vtksize[1]) / float(self.vtksize[0])
+            fov_aspect = float(calibration.geometry.y_pixels) / float(calibration.geometry.x_pixels)
+            if vtk_aspect > fov_aspect-1e-4:
+                h_fov = True
+                fov_angle = fov[0]
+            else:
+                h_fov = False
+                fov_angle = fov[1]
+
+            self.camera_3d.SetUseHorizontalViewAngle(h_fov)
+            self.camera_3d.SetViewAngle(fov_angle)
+            self.camera_3d.SetUseHorizontalViewAngle(h_fov)
 
         self.camera_3d.SetPosition(viewmodel.get_pupilpos())
-        self.camera_3d.SetFocalPoint(viewmodel.get_pupilpos() + viewmodel.get_los_direction(calibration.geometry.get_display_shape()[0]/2,calibration.geometry.get_display_shape()[1]/2))
-        
-        self.camera_3d.SetUseHorizontalViewAngle(h_fov)
-        self.camera_3d.SetViewAngle(fov_angle)
-        self.camera_3d.SetUseHorizontalViewAngle(h_fov)
+
+        if self.viewdir_at_cc:
+            cc = calibration.get_cc(subview=subfield)
+            self.camera_3d.SetFocalPoint(viewmodel.get_pupilpos() + viewmodel.get_los_direction(*cc))
+        else:
+            self.camera_3d.SetFocalPoint(viewmodel.get_pupilpos() + viewmodel.get_los_direction(calibration.geometry.get_display_shape()[0]/2,calibration.geometry.get_display_shape()[1]/2))
         
         self.update_viewport_info(keep_selection=True)
         
@@ -669,7 +684,6 @@ class CalcamGUIWindow(qt.QMainWindow):
             self.camera_3d.SetViewUp(-1.*viewmodel.get_cam_to_lab_rotation()[:,1])
         
         self.interactor3d.set_xsection(None)       
-
         
         self.interactor3d.update_cursor_style()
 
@@ -677,12 +691,6 @@ class CalcamGUIWindow(qt.QMainWindow):
 
         self.refresh_3d()
 
-
-    def colour_model_by_material(self):
-
-            if self.cadmodel is not None:
-                self.cadmodel.colour_by_material()
-                self.refresh_3d()
 
 
     def set_cad_colour(self):
@@ -754,6 +762,10 @@ class CalcamGUIWindow(qt.QMainWindow):
         pass
 
 
+    def on_view_changed(self):
+        pass
+
+
     def browse_for_file(self,name_filter,target_textbox=None):
 
         filedialog = qt.QFileDialog(self)
@@ -790,7 +802,7 @@ class CalcamGUIWindow(qt.QMainWindow):
         self.feature_tree.blockSignals(False)
 
 
-    def load_model(self,data=None,featurelist=None):
+    def load_model(self,data=None,featurelist=None,hold_view=False):
 
         # Dispose of the old model
         if self.cadmodel is not None:
@@ -872,24 +884,25 @@ class CalcamGUIWindow(qt.QMainWindow):
         light.PositionalOn()
         light.SetConeAngle(180)
 
-        # Put the camera in some reasonable starting position
-        self.camera_3d.SetViewAngle(90)
-        self.camera_3d.SetViewUp((0,0,1))
-        self.camera_3d.SetFocalPoint(0,0,0)
+        if not hold_view:
+            # Put the camera in some reasonable starting position
+            self.camera_3d.SetViewAngle(90)
+            self.camera_3d.SetViewUp((0,0,1))
+            self.camera_3d.SetFocalPoint(0,0,0)
 
-        self.update_model_views()
+            self.update_model_views()
 
-        if self.cadmodel.initial_view is not None:
-            for i in range(self.views_root_model.childCount()):
-                if self.views_root_model.child(i).text(0).replace('*','') == self.cadmodel.initial_view:
-                    self.views_root_model.child(i).setSelected(True)
-                    break
-        else:
-            model_extent = self.cadmodel.get_extent()
-            if np.abs(model_extent).max() > 0:
-                self.camera_3d.SetPosition(((model_extent[5] - model_extent[4])/2,(model_extent[2]+model_extent[3])/2,(model_extent[4]+model_extent[5])/2))
+            if self.cadmodel.initial_view is not None:
+                for i in range(self.views_root_model.childCount()):
+                    if self.views_root_model.child(i).text(0).replace('*','') == self.cadmodel.initial_view:
+                        self.views_root_model.child(i).setSelected(True)
+                        break
             else:
-                self.camera_3d.SetPosition((3.,0,0))
+                model_extent = self.cadmodel.get_extent()
+                if np.abs(model_extent).max() > 0:
+                    self.camera_3d.SetPosition(((model_extent[5] - model_extent[4])/2,(model_extent[2]+model_extent[3])/2,(model_extent[4]+model_extent[5])/2))
+                else:
+                    self.camera_3d.SetPosition((3.,0,0))
 
         self.statusbar.clearMessage()
         self.interactor3d.update_clipping()
@@ -928,10 +941,7 @@ class CalcamGUIWindow(qt.QMainWindow):
         self.tarY.blockSignals(True)
         self.tarZ.blockSignals(True)
         self.cam_roll.blockSignals(True)
-        try:
-            self.camFOV.blockSignals(True)
-        except AttributeError:
-            pass
+
 
         self.camX.setValue(campos[0])
         self.camY.setValue(campos[1])
@@ -941,14 +951,15 @@ class CalcamGUIWindow(qt.QMainWindow):
         self.tarZ.setValue(camtar[2])
         self.cam_roll.setValue(roll)
 
-        try:
+        if self.fov_enabled:
+            self.camFOV.blockSignals(True)
             self.camFOV.setSuffix(fov_suffix)
             self.camFOV.setMinimum(fov_min)
             self.camFOV.setMaximum(fov_max)
             self.camFOV.setDecimals(decimals)
             self.camFOV.setValue(fov)
-        except AttributeError:
-            pass
+            self.camFOV.blockSignals(False)
+
 
         self.camX.blockSignals(False)
         self.camY.blockSignals(False)
@@ -957,10 +968,6 @@ class CalcamGUIWindow(qt.QMainWindow):
         self.tarY.blockSignals(False)
         self.tarZ.blockSignals(False)
         self.cam_roll.blockSignals(False)
-        try:
-            self.camFOV.blockSignals(False)
-        except AttributeError:
-            pass
 
         if not keep_selection:
             self.viewlist.clearSelection() 
@@ -1073,15 +1080,15 @@ class CalcamGUIWindow(qt.QMainWindow):
         self.qvtkwidget_2d.update()
 
 
-    def show_debug_dialog(self,thing):
-
-        message = str(thing)
+    def show_msgbox(self,main_msg,sub_msg=None):
 
         dialog = qt.QMessageBox(self)
         dialog.setStandardButtons(qt.QMessageBox.Ok)
         dialog.setTextFormat(qt.Qt.RichText)
-        dialog.setWindowTitle('Calcam - Debug Message')
-        dialog.setText(message)
+        dialog.setWindowTitle('Calcam')
+        dialog.setText(str(main_msg))
+        if sub_msg is not None:
+            dialog.setInformativeText(str(sub_msg))
         dialog.setIcon(qt.QMessageBox.Information)
         dialog.exec_()
 

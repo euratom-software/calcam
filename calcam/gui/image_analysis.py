@@ -323,22 +323,6 @@ class ImageAnalyser(CalcamGUIWindow):
 
 
 
-    def update_image_info_string(self):
-
-        if np.any(self.image_geometry.get_display_shape() != self.image_geometry.get_original_shape()):
-            info_str = '{0:d} x {1:d} pixels ({2:.1f} MP) [ As Displayed ]<br>{3:d} x {4:d} pixels ({5:.1f} MP) [ Raw Data ]<br>'.format(self.image_geometry.get_display_shape()[0],self.image_geometry.get_display_shape()[1],np.prod(self.image_geometry.get_display_shape()) / 1e6 ,self.image_geometry.get_original_shape()[0],self.image_geometry.get_original_shape()[1],np.prod(self.image_geometry.get_original_shape()) / 1e6 )
-        else:
-            info_str = '{0:d} x {1:d} pixels ({2:.1f} MP)<br>'.format(self.image_geometry.get_display_shape()[0],self.image_geometry.get_display_shape()[1],np.prod(self.image_geometry.get_display_shape()) / 1e6 )
-        
-        if len(self.original_image.shape) == 2:
-            info_str = info_str + 'Monochrome'
-        elif len(self.original_image.shape) == 3 and self.original_image.shape[2] == 3:
-            info_str = info_str + 'RGB Colour'
-
-        self.image_info.setText(info_str)
-
-
-
 
     def load_calib(self):
 
@@ -489,7 +473,7 @@ class ImageAnalyser(CalcamGUIWindow):
             self.hist_eq_checkbox.setChecked(True)
 
 
-        self.update_image_info_string()
+        self.update_image_info_string(self.original_image,self.image_geometry)
         self.app.restoreOverrideCursor()
         self.statusbar.clearMessage()
 
@@ -533,7 +517,7 @@ class ImageAnalyser(CalcamGUIWindow):
             self.hist_eq_checkbox.setChecked(False)
             self.hist_eq_checkbox.setChecked(True)
  
-        self.update_image_info_string()
+        self.update_image_info_string(self.original_image,self.image_geometry)
 
 
         

@@ -151,7 +151,7 @@ class ViewModel():
             z_projection = z_projection / np.sqrt(np.sum(z_projection**2))
             x = np.dot(upvec,z_projection)
             y = np.dot(upvec,h_projection)
-            return( - np.arctan2(y,x) * 180 / 3.14159 ) 
+            return( np.arctan2(y,x) * 180 / 3.14159 ) 
 
         else:
             # If the camera is looking (close to) vertically up or down, roll is not defined.
@@ -1101,7 +1101,7 @@ class Calibration():
             self.intrinsics_constraints.append((intrinsics_calib.get_image(coords='Display'),intrinsics_calib.pointpairs))
             self.intrinsics_constraints = self.intrinsics_constraints + intrinsics_calib.intrinsics_constraints
             self.intrinsics_type = 'calibration'
-            self.history['intrinsics'] = {intrinsics_calib.history}
+            self.history['intrinsics'] = intrinsics_calib.history
         else:
             self.intrinsics_type = intrinsics_calib.intrinsics_type
             self.history['intrinsics'] = intrinsics_calib.history['intrinsics']

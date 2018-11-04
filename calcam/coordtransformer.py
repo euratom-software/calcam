@@ -150,7 +150,7 @@ class CoordTransformer:
             if not np.any(np.mod(expected_size,im_size)) and np.abs(ratio[0]-ratio[1]) < 1e-5:
                 binning = ratio[0]
             else:
-                raise Exception('Expected (multiple of) {:d}x{:d} pixel image, got {:d}x{:d}!'.format(self.x_pixels,self.y_pixels,image.shape[1],image.shape[0]))
+                raise Exception('Expected (multiple of) {:d}x{:d} pixel image, got {:d}x{:d}!'.format(expected_size[0],expected_size[1],image.shape[1],image.shape[0]))
 
         data_out = image.copy()
 
@@ -186,7 +186,7 @@ class CoordTransformer:
             if not np.any(np.mod(expected_size,im_size)) and np.abs(ratio[0]-ratio[1]) < 1e-5:
                 binning = ratio[0]
             else:
-                raise Exception('Expected (multiple of) {:d}x{:d} pixel image, got {:d}x{:d}!'.format(self.x_pixels,self.y_pixels,image.shape[1],image.shape[0]))
+                raise Exception('Expected (multiple of) {:d}x{:d} pixel image, got {:d}x{:d}!'.format(expected_size[0],expected_size[1],image.shape[1],image.shape[0]))
 
         data_out = image.copy()
 

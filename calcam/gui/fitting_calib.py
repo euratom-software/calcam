@@ -116,6 +116,7 @@ class FittingCalib(CalcamGUIWindow):
         self.action_open.triggered.connect(self.load_calib)
         self.action_new.triggered.connect(self.reset)
 
+
         self.control_sensitivity_slider.valueChanged.connect(lambda x: self.interactor3d.set_control_sensitivity(x*0.01))
         self.rmb_rotate.toggled.connect(self.interactor3d.set_rmb_rotate)
         self.interactor3d.set_control_sensitivity(self.control_sensitivity_slider.value()*0.01)
@@ -176,9 +177,13 @@ class FittingCalib(CalcamGUIWindow):
 
         self.fit_overlay = None
 
+        self.chessboard_source = None
+
         self.fit_results = []
 
         self.filename = None
+
+        self.waiting_pointpairs = None
 
         self.n_points = [ [0,0] ] # One list per sub-field, which is [extrinsics_data, intrinsics_data]
 
@@ -371,6 +376,7 @@ class FittingCalib(CalcamGUIWindow):
     def on_model_load(self):
         # Enable the other tabs!
         self.tabWidget.setTabEnabled(2,True)
+        self.update_fit_results()
         #self.tabWidget.setTabEnabled(2,True)
         #self.tabWidget.setTabEnabled(3,True)
 
@@ -414,7 +420,7 @@ class FittingCalib(CalcamGUIWindow):
             self.overlay_checkbox.setChecked(False)
 
         self.reset_fit()
-        self.update_image_info_string()
+        self.update_image_info_string(newim['image_data'],self.calibration.geometry)
 
 
 
@@ -650,7 +656,7 @@ class FittingCalib(CalcamGUIWindow):
             self.hist_eq_checkbox.setChecked(True)
  
 
-        self.update_image_info_string()
+        self.update_image_info_string(self.calibration.get_image(),self.calibration.geometry)
         self.rebuild_image_gui()
         self.unsaved_changes = True
 
@@ -1146,10 +1152,19 @@ class FittingCalib(CalcamGUIWindow):
         # Load the image
         for imsource in self.image_sources:
             if imsource.display_name == 'Calcam Calibration':
-                self.load_image(newim = imsource.get_image_function(self.filename))
+                try:
+                    self.load_image(newim = imsource.get_image_function(self.filename))
+                except Exception as e:
+                    if 'does not contain an image' in str(e):
+                        self.interactor2d.set_image(opened_calib.get_subview_mask(coords='Display')*0,n_subviews=opened_calib.n_subviews,subview_lookup=opened_calib.subview_lookup)
+                    else:
+                        raise
+
+        self.calibration = opened_calib
+        self.interactor2d.set_subview_lookup(self.calibration.n_subviews,self.calibration.subview_lookup)
 
         # Load the point pairs
-        self.load_pointpairs(pointpairs=opened_calib.pointpairs,history=opened_calib.history['image'])
+        self.load_pointpairs(pointpairs=opened_calib.pointpairs,history=opened_calib.history['pointpairs'])
 
         # Load the appropriate CAD model, if we know what that is
         if opened_calib.cad_config is not None:
@@ -1200,8 +1215,7 @@ class FittingCalib(CalcamGUIWindow):
                     if str(widget.text()) in opened_calib.view_models[field].fit_options:
                         widget.setChecked(True)
 
-        self.calibration = opened_calib
-        self.interactor2d.subview_lookup = self.calibration.subview_lookup
+        
 
         if self.calibration.readonly:
             self.action_save.setEnabled(False)

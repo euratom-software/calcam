@@ -66,7 +66,7 @@ class VirtualCalib(CalcamGUIWindow):
         self.tarY.valueChanged.connect(self.change_cad_view)
         self.tarZ.valueChanged.connect(self.change_cad_view)
         self.cam_roll.valueChanged.connect(self.change_cad_view)
-        self.load_model_button.clicked.connect(self.load_model)
+        self.load_model_button.clicked.connect(self._load_model)
         self.model_name.currentIndexChanged.connect(self.populate_model_variants)
         self.feature_tree.itemChanged.connect(self.update_checked_features)
         self.calcam_intrinsics.clicked.connect(self.update_intrinsics)
@@ -92,6 +92,11 @@ class VirtualCalib(CalcamGUIWindow):
 
         self.viewport_calibs = DodgyDict()
         self.intrinsics_calib = None
+
+        self.fov_enabled = False
+        self.viewdir_at_cc = True
+
+        self.calibration = None
 
         # Start the GUI!
         self.show()
@@ -291,7 +296,7 @@ class VirtualCalib(CalcamGUIWindow):
             else:
                 keep_model = False
         else:
-            keep_model = False
+            keep_model = True
 
         self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
         self.reset(keep_cadmodel = keep_model)
@@ -321,16 +326,20 @@ class VirtualCalib(CalcamGUIWindow):
                     load_model=False
 
                 if load_model:
-                    self.load_model(featurelist=cconfig['enabled_features'])
+                    self.load_model(featurelist=cconfig['enabled_features'],hold_view=True)
 
 
         self.calibration = opened_calib
 
         # Load the intrinsics
         if opened_calib.intrinsics_type == 'pinhole':
-            fl = opened_calib.view_models[0].cam_matrix[0,0] * opened_calib.pixel_size  / 1000
 
-            self.pixel_size_box.setValue(opened_calib.pixel_size)
+            if opened_calib.pixel_size is not None:
+                fl = opened_calib.view_models[0].cam_matrix[0,0] * opened_calib.pixel_size  / 1000
+                self.pixel_size_box.setValue(opened_calib.pixel_size)
+            else:
+                fl = opened_calib.view_models[0].cam_matrix[0,0] * self.pixel_size_box.value()  / 1000
+
             im_size = opened_calib.geometry.get_display_shape()
             self.x_pixels_box.setValue(im_size[0])
             self.y_pixels_box.setValue(im_size[1])
@@ -345,7 +354,7 @@ class VirtualCalib(CalcamGUIWindow):
             self.chessboard_intrinsics.setChecked(True)
 
         elif opened_calib.intrinsics_type == 'calibration':
-            self.intrinsics_calib = self.crlibration
+            self.intrinsics_calib = self.calibration
             self.calcam_intrinsics.setChecked(True)
 
         self.update_intrinsics()
@@ -359,6 +368,10 @@ class VirtualCalib(CalcamGUIWindow):
 
         self.app.restoreOverrideCursor()
         self.unsaved_changes = False
+
+
+    def _load_model(self):
+        self.load_model(hold_view = self.calibration is not None)
 
 
     def reset(self,keep_cadmodel=False):
@@ -381,53 +394,4 @@ class VirtualCalib(CalcamGUIWindow):
         self.intrinsics_calib = None
 
         self.unsaved_changes = False
-        self.refresh_3d()
-
-
-    def change_cad_view(self):
-
-        if self.sender() is self.viewlist:
-            items = self.viewlist.selectedItems()
-            if len(items) > 0:
-                view_item = items[0]
-            else:
-                return
-
-            if view_item.parent() is self.views_root_model:
-
-                view = self.cadmodel.get_view( str(view_item.text(0)))
-
-                # Set to that view
-                self.camera_3d.SetPosition(view['cam_pos'])
-                self.camera_3d.SetFocalPoint(view['target'])
-                self.camera_3d.SetViewUp(0,0,1)
-                self.interactor3d.set_xsection(None)
-                self.interactor3d.set_roll(view['roll'])
-
-            elif view_item.parent() is self.views_root_results or view_item.parent() in self.viewport_calibs.keys():
-
-                view,subfield = self.viewport_calibs[(view_item)]
-                
-                if subfield is not None:
-                    self.set_view_from_calib(view,subfield)
-
-                return
-
-        self.update_viewport_info(keep_selection=True)
-
-
-    def set_view_from_calib(self,calibration,subfield):
-
-        viewmodel = calibration.view_models[subfield]
-
-        self.camera_3d.SetPosition(viewmodel.get_pupilpos())
-        self.camera_3d.SetFocalPoint(viewmodel.get_pupilpos() + viewmodel.get_los_direction(calibration.get_cc(subview=subfield)[0],calibration.get_cc(subview=subfield)[1]))
-        
-        self.camera_3d.SetViewUp(-1.*viewmodel.get_cam_to_lab_rotation()[:,1])
-        self.interactor3d.set_xsection(None)       
-
-        self.update_viewport_info(keep_selection=True)
-
-        self.interactor3d.update_clipping()
-
         self.refresh_3d()

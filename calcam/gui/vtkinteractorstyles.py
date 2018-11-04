@@ -119,6 +119,8 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
         self.renderer = renderers.GetNextItemAsObject()
         self.camera = self.renderer.GetActiveCamera()
 
+        self.camera.SetViewUp(0,0,1)
+
         self.SetAutoAdjustCameraClippingRange(False)
 
         # Turn off any VTK responses to keyboard input (all necessary keyboard shortcuts etc are done in Q)
