@@ -1,6 +1,13 @@
 Project Changelog
 =================
 
+Bug fix release 1.9.4 (06 Nov 2018)
+-----------------------------------
+
+Fixes:
+* Fixed bug causing unhandled exceptions when opening GUI with no CAD models set up (e.g. on first run)
+
+
 Bug fix release 1.9.3 (11 Mar 2018)
 -----------------------------------
 
