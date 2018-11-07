@@ -588,7 +588,9 @@ class ImageAnalyser(CalcamGUIWindow):
                 for channel in range(3):
                     im_out[:,:,channel] = hist_equaliser.apply(im_out.astype('uint8')[:,:,channel]) 
 
-        self.interactor2d.set_image(im_out,n_subviews = self.calibration.n_subviews,subview_lookup=self.calibration.subview_lookup,hold_position=True)
+        self.interactor2d.set_image(im_out,hold_position=True)
+        if self.calibration is not None:
+            self.interactor2d.set_subview_lookup(self.calibration.n_subviews,self.calibration.subview_lookup)
 
 
 
