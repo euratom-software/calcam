@@ -154,7 +154,7 @@ class AlignmentCalib(CalcamGUIWindow):
         self.show()
 
         self.interactor3d.init()
-        self.update_intrinsics()
+        self.reset()
         self.qvtkwidget_3d.GetRenderWindow().GetInteractor().Initialize()
 
 
@@ -180,9 +180,12 @@ class AlignmentCalib(CalcamGUIWindow):
         self.tabWidget.setTabEnabled(3,False)
 
         self.filename = None
+        self.setWindowTitle('Calcam Calibration Tool (Manual Alignment)')
 
         self.chessboard_fit = None
         self.intrinsics_calib = None
+        
+        self.update_intrinsics()
 
         self.refresh_3d()
         self.unsaved_changes = False
@@ -251,6 +254,7 @@ class AlignmentCalib(CalcamGUIWindow):
 
         # Basic setup
         self.filename = opened_calib.filename
+        self.setWindowTitle('Calcam Calibration Tool (Manual Alignment) - {:s}'.format(os.path.split(self.filename)[-1][:-4]))
 
         # Load the image
         for imsource in self.image_sources:
@@ -588,6 +592,8 @@ class AlignmentCalib(CalcamGUIWindow):
             self.app.restoreOverrideCursor()
 
             self.action_save.setEnabled(True)
+            self.setWindowTitle('Calcam Calibration Tool (Manual Alignment) - {:s}'.format(os.path.split(self.filename)[-1][:-4]))
 
         elif saveas:
             self.filename = orig_filename
+        

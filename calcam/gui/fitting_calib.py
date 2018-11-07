@@ -2,21 +2,21 @@
 * Copyright 2015-2018 European Atomic Energy Community (EURATOM)
 *
 * Licensed under the EUPL, Version 1.1 or - as soon they
-  will be approved by the European Commission - subsequent
-  versions of the EUPL (the "Licence");
+will be approved by the European Commission - subsequent
+versions of the EUPL (the "Licence");
 * You may not use this work except in compliance with the
-  Licence.
+Licence.
 * You may obtain a copy of the Licence at:
 *
 * https://joinup.ec.europa.eu/software/page/eupl
 *
 * Unless required by applicable law or agreed to in
-  writing, software distributed under the Licence is
-  distributed on an "AS IS" basis,
+writing, software distributed under the Licence is
+distributed on an "AS IS" basis,
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
-  express or implied.
+express or implied.
 * See the Licence for the specific language governing
-  permissions and limitations under the Licence.
+permissions and limitations under the Licence.
 '''
 
 import cv2
@@ -244,6 +244,7 @@ class FittingCalib(CalcamGUIWindow):
         self.tabWidget.setTabEnabled(4,False)
 
         self.filename = None
+        self.setWindowTitle('Calcam Calibration Tool (Point Fitting)')
 
         self.chessboard_pointpairs = []
         self.chessboard_checkbox.setChecked(False)
@@ -825,7 +826,7 @@ class FittingCalib(CalcamGUIWindow):
             for chessboard_constraint in self.chessboard_pointpairs:
                 self.calibration.add_intrinsics_constraints(image=chessboard_constraint[0],pointpairs = chessboard_constraint[1],src=src)
                 for subview in range(self.calibration.n_subviews):
-                     self.fitters[subview].add_intrinsics_pointpairs(chessboard_constraint[1],subview=subview)
+                    self.fitters[subview].add_intrinsics_pointpairs(chessboard_constraint[1],subview=subview)
                 src = None
 
         self.unsaved_changes = True
@@ -878,17 +879,17 @@ class FittingCalib(CalcamGUIWindow):
 
 
                 widgets[2].setText( '<br>'.join( [ '( {: .3f} , {: .3f} , {: .3f} ) m'.format(pupilpos[0],pupilpos[1],pupilpos[2]).replace(' ','&nbsp;') ,
-                                                   '( {: .3f} , {: .3f} , {: .3f} )'.format(los_centre[0],los_centre[1],los_centre[2]).replace(' ','&nbsp;') ,
-                                                   '{:.1f}\xb0 x {:.1f}\xb0 '.format(fov[0],fov[1]).replace(' ','&nbsp;') ,
-                                                   "{0:.1f} {2:s} x {1:.1f} {2:s}".format(fx,fy,fl_units).replace(' ','&nbsp;') ,
-                                                   "( {: .0f} , {: .0f} )".format(params.cam_matrix[0,2], params.cam_matrix[1,2]).replace(' ','&nbsp;') ,
-                                                   "{: 5.4f}".format(params.kc[0][0]).replace(' ','&nbsp;') ,
-                                                   "{: 5.4f}".format(params.kc[0][1]).replace(' ','&nbsp;') ,
-                                                   "{: 5.4f}".format(params.kc[0][4]).replace(' ','&nbsp;') ,
-                                                   "{: 5.4f}".format(params.kc[0][2]).replace(' ','&nbsp;') ,
-                                                   "{: 5.4f}".format(params.kc[0][3]).replace(' ','&nbsp;') ,
-                                                   ''
-                                                   ] ) )
+                                                '( {: .3f} , {: .3f} , {: .3f} )'.format(los_centre[0],los_centre[1],los_centre[2]).replace(' ','&nbsp;') ,
+                                                '{:.1f}\xb0 x {:.1f}\xb0 '.format(fov[0],fov[1]).replace(' ','&nbsp;') ,
+                                                "{0:.1f} {2:s} x {1:.1f} {2:s}".format(fx,fy,fl_units).replace(' ','&nbsp;') ,
+                                                "( {: .0f} , {: .0f} )".format(params.cam_matrix[0,2], params.cam_matrix[1,2]).replace(' ','&nbsp;') ,
+                                                "{: 5.4f}".format(params.kc[0][0]).replace(' ','&nbsp;') ,
+                                                "{: 5.4f}".format(params.kc[0][1]).replace(' ','&nbsp;') ,
+                                                "{: 5.4f}".format(params.kc[0][4]).replace(' ','&nbsp;') ,
+                                                "{: 5.4f}".format(params.kc[0][2]).replace(' ','&nbsp;') ,
+                                                "{: 5.4f}".format(params.kc[0][3]).replace(' ','&nbsp;') ,
+                                                ''
+                                                ] ) )
             elif params.model == 'fisheye':
                 widgets[0].setText( '<b>RMS Fit Residual: {: .1f} pixels<b>'.format(params.reprojection_error) )
                 widgets[1].setText( ' : <br>'.join( [  'Pupil position' , 
@@ -912,16 +913,16 @@ class FittingCalib(CalcamGUIWindow):
                     fl_units = 'px'
 
                 widgets[2].setText( '<br>'.join( [ '( {: .3f} , {: .3f} , {: .3f} ) m'.format(pupilpos[0],pupilpos[1],pupilpos[2]).replace(' ','&nbsp;') ,
-                                                   '( {: .3f} , {: .3f} , {: .3f} )'.format(los_centre[0],los_centre[1],los_centre[2]).replace(' ','&nbsp;') ,
-                                                   '{:.1f}\xb0 x {:.1f}\xb0 '.format(fov[0],fov[1]).replace(' ','&nbsp;') ,
-                                                   "{0:.1f} {2:s} x {1:.1f} {2:s}".format(fx,fy,fl_units).replace(' ','&nbsp;') ,
-                                                   "( {: .0f} , {: .0f} )".format(params.cam_matrix[0,2], params.cam_matrix[1,2]).replace(' ','&nbsp;') ,
-                                                   "{: 5.4f}".format(params.k1).replace(' ','&nbsp;') ,
-                                                   "{: 5.4f}".format(params.k2).replace(' ','&nbsp;') ,
-                                                   "{: 5.4f}".format(params.k3).replace(' ','&nbsp;') ,
-                                                   "{: 5.4f}".format(params.k4).replace(' ','&nbsp;') ,
-                                                   ''
-                                                   ] ) )                
+                                                '( {: .3f} , {: .3f} , {: .3f} )'.format(los_centre[0],los_centre[1],los_centre[2]).replace(' ','&nbsp;') ,
+                                                '{:.1f}\xb0 x {:.1f}\xb0 '.format(fov[0],fov[1]).replace(' ','&nbsp;') ,
+                                                "{0:.1f} {2:s} x {1:.1f} {2:s}".format(fx,fy,fl_units).replace(' ','&nbsp;') ,
+                                                "( {: .0f} , {: .0f} )".format(params.cam_matrix[0,2], params.cam_matrix[1,2]).replace(' ','&nbsp;') ,
+                                                "{: 5.4f}".format(params.k1).replace(' ','&nbsp;') ,
+                                                "{: 5.4f}".format(params.k2).replace(' ','&nbsp;') ,
+                                                "{: 5.4f}".format(params.k3).replace(' ','&nbsp;') ,
+                                                "{: 5.4f}".format(params.k4).replace(' ','&nbsp;') ,
+                                                ''
+                                                ] ) )                
             if self.cadmodel is not None:
                 widgets[3].setEnabled(True)
             else:
@@ -1117,8 +1118,12 @@ class FittingCalib(CalcamGUIWindow):
             self.statusbar.clearMessage()
             self.app.restoreOverrideCursor()
 
+            self.setWindowTitle('Calcam Calibration Tool (Point Fitting) - {:s}'.format(os.path.split(self.filename)[-1][:-4]))
+            
         elif saveas:
             self.filename = orig_filename
+            
+        
 
 
     def load_calib(self):
@@ -1147,6 +1152,7 @@ class FittingCalib(CalcamGUIWindow):
 
         # Basic setup
         self.filename = opened_calib.filename
+        self.setWindowTitle('Calcam Calibration Tool (Point Fitting) - {:s}'.format(os.path.split(self.filename)[-1][:-4]))
 
         # Load the image
         for imsource in self.image_sources:

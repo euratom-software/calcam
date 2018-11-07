@@ -269,6 +269,7 @@ class VirtualCalib(CalcamGUIWindow):
             self.virtual_calib.save(self.filename)
             self.unsaved_changes = False
             self.action_save.setEnabled(True)
+            self.setWindowTitle('Calcam Virtual Calibration Tool - {:s}'.format(os.path.split(self.filename)[-1][:-4]))
             self.statusbar.clearMessage()
             self.app.restoreOverrideCursor()
 
@@ -303,6 +304,7 @@ class VirtualCalib(CalcamGUIWindow):
 
         # Basic setup
         self.filename = opened_calib.filename
+        self.setWindowTitle('Calcam Virtual Calibration Tool - {:s}'.format(os.path.split(self.filename)[-1][:-4]))
 
 
         # Load the appropriate CAD model, if we know what that is
@@ -389,6 +391,7 @@ class VirtualCalib(CalcamGUIWindow):
         self.calibration = Calibration(cal_type='virtual')
 
         self.filename = None
+        self.setWindowTitle('Calcam Virtual Calibration Tool')
 
         self.chessboard_fit = None
         self.intrinsics_calib = None
