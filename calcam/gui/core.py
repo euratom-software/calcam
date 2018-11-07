@@ -496,8 +496,9 @@ class CalcamGUIWindow(qt.QMainWindow):
                 
             elif obj_type.lower() == 'pointpairs':
                 if path.endswith('.ccc'):
-                    obj = Calibration(path).pointpairs
-                    obj.history = obj.history['pointpairs']
+                    cal = Calibration(path)
+                    obj = cal.pointpairs
+                    obj.history = cal.history['pointpairs']
                 elif path.endswith('.csv'):
                     with open(path,'r') as ppf:
                         obj = PointPairs(ppf)

@@ -76,7 +76,7 @@ class CoordTransformer:
             for action in self.transform_actions:
                 if action.lower() in ['rotate_clockwise_90','rotate_clockwise_270']:
                     shape = list(reversed(shape))
-            shape[1] = shape[1] / self.pixel_aspectratio
+            shape[1] = np.round(shape[1] / self.pixel_aspectratio)
             
         self.x_pixels = int(shape[0])
         self.y_pixels = int(shape[1])
@@ -154,7 +154,6 @@ class CoordTransformer:
 
         data_out = image.copy()
 
-        data_out = cv2.resize(data_out,(int(self.x_pixels/binning),int(self.y_pixels*self.pixel_aspectratio/binning)),interpolation=cv2.INTER_NEAREST)
 
         for action in self.transform_actions:
             if action.lower() == 'flip_up_down':
@@ -167,6 +166,9 @@ class CoordTransformer:
                 data_out = np.rot90(data_out,k=2)
             elif action.lower() == 'rotate_clockwise_270':
                 data_out = np.rot90(data_out,k=1)
+
+        out_shape = self.get_display_shape()
+        data_out = cv2.resize(data_out,(int(out_shape[0]/binning),int(out_shape[1]/binning)),interpolation=cv2.INTER_NEAREST)
 
         return data_out
 
@@ -296,7 +298,7 @@ class CoordTransformer:
     # since Python addresses image arrays [y,x]
     def get_display_shape(self):
 
-        display_shape = [self.x_pixels,int(self.y_pixels*self.pixel_aspectratio)]
+        display_shape = [self.x_pixels,int(np.round(self.y_pixels*self.pixel_aspectratio))]
 
         for action in self.transform_actions:
             if action.lower() in ['rotate_clockwise_90','rotate_clockwise_270']:

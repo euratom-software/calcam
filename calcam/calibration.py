@@ -486,7 +486,7 @@ class Calibration():
 
             # Load the field mask and set up geometry object
             subview_mask = cv2.imread(os.path.join(save_file.get_temp_path(),'subview_mask.png'))[:,:,0]
-            self.geometry = CoordTransformer(meta['image_transform_actions'],meta['orig_paspect'])
+            self.geometry = CoordTransformer(transform_actions=meta['image_transform_actions'],paspect=meta['orig_paspect'])
             self.geometry.set_image_shape(subview_mask.shape[1],subview_mask.shape[0],coords='Display')
             
             self.subview_mask = self.geometry.display_to_original_image(subview_mask)

@@ -110,6 +110,7 @@ class FittingCalib(CalcamGUIWindow):
         self.chessboard_checkbox.toggled.connect(self.toggle_chessboard_constraints)
         self.load_intrinsics_calib_button.clicked.connect(self.modify_intrinsics_calib)
         self.intrinsics_calib_checkbox.toggled.connect(self.toggle_intrinsics_calib)
+        self.viewport_load_calib.clicked.connect(self.load_viewport_calib)
 
         self.action_save.triggered.connect(self.save_calib)
         self.action_save_as.triggered.connect(lambda: self.save_calib(saveas=True))
@@ -153,7 +154,7 @@ class FittingCalib(CalcamGUIWindow):
         self.pixel_size_box.setSuffix(u' \u00B5m')
         #self.save_fit_button.setEnabled(False)
 
-
+        self.viewport_calibs = DodgyDict()
         # Populate image sources list and tweak GUI layout for image loading.
         self.imload_inputs = {}
         self.image_load_options.layout().setColumnMinimumWidth(0,100)
@@ -282,7 +283,6 @@ class FittingCalib(CalcamGUIWindow):
                 self.point_pairings[self.selected_pointpair][1] = self.interactor2d.add_active_cursor(im_coords)
                 self.interactor2d.set_cursor_focus(self.point_pairings[self.selected_pointpair][1])
                 self.update_n_points()
-                self.on_points_changed()
                 return
 
         self.point_pairings.append( [None,self.interactor2d.add_active_cursor(im_coords)] )
@@ -301,7 +301,6 @@ class FittingCalib(CalcamGUIWindow):
                 self.point_pairings[self.selected_pointpair][0] = self.interactor3d.add_cursor(coords)
                 self.interactor3d.set_cursor_focus(self.point_pairings[self.selected_pointpair][0])
                 self.update_n_points()
-                self.on_points_changed()
                 return
 
         self.point_pairings.append( [self.interactor3d.add_cursor(coords),None] )
@@ -661,7 +660,7 @@ class FittingCalib(CalcamGUIWindow):
         self.unsaved_changes = True
 
 
-    def load_pointpairs(self,data=None,pointpairs=None,src=None,history=None,force_clear=False):
+    def load_pointpairs(self,data=None,pointpairs=None,src=None,history=None,force_clear=None,clear_fit=True):
 
         if pointpairs is None:
             pointpairs = self.object_from_file('pointpairs')
@@ -685,7 +684,7 @@ class FittingCalib(CalcamGUIWindow):
             self.fitted_points_checkbox.setChecked(False)
             self.overlay_checkbox.setChecked(False)
 
-            if self.pointpairs_clear_before_load.isChecked() or force_clear:
+            if (self.pointpairs_clear_before_load.isChecked() or force_clear) and force_clear != False:
                 self.clear_pointpairs()
 
             for i in range(len(pointpairs.object_points)):
@@ -1161,10 +1160,13 @@ class FittingCalib(CalcamGUIWindow):
                         raise
 
         self.calibration = opened_calib
+
         self.interactor2d.set_subview_lookup(self.calibration.n_subviews,self.calibration.subview_lookup)
 
         # Load the point pairs
-        self.load_pointpairs(pointpairs=opened_calib.pointpairs,history=opened_calib.history['pointpairs'])
+        if opened_calib.pointpairs is not None:
+            self.load_pointpairs(pointpairs=opened_calib.pointpairs,history=opened_calib.history['pointpairs'],force_clear=False)
+
 
         # Load the appropriate CAD model, if we know what that is
         if opened_calib.cad_config is not None:
@@ -1252,6 +1254,9 @@ class FittingCalib(CalcamGUIWindow):
 
         self.interactor2d.set_image(im_out,n_subviews = self.calibration.n_subviews,subview_lookup=self.calibration.subview_lookup,hold_position=True)
 
+        if self.overlay_checkbox.isChecked():
+            self.overlay_checkbox.setChecked(False)
+            self.overlay_checkbox.setChecked(True)
 
 
     def edit_split_field(self):

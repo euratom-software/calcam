@@ -16,7 +16,7 @@ Prerequisites
 -------------
 The calcam package works with Python 2.7+ (tested up to 3.6) and requires the following other Python packages to be available:
 
-	- NumPy
+	- NumPy v1.10.0 +
 	- SciPy
 	- MatPlotLib
 	- OpenCV (cv2) 2.4+ [Some features only available with 3.0+]
