@@ -66,7 +66,7 @@ class CADModel():
 
                 # If not specified, choose whatever model variant is specified in the metadata
                 if model_variant is None:
-                    model_variant = model_defs[model_name][2]
+                    self.model_variant = model_defs[model_name][2]
                 else:
                     self.model_variant = model_variant
 

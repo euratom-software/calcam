@@ -39,7 +39,7 @@ from .raycast import raycast_sightlines
 vtk_major_version = vtk.vtkVersion().GetVTKMajorVersion()
 
 
-def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampling=1,aa=1,transparency=False,remap_nearest_neighbour=False,verbose=True,coords = 'Display',screensize=(800,600)):
+def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampling=1,aa=1,transparency=False,verbose=True,coords = 'Display',screensize=(800,600),interpolation='Cubic'):
 
     """
     Make CAD model renders from the camera's point of view, including all distortion effects etc.
@@ -75,6 +75,13 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
 
     if coords.lower() == 'original' and oversampling != 1:
         raise Exception('Cannot render in original coordinates with oversampling!')
+
+    if interpolation.lower() == 'nearest':
+        interp_method = cv2.INTER_NEAREST
+    elif interpolation.lower() == 'cubic':
+        interp_method = cv2.INTER_CUBIC
+    else:
+        raise ValueError('Interpolation method must be "nearest" or "cubic".')
 
 
     logbase2 = np.log(oversampling) / np.log(2)
@@ -194,7 +201,7 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
             alpha[np.sum(im,axis=2) == 0] = 0
             im = np.dstack((im,alpha))
 
-        im = cv2.resize(im,(int(dims[0]/aa*min(oversampling,1)),int(dims[1]/aa*min(oversampling,1))),interpolation=cv2.INTER_AREA)
+        im = cv2.resize(im,(int(dims[0]/aa*min(oversampling,1)),int(dims[1]/aa*min(oversampling,1))),interpolation=interp_method)
 
         if verbose:
             print('[Calcam Renderer] Applying lens distortion (Sub-view {:d}/{:d})...'.format(field + 1,calibration.n_subviews))
@@ -213,18 +220,13 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
 
 
         # Actually apply distortion
-        if remap_nearest_neighbour:
-            interp_method = cv2.INTER_NEAREST
-        else:
-            interp_method = cv2.INTER_CUBIC
-    
         im  = cv2.remap(im,xmap,ymap,interp_method)
 
         output[fieldmask == field,:] = im[fieldmask == field,:]
 
 
     if coords.lower() == 'original':
-        output = FitResults.geometry.display_to_original_image(output)
+        output = calibration.geometry.display_to_original_image(output,interpolation=interpolation)
     
     if verbose:
         print('[Calcam Renderer] Completed in {:.1f} s.'.format(time.time() - tstart))
@@ -260,81 +262,54 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
 
 
 
-def render_hires(renderer,oversampling=1,aa=1,transparency=False):
+def render_hires(renderer,oversampling=1,aa=1,transparency=False,interpolation='cubic'):
 
-        # Thicken up all the lines according to AA setting to make sure
-        # they dnon't end upp invisibly thin.
-        actorcollection = renderer.GetActors()
-        actorcollection.InitTraversal()
+    if interpolation.lower() == 'nearest':
+        interp_method = cv2.INTER_NEAREST
+    elif interpolation.lower() == 'cubic':
+        interp_method = cv2.INTER_CUBIC
+    else:
+        raise ValueError('Interpolation method must be "nearest" or "cubic".')
+
+    # Thicken up all the lines according to AA setting to make sure
+    # they dnon't end upp invisibly thin.
+    actorcollection = renderer.GetActors()
+    actorcollection.InitTraversal()
+    actor = actorcollection.GetNextItemAsObject()
+    while actor is not None:
+        actor.GetProperty().SetLineWidth( actor.GetProperty().GetLineWidth() * aa )
         actor = actorcollection.GetNextItemAsObject()
-        while actor is not None:
-            actor.GetProperty().SetLineWidth( actor.GetProperty().GetLineWidth() * aa )
-            actor = actorcollection.GetNextItemAsObject()
 
-        hires_renderer = vtk.vtkRenderLargeImage()
-        hires_renderer.SetInput(renderer)
-        hires_renderer.SetMagnification( oversampling * aa )
+    hires_renderer = vtk.vtkRenderLargeImage()
+    hires_renderer.SetInput(renderer)
+    hires_renderer.SetMagnification( oversampling * aa )
 
-        renderer.Render()
-        hires_renderer.Update()
-        vtk_im = hires_renderer.GetOutput()
-        dims = vtk_im.GetDimensions()
+    renderer.Render()
+    hires_renderer.Update()
+    vtk_im = hires_renderer.GetOutput()
+    dims = vtk_im.GetDimensions()
 
-        vtk_im_array = vtk_im.GetPointData().GetScalars()
-        im = np.flipud(vtk_to_numpy(vtk_im_array).reshape(dims[1], dims[0] , 3))
+    vtk_im_array = vtk_im.GetPointData().GetScalars()
+    im = np.flipud(vtk_to_numpy(vtk_im_array).reshape(dims[1], dims[0] , 3))
 
-        # Un-mess with the line widths
-        actorcollection.InitTraversal()
+    # Un-mess with the line widths
+    actorcollection.InitTraversal()
+    actor = actorcollection.GetNextItemAsObject()
+    while actor is not None:
+        actor.GetProperty().SetLineWidth( actor.GetProperty().GetLineWidth() / aa )
         actor = actorcollection.GetNextItemAsObject()
-        while actor is not None:
-            actor.GetProperty().SetLineWidth( actor.GetProperty().GetLineWidth() / aa )
-            actor = actorcollection.GetNextItemAsObject()
 
 
-        if transparency:
-            alpha = 255 * np.ones([np.shape(im)[0],np.shape(im)[1]],dtype='uint8')
-            alpha[np.sum(im,axis=2) == 0] = 0
-            im = np.dstack((im,alpha))
+    if transparency:
+        alpha = 255 * np.ones([np.shape(im)[0],np.shape(im)[1]],dtype='uint8')
+        alpha[np.sum(im,axis=2) == 0] = 0
+        im = np.dstack((im,alpha))
 
-        im = cv2.resize(im,(int(dims[0]/aa),int(dims[1]/aa)),interpolation=cv2.INTER_AREA)
+    im = cv2.resize(im,(int(dims[0]/aa),int(dims[1]/aa)),interpolation=interp_method)
 
-        return im
+    return im
 
 
-def render_material_mask(CADModel,FitResults,Coords='Display'):
-
-    if Coords.lower() == 'display':
-        _material_mask = np.zeros([FitResults.image_display_shape[1],FitResults.image_display_shape[0]],dtype=int) - 1
-    elif Coords.lower() == 'original':
-        _material_mask = np.zeros([FitResults.transform.y_pixels,FitResults.transform.x_pixels],dtype=int) - 1
-
-    material_mask = _material_mask.copy()
-
-    CADModel.colour_by_material(True)
-    CADModel.flat_shading(True)
-
-    render = render_cam_view(CADModel,FitResults,AA=1,NearestNeighbourRemap=True,Verbose=False,Transparency=False,Coords=Coords)
-    render = render.astype(float) / 255.
-
-    render2 = render[:,:,0] + 2.*render[:,:,1] + 4.*render[:,:,2]
-
-    colours = []
-    for material in CADModel.materials:
-        colours.append(material[1][0] + 2.*material[1][1] + 4.*material[1][2])
-
-    for i,colour in enumerate(colours):
-        delta = abs(render2 - colour)
-        _material_mask[delta < 1e-2] = i
-
-    materials = set(_material_mask.flatten())
-
-    material_list = []
-    
-    for material in materials:
-        material_list.append(CADModel.materials[material][0])
-        material_mask[_material_mask == material] = len(material_list) - 1
-    
-    return material_list,material_mask
 
 
 

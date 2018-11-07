@@ -140,7 +140,14 @@ class CoordTransformer:
     #           skip_resize - 
     #           binning - 
     # Returns: data_out - numpy ndarray containing the image in display coordinates.
-    def original_to_display_image(self,image):
+    def original_to_display_image(self,image,interpolation='nearest'):
+
+        if interpolation.lower() == 'nearest':
+            interp_method = cv2.INTER_NEAREST
+        elif interpolation.lower() == 'cubic':
+            interp_method = cv2.INTER_CUBIC
+        else:
+            raise ValueError('Interpolation method must be "nearest" or "cubic".')
 
         expected_size = np.array(self.get_original_shape())
         im_size = np.array(image.shape[1::-1])
@@ -168,7 +175,7 @@ class CoordTransformer:
                 data_out = np.rot90(data_out,k=1)
 
         out_shape = self.get_display_shape()
-        data_out = cv2.resize(data_out,(int(out_shape[0]/binning),int(out_shape[1]/binning)),interpolation=cv2.INTER_NEAREST)
+        data_out = cv2.resize(data_out,(int(out_shape[0]/binning),int(out_shape[1]/binning)),interpolation=interp_method)
 
         return data_out
 
@@ -178,7 +185,15 @@ class CoordTransformer:
     #           skip_resize - 
     #           binning - 
     # Returns: data_out - numpy ndarray containing the image in original coordinates.
-    def display_to_original_image(self,image):
+    def display_to_original_image(self,image,interpolation='nearest'):
+
+        if interpolation.lower() == 'nearest':
+            interp_method = cv2.INTER_NEAREST
+        elif interpolation.lower() == 'cubic':
+            interp_method = cv2.INTER_CUBIC
+        else:
+            raise ValueError('Interpolation method must be "nearest" or "cubic".')
+            
 
         expected_size = np.array(self.get_display_shape())
         im_size = np.array(image.shape[1::-1])
@@ -205,7 +220,7 @@ class CoordTransformer:
                 data_out = np.rot90(data_out,k=3)
                 
 
-        data_out = cv2.resize(data_out,(self.x_pixels//binning,self.y_pixels//binning),interpolation=cv2.INTER_NEAREST)
+        data_out = cv2.resize(data_out,(self.x_pixels//binning,self.y_pixels//binning),interpolation=interp_method)
 
         return data_out
 
