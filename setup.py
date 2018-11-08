@@ -30,23 +30,10 @@ import subprocess
 
 
 
-# Setuptools install for Calcam
-setup(
-      name='Calcam',
-      version='2.0.0-beta1',
-      url='https://github.com/euratom-software/calcam',
-      license='European Union Public License 1.1',
-      packages=find_packages(),
-      package_data={'calcam':['gui/*.ui','gui/*.png','image_sources/*.py']},
-      entry_points={ 'gui_scripts': [ 'calcam = calcam.gui:start_gui'] },
-      zip_safe=False
-      )
 
-
-# Used for migration tool choice below.
-# From http://code.activestate.com/recipes/577058/
 def query_yes_no(question, default="yes"):
     """Ask a yes/no question via raw_input() and return their answer.
+       From http://code.activestate.com/recipes/577058/
 
     "question" is a string that is presented to the user.
     "default" is the presumed answer if the user just hits <Enter>.
@@ -83,17 +70,90 @@ def query_yes_no(question, default="yes"):
 
 
 
-if len(sys.argv) > 1:
+# Manually check dependencies which cannot be (or cannot 
+# be guaranteed to be) serviced by PyPI / setuptools.
+# ---------------------------------------------------------------------------------
+if 'install' in sys.argv or 'develop' in sys.argv:
+   pyqt_ = False
+   vtk_ = False
+   vtk_qt = False
 
-    if 'install' in sys.argv or 'develop' in sys.argv:
+   try:
+     from PyQt5 import Qt
+     pyqt_=Qt.QT_VERSION_STR
+   except ImportError:
+     from PyQt4 import Qt
+     pyqt_=Qt.QT_VERSION_STR
+   finally:
+     pass
 
-        if sys.platform == 'win32':
-            import sysconfig
-            import os
-            script_dir = sysconfig.get_path('scripts')
-            print('\n****\nPath to Calcam GUI launcher:\n"{:s}"\n****\n'.format(os.path.join(script_dir,'calcam.exe')))
+   try:
+     import vtk
+     vtk_ = vtk.vtkVersion().GetVTKVersion()
+     if pyqt_:
+         try:
+            if int(pyqt_[0]) == 4:
+               from vtk.qt4.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
+            else:
+               from vtk.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
+            vtk_qt = True
+         except:
+            pass
+   except:
+      pass
 
-        if os.path.isdir( os.path.join(os.path.expanduser('~'),'calcam') ):
+   if not pyqt_ or not vtk_ or not vtk_qt:
 
-            if query_yes_no('It appears you have a data directory from Calcam 1.x and might be upgrading to Calcam 2.\nWould you like to run the file migration tool now?'):
-                subprocess.Popen([sys.executable,os.path.join( os.path.split(__file__)[0],'calcam1_file_converter','convert_files.py' )])
+      badlist = ''
+      if not pyqt_:
+         badlist = badlist + 'PyQt4 or PyQt5\n'
+      if not vtk_:
+         badlist = badlist + 'VTK (v5.10+)\n'
+      if not vtk_qt:
+         badlist = badlist + 'PyQt extensions for VTK (VTK must be built with these enabled)\n'
+
+      msg = """
+            WARNING: One or more importtant dependencies do(es) not appear to be satisfied.
+            A minimal feature set of Calcam may still work, however major parts of the module
+            may not work at all or stably. The missing dependencies are:
+
+            """ + badlist + '\nDo you still want to proceed with the installation?' 
+
+      if not query_yes_no(msg,default='no'):
+         exit()
+# ---------------------------------------------------------------------------------
+
+
+# Actually do the install
+setup(
+      name='Calcam',
+      version='2.0.0b2',
+      url='https://euratom-software.github.io/calcam/',
+      license='European Union Public License 1.1',
+      author='Scott Silburn et.al.',
+      install_requires=['numpy','scipy','opencv-python'],
+      packages=find_packages(),
+      package_data={'calcam':['gui/*.ui','gui/*.png','image_sources/*.py']},
+      entry_points={ 'gui_scripts': [ 'calcam = calcam:start_gui'] },
+      zip_safe=False
+      )
+
+
+
+
+# Post-install stuff
+# ---------------------------------------------------------------------------------
+if len(sys.argv) > 1 and 'install' in sys.argv or 'develop' in sys.argv:
+
+   # If on Windows, tell the user where the application executable has been created.
+   if sys.platform == 'win32':
+      import sysconfig
+      import os
+      script_dir = sysconfig.get_path('scripts')
+      print('\n****\nPath to Calcam GUI launcher:\n"{:s}"\n****\n'.format(os.path.join(script_dir,'calcam.exe')))
+
+   # If upgrading from Calcam 1, prompt the user to convert their old files to Calcam 2 format.
+   if os.path.isdir( os.path.join(os.path.expanduser('~'),'calcam') ):
+      if query_yes_no('\nInstallaction complete.\nIt appears you have a data directory from Calcam 1.x and might be upgrading to Calcam 2.\nWould you like to run the Calcam 1 -> Calcam 2 file conversion tool now?'):
+          subprocess.Popen([sys.executable,os.path.join( os.path.split(__file__)[0],'calcam1_file_converter','convert_files.py' )])
+      print(' ')
