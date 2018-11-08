@@ -66,7 +66,6 @@ def raycast_sightlines(calibration,cadmodel,x=None,y=None,binning=1,coords='Disp
     fullchip = False
     if x is None and y is None:
         fullchip = True
-        
         if coords.lower() == 'display':
             shape = calibration.geometry.get_display_shape()
             xl = np.linspace( (binning-1.)/2,float(shape[0]-1)-(binning-1.)/2,(1+float(shape[0]-1))/binning)
@@ -79,43 +78,55 @@ def raycast_sightlines(calibration,cadmodel,x=None,y=None,binning=1,coords='Disp
             x,y = np.meshgrid(xl,yl)
             x,y = calibration.geometry.original_to_display_coords(x,y)
         valid_mask = np.ones(x.shape,dtype=bool)
+    elif x is None or y is None:
+        raise ValueError('Either both or none of x and y pixel coordinates must be given!')
     else:
-        if np.shape(x) != np.shape(y):
+
+        if np.array(x).ndim == 0:
+            x = np.array([x])
+        else:
+            x = np.array(x)
+   		
+        if np.array(y).ndim == 0:
+            y = np.array([y])
+        else:
+            y = np.array(y)
+   	
+        if x.shape != y.shape:
             raise ValueError('x and y arrays must be the same shape!')
         valid_mask = np.logical_and(np.isnan(x) == 0 , np.isnan(y) == 0 )
         if coords.lower() == 'original':
             x,y = calibration.geometry.original_to_display_coords(x,y)
 
-    Results = RayData()
-    Results.ResultType = 'PixelRayCast'
-    Results.fullchip = fullchip
-    Results.x = np.copy(x).astype('float')
-    Results.x[valid_mask == 0] = 0
-    Results.y = np.copy(y).astype('float')
-    Results.y[valid_mask == 0] = 0
-    Results.transform = calibration.geometry
+    results = RayData()
+    results.fullchip = fullchip
+    results.x = np.copy(x).astype('float')
+    results.x[valid_mask == 0] = 0
+    results.y = np.copy(y).astype('float')
+    results.y[valid_mask == 0] = 0
+    results.transform = calibration.geometry
 
-    orig_shape = np.shape(Results.x)
-    Results.x = np.reshape(Results.x,np.size(Results.x),order='F')
-    Results.y = np.reshape(Results.y,np.size(Results.y),order='F')
+    orig_shape = np.shape(results.x)
+    results.x = np.reshape(results.x,np.size(results.x),order='F')
+    results.y = np.reshape(results.y,np.size(results.y),order='F')
     valid_mask = np.reshape(valid_mask,np.size(valid_mask),order='F')
-    totpx = np.size(Results.x)
+    totpx = np.size(results.x)
 
 
     # New results object to store results
     if fullchip:
-        Results.binning = binning
+        results.binning = binning
     else:
-        Results.binning = None
+        results.binning = None
 
 
-    Results.ray_end_coords = np.ndarray([np.size(x),3])
+    results.ray_end_coords = np.ndarray([np.size(x),3])
 
     # Line of sight directions
-    LOSDir = calibration.get_los_direction(Results.x,Results.y,coords='Display',subview=force_subview)
+    LOSDir = calibration.get_los_direction(results.x,results.y,coords='Display',subview=force_subview)
     if len(LOSDir.shape) == 1:
         LOSDir = [LOSDir]
-    Results.ray_start_coords = calibration.get_pupilpos(Results.x,Results.y,coords='Display',subview=force_subview)
+    results.ray_start_coords = calibration.get_pupilpos(results.x,results.y,coords='Display',subview=force_subview)
 
     
     if verbose:
@@ -141,18 +152,18 @@ def raycast_sightlines(calibration,cadmodel,x=None,y=None,binning=1,coords='Disp
     for ind in inds:
 
         if not valid_mask[ind]:
-            Results.ray_end_coords[ind,:] = np.nan
-            Results.ray_start_coords[ind,:] = np.nan
+            results.ray_end_coords[ind,:] = np.nan
+            results.ray_start_coords[ind,:] = np.nan
             continue
 
         # Do the raycast and put the result in the output array
-        rayend = Results.ray_start_coords[ind] + max_ray_length * LOSDir[ind]
-        retval = cell_locator.IntersectWithLine(Results.ray_start_coords[ind],rayend,1.e-6,t,pos,coords_,subid)
+        rayend = results.ray_start_coords[ind] + max_ray_length * LOSDir[ind]
+        retval = cell_locator.IntersectWithLine(results.ray_start_coords[ind],rayend,1.e-6,t,pos,coords_,subid)
 
         if abs(retval) > 0:
-            Results.ray_end_coords[ind,:] = pos[:]
+            results.ray_end_coords[ind,:] = pos[:]
         else:
-            Results.ray_end_coords[ind,:] = rayend
+            results.ray_end_coords[ind,:] = rayend
 
         n_done = n_done + 1
         # Progress printing stuff
@@ -184,18 +195,18 @@ def raycast_sightlines(calibration,cadmodel,x=None,y=None,binning=1,coords='Disp
 
         print('Finished casting {:d} rays in '.format(np.size(x)) + time_string)
 
-    Results.x[valid_mask == 0] = np.nan
-    Results.y[valid_mask == 0] = np.nan
+    results.x[valid_mask == 0] = np.nan
+    results.y[valid_mask == 0] = np.nan
 
-    Results.ray_end_coords = np.reshape(Results.ray_end_coords,orig_shape + (3,),order='F')
-    Results.ray_start_coords = np.reshape(Results.ray_start_coords,orig_shape + (3,),order='F')
-    Results.x = np.reshape(Results.x,orig_shape,order='F')
-    Results.y = np.reshape(Results.y,orig_shape,order='F')
+    results.ray_end_coords = np.reshape(results.ray_end_coords,orig_shape + (3,),order='F')
+    results.ray_start_coords = np.reshape(results.ray_start_coords,orig_shape + (3,),order='F')
+    results.x = np.reshape(results.x,orig_shape,order='F')
+    results.y = np.reshape(results.y,orig_shape,order='F')
 
     if not verbose:
         cadmodel.set_status_callback(original_callback)
 
-    return Results
+    return results
 
 
 def check_visible(start_coords,target,cadmodel,verbose=False,tol=1e-3):
@@ -259,18 +270,19 @@ class RayData:
         self.fullchip = None
         self.x = None
         self.y = None
-        self.ResultType = None
         if filename is not None:
             self.load(filename)
 
 
     # Save to a netCDF file
-    def save(self,SaveName):
-
-        f = netcdf_file(os.path.join(paths.raydata,SaveName + '.nc'),'w')
+    def save(self,filename):
+		
+        if not filename.endswith('.nc'):
+            filename = filename + '.nc'
+			
+        f = netcdf_file(filename,'w')
         setattr(f,'history','CalCam_py output file')
         setattr(f,'image_transform_actions',"['" + "','".join(self.transform.transform_actions) + "']")
-        setattr(f,'ResultType',self.ResultType)
 
         pointdim = f.createDimension('pointdim',3)
 
@@ -325,9 +337,8 @@ class RayData:
 
 
     # Load from a netCDF file
-    def load(self,SaveName):
-        f = netcdf_file(os.path.join(paths.raydata,SaveName + '.nc'), 'r',mmap=False)
-        self.ResultType = f.ResultType
+    def load(self,filename):
+        f = netcdf_file(filename, 'r',mmap=False)
         self.ray_end_coords = f.variables['RayEndCoords'].data
         self.ray_start_coords = f.variables['RayStartCoords'].data
         self.binning = f.variables['Binning'].data

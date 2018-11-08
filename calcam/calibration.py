@@ -38,9 +38,9 @@ from .coordtransformer import CoordTransformer
 from .pointpairs import PointPairs
 
 try:
-	from .raycast import raycast_sightlines
+    from .raycast import raycast_sightlines
 except ImportError:
-	raycast_sightlines = None
+    raycast_sightlines = None
 
 import datetime
 import socket
@@ -816,7 +816,7 @@ class Calibration():
                 # An array the same size as output sepcifying which sub-view calibration to use
                 subview_mask = self.subview_lookup(x,y)
                 subview_mask = np.tile( subview_mask, [3] + [1]*x.ndim )
-                subview_mask = np.squeeze(np.swapaxes(np.expand_dims(subview_mask,-1),0,subview_mask.ndim)) # Changed to support old numpy versions. Simpler modern version: np.moveaxis(subview_mask,0,subview_mask.ndim-1)
+                subview_mask = np.squeeze(np.swapaxes(np.expand_dims(subview_mask,-1),0,subview_mask.ndim),axis=0) # Changed to support old numpy versions. Simpler modern version: np.moveaxis(subview_mask,0,subview_mask.ndim-1)
 
                 for nview in range(self.n_subviews):
                     pupilpos = np.tile( self.view_models[nview].get_pupilpos(), x.shape + (1,) )
@@ -950,7 +950,7 @@ class Calibration():
             # An array the same size as output sepcifying which sub-view calibration to use
             subview_mask = self.subview_lookup(x,y)
             subview_mask = np.tile( subview_mask, [3] + [1]*x.ndim )
-            subview_mask = np.squeeze(np.swapaxes(np.expand_dims(subview_mask,-1),0,subview_mask.ndim)) # Changed to support old numpy versions. Simpler modern version: np.moveaxis(subview_mask,0,subview_mask.ndim-1)
+            subview_mask = np.squeeze(np.swapaxes(np.expand_dims(subview_mask,-1),0,subview_mask.ndim),axis=0) # Changed to support old numpy versions. Simpler modern version: np.moveaxis(subview_mask,0,subview_mask.ndim-1)
             
             for nview in range(self.n_subviews):
                 losdir = self.view_models[nview].get_los_direction(x,y)
@@ -972,7 +972,7 @@ class Calibration():
         points_2d = []
 
         if check_occlusion_by is not None and raycast_sightlines is None:
-        	raise Exception('VTK not available; cannot check occlusion without VTK.')
+            raise Exception('VTK not available; cannot check occlusion without VTK.')
 
         for nview in range(self.n_subviews):
 
