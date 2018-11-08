@@ -113,7 +113,7 @@ class ViewModel():
         z = rotationMatrix[2,0]*x_norm + rotationMatrix[2,1]*y_norm + rotationMatrix[2,2]*z_norm
 
         # Return an array the same shape as the input x and y pixel arrays + an extra dimension
-        out = np.stack([x,y,z],axis=-1)
+        out = np.concatenate([np.expand_dims(x,-1),np.expand_dims(y,-1),np.expand_dims(z,-1)],axis=-1)
 
         return np.reshape(out,oldshape + (3,),order='F')
 
@@ -816,7 +816,7 @@ class Calibration():
                 # An array the same size as output sepcifying which sub-view calibration to use
                 subview_mask = self.subview_lookup(x,y)
                 subview_mask = np.tile( subview_mask, [3] + [1]*x.ndim )
-                subview_mask = np.moveaxis(subview_mask,0,subview_mask.ndim-1)
+                subview_mask = np.squeeze(np.swapaxes(np.expand_dims(subview_mask,-1),0,subview_mask.ndim)) # Changed to support old numpy versions. Simpler modern version: np.moveaxis(subview_mask,0,subview_mask.ndim-1)
 
                 for nview in range(self.n_subviews):
                     pupilpos = np.tile( self.view_models[nview].get_pupilpos(), x.shape + (1,) )
@@ -950,7 +950,7 @@ class Calibration():
             # An array the same size as output sepcifying which sub-view calibration to use
             subview_mask = self.subview_lookup(x,y)
             subview_mask = np.tile( subview_mask, [3] + [1]*x.ndim )
-            subview_mask = np.moveaxis(subview_mask,0,subview_mask.ndim-1)
+            subview_mask = np.squeeze(np.swapaxes(np.expand_dims(subview_mask,-1),0,subview_mask.ndim)) # Changed to support old numpy versions. Simpler modern version: np.moveaxis(subview_mask,0,subview_mask.ndim-1)
             
             for nview in range(self.n_subviews):
                 losdir = self.view_models[nview].get_los_direction(x,y)

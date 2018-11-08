@@ -87,7 +87,7 @@ if len(sys.argv) > 1:
 
     if 'install' in sys.argv or 'develop' in sys.argv:
 
-        if sys.platform == 'win32' and :
+        if sys.platform == 'win32':
             import sysconfig
             import os
             script_dir = sysconfig.get_path('scripts')
