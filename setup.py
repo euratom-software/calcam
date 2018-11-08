@@ -77,13 +77,14 @@ if 'install' in sys.argv or 'develop' in sys.argv:
    pyqt_ = False
    vtk_ = False
    vtk_qt = False
+   opencv = False
 
    try:
-     from PyQt5 import Qt
-     pyqt_=Qt.QT_VERSION_STR
-   except ImportError:
-     from PyQt4 import Qt
-     pyqt_=Qt.QT_VERSION_STR
+     from PyQt5 import QtCore
+     pyqt_= 5
+   except:
+     from PyQt4 import QtCore
+     pyqt_= 4
    finally:
      pass
 
@@ -92,7 +93,7 @@ if 'install' in sys.argv or 'develop' in sys.argv:
      vtk_ = vtk.vtkVersion().GetVTKVersion()
      if pyqt_:
          try:
-            if int(pyqt_[0]) == 4:
+            if pyqt_ == 4:
                from vtk.qt4.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
             else:
                from vtk.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
@@ -102,7 +103,19 @@ if 'install' in sys.argv or 'develop' in sys.argv:
    except:
       pass
 
-   if not pyqt_ or not vtk_ or not vtk_qt:
+
+   try:
+      import cv2
+      opencv = True
+   except:
+      pass
+
+
+   if not opencv:
+      print('\nERROR: The OpenCV Python module ("cv2") does not seem to be installed or is not working properly. This module is required for Calcam to work; please install it first.\n')
+      exit()
+
+   if not pyqt_ or not vtk_ or not vtk_qt or not opencv:
 
       badlist = ''
       if not pyqt_:
@@ -131,7 +144,7 @@ setup(
       url='https://euratom-software.github.io/calcam/',
       license='European Union Public License 1.1',
       author='Scott Silburn et.al.',
-      install_requires=['numpy','scipy','opencv-python'],
+      install_requires=['numpy','scipy'],
       packages=find_packages(),
       package_data={'calcam':['gui/*.ui','gui/*.png','image_sources/*.py']},
       entry_points={ 'gui_scripts': [ 'calcam = calcam:start_gui'] },
