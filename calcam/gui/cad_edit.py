@@ -130,45 +130,50 @@ class CADEdit(CalcamGUIWindow):
 
     def on_featuretree_change(self,item):
 
-        old_name = self.cad_tree_items[item]
-        if len(old_name.split('/')) > 1:
-            new_name = '{:s}/{:s}'.format(old_name.split('/')[0],str(item.text(0)))
-        else:
-            new_name = str(item.text(0))
-
-        if old_name != new_name:
-
-            if old_name in self.cadmodel.groups:
-
-                glist = self.cadmodel.groups.pop(old_name)
-                self.cadmodel.groups[new_name] = glist
-                self.cad_tree_items[item] = new_name
-
-                for i,iitem in enumerate(glist):
-
-                    self.cadmodel.groups[new_name][i] = '{:s}/{:s}'.format(new_name,iitem.split('/')[1])
-
-                    fdict = self.model_features[self.cadmodel.model_variant].pop(iitem)
-                    self.model_features[self.cadmodel.model_variant]['{:s}/{:s}'.format(new_name,iitem.split('/')[1])] = fdict
-
-                    f = self.cadmodel.features.pop(iitem)
-                    self.cadmodel.features['{:s}/{:s}'.format(new_name,iitem.split('/')[1])] = f
-
-                for treeitem in self.cad_tree_items.keys():
-                    if self.cad_tree_items[treeitem] is not None and len(self.cad_tree_items[treeitem].split('/')) == 2 and old_name == self.cad_tree_items[treeitem].split('/')[0]:
-                        self.cad_tree_items[treeitem] = '{:s}/{:s}'.format(new_name,self.cad_tree_items[treeitem].split('/')[1])
-
-
+        if item is not self.tree_root:
+            old_name = self.cad_tree_items[item]
+            if len(old_name.split('/')) > 1:
+                new_name = '{:s}/{:s}'.format(old_name.split('/')[0],str(item.text(0)))
             else:
+                new_name = str(item.text(0))
 
-                fdict = self.model_features[self.cadmodel.model_variant].pop(old_name)
-                self.model_features[self.cadmodel.model_variant][new_name] = fdict
+            if old_name != new_name:
 
-                f = self.cadmodel.features.pop(old_name)
-                self.cadmodel.features[new_name] = f
+                if old_name in self.cadmodel.groups:
 
-                self.cad_tree_items[item] = new_name
+                    glist = self.cadmodel.groups.pop(old_name)
+                    self.cadmodel.groups[new_name] = glist
+                    self.cad_tree_items[item] = new_name
 
+                    for i,iitem in enumerate(glist):
+
+                        self.cadmodel.groups[new_name][i] = '{:s}/{:s}'.format(new_name,iitem.split('/')[1])
+
+                        fdict = self.model_features[self.cadmodel.model_variant].pop(iitem)
+                        self.model_features[self.cadmodel.model_variant]['{:s}/{:s}'.format(new_name,iitem.split('/')[1])] = fdict
+
+                        f = self.cadmodel.features.pop(iitem)
+                        self.cadmodel.features['{:s}/{:s}'.format(new_name,iitem.split('/')[1])] = f
+
+                    for treeitem in self.cad_tree_items.keys():
+                        if self.cad_tree_items[treeitem] is not None and len(self.cad_tree_items[treeitem].split('/')) == 2 and old_name == self.cad_tree_items[treeitem].split('/')[0]:
+                            self.cad_tree_items[treeitem] = '{:s}/{:s}'.format(new_name,self.cad_tree_items[treeitem].split('/')[1])
+
+
+                else:
+
+                    fdict = self.model_features[self.cadmodel.model_variant].pop(old_name)
+                    self.model_features[self.cadmodel.model_variant][new_name] = fdict
+
+                    f = self.cadmodel.features.pop(old_name)
+                    self.cadmodel.features[new_name] = f
+
+                    self.cad_tree_items[item] = new_name
+                    
+                    for group in self.cadmodel.groups:
+                        if old_name in self.cadmodel.groups[group]:
+                            self.cadmodel.groups[group].remove(old_name)
+                            self.cadmodel.groups[group].append(new_name)
 
         CalcamGUIWindow.update_checked_features(self,item)
         self.update_current_feature()
@@ -334,15 +339,21 @@ class CADEdit(CalcamGUIWindow):
         if len(self.model_features.keys()) == 1:
             raise UserWarning('Cannot remove the only model variant!')
 
-        dialog = AReYouSureDialog(self,'Remove model variant','Are you sure you want to remove the model variant "{:s}"?'.format(self.model_variant))
-
+        dialog = AReYouSureDialog(self,'Remove model variant','Are you sure you want to remove the model variant "{:s}"?'.format(self.cadmodel.model_variant))
+        dialog.exec_()
+        
         if dialog.result() == 1:
 
             variant_to_remove = self.cadmodel.model_variant
             index_to_remove = self.model_variant.currentIndex()
-            self.model_variant.setCurrentIndex(index_to_remove-1)
+            if index_to_remove > 1:
+                self.model_variant.setCurrentIndex(index_to_remove-1)
+            else:
+                self.model_variant.setCurrentIndex(index_to_remove+1)
             self.model_variant.removeItem(index_to_remove)
+            self.cadmodel.variants.remove(variant_to_remove)
             del self.model_features[variant_to_remove]
+            del self.cadmodel.mesh_path_roots[variant_to_remove]
 
 
     def update_current_feature(self):
@@ -421,6 +432,9 @@ class CADEdit(CalcamGUIWindow):
         elif new_name == '' or new_name == self.cadmodel.model_variant:
             return
 
+        mesh_root_path = self.cadmodel.mesh_path_roots.pop(self.cadmodel.model_variant)
+        self.cadmodel.mesh_path_roots[new_name] = mesh_root_path
+        
         grouplist = self.extra_groups.pop(self.cadmodel.model_variant)
         self.extra_groups[new_name] = grouplist
 
@@ -429,7 +443,7 @@ class CADEdit(CalcamGUIWindow):
         self.model_features[new_name] = self.model_features[self.cadmodel.model_variant]
         del self.model_features[self.cadmodel.model_variant]
         self.cadmodel.model_variant = new_name
-
+        
         if self.tree_root is not None:
             self.feature_tree.blockSignals(True)
             self.tree_root.setText(0,'{:s} ({:s})'.format(self.cadmodel.machine_name,self.cadmodel.model_variant))
