@@ -16,7 +16,7 @@ The calcam package is known to work under Python versions from 2.7 -  3.6 (and p
 
 	- OpenCV (cv2) 2.4+ [Some features only available with 3.0+]
 	- PyQt4 or PyQt5
-	- VTK 5.10+ [Tested with versions up to 8.1. Must be built with Qt support enabled for the correct Qt version]
+	- VTK 6.0+ [Tested with versions up to 8.1. Must be built with Qt support enabled for the correct Qt version]
 	
 These cannot be reliably installed automatically by the setup script on all platforms / environments, so the setup script will merely check if these are working and will issue an error or warning if not. It is highly recommended to get these libraries installed and working before installing Calcam. The easiest way to install them is usually through your OS's package manager, if applicable, or to use a Python distibution such as `Enthought Canopy <https://www.enthought.com/product/canopy/>`_ or `Python (x,y) <https://python-xy.github.io/>`_. which can provide these packages. It can be very tricky to build these libraries and their python bindings from source and get everything working properly together.
 
@@ -60,21 +60,15 @@ Alternatively, the GUI can be started by calling a function within the ``calcam`
 
 Details of how to use the Calcam GUI and Python API are given in other sections of this documentation.
 
-Setting up CAD Model Definitions and Image Sources
----------------------------------------------------
-Since Calcam is based on matching features on images to a CAD model, to do any calibrations you will need to set up CAD models to use. Calcam supports ``.stl`` or ``.obj`` format 3D mesh files, and packages these in to a custom file format (.ccm) along with various metadata to create a Calcam CAD model file. You can have several of these CAD model files and easily switch between them at any given time.
+
+Setting up CAD Model Definitions
+---------------------------------
+Camera calibration in Calcam is based on feature matching between images and a CAD model of the scene viewed by the camera. As such, it is necessary to define one or more CAD models for use in calcam. The current version supports ``.stl`` or ``.obj`` format 3D mesh files. It's usually convenient to split the model in to several individual mesh files containing different parts of the scene, and these can then be turned on or off individually when working with the model in Calcam. Calcam packages these mesh files in to a custom zipped file format (.ccm) along with various metadata to create a Calcam CAD model file. You can have several such files and easily switch between them at any time.
 
 
 
-CAD Model Setup
-~~~~~~~~~~~~~~~
-Camera calibration in Calcam is based on feature matching between images and a CAD model of the scene viewed by the camera. As such, it is necessary to define one or more CAD models for use in calcam. The current version supports ``.stl.`` and ``.obj`` format 3D mesh files. It's usually convenient to split the model in to several individual files containing different parts of the scene, and these can then be turned on or off individually when working with the model in Calcam.
-
-CAD model definitions are written as Python classes and stored in the directory ``[calcam_root]/UserCode/machine_geometry/``. A detailed template is provided in this folder and will be created when Calcam is first imported. To define CAD models for use in calcam, please refer to this file to create your CAD model definition(s).
-
-
-Image Source Setup (Optional)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Setting up custom image sources (optional)
+------------------------------------------
 As standard, Calcam can load camera images from most common image file formats. If desired, you can set up additional custom "image sources", which are user-defined Python modules for loading camera images in to Calcam. For example you may want to load camera data directly from a central data server, or read images from an unusual file format. This can be done by writing a small python module which plugs in to calcam and handles the image loading. A full guide to writing such modules can be found in the developer documentation.
 
 Once you have prepared a custom image source module, calcam can be configured to use it by opening the Settings interface from the calcam launcher window or by calling ``calcam.gui.open_window(calcam.gui.Settings)``. In the bottom-left of the settings window is a list of directories where calcam will look for image source Python modules. Use the "Add" / "Remove" buttons to add or remove directories which contain your image source modules. Detected image sources are listed in the bottom-right of the window. If a python module is found but cannot be imported as an image source because of some error, the image source list will show its filename in red. Hover the mouse over the red filename to show the error which precvented the module from being loaded. 

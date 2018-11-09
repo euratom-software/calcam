@@ -27,8 +27,7 @@ from setuptools import setup,find_packages
 import sys
 import os
 import subprocess
-
-
+import glob
 
 
 def query_yes_no(question, default="yes"):
@@ -90,7 +89,7 @@ if 'install' in sys.argv or 'develop' in sys.argv:
 
    try:
      import vtk
-     vtk_ = vtk.vtkVersion().GetVTKVersion()
+     vtk_ = vtk.vtkVersion().GetVTKMajorVersion()
      if pyqt_:
          try:
             if pyqt_ == 4:
@@ -115,13 +114,15 @@ if 'install' in sys.argv or 'develop' in sys.argv:
       print('\nERROR: The OpenCV Python module ("cv2") does not seem to be installed or is not working properly. This module is required for Calcam to work; please install it first.\n')
       exit()
 
-   if not pyqt_ or not vtk_ or not vtk_qt or not opencv:
+   if not pyqt_ or not vtk_ or not vtk_qt or not opencv or vtk_ < 6:
 
       badlist = ''
       if not pyqt_:
          badlist = badlist + 'PyQt4 or PyQt5\n'
       if not vtk_:
-         badlist = badlist + 'VTK (v5.10+)\n'
+         badlist = badlist + 'VTK (v6.0+)\n'
+      elif vtk_ < 6:
+         badlist = badlist + 'VTK v6.0+ : you have v{:s}'.format(vtk.vtkVersion.GetVTKVersion())
       if not vtk_qt:
          badlist = badlist + 'PyQt extensions for VTK (VTK must be built with these enabled)\n'
 
@@ -165,7 +166,7 @@ if len(sys.argv) > 1 and 'install' in sys.argv or 'develop' in sys.argv:
       script_dir = sysconfig.get_path('scripts')
       print('\n****\nPath to Calcam GUI launcher:\n"{:s}"\n****\n'.format(os.path.join(script_dir,'calcam.exe')))
 
-   # If upgrading from Calcam 1, prompt the user to convert their old files to Calcam 2 format.
+   # If the user has Calcam 1.x files, prompt the user to convert their old files to Calcam 2 format.
    if os.path.isdir( os.path.join(os.path.expanduser('~'),'calcam') ):
       if query_yes_no('\nInstallaction complete.\nIt appears you have a data directory from Calcam 1.x and might be upgrading to Calcam 2.\nWould you like to run the Calcam 1 -> Calcam 2 file conversion tool now?'):
           subprocess.Popen([sys.executable,os.path.join( os.path.split(__file__)[0],'calcam1_file_converter','convert_files.py' )])

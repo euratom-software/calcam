@@ -36,8 +36,6 @@ import sys
 import time
 from .raycast import raycast_sightlines
 
-vtk_major_version = vtk.vtkVersion().GetVTKMajorVersion()
-
 
 def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampling=1,aa=1,transparency=False,verbose=True,coords = 'Display',screensize=(800,600),interpolation='Cubic'):
 
@@ -396,11 +394,7 @@ def get_fov_actor(cadmodel,calib,actor_type='volume',resolution=None):
 
 
     mapper = vtk.vtkPolyDataMapper()
-
-    if vtk_major_version < 6:
-        mapper.SetInput(polydata)
-    else:
-        mapper.SetInputData(polydata)
+    mapper.SetInputData(polydata)
 
     actor = vtk.vtkActor()
     actor.SetMapper(mapper)
@@ -520,11 +514,7 @@ def get_wall_contour_actor(wall_contour,actor_type='contour',phi=None,toroidal_r
         polydata.SetPolys(polygons)
 
     mapper = vtk.vtkPolyDataMapper()
-
-    if vtk_major_version < 6:
-        mapper.SetInput(polydata)
-    else:
-        mapper.SetInputData(polydata)
+    mapper.SetInputData(polydata)
 
     actor = vtk.vtkActor()
     actor.SetMapper(mapper)
@@ -663,10 +653,7 @@ def get_lines_actor(coords):
     polydata.SetLines(lines)
 
     mapper = vtk.vtkPolyDataMapper()
-    if vtk_major_version < 6:
-        mapper.SetInput(polydata)
-    else:
-        mapper.SetInputData(polydata)
+    mapper.SetInputData(polydata)
 
     actor = vtk.vtkActor()
     actor.SetMapper(mapper)

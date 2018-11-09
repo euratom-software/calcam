@@ -29,8 +29,6 @@ import atexit
 from .config import CalcamConfig
 from .io import ZipSaveFile
 
-vtk_major_version = vtk.vtkVersion().GetVTKMajorVersion()
-
 
 
 # A little function to use for status printing if no
@@ -456,10 +454,7 @@ class CADModel():
             appender = vtk.vtkAppendPolyData()
 
             for fname in self.get_enabled_features():
-                if vtk_major_version < 6:
-                    appender.AddInput(self.features[fname].get_polydata())
-                else:
-                    appender.AddInputData(self.features[fname].get_polydata())
+                appender.AddInputData(self.features[fname].get_polydata())
         
             appender.Update()
 
@@ -636,10 +631,8 @@ class ModelFeature():
             scale_transform = vtk.vtkTransform()
             scale_transform.Scale(self.scale,self.scale,self.scale)
 
-            if vtk_major_version < 6:
-                scaler.SetInput(reader.GetOutput())
-            else:
-                scaler.SetInputData(reader.GetOutput())
+
+            scaler.SetInputData(reader.GetOutput())
             scaler.SetTransform(scale_transform)
             scaler.Update()
 
@@ -682,10 +675,7 @@ class ModelFeature():
             if self.solid_actor is None:
 
                 mapper =  vtk.vtkPolyDataMapper()
-                if vtk_major_version < 6:
-                    mapper.SetInput( self.get_polydata() )
-                else:
-                    mapper.SetInputData( self.get_polydata() )
+                mapper.SetInputData( self.get_polydata() )
 
                 self.solid_actor = vtk.vtkActor()
                 self.solid_actor.SetMapper(mapper)
@@ -699,10 +689,7 @@ class ModelFeature():
 
                 edge_finder = vtk.vtkFeatureEdges()
 
-                if vtk_major_version < 6:
-                    edge_finder.SetInput( self.get_polydata() )
-                else:
-                    edge_finder.SetInputData( self.get_polydata() )
+                edge_finder.SetInputData( self.get_polydata() )
 
                 edge_finder.ManifoldEdgesOff()
                 edge_finder.BoundaryEdgesOff()

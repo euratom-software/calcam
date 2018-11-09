@@ -411,19 +411,22 @@ class MigrationToolWindow(qt.QMainWindow):
 
         self.app = app
 
+        n_calibs = len( [name for name in os.listdir(os.path.join(calcam1_root,'FitResults')) if name.endswith('.pickle')] )
+        n_virtual_calibs = len( [name for name in os.listdir(os.path.join(calcam1_root,'VirtualCameras')) if name.endswith('.pickle')] )
+
+        self.calib_count = n_calibs + n_virtual_calibs
+
+        self.n_cadmodels = len( [name for name in os.listdir(os.path.join(calcam1_root,'UserCode','machine_geometry')) if name.endswith('.py') and 'Example' not in name] )
+
+        if self.n_cadmodels == 0 and self.calib_count == 0:
+            print('Did not find any Calcam 1.x files to convert. Exiting.')
+            sys.exit()
+
         newpath_root = os.path.join(os.path.expanduser('~'),'Documents','Calcam 2')
 
         self.calib_output_dir.setText(os.path.join(newpath_root,'Calibrations'))
         self.virtual_output_dir.setText(os.path.join(newpath_root,'Virtual Calibrations'))
         self.cad_output_dir.setText(os.path.join(newpath_root,'CAD Models'))
-
-        n_calibs = len( [name for name in os.listdir(os.path.join(calcam1_root,'FitResults')) if name.endswith('.pickle')] )
-        n_virtual_calibs = len( [name for name in os.listdir(os.path.join(calcam1_root,'VirtualCameras')) if name.endswith('.pickle')] )
-        self.calib_count = n_calibs + n_virtual_calibs
-        self.calib_info.setText('{:d} calibrations and {:d} virtual calibrations in {:s} can be converted to Calcam 2 format. Select the output directories for the converted calibrations below:'.format(n_calibs,n_virtual_calibs,calcam1_root))
-
-        self.n_cadmodels = len( [name for name in os.listdir(os.path.join(calcam1_root,'UserCode','machine_geometry')) if name.endswith('.py') and 'Example' not in name] )
-        self.cad_info.setText('{:d} machine models in {:s} can be converted to Calcam 2 format. Select the desired output directory below.'.format(self.n_cadmodels,os.path.join(calcam1_root,'UserCode','machine_geometry')))
 
         self.calib_browse_button.clicked.connect(self.change_cal_dir)
         self.virtual_browse_button.clicked.connect(self.change_vcal_dir)
@@ -431,6 +434,15 @@ class MigrationToolWindow(qt.QMainWindow):
 
         self.cal_convert_button.clicked.connect(self.convert_calibs)
         self.cad_convert_button.clicked.connect(self.convert_cadmodels)
+
+        self.calib_info.setText('{:d} calibrations and {:d} virtual calibrations in {:s} can be converted to Calcam 2 format. Select the output directories for the converted calibrations below:'.format(n_calibs,n_virtual_calibs,calcam1_root))
+        self.cad_info.setText('{:d} machine models in {:s} can be converted to Calcam 2 format. Select the desired output directory below.'.format(self.n_cadmodels,os.path.join(calcam1_root,'UserCode','machine_geometry')))
+
+        if self.calib_count == 0:
+            self.cal_groupbox.setEnabled(False)
+
+        if self.n_cadmodels == 0:
+            self.cad_groupbox.setEnabled(False)
 
         self.show()
 
