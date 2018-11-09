@@ -29,7 +29,7 @@ import imp
 
 from .io import ZipSaveFile
 
-builtin_imsource_path = os.path.join(os.path.split(os.path.abspath(__file__))[0],'image_sources')
+builtin_imsource_path = os.path.join(os.path.split(os.path.abspath(__file__))[0],'builtin_image_sources')
 
 class CalcamConfig():
 
