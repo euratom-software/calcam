@@ -671,8 +671,8 @@ class CalcamGUIWindow(qt.QMainWindow):
         self.camera_3d.SetPosition(viewmodel.get_pupilpos())
 
         if self.viewdir_at_cc:
-            cc = calibration.get_cc(subview=subfield)
-            self.camera_3d.SetFocalPoint(viewmodel.get_pupilpos() + viewmodel.get_los_direction(*cc))
+            mat = calibration.get_cam_matrix(subview=subfield)
+            self.camera_3d.SetFocalPoint(viewmodel.get_pupilpos() + viewmodel.get_los_direction(mat[0,2],mat[1,2]))
         else:
             self.camera_3d.SetFocalPoint(viewmodel.get_pupilpos() + viewmodel.get_los_direction(calibration.geometry.get_display_shape()[0]/2,calibration.geometry.get_display_shape()[1]/2))
         

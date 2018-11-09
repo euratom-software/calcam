@@ -189,10 +189,10 @@ class VirtualCalib(CalcamGUIWindow):
 
         self.interactor3d.force_aspect = aspect
 
-        cc = self.virtual_calib.get_cc()
+        mat = self.virtual_calib.get_cam_matrix()
         n = self.virtual_calib.geometry.get_display_shape()
-        wcx = -2.*(cc[0] - n[0]/2.) / float(n[0])
-        wcy = 2.*(cc[1] - n[1]/2.) / float(n[1])
+        wcx = -2.*(mat[0,2] - n[0]/2.) / float(n[0])
+        wcy = 2.*(mat[1,2] - n[1]/2.) / float(n[1])
         self.camera_3d.SetWindowCenter(wcx,wcy)
         self.camera_3d.SetViewAngle(self.virtual_calib.get_fov()[1])
 

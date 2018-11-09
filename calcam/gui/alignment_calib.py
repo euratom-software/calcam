@@ -406,10 +406,10 @@ class AlignmentCalib(CalcamGUIWindow):
 
         self.update_overlay()
 
-        cc = self.calibration.get_cc()
+        mat = self.calibration.get_cam_matrix()
         n = self.calibration.geometry.get_display_shape()
-        wcx = -2.*(cc[0] - n[0]/2.) / float(n[0])
-        wcy = 2.*(cc[1] - n[1]/2.) / float(n[1])
+        wcx = -2.*(mat[0,2] - n[0]/2.) / float(n[0])
+        wcy = 2.*(mat[1,2] - n[1]/2.) / float(n[1])
         self.camera_3d.SetWindowCenter(wcx,wcy)
         fov = 360*np.arctan( float(n[1]) / (2*self.calibration.view_models[0].cam_matrix[1,1]))/3.14159
         self.camera_3d.SetViewAngle(fov)
