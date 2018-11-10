@@ -38,7 +38,7 @@ class Launcher(qt.QDialog):
         # GUI initialisation
         qt.QDialog.__init__(self, parent, qt.Qt.WindowTitleHint | qt.Qt.WindowCloseButtonHint)
         # Load the Qt designer file, assumed to be in the same directory as this python file and named gui.ui.
-        qt.uic.loadUi(os.path.join(guipath,'launcher.ui'), self)
+        qt.uic.loadUi(os.path.join(guipath,'qt_designer_files','launcher.ui'), self)
         
         self.setWindowIcon(qt.QIcon(os.path.join(guipath,'icon.png')))
         self.setWindowTitle('Calcam  v{:s}'.format(__version__))

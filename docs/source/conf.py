@@ -60,7 +60,7 @@ author = u'Scott Silburn et. al.'
 # built documents.
 #
 # The short X.Y version.
-version = u'1.9'
+version = 'Version 2.0'
 # The full version, including alpha/beta/rc tags.
 #release = u'1.9.3'
 
@@ -119,7 +119,7 @@ html_copy_source = False
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-#html_theme_options = {}
+html_theme_options = { 'collapse_navigation':False, 'sticky_navigation':True, 'navigation_depth':2,  'logo_only':True, }
 
 # Add any paths that contain custom themes here, relative to this directory.
 #html_theme_path = []
@@ -133,7 +133,7 @@ html_copy_source = False
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-html_logo = 'logo.png'
+html_logo = 'images/logo.png'
 
 # The name of an image file (relative to this directory) to use as a favicon of
 # the docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32

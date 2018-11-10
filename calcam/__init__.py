@@ -32,15 +32,17 @@ __version__ = '2.0.0b2'
 from .calibration import Calibration
 
 try:
+	import vtk
+except ImportError:
+	vtk = None
+
+from .raycast import RayData
+from .render import render_cam_view
+
+if vtk:
 	from . import gui
-	
 	from .cadmodel import CADModel
-	from .raycast import RayData, raycast_sightlines
+	from .raycast import raycast_sightlines
 	from .geometry_matrix import RectangularGeometryMatrix
 	from .gui import start_gui
-	
-except ImportError as e:
-	if "No module named 'vtk'" in str(e):
-		print('[Calcam Import] Could not import VTK; only calcam.Calibration class will be available.')
-	else:
-		raise
+

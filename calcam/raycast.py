@@ -41,7 +41,32 @@ import random
 
 
 def raycast_sightlines(calibration,cadmodel,x=None,y=None,binning=1,coords='Display',verbose=True,force_subview=None):
+    '''
+    Ray cast camera sight-lines to determine where they intersect the given CAD model.
 
+    Parameters:
+
+        calibration (calcam.Calibration) : Calibration whose sight-lines to raycast.
+        cadmodel (calcam.CADModel)       : CAD model to check intersection with.
+        x, y (array-like)                : x and y image pixel coordinates for which to cast sight-lines. \
+                                           If not specified, one ray is cast at the centre of every detector pixel.\
+                                           x and y must be the same shape.
+        binning (int)                    : If not explicitly providing x and y image coordinates, pixel binning for ray casting.\
+                                           This specifies NxN binning, i.e. for a value of 2, one ray is cast at the centre of \
+                                           every 2x2 cluster of pixels.
+        coords (str)                     : Either ``Display`` or ``Original``. If specifying x and y coordinates,\
+                                           specifies whether the input x and y are in original or display coords. \
+                                           Otherwise, specifies the orientation of the returned data.
+        verbose (bool)                   : Whether to print status updates during ray casting.
+        force_subview (int)              : If specified, forces use of the camera model from this index of sub-view \
+                                           in the calibration. Otherwise, sub-views are chosen according to the \
+                                           sub-view mask in the calibration.
+
+    Returns:
+
+        calcam.RayData                   : Object containing the results.
+
+    '''
     if not verbose:
         original_callback = cadmodel.get_status_callback()
         cadmodel.set_status_callback(None)
@@ -260,23 +285,60 @@ def check_visible(start_coords,target,cadmodel,verbose=False,tol=1e-3):
         return False
 
 
-# Class for storing ray data
+
 class RayData:
+    '''
+    Class representing ray casting results.
+
+    Objects of this class are returned by :func:`calcam.raycast_sightlines`.
+    It can also be used to save and load ray cast results to disk.
+
+    Parameters:
+        
+        filename (str)  : File name of .crd file containing saved RayData to load. \
+                          If not given, an empty RayData object is created.
+
+    '''
     def __init__(self,filename=None):
+
         self.ray_end_coords = None
+        '''
+        np.ndarray :An array containing the 3D coordinates, in metres, of the points where \
+        the sight lines intersect the CAD model. If x and y coordinates were \
+        input to raycast_sightlines, the shape of this array is the same as the \
+        input x and y arrays with an additional dimension added which contains the \
+        [X,Y,Z] 3D coordinates. Otherwise the shape is (h x w x 3) where w and h are \
+        the image width and height.
+        '''
+
         self.ray_start_coords = None
+        '''
+        np.ndarray :An array containing the 3D coordinates, in metres, of the start of \
+        each sight line (i.e. camera pupil position). If x and y coordinates were \
+        input to raycast_sightlines, the shape of this array is the same as the \
+        input x and y arrays with an additional dimension added which contains the \
+        [X,Y,Z] 3D coordinates. Otherwise the shape is (h x w x 3) where w and h are \
+        the image width and height.
+        '''
+
         self.binning = None
         self.transform = None
         self.fullchip = None
         self.x = None
         self.y = None
         if filename is not None:
-            self.load(filename)
+            self._load(filename)
 
 
     # Save to a netCDF file
     def save(self,filename):
-		
+        '''
+        Save the RayData to a file.
+
+        Parameters:
+
+            filename (str) : File name to save to.
+        '''
         if not filename.endswith('.nc'):
             filename = filename + '.nc'
 			
@@ -289,8 +351,8 @@ class RayData:
         if len(self.x.shape) == 2:
             udim = f.createDimension('udim',self.x.shape[1])
             vdim = f.createDimension('vdim',self.x.shape[0])
-            rayhit = f.createVariable('RayEndCoords','f4',('vdim','udim','pointdim'))
-            raystart = f.createVariable('RayStartCoords','f4',('vdim','udim','pointdim'))
+            rayhit = f.createVariable('RayEndcoords','f4',('vdim','udim','pointdim'))
+            raystart = f.createVariable('RayStartcoords','f4',('vdim','udim','pointdim'))
             x = f.createVariable('PixelXLocation','i4',('vdim','udim'))
             y = f.createVariable('PixelYLocation','i4',('vdim','udim'))
             
@@ -300,8 +362,8 @@ class RayData:
             y[:,:] = self.y
         elif len(self.x.shape) == 1:
             udim = f.createDimension('udim',self.x.size)
-            rayhit = f.createVariable('RayEndCoords','f4',('udim','pointdim'))
-            raystart = f.createVariable('RayStartCoords','f4',('udim','pointdim'))
+            rayhit = f.createVariable('RayEndcoords','f4',('udim','pointdim'))
+            raystart = f.createVariable('RayStartcoords','f4',('udim','pointdim'))
             x = f.createVariable('PixelXLocation','i4',('udim',))
             y = f.createVariable('PixelYLocation','i4',('udim',))
 
@@ -336,11 +398,18 @@ class RayData:
         f.close()
 
 
-    # Load from a netCDF file
-    def load(self,filename):
+
+    def _load(self,filename):
+        '''
+        Load RayData from a file.
+
+        Parameters:
+
+            filename (str) : File name to load from.
+        '''
         f = netcdf_file(filename, 'r',mmap=False)
-        self.ray_end_coords = f.variables['RayEndCoords'].data
-        self.ray_start_coords = f.variables['RayStartCoords'].data
+        self.ray_end_coords = f.variables['RayEndcoords'].data
+        self.ray_start_coords = f.variables['RayStartcoords'].data
         self.binning = f.variables['Binning'].data
         if self.binning == 0:
             self.binning = None
@@ -359,20 +428,40 @@ class RayData:
 
         f.close()
 
-    # Return array of the sight-line length for each pixel.
-    def get_ray_lengths(self,x=None,y=None,PositionTol = 3,Coords='Display'):
 
+    def get_ray_lengths(self,x=None,y=None,im_position_tol = 1,coords='Display'):
+        '''
+        Get the sight-line lengths either of all casted sight-lines or at the specified image coordinates.
+
+        Parameters:
+        
+            x,y (array-like)       : Image pixel coordinates at which to get the sight-line lengths. \
+                                      If not specified, the lengths of all casted sight lines will be returned.
+            im_position_tol (float) : If x and y are specified but no sight-line was cast at exactly the \
+                                      input coordinates, the nearest casted sight-line will be returned \
+                                      instead provided the pixel coordinates wre within this many pixels of \
+                                      the requested coordinates.
+            coords (str)            : Either ``Display`` or ``Coords``, specifies what orientation the input x \
+                                      and y correspond to or orientation of the returned array.
+        
+        Returns:
+
+            np.ndarray              : Array containing the sight-line lengths. If the ray cast was for the \
+                                      full detector and x and y are not specified, the array shape will be \
+                                      (h x w) where w nd h are the image width and height. Otherwise it will \
+                                      be the same shape as the input x and y coordinates.
+        '''
         # Work out ray lengths for all raytraced pixels
-        RayLength = np.sqrt(np.sum( (self.ray_end_coords - self.ray_start_coords) **2,axis=-1))
+        raylength = np.sqrt(np.sum( (self.ray_end_coords - self.ray_start_coords) **2,axis=-1))
         # If no x and y given, return them all
         if x is None and y is None:
             if self.fullchip:
-                if Coords.lower() == 'display':
-                    return RayLength
+                if coords.lower() == 'display':
+                    return raylength
                 else:
-                    return self.transform.display_to_original_image(RayLength,binning=self.binning)
+                    return self.transform.display_to_original_image(raylength)
             else:
-                return RayLength
+                return raylength
         else:
             if self.x is None or self.y is None:
                 raise Exception('This ray data does not have x and y pixel indices!')
@@ -382,14 +471,14 @@ class RayData:
                 raise ValueError('x and y arrays must be the same shape!')
             else:
 
-                if Coords.lower() == 'original':
+                if coords.lower() == 'original':
                     x,y = self.transform.original_to_display_coords(x,y)
 
                 orig_shape = np.shape(x)
                 x = np.reshape(x,np.size(x),order='F')
                 y = np.reshape(y,np.size(y),order='F')
                 RL = np.zeros(np.shape(x))
-                RayLength = RayLength.flatten()
+                raylength = raylength.flatten()
                 xflat = self.x.flatten()
                 yflat = self.y.flatten()
                 for pointno in range(x.size):
@@ -400,22 +489,45 @@ class RayData:
                     deltaX = xflat - x[pointno]
                     deltaY = yflat - y[pointno]
                     deltaR = np.sqrt(deltaX**2 + deltaY**2)
-                    if np.nanmin(deltaR) <= PositionTol:
-                        RL[pointno] = RayLength[np.nanargmin(deltaR)]
+                    if np.nanmin(deltaR) <= im_position_tol:
+                        RL[pointno] = raylength[np.nanargmin(deltaR)]
                     else:
-                        raise Exception('No ray-traced pixel within PositionTol of requested pixel!')
+                        raise Exception('No ray-traced pixel within im_position_tol of requested pixel!')
                 return np.reshape(RL,orig_shape,order='F')
 
 
-    # Return unit vectors of sight-line direction for each pixel.
-    def get_ray_directions(self,x=None,y=None,PositionTol=3,Coords='Display'):
-        
+
+    def get_ray_directions(self,x=None,y=None,im_position_tol=1,coords='Display'):
+        '''
+        Get unit vectors specifying the sight-line directions. Note that ray casting \
+        is not required to get this information: see :func:`calcam.Calibration.get_los_direction` \
+        for the same functionality, however this can be useful if you have the RayData \
+        but not :class:`calcam.Calibration` object loaded when doing the analysis.
+
+        Parameters:
+
+            x,y (array-like)        : x and y pixel coordinates at which to get the ray directions. \
+                                      If not specified, the ray directions of every sight-line are returned.
+            im_position_tol (float) : If x and y are specified but no sight-line was cast at exactly the \
+                                      input coordinates, the nearest casted sight-line will be returned \
+                                      instead provided the pixel coordinates wre within this many pixels of \
+                                      the requested coordinates.
+            coords (str)            : Either ``Display`` or ``Coords``, specifies what orientation the input x \
+                                      and y correspond to or orientation of the returned array.
+
+        Returns:
+
+            np.ndarray              : Array containing the sight-line directions. If the ray cast was for the \
+                                      full detector and x and y are not specified, the array shape will be \
+                                      (h x w x 3) where w nd h are the image width and height. Otherwise it will \
+                                      be the same shape as the input x and y coordinates plus an extra dimension.
+        '''
         lengths = self.get_ray_lengths()
         dirs = (self.ray_end_coords - self.ray_start_coords) / np.repeat(lengths.reshape(np.shape(lengths)+(1,)),3,axis=-1)
 
         if x is None and y is None:
             if self.fullchip:
-                if Coords.lower() == 'display':
+                if coords.lower() == 'display':
                     return dirs
                 else:
                     return self.transform.display_to_original_image(dirs,binning=self.binning)
@@ -428,7 +540,7 @@ class RayData:
                 raise ValueError('x and y arrays must be the same shape!')
             else:
 
-                if Coords.lower() == 'original':
+                if coords.lower() == 'original':
                     x,y = self.transform.original_to_display_coords(x,y)
 
                 oldshape = np.shape(x)
@@ -447,12 +559,12 @@ class RayData:
                     deltaX = xflat - x[pointno]
                     deltaY = yflat - y[pointno]
                     deltaR = np.sqrt(deltaX**2 + deltaY**2)
-                    if np.min(deltaR) <= PositionTol:
+                    if np.min(deltaR) <= im_position_tol:
                         Xout[pointno] = dirs_X[np.argmin(deltaR)]
                         Yout[pointno] = dirs_Y[np.argmin(deltaR)]
                         Zout[pointno] = dirs_Z[np.argmin(deltaR)]
                     else:
-                        raise Exception('No ray-traced pixel within PositionTol of requested pixel!')
+                        raise Exception('No ray-traced pixel within im_position_tol of requested pixel!')
                 out = np.hstack([Xout,Yout,Zout])
 
                 return np.reshape(out,oldshape + (3,),order='F')

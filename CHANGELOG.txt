@@ -1,6 +1,15 @@
 Project Changelog
 =================
 
+Calcam v2.0.0 (XX November 2018)
+--------------------------------
+
+New major version with many API, GUI and file format changes.
+
+See full documentation pages for notes on upgrading from Calcam 1.x.
+
+
+
 Bug fix release 1.9.3 (11 Mar 2018)
 -----------------------------------
 

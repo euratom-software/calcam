@@ -378,13 +378,11 @@ class Calibration():
     
     Parameters:
 
-       load_filename (str): File name of the calibration to load. If not given, an "empty" \
-                        calibration object is created.
-
-       cal_type (str):  Required only if load_file is not specified i.e. creating an empty \
-                        calibration object. Must be one of "fit", "alignment" or "virtual".\
-                        If load_file is provided, this is ignored.
-
+       load_filename (str) : File name of the calibration to load. If not given, an "empty" \
+                             calibration object is created.
+       cal_type (str)     :  Required only if load_file is not specified i.e. creating an empty \
+                             calibration object. Must be one of "fit", "alignment" or "virtual".\
+                             If load_file is provided, this is ignored.
     '''
     def __init__(self,load_filename = None,cal_type = None):
 
@@ -435,16 +433,12 @@ class Calibration():
         Parameters:
 
             pointpairs (calcam.PointPairs) : Set of point pairs to add.
-        
-            src (str) : Optional metadata describing where the point pairs are from.
-        
-            history (tuple) : Optional 2-element tuple of strings describing the \
-                              history of the point pairs. The first string describes \
-                              the original source (like src), and the second string \
-                              describes the most recent modification.
-
+            src (str)                      : Optional metadata describing where the point pairs are from.
+            history (tuple)                : Optional 2-element tuple of strings describing the \
+                                             history of the point pairs. The first string describes \
+                                             the original source (like src), and the second string \
+                                             describes the most recent modification.
         '''
-
         if pointpairs is not None:
             if pointpairs.n_subviews != self.n_subviews:
                 raise ValueError('Provided PointPairs object has a different number of sub-views ({:d}) to this calibration ({:d})!'.format(pointpairs.n_subviews,self.n_subviews))
@@ -473,18 +467,12 @@ class Calibration():
 
         Parameters:
 
-            image (numpy.ndarray) : Image data
-
-            pointpairs (calcam.PointPairs) : Point pairs associated with the image
-
+            image (numpy.ndarray)            : Image data
+            pointpairs (calcam.PointPairs)   : Point pairs associated with the image
             calibration (calcam.Calibration) : Calcam calibration
-
-            im_history (str) : Description of the image history
-
-            pp_history (tuple) : 2 element tuple of strings describing the point pair history
-
-            src (str) : String describing the source of the intrinsics constraints.
-
+            im_history (str)                 : Description of the image history
+            pp_history (tuple)               : 2 element tuple of strings describing the point pair history
+            src (str)                        : String describing the source of the intrinsics constraints.
         '''
         if calibration is not None:
             im = self.geometry.original_to_display_image(calibration.get_image(coords='original'))
@@ -632,24 +620,18 @@ class Calibration():
 
         Parameters:
 
-            image(numpy.ndarray) : Image data array
-
-            src (str) : Description of where the image is from
-
-            coords (str): Either ``Display`` or ``Original`` specifying \
-                          the orientation of the provided image array.
-
-            transform_actions (list) : List of strings describing the \
-                                       geometrical transformations between \
-                                       original and display coordinates. 
-
+            image(numpy.ndarray)         : Image data array
+            src (str)                    : Description of where the image is from
+            coords (str)                 : Either ``Display`` or ``Original`` specifying \
+                                           the orientation of the provided image array.
+            transform_actions (list)     : List of strings describing the \
+                                           geometrical transformations between \
+                                           original and display coordinates. 
             subview_mask (numpy.ndarray) : Integer array the same size as the image \
                                            where the value in each element specifies what \
                                            sub-view each pixel belongs to.
-
-            subview_names (list) : List of strings specifying the names of the sub-views.
-
-            pixel_size (float) : Physical size of the detector pixels in microns.
+            subview_names (list)         : List of strings specifying the names of the sub-views.
+            pixel_size (float)           : Physical size of the detector pixels in microns.
         '''
         image = image.copy()
 
@@ -717,11 +699,9 @@ class Calibration():
         Parameters:
 
             mask (numpy.ndarray) : Integer array the same size as the calibration's main image.
-
             subview_names (list) : List of strings specifying the names of the different sub-views
-
-            coords (str) : Either ``Original`` or ``Display``, specifies what orientation the \
-                           supplied mask is in.
+            coords (str)         : Either ``Original`` or ``Display``, specifies what orientation the \
+                                   supplied mask is in.
         '''        
         n_subviews = mask.max() + 1
 
@@ -753,8 +733,8 @@ class Calibration():
 
         Parameters:
 
-            coords (str) : Either ``Display`` or ``Original``, \
-                           what orientation to return the image.
+            coords (str)           : Either ``Display`` or ``Original``, \
+                                     what orientation to return the image.
 
         Returns:
 
@@ -781,8 +761,8 @@ class Calibration():
 
         Parameters:
 
-            coords (str) : Either ``Display`` or ``Original``, \
-                           what orientation to return the mask.
+            coords (str)           : Either ``Display`` or ``Original``, \
+                                     what orientation to return the mask.
 
         Returns:
 
@@ -888,8 +868,7 @@ class Calibration():
 
         Parameters:
 
-            subview (int) : What sub-view index the fit applies to.
-
+            subview (int)                             : What sub-view index the fit applies to.
             view_model (calcam.calibration.ViewModel) : The fitted camera view model.
         '''
         self.view_models[subview] = view_model
@@ -902,8 +881,7 @@ class Calibration():
 
         Parameters:
 
-            x,y (float) : Pixel coordinates to check.
-
+            x,y (float)  : Pixel coordinates to check.
             coords (str) : Either ``Display`` or ``Original``, specifies whether \
                            the provided x and y coordinates are relative to the  \
                            image in display or original orientation. X and Y must \
@@ -911,9 +889,9 @@ class Calibration():
 
         Returns:
 
-            np.ndarray : Array of integers the same shape as input X and Y arrays. \
-                         The value of each element specified which sub-view the \
-                         corresponding input image position belongs to.
+            np.ndarray   : Array of integers the same shape as input X and Y arrays. \
+                           The value of each element specified which sub-view the \
+                           corresponding input image position belongs to.
         '''
         if coords.lower() == 'display':
             shape = self.geometry.get_display_shape()
@@ -953,27 +931,26 @@ class Calibration():
 
         Parameters:
             
-            subview (int) : Which sub-view to get the pupil position for. \
-                            Only required for calibrations with more than 1 \
-                            sub-view.
+            subview (int)                : Which sub-view to get the pupil position for. \
+                                           Only required for calibrations with more than 1 \
+                                           sub-view.
 
             x,y (float or numpy.ndarray) : For calibrations with more than one subview, get the pupil \
                                            position(s) corresponding to these given image pixel coordinates.
 
-            coords (str) : Only used if x and y are also given. Either ``Display`` \
-                           or ``Original``, specifies whether the provided x and y are in \
-                           display or original coordinates.
+            coords (str)                 : Only used if x and y are also given. Either ``Display`` \
+                                           or ``Original``, specifies whether the provided x and y are in \
+                                           display or original coordinates.
 
         Returns:
 
-            np.ndarray : Camera pupil position in 3D space. If not specifying \
-                         x or y inputs, this will be a 3 element array containing \
-                         the [X,Y,Z] coordinates of the pupil position in metres. \
-                         If using x and y inputs, the output array will be the same \
-                         shape as the x and y input arrays with an additional dimension \
-                         added; the X, Y and Z components are then given along the new \
-                         new array dimension.
-
+            np.ndarray                  : Camera pupil position in 3D space. If not specifying \
+                                          x or y inputs, this will be a 3 element array containing \
+                                          the [X,Y,Z] coordinates of the pupil position in metres. \
+                                          If using x and y inputs, the output array will be the same \
+                                          shape as the x and y input arrays with an additional dimension \
+                                          added; the X, Y and Z components are then given along the new \
+                                          new array dimension.
         '''
         # If we're given pixel coordinates
         if x is not None or y is not None:
@@ -1032,7 +1009,7 @@ class Calibration():
 
         Returns:
 
-            np.matrix : 3x3 camera matrix.
+            np.matrix     : 3x3 camera matrix.
 
         '''
         if self.n_subviews > 1 and subview is None:
@@ -1061,8 +1038,8 @@ class Calibration():
 
         Returns:
 
-            float : Camera roll in degrees. Positive angles correspond to an anti-clockwise \
-                    roll of the camera i.e. clockwise roll of the image.
+            float         : Camera roll in degrees. Positive angles correspond to an anti-clockwise \
+                            roll of the camera i.e. clockwise roll of the image.
 
         '''
         if self.n_subviews > 1 and subview is None:
@@ -1081,9 +1058,9 @@ class Calibration():
 
         Parameters:
             
-            subview (int) : For calibrations with multiple sub-views, \
-                            which sub-view index to return the field \
-                            of view for.
+            subview (int)   : For calibrations with multiple sub-views, \
+                              which sub-view index to return the field \
+                              of view for.
             fullchip (bool) : For calibrations with multiple sub-views, \
                               setting this to True will return the field of \
                               view defined by the camaera model of the specified \
@@ -1091,8 +1068,8 @@ class Calibration():
 
         Returns:
 
-            tuple : 2-element tuple containing the full angles of the horizontal and \
-                    vertical fields of view (h_fov,v_fov) in degrees.
+            tuple           : 2-element tuple containing the full angles of the horizontal and \
+                              vertical fields of view (h_fov,v_fov) in degrees.
         '''
         if subview is None and self.n_subviews > 1:
             raise ValueError('This calibration contains multuple sub-views; subview number must be specified!')
@@ -1149,19 +1126,18 @@ class Calibration():
                                          x and y must be the same shape. If not specified, the line of sight direction \
                                          at the centre of every detector pixel is returned.
 
-            coords (str) : Either ``Display`` or ``Original``, specifies which image orientation the provided x and y \
-                           inputs and/or shape of the returned array correspond to.
+            coords (str)               : Either ``Display`` or ``Original``, specifies which image orientation the provided x and y \
+                                         inputs and/or shape of the returned array correspond to.
 
-            subview (int) : If specified, forces the use of the camera model from the specified sub-view index. \
-                            If not given, the correct sub-view(s) will be chosen automatically.
+            subview (int)              : If specified, forces the use of the camera model from the specified sub-view index. \
+                                         If not given, the correct sub-view(s) will be chosen automatically.
 
         Returns:
 
-            np.ndarray :   Array of sight-line vectors. If specifying x_pixels and y_pixels, the output array will be \
-                           the same shape as the input arrays but with an extra dimension added. The extra dimension contains \
-                           the [X,Y,Z] components of the sight-line vectors. If not specifying x_pixels and y_pixels, the output \
-                           array shape will be (h x w x 3) where w and h are the image width and height in pixels.
-
+            np.ndarray                 : Array of sight-line vectors. If specifying x_pixels and y_pixels, the output array will be \
+                                         the same shape as the input arrays but with an extra dimension added. The extra dimension contains \
+                                         the [X,Y,Z] components of the sight-line vectors. If not specifying x_pixels and y_pixels, the output \
+                                         array shape will be (h x w x 3) where w and h are the image width and height in pixels.
         '''
 
         # If we're given pixel coordinates
@@ -1227,30 +1203,29 @@ class Calibration():
 
         Parameters:
 
-            points_3d : 3D point coordinates, in metres, to project on to the image. Can be EITHER an Nx3 array, where N is the \
-                        number of 3D points and each row gives [X,Y,Z] for a 3D point, or an array-like of 3 element array-likes,\
-                        where each 3 element array specifies a 3D point.
+            points_3d                            : 3D point coordinates, in metres, to project on to the image. Can be EITHER an Nx3 array, where N is the \
+                                                   number of 3D points and each row gives [X,Y,Z] for a 3D point, or an array-like of 3 element array-likes,\
+                                                   where each 3 element array specifies a 3D point.
             
-            coords (str) : Either ``Display`` or ``Original``, specifies which image orientation the returned image coordinates \
-                           should correspond to.
+            coords (str)                         : Either ``Display`` or ``Original``, specifies which image orientation the returned image coordinates \
+                                                   should correspond to.
 
             check_occlusion_by (calcam.CADModel) : If provided, for each projected point the function will check if the point \
                                                    is hidden from the camera's view by part of the provided CAD model.
 
-            fill_value (float) : For any 3D points not visible to the camera, the returned image coordinates will be set equal to \
-                                 this value. If set to ``None``, image coordinates will be returned for every 3D point even if the \
-                                 point is outside the camera's field of view or hidden from view.
+            fill_value (float)                   : For any 3D points not visible to the camera, the returned image coordinates will be set equal to \
+                                                   this value. If set to ``None``, image coordinates will be returned for every 3D point even if the \
+                                                   point is outside the camera's field of view or hidden from view.
 
-            occlusion_tol (float) : Tolerance (in mrtres) to use to check point occlusion. Try increasing this value if having trouble \
-                                    with points being wrongly detected as occluded.  
+            occlusion_tol (float)                : Tolerance (in mrtres) to use to check point occlusion. Try increasing this value if having trouble \
+                                                   with points being wrongly detected as occluded.  
 
         Returns:
 
-            list of np.ndarray : A list of Nx2 NumPY arrays containing the image coordinates of the given 3D points (N is the number of input 3D points). \
-                                 Each NumPY array corresponds to a single sub-view, so for images without multuiple sub-views this will return a single element \
-                                 list containing an Nx2 array. Each row of the NumPY arrays contains the [X,Y] image coordinates of the corresponding input point. \
-                                 If fill_value is not None, points not visible to the camera have their coordinates set to ``[fill_value, fill_value]``.
-
+            list of np.ndarray                  : A list of Nx2 NumPY arrays containing the image coordinates of the given 3D points (N is the number of input 3D points). \
+                                                  Each NumPY array corresponds to a single sub-view, so for images without multuiple sub-views this will return a single element \
+                                                  list containing an Nx2 array. Each row of the NumPY arrays contains the [X,Y] image coordinates of the corresponding input point. \
+                                                  If fill_value is not None, points not visible to the camera have their coordinates set to ``[fill_value, fill_value]``.
         '''
         points_3d = np.array(points_3d)
 
@@ -1324,14 +1299,13 @@ class Calibration():
         Parameters:
             image (np.ndarray) : (h x w x N) array containing the image to be un-distorted,
                                  where N is the number of colour channels.
-
-            coords (str) : Either ``Display`` or ``Original``, specifies which orientation \
-                           the input image is in.
+            coords (str)       : Either ``Display`` or ``Original``, specifies which orientation \
+                                 the input image is in.
 
         Returns:
 
-            np.ndarray : Image data array the same shape as the input array containing the \
-                         corrected image.
+            np.ndarray         : Image data array the same shape as the input array containing the \
+                                 corrected image.
         '''
         if coords.lower() == 'original':
             image = self.geometry.original_to_display_image(image)
@@ -1370,7 +1344,7 @@ class Calibration():
                            to return the rotation matrix for.
 
         Returns:
-            np.matrix : 3x3 rotation matrix.
+            np.matrix    : 3x3 rotation matrix.
 
         '''
         if subview is None:
@@ -1391,16 +1365,16 @@ class Calibration():
 
             x,y (array-like) : Arrays of x and y pixel coordinates to convert to normalised\
                                coordinates. x and y must be the same shape.
-
-            subview (int): If specified, force the calculation to use the view model \
-                           from the given sub-view. If not specified, the correct sub-view \
-                           is chosen automatically.
+            subview (int)    : If specified, force the calculation to use the view model \
+                               from the given sub-view. If not specified, the correct sub-view \
+                               is chosen automatically.
 
         Returns:
-            np.ndarray : Array containing nroamlised coordinates. The output array will be the \
-                         same shape as the input x and y arrays with an extra dimension added; \
-                         the extra dimension contains the [x_n, y_n] normalised coordinates at the \
-                         corresponding input coordinates.
+
+            np.ndarray       : Array containing nroamlised coordinates. The output array will be the \
+                               same shape as the input x and y arrays with an extra dimension added; \
+                               the extra dimension contains the [x_n, y_n] normalised coordinates at the \
+                               corresponding input coordinates.
 
         '''
         if subview is None:
@@ -1491,12 +1465,10 @@ class Calibration():
         Parameters:
 
             fx, fy (float) : Focal length in pixels in the horizontal and vertical directions.
-
             cx, cy (float) : Position of the perspective projection centre on the image in pixels. \
                              If not given, this is set to the image centre.
-
-            nx, ny (int) : Number of detector pixels in the horizontal and vertical directions. Must be \
-                           given for virtual calibrations but not for any other type.
+            nx, ny (int)   : Number of detector pixels in the horizontal and vertical directions. Must be \
+                             given for virtual calibrations but not for any other type.
         '''
         if self._type == 'fit':
             raise Exception('You cannot modify the intrinsics of a fitted calibration.')
@@ -1532,16 +1504,12 @@ class Calibration():
 
         Parameters:
 
-            campos (array-like) : 3-element array-like specifying the camera position (X,Y,Z) in metres.
-
-            upvec (array-like) : 3-element array-like specifying the camera up vector.
-
-            camtar (array-like) : 3-element array-like specifying a point in 3D space where the camera is pointed to. \
-                                  If both camtar and view_dir are provided, camtar is used.
-
+            campos (array-like)   : 3-element array-like specifying the camera position (X,Y,Z) in metres.
+            upvec (array-like)    : 3-element array-like specifying the camera up vector.
+            camtar (array-like)   : 3-element array-like specifying a point in 3D space where the camera is pointed to. \
+                                    If both camtar and view_dir are provided, camtar is used.
             view_dir (array-like) : 3D vector [X,Y,Z] specifying the camera view direction. If both camtar and view_dir \
                                     are provided, camtar will be used instead.
-
         '''
 
         if self._type == 'fit':

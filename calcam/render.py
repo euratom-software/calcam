@@ -19,14 +19,6 @@
   permissions and limitations under the Licence.
 '''
 
-
-""" 
-Functions for making high quality CAD model renders
-from a camera's point of view, and related stuff.
-
-Written by Scott Silburn
-"""
-
 import vtk
 import cv2
 from vtk.util.numpy_support import vtk_to_numpy
@@ -37,37 +29,31 @@ import time
 from .raycast import raycast_sightlines
 
 
-def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampling=1,aa=1,transparency=False,verbose=True,coords = 'Display',screensize=(800,600),interpolation='Cubic'):
+def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampling=1,aa=1,transparency=False,verbose=True,coords = 'Display',interpolation='Cubic'):
+    '''
+    Render an image of a given CAD model from the point of view of a given calibration.
 
-    """
-    Make CAD model renders from the camera's point of view, including all distortion effects etc.
+    Parameters:
 
-    INPUTS:
+        cadmodel (calcam.CADModel)          : CAD model of scene
+        calibration (calcam.Calibration)    : Calibration whose point-of-view to render from.
+        extra_actors (list of vtk.vtkActor) : List containing any additional vtkActors to add to the scene \
+                                              in addition to the CAD model.
+        filename (str)                      : Filename to which to save the resulting image. If not given, no file is saved.
+        oversampling (float)                : Used to render the image at higer (if > 1) or lower (if < 1) resolution than the \
+                                              calibrated camera. Must be an integer power of 2.
+        aa (int)                            : Anti-aliasing factor. 1 = no anti-aliasing.
+        transparency (bool)                 : If true, empty areas of the image are set transparent. Otherwise they are black.
+        verbose (bool)                      : Whether to print status updates while rendering.
+        coords (str)                        : Either ``Display`` or ``Original``, the image orientation in which to return the image.
+        interpolation(str)                  : Either ``nearest`` or ``cubic``, inerpolation used if re-sampling of the image during \
+                                              the rendering process. Note: if set to ``nesrest``, will make aa > 1 ineffective.
 
-    Required:
-    CADModel        - CAD model object
-    FitResults      - Fit results for the camera from whose viewpoint to do the render
-    
-    Optional (keyword):
-    filename        - filename, including file extension, to save resulting image (if not specified, the image is not saved).
-    oversampling    - the size of the rendered image is  <real camera image size> * oversampling
-    AA              - Anti-aliasing factor. Larger numbers look nicer but take more memory to render
-    Edges           - Bool, if set to True renders the CAD model in wireframe (but still with occlusion)
-    EdgeColour      - 3-element tuple of floats 0-1, If Edges=True, what colour to make the edges in the wireframe (R,G,B)
-    EdgeWidth       - If Edges=True, line width for edges
-    Transparency    - whether to make black areas (i.e. background) transparent.
-    ROI             - An ROI definition object: if supplied, the ROI will be rendered on the image.
-    ROIColour       - (R,G,B) colour to render the ROI
-    ROIOpacity      - Opacity to render ROI
-    qt_avilable_geometry - If being called from a Qt app, this must be used. 
-
-    OUTPUTS:
-
-    im - numpy array with RGB[A] image
-
-    If filename is provided, saves the render with the specified filename
-    """
-
+    Returns:
+        
+        np.ndarray                          : Array containing the rendered 8-bit per channel RGB (h x w x 3) or RGBA (h x w x 4) image.\
+                                              Also saves the result to disk if the filename parameter is set.
+    '''
     if np.any(calibration.view_models) is None:
         raise ValueError('This calibration object does not contain any fit results! Cannot render an image without a calibration fit.')
 
@@ -150,10 +136,13 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
         wt = int(2*fov_factor*max(cx,x_pixels-cx))
         ht = int(2*fov_factor*max(cy,y_pixels-cy))
 
-        # Make sure the intended render window will fit on the screen
+        # Make sure the intended render window will fit on the screen.
+        # This makes the (reasonable) assumption that the current display is > 640x480.
+        # Doing this is required because if the off-screen render wndow is 
+        # bigger than the current screen resolution, the image alignment comes out wrong.
         window_factor = 1
-        if wt > screensize[0] or ht > screensize[1]:
-            window_factor = int( max( np.ceil(float(wt)/float(screensize[0])) , np.ceil(float(ht)/float(screensize[1])) ) )
+        if wt > 640 or ht > 480:
+            window_factor = int( max( np.ceil(float(wt)/640.) , np.ceil(float(ht)/480.) ) )
     
         vtk_win_im.SetMagnification(int(window_factor*aa*max(oversampling,1)))
 

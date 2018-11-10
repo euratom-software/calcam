@@ -1,3 +1,18 @@
-Citing this project in publications:
+Citing this project in publications
+===================================
 
-There are not yet suitable articles to cite when using calcam in publications, so in lieu of this please reference the GitHub URL: https://github.com/euratom-software/calcam/ where possilble.
+Calcam has a DOI issued though Zenodo. 
+
+The following citation will always refer to the most recent release version:
+
+"Scott Silburn et al. (2018). Calcam. http://doi.org/10.5281/zenodo.1478554"
+
+
+Specific versions can also be cited, and have individual DOIs. For example for v1.9.4:
+
+"Scott Silburn et al. (2018). Calcam (Version 1.9.4). http://doi.org/10.5281/zenodo.1478555"
+
+
+For more details including DOIs for different versions, please refer to:
+
+https://zenodo.org/badge/latestdoi/92296352

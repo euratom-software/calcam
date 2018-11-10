@@ -38,16 +38,20 @@ def print_status(status):
         print(status)
 
 
-'''
-Class for representing mesh file based 3D models in calcam.
-Provides a whole load of convenience functions.
 
-Written by Scott Silburn; completey re-written in March 2018
-'''
 class CADModel():
+    '''
+    Class for representing a CAD model in Calcam.
 
-
-    # Create a new CAD model object from a .ccm model definition file.
+    Parameters:
+        model_name (str)        : Either the machine name of a CAD model in Calcam's model search path, \
+                                  or filename of a .ccm file to load the model from.
+        model_variant (str)     : Name of the model variant to load. If not specified, the default variant \
+                                  specified in the CAD model is loaded.
+        status_callback (func)  : Function to call with status messages. If given, this function is called \
+                                  with a string describing the status. If set to None, no status updates are \
+                                  issued.
+    '''
     def __init__(self,model_name=None,model_variant=None,status_callback=print_status):
 
 
@@ -188,20 +192,43 @@ class CADModel():
         atexit.register(self.unload)
 
 
-    # Set / get the status callback function
     def set_status_callback(self,status_callback):
+        '''
+        Set the status callback function.
+
+        The given function will be called with a string when the CAD model
+        object does something, and is called with None when the operatio is
+        finished. If set to None, the object will provide no output when it is
+        busy doing things.
+
+        Parameters:
+
+            status_callback (fun): Status callback function.
+        '''
         self.status_callback = status_callback
 
 
     def get_status_callback(self):
+        '''
+        Get the current callback function
+
+        Returns:
+
+            func or NoneType : Current status callback function, if present.
+        '''
         return self.status_callback
 
 
 
-    # Add this CAD model to a vtk renderer.
-    # Input: vtk.vtkRenderer object.
-    def add_to_renderer(self,renderer):
 
+    def add_to_renderer(self,renderer):
+        '''
+        Add the CAD model to a VTK renderer.
+
+        Parameters:
+
+            renderer (vtk.vtkRenderer) : Renderer to add the model to.
+        '''
         if renderer in self.renderers:
             return
 
@@ -213,10 +240,16 @@ class CADModel():
 
             self.renderers.append(renderer)
 
-    # Remove this CAD model from a vtk renderer.
-    # Input: vtk.vtkRenderer object.
-    def remove_from_renderer(self,renderer):
 
+
+    def remove_from_renderer(self,renderer):
+        '''
+        Remove the CAD model from the given VTK renderer.
+
+        Parameters:
+
+            renderer (vtk.vtkRenderer) : Renderer to remove the model from.
+        '''
         if renderer not in self.renderers:
             return
 
@@ -229,11 +262,20 @@ class CADModel():
             self.renderers.remove(renderer)
 
 
-    # Enable or disable features
-    # Features can be a string, list of strings or none.
-    # If none, all features are enabled!
-    def set_features_enabled(self,enable,features=None):
 
+    def set_features_enabled(self,enable,features=None):
+        '''
+        Enable or disable parts of the CAD model.
+
+        Parameters:
+
+            enable (bool)          : Whether to set the relevant features \
+                                     as enabeled (True) or disabled (False).
+            features (list of str) : List of the feature(s) and/or group(s) \
+                                     of features of  to enable or disable. \
+                                     If not specified, applies to all features \
+                                     in the model.
+        '''
         if features is None:
             features = self.features.keys()
         elif type(features) is not list:
@@ -253,9 +295,16 @@ class CADModel():
         self.cell_locator = None
 
 
-    # A handy function for enabling just one feature or group
+
     def enable_only(self,features):
-        
+        '''
+        Disable all model parts except those specified.
+
+        Parameters:
+
+            features (list of str) : List of names of the feature(s) and/or \
+                                     group(s) to have enabled.
+        '''
         if type(features) is not list:
             features = [features]
 
@@ -272,10 +321,15 @@ class CADModel():
         self.cell_locator = None
 
 
-    # Get a list of strings with the names of
-    # currently enabled features.
-    def get_enabled_features(self):
 
+    def get_enabled_features(self):
+        '''
+        Get a list of the currently enabled features.
+
+        Returns:
+
+            list of str : Names of the currently enabled features.
+        '''
         flist = []
         for fname,fobj in self.features.items():
             if fobj.enabled:
@@ -284,11 +338,22 @@ class CADModel():
         return sorted(flist)
 
 
-    # Check the enable status of a group of features:
-    # all enabled, partially enabled or none enabled.
-    # This is basically a convenience function for the GUI.
-    def get_group_enable_state(self,group=None):
 
+    def get_group_enable_state(self,group=None):
+        '''
+        Check the enable status of a named group of features.
+
+        Parameters:
+
+            group (str) : Name of the group to check. If not given, \
+                          the entire model is taken to be the group.
+
+        Returns:
+
+            int         : 0 if no features in the group are anebled; \
+                          1 if some features in the group are enabled; \
+                          2 if all features in the group are enabled.
+        '''
         if group is None:
             flist = self.features.keys()
         else:
@@ -306,9 +371,21 @@ class CADModel():
         return enable_state
 
 
-    # Default for getting some info to print
-    # Just print the position.
+
+
     def format_coord(self,coords):
+        '''
+        Return a pretty string giving information about a specified 3D position.
+
+        Parameters:
+
+            coords (array-like) : 3 element array-like specifying a point in 3D \
+                                  as X,Y,Z in metres.
+
+        Returns:
+
+            str                 : String containing information about the given point.
+        '''
 
         if self.usermodule is not None:
             return self.usermodule.format_coord(coords)
@@ -327,9 +404,16 @@ class CADModel():
     
 
 
-    # Turn on or off flat shading (no lighting effects)
-    def set_flat_shading(self,flat_shading):
 
+    def set_flat_shading(self,flat_shading):
+        '''
+        Set flat shading (no lighting applied to model rendering)
+        enabled or disabled.
+
+        Parameters:
+
+            flat_shading (bool) : Whether to enable or disable flat shading.
+        '''
         self.flat_shading = flat_shading
         if flat_shading != self.flat_shading:
 
@@ -340,9 +424,16 @@ class CADModel():
 
 
 
-    # Turn on or off the model being coloured by material
-    def reset_colour(self,features=None):
 
+    def reset_colour(self,features=None):
+        '''
+        Reset the colour of part or all of the CAD model to the default(s).
+
+        Parameters:
+
+            features (list of str) : List of features for which to reset the colours. \
+                                      If not given, all features will have their colours reset.
+        '''
         if features is None:
             features = self.get_feature_list()
 
@@ -356,9 +447,18 @@ class CADModel():
                 raise ValueError('Unknown feature "{:s}"!'.format(requested))
 
 
-    # Set the colour of a component or the whole model
-    def set_colour(self,colour,features=None):
 
+    def set_colour(self,colour,features=None):
+        '''
+        Set the colour of part or all of the CAD model.
+
+        Parameters:
+
+            colour (tuple)          : 3-element tuple specifying a colour in (R,G,B) \
+                                      where the values are in the range 0 to 1.
+            features (list of str)  : List of names of the features to set this colour. \
+                                      If not specified, applies to the whole model.
+        '''
         if features is None:
             features = self.get_feature_list()
 
@@ -380,9 +480,21 @@ class CADModel():
                 raise ValueError('Unknown feature "{:s}"!'.format(requested))
 
 
-    # Restore any colours previously set with temporary=True
-    def get_colour(self,features = None):
 
+    def get_colour(self,features = None):
+        '''
+        Get the current colour of part or all of the CAD model.
+
+        Parameters:
+
+            features (list of str)  : List of names of the features to get the colour for. \
+                                      If not specified, all feature colours are returned.
+
+        Returns:
+
+            List                    : List of 3 element tuples specifying the colours (R,G,B) \
+                                      of the given features, where R, G and B range from 0 to 1.
+        '''
         clist = []
         if features is None:
             features = self.get_feature_list()
@@ -400,7 +512,18 @@ class CADModel():
 
 
     def get_linewidth(self,features=None):
-        
+        '''
+        Get the line width used for rendering the model as wireframe.
+
+        Parameters:
+
+            features (list of str)  : List of names of the features to get the line width for. \
+                                      If not specified, all feature line widths are returned.
+
+        Returns:
+
+            list of float           : List of the line widths.
+        '''
         wlist = []
         if features is None:
             features = self.get_feature_list()
@@ -417,9 +540,17 @@ class CADModel():
         return wlist       
 
 
-    # Set the colour of a component or the whole model
-    def set_linewidth(self,linewidth,features=None):
 
+    def set_linewidth(self,linewidth,features=None):
+        '''
+        Set the line width used when rendering the CAD model as wireframe.
+
+        Parameters:
+
+            linewidth (float)       : Line width.
+            features (list of str)  : List of names of the features to set the line \
+                                      width for. If not specified, applies to the whole model.
+        '''
         if features is None:
             features = self.get_feature_list()
 
@@ -442,8 +573,15 @@ class CADModel():
 
 
 
-    # Make a vtkCellLocator object to do ray casting with this CAD model
+
     def get_cell_locator(self):
+        '''
+        Get a vtkCellLocator object used for ray casting.
+
+        Returns:
+
+            vtk.vtkCellLocator : VTK cell locator.
+        '''
 
         # Don't return anything if we have no enabled geometry
         if len(self.get_enabled_features()) == 0:
@@ -466,9 +604,15 @@ class CADModel():
         return self.cell_locator
 
 
-    # Set whether the model should appear as solid or wireframe
-    def set_wireframe(self,wireframe):
 
+    def set_wireframe(self,wireframe):
+        '''
+        Enable or disable rendering the model as wireframe.
+
+        Parameters:
+
+            wireframe (bool) : Whether to render as wireframe.
+        '''
         enable_features = self.get_enabled_features()
 
         for feature in enable_features:
@@ -480,16 +624,29 @@ class CADModel():
             self.features[feature].set_enabled(True)
 
 
-    # Get a list of every model feature name
-    def get_feature_list(self):
 
+    def get_feature_list(self):
+        '''
+        Get a list of the names of all features
+        which constitute the model.
+
+        Returns:
+
+            list of str: List of feature names.
+        '''
         return sorted(self.features.keys())
 
 
-    # Get the extent of the model in 3D space.
-    # Returns a 6 element araay [x_min, x_max, y_min, y_max, z_min, z_max]
-    def get_extent(self):
 
+    def get_extent(self):
+        '''
+        Get the extent of the model in 3D space.
+
+        Returns:
+
+            np.array : 6 element array specifying the extent of the model in metres: \
+                       [x_min, x_max, y_min, y_max, z_min, z_max]
+        '''
         model_extent = np.zeros(6)
 
         for fname in self.get_enabled_features():
@@ -500,25 +657,64 @@ class CADModel():
         return model_extent
 
 
+
     def get_view_names(self):
-        
+        '''
+        Get a list of the views configured in the model.
+
+        Returns:
+            list of str: Names of the views configured in the model.
+        '''
         return sorted(self.views.keys())
 
 
-    def get_view(self,view_name):
 
+    def get_view(self,view_name):
+        '''
+        Get a dictionary describing one of the 
+        views configured in the model.
+
+        Parameters:
+
+            view_name (str) : Name of the view to retrieve.
+
+        Returns:
+
+            dict            : Dictionary describing the view geometry.
+        '''
         return self.views[view_name.replace('*','')]
 
 
-    # Some slightly useful print formatting
-    def __str__(self):
 
+    def __str__(self):
+        '''
+        Make print() do something useful for CAD model objects.
+
+        Returns:
+
+            str : String specifying the model machine name and model file path.
+        '''
         return 'Calcam CAD model: "{:s}" / "{:s}" from {:s}'.format(self.machine_name,self.model_variant,self.definition_filename)
 
 
-    # Add a new view definition to the file.
-    def add_view(self,viewname,campos,camtar,fov,xsection,roll,projection):
 
+    def add_view(self,viewname,campos,camtar,fov,xsection,roll,projection):
+        '''
+        Add a specified camera view to the model's pre-defined views.
+
+        Parameters:
+    
+            viewname (str)          : A name for the added view.
+            campos (array-like)     : 3-element array-like specifying the camera position (X,Y,Z) in metres.
+            camtar (array-like)     : 3-element array-like specifying a 3D point at which the camera is pointing.
+            fov (float)             : Vertical field-of-view of the camera.
+            xsection (array-like)   : A 3D point through which the model will be cross-sectioned. If set to None, \
+                                      the model is not cross-sectioned.
+            roll (float)            : Camera roll in degrees. This is the angle between the model's +Z direction \
+                                      and the camera view up direction. Positie values indicate an anti-clockwise \
+                                      roll of the camera.
+            projection (str)        : Either ``perspective`` or ``orthographic``, what camera projection to use.
+        '''
         self.views[viewname] = {'cam_pos':campos,'target':camtar,'y_fov':fov,'xsection':xsection,'roll':roll,'projection':projection}
         self.model_def['views'] = self.views
         if not self.discard_changes:
@@ -526,7 +722,16 @@ class CADModel():
 
 
     def set_default_colour(self,colour,features=None):
+        '''
+        Set the default colour of some or all of the model.
 
+        Parameters:
+
+            colour (tuple)          : 3-element tuple specifying an (R,G,B) colour where \
+                                      R, G and B range from 0 to 1.
+            features (list of str)  : List of feature names to which to apply the colour. \
+                                      If not given, applies to the entire model.
+        '''
         if features is None:
             features = self.get_feature_list()
 
@@ -553,7 +758,9 @@ class CADModel():
 
 
     def unload(self):
-
+        '''
+        Unloads the CAD model object.
+        '''
         if self.status_callback is not None:
             self.status_callback('Closing model definition {:s}/{:s}...'.format(self.machine_name,self.model_variant))
 
@@ -565,7 +772,10 @@ class CADModel():
 
 
     def update_definition_file(self):
-
+        '''
+        Update the CAD definition on disk with any
+        changes to views or colours.
+        '''
         try:
 
             with self.def_file.open_file( 'model.json','w' ) as f:

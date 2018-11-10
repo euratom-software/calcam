@@ -139,9 +139,9 @@ class CalcamGUIWindow(qt.QMainWindow):
 
         # GUI initialisation
         qt.QMainWindow.__init__(self, parent)
-        qt.uic.loadUi(os.path.join(guipath,ui_filename), self)
+        qt.uic.loadUi(os.path.join(guipath,'qt_designer_files',ui_filename), self)
 
-        self.setWindowIcon(qt.QIcon(os.path.join(guipath,'icon.png')))
+        self.setWindowIcon(qt.QIcon(os.path.join(guipath,'icons','calcam.png')))
 
         self.app = app
 
@@ -160,10 +160,10 @@ class CalcamGUIWindow(qt.QMainWindow):
         sys.excepthook = self.show_exception_dialog
 
         try:
-            self.action_new.setIcon( qt.QIcon(os.path.join(guipath,'new.png')) )
-            self.action_open.setIcon( qt.QIcon(os.path.join(guipath,'open.png')) )
-            self.action_save.setIcon( qt.QIcon(os.path.join(guipath,'save.png')) )
-            self.action_save_as.setIcon( qt.QIcon(os.path.join(guipath,'saveas.png')) )
+            self.action_new.setIcon( qt.QIcon(os.path.join(guipath,'icons','new.png')) )
+            self.action_open.setIcon( qt.QIcon(os.path.join(guipath,'icons','open.png')) )
+            self.action_save.setIcon( qt.QIcon(os.path.join(guipath,'icons','save.png')) )
+            self.action_save_as.setIcon( qt.QIcon(os.path.join(guipath,'icons','saveas.png')) )
         except AttributeError:
             pass
 

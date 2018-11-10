@@ -34,7 +34,7 @@ class Settings(qt.QMainWindow):
 
         # GUI initialisation
         qt.QMainWindow.__init__(self, parent)
-        qt.uic.loadUi(os.path.join(guipath,'settings.ui'), self)
+        qt.uic.loadUi(os.path.join(guipath,'qt_designer_files','settings.ui'), self)
 
         self.setWindowIcon(qt.QIcon(os.path.join(guipath,'icon.png')))
 
