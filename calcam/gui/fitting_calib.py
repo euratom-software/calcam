@@ -25,7 +25,7 @@ import copy
 
 from .core import *
 from .vtkinteractorstyles import CalcamInteractorStyle2D, CalcamInteractorStyle3D
-from ..calibration import Calibration, Fitter, _user, _host, _get_formatted_time
+from ..calibration import Calibration, Fitter, _user, _host, _get_formatted_time, ImageUpsideDown
 from ..pointpairs import PointPairs
 from ..render import render_cam_view,get_image_actor
 
@@ -222,6 +222,7 @@ class FittingCalib(CalcamGUIWindow):
     def reset(self,keep_cadmodel=False):
 
         if not keep_cadmodel:
+            self.tabWidget.setTabEnabled(2,False)
             if self.cadmodel is not None:
                 self.cadmodel.remove_from_renderer(self.renderer_3d)
                 self.cadmodel.unload()
@@ -239,7 +240,7 @@ class FittingCalib(CalcamGUIWindow):
         self.image_settings.hide()
         #self.fit_results.hide()
 
-        self.tabWidget.setTabEnabled(2,False)
+        
         self.tabWidget.setTabEnabled(3,False)
         self.tabWidget.setTabEnabled(4,False)
 
@@ -962,9 +963,18 @@ class FittingCalib(CalcamGUIWindow):
 
         # Do the fit!
         self.statusbar.showMessage('Performing calibration fit...')
-        self.calibration.set_fit(subview, self.fitters[subview].do_fit())
-        self.statusbar.clearMessage()
-
+        try:
+            self.calibration.set_fit(subview, self.fitters[subview].do_fit())
+            self.statusbar.clearMessage()
+        except ImageUpsideDown:
+            self.show_msgbox('The fitted calibration indicates that the images is upside down! Try rotating the image 180 degrees and fitting again.')
+            self.app.restoreOverrideCursor()
+            return
+        except cv2.error as e:
+            self.show_msgbox('Could not complete fit: the OpenCV fitter returned the below error. Try changing the fit options and fitting again. If you think this might be a bug in Calcam, please report it at < a href=https://github.com/euratom-software/calcam/issues.>github.com/euratom-software/calcam/issues</a>.',e)
+            self.app.restoreOverrideCursor()
+            return            
+            
         self.update_fit_results()
 
         self.app.restoreOverrideCursor()

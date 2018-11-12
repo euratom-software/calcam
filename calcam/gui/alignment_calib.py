@@ -448,8 +448,13 @@ class AlignmentCalib(CalcamGUIWindow):
         self.calibration.view_models = [None] * self.calibration.n_subviews
         self.fit_timestamps = [None] * self.calibration.n_subviews 
 
-        self.update_intrinsics()
+        if self.calcam_intrinsics.isChecked() and np.any(np.array(self.intrinsics_calib.geometry.get_original_shape()) != np.array(self.calibration.geometry.get_original_shape())):
+            self.show_msgbox('The current calibration intrinsics are the wrong shape for this image. The current intrinsics will be reset.')
+            self.intrinsics_calib = None
+            self.pinhole_intrinsics.setChecked(True)
 
+        self.update_intrinsics()
+            
         self.image_settings.show()
         self.image_display_settings.show()
 

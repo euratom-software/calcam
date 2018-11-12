@@ -29,6 +29,7 @@ from .io import ZipSaveFile
 from scipy.ndimage.measurements import center_of_mass as CoM
 from .coordtransformer import CoordTransformer
 from .pointpairs import PointPairs
+from . import __version__
 
 try:
     from .raycast import raycast_sightlines
@@ -43,6 +44,9 @@ import getpass
 # This stuff is used for keeping track of calibration history
 _user = getpass.getuser()
 _host = socket.gethostname()
+
+class ImageUpsideDown(Exception):
+    pass
 
 def _get_formatted_time(timestamp=None):
     
@@ -139,22 +143,15 @@ class ViewModel():
 
 
     def get_cam_roll(self):
+        
+        # Get the projection of the lab +z axis on to the detector plane
+        z_camframe = np.squeeze( self.get_cam_to_lab_rotation().transpose()[:,2] )
+        viewdir = np.matrix([0,0,1])    # In the camera frame, +z is the view direction.
+        z_proj = np.cross(viewdir, np.cross(z_camframe,viewdir) )
+        z_proj = z_proj / np.sqrt(np.sum(z_proj**2))
 
-        upvec = np.squeeze(-1.*self.get_cam_to_lab_rotation()[:,1])
-        view_direction = self.get_los_direction(self.cam_matrix[0,2],self.cam_matrix[1,2])
-
-        if np.abs(view_direction[2]) < 0.9:
-            z_projection = np.array([ -view_direction[0]*view_direction[2], -view_direction[1]*view_direction[2],1-view_direction[2]**2 ])
-            h_projection = np.cross(z_projection,view_direction)
-            h_projection = h_projection / np.sqrt(np.sum(h_projection**2))
-            z_projection = z_projection / np.sqrt(np.sum(z_projection**2))
-            x = np.dot(upvec,z_projection)
-            y = np.dot(upvec,h_projection)
-            return( -np.arctan2(y,x) * 180 / 3.14159 )[0,0]
-
-        else:
-            # If the camera is looking (close to) vertically up or down, roll is not defined.
-            return np.nan
+        # The roll is the angle between this projection and -y
+        return 180 * np.arccos( -z_proj[0][1] ) / 3.14159
 
 
 # Class representing a perspective camera model.
@@ -829,7 +826,8 @@ class Calibration():
                     'orig_paspect':self.geometry.pixel_aspectratio,
                     'image_transform_actions':self.geometry.transform_actions,
                     'subview_names':self.subview_names,
-                    'calib_type':self._type
+                    'calib_type':self._type,
+                    'calcam_version':__version__
             }
 
             if self._type != 'fit':
@@ -1780,6 +1778,7 @@ class Fitter:
         self.fixskew = True
         self.disabletangentialdist=False
         self.fixcc = False
+        self.ignore_upside_down=False
 
 
     def set_model(self,model):
@@ -1988,7 +1987,10 @@ class Fitter:
 
             fitted_model = PerspectiveViewModel(cv2_output = fit_output)
             fitted_model.fit_options = self.get_fitflags_strings()
-
+            
+            if not self.ignore_upside_down and fitted_model.get_cam_to_lab_rotation()[2,1] > 0:
+                    raise ImageUpsideDown()
+            
             return fitted_model
 
         elif self.model == 'fisheye':
@@ -2002,7 +2004,10 @@ class Fitter:
         
             fitted_model = FisheyeeViewModel(cv2_output = fit_output)
             fitted_model.fit_options = self.get_fitflags_strings()
-
+            
+            if not self.ignore_upside_down and fitted_model.get_cam_to_lab_rotation()[2,1] > 0:
+                    raise ImageUpsideDown()
+                    
             return fitted_model
 
 

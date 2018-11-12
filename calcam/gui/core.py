@@ -302,6 +302,7 @@ class CalcamGUIWindow(qt.QMainWindow):
             elif dialog.fisheye_model.isChecked():
                 fitter = Fitter('fisheye')
             fitter.set_image_shape( dialog.results[0][0].shape[1::-1] )
+            fitter.ignore_upside_down=True
             fitter.set_pointpairs(chessboard_pointpairs[0][1])
             for chessboard_im in chessboard_pointpairs[1:]:
                 fitter.add_intrinsics_pointpairs(chessboard_im[1])
@@ -759,10 +760,7 @@ class CalcamGUIWindow(qt.QMainWindow):
         else:
             self.camera_3d.SetFocalPoint(viewmodel.get_pupilpos() + viewmodel.get_los_direction(calibration.geometry.get_display_shape()[0]/2,calibration.geometry.get_display_shape()[1]/2))
 
-        if np.isfinite(viewmodel.get_cam_roll()):
-            self.interactor3d.set_roll(viewmodel.get_cam_roll())
-        else:
-            self.interactor3d.set_upvec(-1.*viewmodel.get_cam_to_lab_rotation()[:,1])
+        self.interactor3d.set_roll(viewmodel.get_cam_roll())
 
         self.update_viewport_info(keep_selection=True)
 

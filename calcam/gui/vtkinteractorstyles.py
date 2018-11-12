@@ -668,7 +668,7 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
 
         self.cam_roll = roll
         view_direction = self.camera.GetDirectionOfProjection()
-        if np.abs(view_direction[2]) < 0.9:
+        if np.abs(view_direction[2]) < 0.999:
             z_projection = np.array([ -view_direction[0]*view_direction[2], -view_direction[1]*view_direction[2],1-view_direction[2]**2 ])
             upvec = rotate_3D(z_projection,view_direction,self.cam_roll)
             self.camera.SetViewUp(upvec)
@@ -680,24 +680,6 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
 
             if self.refresh_callback is not None:
                 self.refresh_callback()
-
-
-    def set_upvec(self,upvec):
-
-        self.camera.SetViewUp(upvec)
-
-        view_direction = self.camera.GetDirectionOfProjection()
-        pitch_angle = -180.*np.arcsin(view_direction[2])/3.1415927
-        self.camera.Pitch(pitch_angle)
-        
-        self.cam_roll = 0.
-
-        camroll = self.camera.GetRoll()
-        self.camera.SetViewUp(0,0,1)
-        self.camera.SetRoll(camroll)
-        
-        self.camera.Pitch(-pitch_angle)
-
 
 
     def set_overlay_image(self,im_array):

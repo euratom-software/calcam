@@ -25,24 +25,24 @@ CalCam package.
 """
 
 # Calcam version
-__version__ = '2.0.0b2'
+__version__ = '2.0.0b3'
 
 
 # Import the top level "public facing" classes & functions
 from .calibration import Calibration
-
-try:
-	import vtk
-except ImportError:
-	vtk = None
-
 from .raycast import RayData
-from .render import render_cam_view
+
+
+# Some stuff will only work if we have VTK.
+try:
+    import vtk
+except ImportError:
+    vtk = None
 
 if vtk:
-	from . import gui
-	from .cadmodel import CADModel
-	from .raycast import raycast_sightlines
-	from .geometry_matrix import RectangularGeometryMatrix
-	from .gui import start_gui
-
+    from . import gui
+    from .cadmodel import CADModel
+    from .raycast import raycast_sightlines
+    from .geometry_matrix import RectangularGeometryMatrix
+    from .gui import start_gui
+    from .render import render_cam_view
