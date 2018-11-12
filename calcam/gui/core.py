@@ -36,7 +36,7 @@ from .. import __path__ as calcampath
 from .. import __version__ as calcamversion
 from ..cadmodel import CADModel
 from ..config import CalcamConfig
-from ..calibration import Calibration
+from ..calibration import Calibration,Fitter
 from ..pointpairs import PointPairs
 from ..coordtransformer import CoordTransformer
 from .vtkinteractorstyles import CalcamInteractorStyle2D
@@ -164,6 +164,7 @@ class CalcamGUIWindow(qt.QMainWindow):
             self.action_open.setIcon( qt.QIcon(os.path.join(guipath,'icons','open.png')) )
             self.action_save.setIcon( qt.QIcon(os.path.join(guipath,'icons','save.png')) )
             self.action_save_as.setIcon( qt.QIcon(os.path.join(guipath,'icons','saveas.png')) )
+            self.action_cal_info.setIcon( qt.QIcon(os.path.join(guipath,'icons','info.png')) )
         except AttributeError:
             pass
 
@@ -278,10 +279,41 @@ class CalcamGUIWindow(qt.QMainWindow):
                         webbrowser.open('file://{:s}'.format(fname))
 
 
+    def show_calib_info(self):
+
+        if self.calibration._type != 'fit':
+            self.update_extrinsics()
+        dialog = CalibInfoDialog(self,self.calibration)
 
     def update_vtk_size(self,vtksize):
 
         self.vtksize = vtksize
+
+
+    def update_chessboard_intrinsics(self):
+
+        dialog = ChessboardDialog(self,modelselection=True)
+        dialog.exec_()
+
+        if dialog.results != []:
+            chessboard_pointpairs = dialog.results
+            if dialog.perspective_model.isChecked():
+                fitter = Fitter('perspective')
+            elif dialog.fisheye_model.isChecked():
+                fitter = Fitter('fisheye')
+            fitter.set_image_shape( dialog.results[0][0].shape[1::-1] )
+            fitter.set_pointpairs(chessboard_pointpairs[0][1])
+            for chessboard_im in chessboard_pointpairs[1:]:
+                fitter.add_intrinsics_pointpairs(chessboard_im[1])
+
+            self.chessboard_pointpairs = chessboard_pointpairs
+            self.chessboard_fit = fitter.do_fit()
+            self.chessboard_src = dialog.chessboard_source
+
+            self.update_intrinsics()
+
+        del dialog
+
 
 
     def save_view_to_model(self,show_default=False):
@@ -515,7 +547,7 @@ class CalcamGUIWindow(qt.QMainWindow):
 
     def update_image_info_string(self,im_array,geometry):
 
-        if np.any(geometry.get_display_shape() != geometry.get_original_shape()):
+        if np.any(np.array(geometry.get_display_shape()) != np.array(geometry.get_original_shape())):
             info_str = '{0:d} x {1:d} pixels ({2:.1f} MP) [ As Displayed ]<br>{3:d} x {4:d} pixels ({5:.1f} MP) [ Raw Data ]<br>'.format(geometry.get_display_shape()[0],geometry.get_display_shape()[1],np.prod(geometry.get_display_shape()) / 1e6 ,geometry.get_original_shape()[0],geometry.get_original_shape()[1],np.prod(geometry.get_original_shape()) / 1e6 )
         else:
             info_str = '{0:d} x {1:d} pixels ({2:.1f} MP)<br>'.format(geometry.get_display_shape()[0],geometry.get_display_shape()[1],np.prod(geometry.get_display_shape()) / 1e6 )
@@ -601,7 +633,6 @@ class CalcamGUIWindow(qt.QMainWindow):
 
     def change_cad_view(self):
 
-
         if self.sender() is self.viewlist:
             items = self.viewlist.selectedItems()
             if len(items) > 0:
@@ -620,7 +651,8 @@ class CalcamGUIWindow(qt.QMainWindow):
                 self.interactor3d.set_xsection(view['xsection'])
                 self.interactor3d.set_roll(view['roll'])
                 self.interactor3d.set_projection(view['projection'])
-                self.interactor3d.set_fov(view['y_fov'])
+                if self.fov_enabled:
+                    self.interactor3d.set_fov(view['y_fov'])
 
             elif view_item.parent() is self.views_root_results or view_item.parent() in self.viewport_calibs.keys():
 
@@ -629,8 +661,58 @@ class CalcamGUIWindow(qt.QMainWindow):
                 if subfield is not None:
                     self.set_view_from_calib(view,subfield)
 
-            self.update_viewport_info(keep_selection=True)
 
+            elif view_item.parent() is self.views_root_auto:
+
+                # Work out the field of view to set based on the model extent.
+                # Note: this assumes the origin is at the centre of the machine.
+                # I could not assume that, but then I might end up de-centred on otherwise well bahevd models.
+                model_extent = self.cadmodel.get_extent()
+                z_extent = model_extent[5]-model_extent[4]
+                r_extent = max(model_extent[1]-model_extent[0],model_extent[3]-model_extent[2])
+
+                xsec_fov = 30
+
+                if str(view_item.text(0)).lower() == 'horizontal cross-section':
+
+                    if self.interactor3d.projection == 'perspective':
+                        self.camFOV.setValue(xsec_fov)
+                    else:
+                        self.camFOV.setValue(r_extent)
+
+                    if self.xsection_cursor.isEnabled():
+                        self.xsection_cursor.setChecked(True)
+                    else:
+                        self.xsection_origin.setChecked(True)
+
+                    self.camera_3d.SetPosition( (0.,0.,r_extent/(2*np.tan(3.14159*xsec_fov/360) )))
+                    self.camera_3d.SetFocalPoint( (0.,0.001,self.camera_3d.GetPosition()[2]-1.) )
+                    self.xsection_checkbox.setChecked(True)
+
+                elif str(view_item.text(0)).lower() == 'vertical cross-section':
+
+                    R = z_extent/(2*np.tan(3.14159*xsec_fov/360))
+
+                    if self.interactor3d.projection == 'perspective':
+                        self.camFOV.setValue(xsec_fov)
+                    else:
+                        self.camFOV.setValue(z_extent)
+
+                    if self.xsection_cursor.isEnabled():
+                        cursorpos = self.interactor3d.get_cursor_coords(0)
+                        phi = np.arctan2(cursorpos[1],cursorpos[0])
+                        phi_cam = phi - 3.14159/2.
+                        self.xsection_cursor.setChecked(True)
+
+                    else:
+                        phi_cam = np.arctan2(self.camY.value(),self.camX.value())
+                        self.xsection_origin.setChecked(True)
+
+                    self.camera_3d.SetPosition(R * np.cos(phi_cam),R * np.sin(phi_cam),0.)
+                    self.interactor3d.set_roll(0.)
+                    self.camera_3d.SetFocalPoint( (0.,0.,0.) )
+
+                    self.xsection_checkbox.setChecked(True)
 
         else:
             self.camera_3d.SetPosition((self.camX.value(),self.camY.value(),self.camZ.value()))
@@ -638,12 +720,13 @@ class CalcamGUIWindow(qt.QMainWindow):
             if self.fov_enabled:
                 self.interactor3d.set_fov(self.camFOV.value())
             self.interactor3d.set_roll(-self.cam_roll.value())
-
         
         self.interactor3d.update_cursor_style()
         self.interactor3d.update_clipping()
 
         self.refresh_3d()
+
+        self.update_viewport_info(keep_selection=True)
 
         self.on_view_changed()
 
@@ -675,21 +758,20 @@ class CalcamGUIWindow(qt.QMainWindow):
             self.camera_3d.SetFocalPoint(viewmodel.get_pupilpos() + viewmodel.get_los_direction(mat[0,2],mat[1,2]))
         else:
             self.camera_3d.SetFocalPoint(viewmodel.get_pupilpos() + viewmodel.get_los_direction(calibration.geometry.get_display_shape()[0]/2,calibration.geometry.get_display_shape()[1]/2))
-        
-        self.update_viewport_info(keep_selection=True)
-        
+
         if np.isfinite(viewmodel.get_cam_roll()):
-            self.cam_roll.setValue(viewmodel.get_cam_roll())
+            self.interactor3d.set_roll(viewmodel.get_cam_roll())
         else:
-            self.cam_roll.setValue(0)
-            self.camera_3d.SetViewUp(-1.*viewmodel.get_cam_to_lab_rotation()[:,1])
-        
+            self.interactor3d.set_upvec(-1.*viewmodel.get_cam_to_lab_rotation()[:,1])
+
+        self.update_viewport_info(keep_selection=True)
+
         self.interactor3d.set_xsection(None)       
         
         self.interactor3d.update_cursor_style()
 
         self.interactor3d.update_clipping()
-
+  
         self.refresh_3d()
 
 
@@ -723,21 +805,37 @@ class CalcamGUIWindow(qt.QMainWindow):
 
 
 
-    def load_viewport_calib(self):
+    def load_viewport_calib(self,event=None,set_view=True):
+
         cals = self.object_from_file('calibration',multiple=True)
 
         for cal in cals:
+            
+            if cal.view_models.count(None) == len(cal.view_models):
+                self.show_msgbox('The calibration file {:s} does not contain any view models so does not define a view.'.format(cal.filename))
+                continue
+
+            self.views_root_results.setHidden(False)
+
             listitem = qt.QTreeWidgetItem(self.views_root_results,[cal.name])
             if cal.n_subviews > 1:
                 self.viewport_calibs[(listitem)] = (cal,None)
                 listitem.setExpanded(True)
                 for n,fieldname in enumerate(cal.subview_names):
-                    self.viewport_calibs[ (qt.QTreeWidgetItem(listitem,[fieldname])) ] = (cal,n) 
+                    if cal.view_models[n] is not None:
+                        sublistitem = qt.QTreeWidgetItem(listitem,[fieldname])
+                        self.viewport_calibs[ sublistitem ] = (cal,n)
+                        if set_view:
+                            self.viewlist.clearSelection()
+                            sublistitem.setSelected(True)
+                            set_view = False
             else:
                 self.viewport_calibs[(listitem)] = (cal,0)
-
-        if len(cals) > 0:
-            self.views_root_results.setHidden(False)
+                if set_view:
+                    self.viewlist.clearSelection()
+                    listitem.setSelected(True)
+                    set_view=False
+            
 
 
     def populate_model_variants(self):
@@ -885,13 +983,13 @@ class CalcamGUIWindow(qt.QMainWindow):
         light.PositionalOn()
         light.SetConeAngle(180)
 
+        self.update_model_views()
+
         if not hold_view:
             # Put the camera in some reasonable starting position
             self.camera_3d.SetViewAngle(90)
             self.camera_3d.SetViewUp((0,0,1))
             self.camera_3d.SetFocalPoint(0,0,0)
-
-            self.update_model_views()
 
             if self.cadmodel.initial_view is not None:
                 for i in range(self.views_root_model.childCount()):
@@ -1133,6 +1231,24 @@ class CalcamGUIWindow(qt.QMainWindow):
     def on_close(self):
         pass
 
+    def update_extrinsics(self):
+        # Set the calibration's extrinsics to match the current view.
+        
+        campos = np.matrix(self.camera_3d.GetPosition())
+        camtar = np.matrix(self.camera_3d.GetFocalPoint())
+
+        # We need to pass the view up direction to set_exirtinsics, but it isn't kept up-to-date by
+        # the VTK camera. So here we explicitly ask for it to be updated then pass the correct
+        # version to set_extrinsics, but then reset it back to what it was, to avoid ruining 
+        # the mouse interaction.
+        cam_roll = self.camera_3d.GetRoll()
+        self.camera_3d.OrthogonalizeViewUp()
+        upvec = np.array(self.camera_3d.GetViewUp())
+        self.camera_3d.SetViewUp(0,0,1)
+        self.camera_3d.SetRoll(cam_roll)
+
+        self.calibration.set_extrinsics(campos,upvec,camtar = camtar,src=self.extrinsics_src) 
+
 
 class ChessboardDialog(qt.QDialog):
 
@@ -1140,7 +1256,7 @@ class ChessboardDialog(qt.QDialog):
 
         # GUI initialisation
         qt.QDialog.__init__(self, parent)
-        qt.uic.loadUi(os.path.join(guipath,'chessboard_image_dialog.ui'), self)
+        qt.uic.loadUi(os.path.join(guipath,'qt_designer_files','chessboard_image_dialog.ui'), self)
 
         self.parent = parent
         if calibration is not None:
@@ -1220,6 +1336,7 @@ class ChessboardDialog(qt.QDialog):
         filedialog.setLabelText(3,'Load')
         filedialog.exec_()
         if filedialog.result() == 1:
+            self.parent.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
             self.images = []
             self.filenames = []
             wrong_shape = []
@@ -1262,7 +1379,7 @@ class ChessboardDialog(qt.QDialog):
 
                 self.filenames.append(os.path.split(str(fname))[1])
                 self.src_dir = os.path.split(str(fname))[0]
-
+            self.parent.app.restoreOverrideCursor()
 
             self.status_text.setText('')
             if np.all(wrong_shape):
@@ -1433,13 +1550,18 @@ class ChessboardDialog(qt.QDialog):
             # Get a neater looking reference to the chessboard corners for this image
             impoints = self.chessboard_points_2D[i]
 
+            if self.original_coords.isChecked():
+                coords = 'original'
+            else:
+                coords = 'display'
+
             # Loop over chessboard points
             for point in range( np.prod(self.n_chessboard_points) ):
                 self.results[-1][1].image_points.append([])
 
                 # Populate coordinates for relevant field
                 for field in range(self.n_fields):
-                    if self.subview_lookup(impoints[point,0],impoints[point,1]) == field:
+                    if self.subview_lookup(impoints[point,0],impoints[point,1],coords=coords) == field:
                         self.results[-1][1].image_points[-1].append([impoints[point,0], impoints[point,1]])
                     else:
                         self.results[-1][1].image_points[-1].append(None)
@@ -1450,7 +1572,7 @@ class ChessboardDialog(qt.QDialog):
 
         self.filenames = self.filenames[self.chessboard_status == True]
 
-        self.chessboard_source = '{:d} chessboard images loaded from {:s}'.format(len(self.filenames),self.src_dir)
+        self.chessboard_source = '{:d} chessboard images loaded from "{:s}"'.format(len(self.filenames),self.src_dir.replace('/',os.sep))
 
         # And close the window.
         self.done(1)
@@ -1499,7 +1621,7 @@ class SplitFieldDialog(qt.QDialog):
 
         # GUI initialisation
         qt.QDialog.__init__(self, parent)
-        qt.uic.loadUi(os.path.join(guipath,'split_field_dialog.ui'), self)
+        qt.uic.loadUi(os.path.join(guipath,'qt_designer_files','split_field_dialog.ui'), self)
 
         self.image = image
         self.field_names_boxes = []
@@ -1653,7 +1775,7 @@ class SplitFieldDialog(qt.QDialog):
             if len(self.points) == 2:
                 self.interactor.set_cursor_focus(self.points[-1][1])
             self.update_fieldmask()
-
+ 
 
 
     def update_fieldmask(self,cursor_moved=None,updated_position=None,mask=None):
@@ -1777,3 +1899,29 @@ class SplitFieldDialog(qt.QDialog):
 
 
             self.update_fieldnames_gui(n_fields,self.field_colours,names)
+
+
+
+class CalibInfoDialog(qt.QDialog):
+
+    def __init__(self,parent,calibration):
+
+        qt.QDialog.__init__(self,parent,qt.Qt.WindowTitleHint | qt.Qt.WindowCloseButtonHint)
+        
+        text_browse = qt.QTextBrowser()
+
+        self.setWindowTitle('Calibration Information.')
+
+        self.resize(parent.size().width()/2,parent.size().height()/2)
+
+        self.setModal(False)
+
+        text_browse.setHtml('<pre>' + str(calibration) + '<pre>')
+        text_browse.setLineWrapMode(0)
+        layout = qt.QVBoxLayout()
+        self.setLayout(layout)
+        layout.addWidget(text_browse)
+
+        self.show()
+
+

@@ -167,11 +167,15 @@ class CalcamConfig():
 						meta[old_meta_ind][0] = image_sources[old_ind].display_name
 					displaynames.append(usermodule.display_name)
 					image_sources.append(usermodule)
-					meta.append([usermodule.display_name,None])
+					meta.append([usermodule.display_name,fname,None])
 				except:
-					meta.append([tidy_name,''.join(traceback.format_exception_only(sys.exc_info()[0],sys.exc_info()[1]))])
+					meta.append([tidy_name,fname,''.join(traceback.format_exception_only(sys.exc_info()[0],sys.exc_info()[1]))])
 					continue
-		
+				if path == builtin_imsource_path:
+					meta[-1][1] = None
+				else:
+					meta[-1][1] = meta[-1][1].replace('__init__.py','')
+
 		if meta_only:
 			return meta
 		else:

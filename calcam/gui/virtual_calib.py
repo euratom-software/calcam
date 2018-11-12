@@ -23,7 +23,7 @@ import cv2
 
 from .core import *
 from .vtkinteractorstyles import CalcamInteractorStyle3D
-from ..calibration import Calibration,Fitter
+from ..calibration import Calibration
 
 # View designer window.
 # This allows creation of FitResults objects for a 'virtual' camera.
@@ -52,7 +52,7 @@ class VirtualCalib(CalcamGUIWindow):
 
 
         # Synthetic camera object to store the results
-        self.virtual_calib = Calibration(cal_type='virtual')
+        self.calibration = Calibration(cal_type='virtual')
         self.chessboard_fit = None
 
         self.filename = None
@@ -89,6 +89,7 @@ class VirtualCalib(CalcamGUIWindow):
         self.action_save_as.triggered.connect(lambda: self.save(saveas=True))
         self.action_open.triggered.connect(self.open_calib)
         self.action_new.triggered.connect(self.reset)
+        self.action_cal_info.triggered.connect(self.show_calib_info)
 
         self.viewport_calibs = DodgyDict()
         self.intrinsics_calib = None
@@ -96,7 +97,9 @@ class VirtualCalib(CalcamGUIWindow):
         self.fov_enabled = False
         self.viewdir_at_cc = True
 
-        self.calibration = None
+        self.extrinsics_src = None
+
+        self.calibration = Calibration(cal_type='virtual')
 
         # Start the GUI!
         self.show()
@@ -104,9 +107,6 @@ class VirtualCalib(CalcamGUIWindow):
         self.interactor3d.init()
         self.update_intrinsics()
         self.qvtkwidget_3d.GetRenderWindow().GetInteractor().Initialize()
-        # Warn the user if we don't have any CAD models
-        if self.model_list == {}:
-            warn_no_models(self)
 
 
 
@@ -118,7 +118,7 @@ class VirtualCalib(CalcamGUIWindow):
         if self.pinhole_intrinsics.isChecked():
 
             fov = 3.14159 * self.camera_3d.GetViewAngle() / 180.
-            f = self.virtual_calib.geometry.get_display_shape()[1]/(2*np.tan(fov/2.))
+            f = self.calibration.geometry.get_display_shape()[1]/(2*np.tan(fov/2.))
             f = f * self.pixel_size_box.value() / 1e3
 
             self.focal_length_box.setValue(f)
@@ -144,8 +144,17 @@ class VirtualCalib(CalcamGUIWindow):
                     if len(self.intrinsics_calib.view_models) != 1:
                         self.intrinsics_calib = None
                         raise UserWarning('This calibration has multiple sub-fields; no worky; sorry.')
+                        self.current_intrinsics_combobox.setChecked(True)
+                    else:
+                        self.calibration.set_calib_intrinsics(self.intrinsics_calib,update_hist_recursion = not (self.intrinsics_calib is self.calibration) )
+                        self.current_intrinsics_combobox = self.calcam_intrinsics
 
-                self.virtual_calib.set_calib_intrinsics(self.intrinsics_calib)
+                else:
+                    self.current_intrinsics_combobox.setChecked(True)
+                
+            else:
+                self.calibration.set_calib_intrinsics(self.intrinsics_calib,update_hist_recursion = not (self.intrinsics_calib is self.calibration))
+                self.current_intrinsics_combobox = self.calcam_intrinsics
 
         elif self.pinhole_intrinsics.isChecked():
             self.interactor3d.zoom_enabled = True
@@ -160,8 +169,9 @@ class VirtualCalib(CalcamGUIWindow):
             ny = self.y_pixels_box.value()
             f = 1e3 * self.focal_length_box.value() / self.pixel_size_box.value()
 
-            self.virtual_calib.set_pinhole_intrinsics(fx=f,fy=f,cx=nx/2.,cy=ny/2.,nx=nx,ny=ny)
-            self.virtual_calib.pixel_size = self.pixel_size_box.value()
+            self.calibration.set_pinhole_intrinsics(fx=f,fy=f,cx=nx/2.,cy=ny/2.,nx=nx,ny=ny)
+            self.calibration.pixel_size = self.pixel_size_box.value() * 1e-6
+            self.current_intrinsics_combobox = self.pinhole_intrinsics
 
         elif self.chessboard_intrinsics.isChecked():
             self.interactor3d.zoom_enabled = False
@@ -174,14 +184,18 @@ class VirtualCalib(CalcamGUIWindow):
 
             if self.chessboard_fit is None:
                 self.update_chessboard_intrinsics()
-
-            if self.chessboard_fit is not None:
-                self.virtual_calib.set_chessboard_intrinsics(self.chessboard_fit,self.chessboard_pointpairs,self.chessboard_src)
+                if self.chessboard_fit is None:
+                    self.current_intrinsics_combobox.setChecked(True)
+                return
+            else:
+                self.calibration.set_chessboard_intrinsics(self.chessboard_fit,self.chessboard_pointpairs,self.chessboard_src)
                 self.current_intrinsics_combobox = self.chessboard_intrinsics
 
         old_aspect = self.interactor3d.force_aspect
 
-        aspect = float(self.virtual_calib.geometry.y_pixels) / float(self.virtual_calib.geometry.x_pixels)
+        imshape = self.calibration.geometry.get_display_shape()
+
+        aspect = float(imshape[1]) / float(imshape[0])
         aspect_changed = True
         if old_aspect is not None:
             if np.abs(old_aspect - aspect) < 1e-2:
@@ -189,12 +203,12 @@ class VirtualCalib(CalcamGUIWindow):
 
         self.interactor3d.force_aspect = aspect
 
-        mat = self.virtual_calib.get_cam_matrix()
-        n = self.virtual_calib.geometry.get_display_shape()
+        mat = self.calibration.get_cam_matrix()
+        n = self.calibration.geometry.get_display_shape()
         wcx = -2.*(mat[0,2] - n[0]/2.) / float(n[0])
         wcy = 2.*(mat[1,2] - n[1]/2.) / float(n[1])
         self.camera_3d.SetWindowCenter(wcx,wcy)
-        self.camera_3d.SetViewAngle(self.virtual_calib.get_fov()[1])
+        self.camera_3d.SetViewAngle(self.calibration.get_fov()[1])
 
         # This is a slight hack - we have to resize the window slightly
         # and resize it back again to get VTK to redraw the background.
@@ -209,29 +223,6 @@ class VirtualCalib(CalcamGUIWindow):
         self.unsaved_changes = True
 
 
-    def update_chessboard_intrinsics(self):
-
-        dialog = ChessboardDialog(self,modelselection=True)
-        dialog.exec_()
-
-        if dialog.results != []:
-            chessboard_pointpairs = dialog.results
-            if dialog.perspective_model.isChecked():
-                fitter = Fitter('perspective')
-            elif dialog.fisheye_model.isChecked():
-                fitter = Fitter('fisheye')
-            fitter.set_pointpairs(chessboard_pointpairs[0][1])
-            for chessboard_im in chessboard_pointpairs[1:]:
-                fitter.add_intrinsics_pointpairs(chessboard_im[1])
-
-            self.chessboard_pointpairs = chessboard_pointpairs
-            self.chessboard_fit = fitter.do_fit()
-            self.chessboard_src = dialog.chessboard_source
-
-        del dialog
-
-
-
 
     def save(self,saveas=False):
 
@@ -244,29 +235,14 @@ class VirtualCalib(CalcamGUIWindow):
 
         if self.filename is not None:
 
-            # First we have to add the extrinsics to the calibration object
-            campos = np.matrix(self.camera_3d.GetPosition())
-            camtar = np.matrix(self.camera_3d.GetFocalPoint())
-
-            # We need to pass the view up direction to set_exirtinsics, but it isn't kept up-to-date by
-            # the VTK camera. So here we explicitly ask for it to be updated then pass the correct
-            # version to set_extrinsics, but then reset it back to what it was, to avoid ruining 
-            # the mouse interaction.
-            cam_roll = self.camera_3d.GetRoll()
-            self.camera_3d.OrthogonalizeViewUp()
-            upvec = np.array(self.camera_3d.GetViewUp())
-            self.camera_3d.SetViewUp(0,0,1)
-            self.camera_3d.SetRoll(cam_roll)
-
-            self.virtual_calib.set_extrinsics(campos,upvec,camtar = camtar)
+            self.update_extrinsics()
 
             if self.cadmodel is not None:
-                self.virtual_calib.cad_config = {'model_name':self.cadmodel.machine_name , 'model_variant':self.cadmodel.model_variant , 'enabled_features':self.cadmodel.get_enabled_features(),'viewport':[self.camX.value(),self.camY.value(),self.camZ.value(),self.tarX.value(),self.tarY.value(),self.tarZ.value(),self.camera_3d.GetViewAngle()] }
-
+                self.calibration.cad_config = {'model_name':self.cadmodel.machine_name , 'model_variant':self.cadmodel.model_variant , 'enabled_features':self.cadmodel.get_enabled_features(),'viewport':[self.camX.value(),self.camY.value(),self.camZ.value(),self.tarX.value(),self.tarY.value(),self.tarZ.value(),self.camera_3d.GetViewAngle()] }
 
             self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
             self.statusbar.showMessage('Saving...')
-            self.virtual_calib.save(self.filename)
+            self.calibration.save(self.filename)
             self.unsaved_changes = False
             self.action_save.setEnabled(True)
             self.setWindowTitle('Calcam Virtual Calibration Tool - {:s}'.format(os.path.split(self.filename)[-1][:-4]))
@@ -275,7 +251,7 @@ class VirtualCalib(CalcamGUIWindow):
 
         elif saveas:
             self.filename = orig_filename
-
+      
 
 
     def open_calib(self):
@@ -337,8 +313,8 @@ class VirtualCalib(CalcamGUIWindow):
         if opened_calib.intrinsics_type == 'pinhole':
 
             if opened_calib.pixel_size is not None:
-                fl = opened_calib.view_models[0].cam_matrix[0,0] * opened_calib.pixel_size  / 1000
-                self.pixel_size_box.setValue(opened_calib.pixel_size)
+                fl = opened_calib.view_models[0].cam_matrix[0,0] * opened_calib.pixel_size  * 1000
+                self.pixel_size_box.setValue(opened_calib.pixel_size * 1e6)
             else:
                 fl = opened_calib.view_models[0].cam_matrix[0,0] * self.pixel_size_box.value()  / 1000
 
@@ -352,7 +328,7 @@ class VirtualCalib(CalcamGUIWindow):
         elif opened_calib.intrinsics_type == 'chessboard':
             self.chessboard_fit = opened_calib.view_models[0]
             self.chessboard_pointpairs = opened_calib.intrinsics_constraints
-            self.chessboard_source = opened_calib.history['intrinsics']
+            self.chessboard_src = opened_calib.history['intrinsics']
             self.chessboard_intrinsics.setChecked(True)
 
         elif opened_calib.intrinsics_type == 'calibration':
@@ -373,7 +349,7 @@ class VirtualCalib(CalcamGUIWindow):
 
 
     def _load_model(self):
-        self.load_model(hold_view = self.calibration is not None)
+        self.load_model(hold_view = self.cadmodel is not None)
 
 
     def reset(self,keep_cadmodel=False):

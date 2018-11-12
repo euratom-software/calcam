@@ -19,13 +19,6 @@
   permissions and limitations under the Licence.
 '''
 
-
-"""
-Camera model fitting for CalCam using OpenCV
-Written by Scott Silburn, Alasdair Wynn & James Harrison 
-2015-05-19
-"""
-
 import numpy as np
 import cv2
 import os
@@ -145,6 +138,23 @@ class ViewModel():
 
 
 
+    def get_cam_roll(self):
+
+        upvec = np.squeeze(-1.*self.get_cam_to_lab_rotation()[:,1])
+        view_direction = self.get_los_direction(self.cam_matrix[0,2],self.cam_matrix[1,2])
+
+        if np.abs(view_direction[2]) < 0.9:
+            z_projection = np.array([ -view_direction[0]*view_direction[2], -view_direction[1]*view_direction[2],1-view_direction[2]**2 ])
+            h_projection = np.cross(z_projection,view_direction)
+            h_projection = h_projection / np.sqrt(np.sum(h_projection**2))
+            z_projection = z_projection / np.sqrt(np.sum(z_projection**2))
+            x = np.dot(upvec,z_projection)
+            y = np.dot(upvec,h_projection)
+            return( -np.arctan2(y,x) * 180 / 3.14159 )[0,0]
+
+        else:
+            # If the camera is looking (close to) vertically up or down, roll is not defined.
+            return np.nan
 
 
 # Class representing a perspective camera model.
@@ -393,7 +403,7 @@ class Calibration():
         self.subview_mask = None
         self.n_subviews = 1
         self.subview_names = ['Full Frame']
-        self.view_models = []
+        self.view_models = [None]
         self.intrinsics_constraints = []
         self.pixel_size = None
         self.readonly = None
@@ -461,7 +471,7 @@ class Calibration():
 
 
 
-    def add_intrinsics_constraints(self,image=None,pointpairs=None,calibration=None,im_history=None,pp_history=None,src=None):
+    def add_intrinsics_constraints(self,image=None,pointpairs=None,calibration=None,im_history=None,pp_history=None):
         '''
         Associate additional data used as intrinsics constraints to the calibration.
 
@@ -470,25 +480,23 @@ class Calibration():
             image (numpy.ndarray)            : Image data
             pointpairs (calcam.PointPairs)   : Point pairs associated with the image
             calibration (calcam.Calibration) : Calcam calibration
-            im_history (str)                 : Description of the image history
-            pp_history (tuple)               : 2 element tuple of strings describing the point pair history
-            src (str)                        : String describing the source of the intrinsics constraints.
+            im_history (str)                 : Description of the image history. Must be provided if image is not None.
+            pp_history (tuple)               : 2 element tuple of strings describing the point pair history. Must be provided if pointpairs is not None.
         '''
         if calibration is not None:
             im = self.geometry.original_to_display_image(calibration.get_image(coords='original'))
             pp = self.geometry.original_to_display_pointpairs( calibration.geometry.display_to_original_pointpairs(calibration.pointpairs) )
             self.intrinsics_constraints.append((im,pp))
-            self.history['intrinsics_constraints'].append( calibration.history['image'],calibration.history['pointpairs'] )
+            self.history['intrinsics_constraints'].append( (calibration.history['image'],calibration.history['pointpairs']) )
             self.intrinsics_constraints = self.intrinsics_constraints + calibration.intrinsics_constraints
             self.history['intrinsics_constraints'] = self.history['intrinsics_constraints'] + calibration.history['intrinsics_constraints']
 
         elif pointpairs is not None:
-            self.intrinsics_constraints.append((image,pointpairs))
+            if pp_history is None or (image is not None and im_history is None):
+                raise ValueError('Object histories must be provided when setting intrinsics constraints!')
 
-        if im_history is not None and pp_history is not None:
-            self.history['intrinsics_constraints'].append( (im_history,pp_history) )
-        elif src is not None:
-            self.history['intrinsics_constraints'].append(src + ' by {:s} on {:s} at {:s}'.format(_user,_host,_get_formatted_time()))
+            self.intrinsics_constraints.append((image,pointpairs))
+            self.history['intrinsics_constraints'].append((im_history,pp_history))
 
 
     def clear_intrinsics_constraints(self):
@@ -496,6 +504,7 @@ class Calibration():
         Remove all intrinsics constraints from the calibration object.
         '''
         self.intrinsics_constraints = []
+        self.history['intrinsics_constraints'] = []
 
 
     def _load(self,filename):
@@ -506,6 +515,8 @@ class Calibration():
 
             filename (str) : Name of the file to load.
         '''
+
+        self.filename = filename
         self.name = os.path.split(filename)[-1].split('.')[0]
 
         with ZipSaveFile(filename,'r') as save_file:
@@ -631,7 +642,7 @@ class Calibration():
                                            where the value in each element specifies what \
                                            sub-view each pixel belongs to.
             subview_names (list)         : List of strings specifying the names of the sub-views.
-            pixel_size (float)           : Physical size of the detector pixels in microns.
+            pixel_size (float)           : Physical size of the detector pixels in metres.
         '''
         image = image.copy()
 
@@ -922,7 +933,7 @@ class Calibration():
 
 
 
-    def get_pupilpos(self,subview=None,x=None,y=None,coords='display',):
+    def get_pupilpos(self,x=None,y=None,coords='display',subview=None):
         '''
         Get the camera pupil position in 3D space.
 
@@ -930,17 +941,15 @@ class Calibration():
         description of the camera's sight line geometry.
 
         Parameters:
-            
-            subview (int)                : Which sub-view to get the pupil position for. \
-                                           Only required for calibrations with more than 1 \
-                                           sub-view.
 
             x,y (float or numpy.ndarray) : For calibrations with more than one subview, get the pupil \
                                            position(s) corresponding to these given image pixel coordinates.
-
             coords (str)                 : Only used if x and y are also given. Either ``Display`` \
                                            or ``Original``, specifies whether the provided x and y are in \
                                            display or original coordinates.
+            subview (int)                : Which sub-view to get the pupil position for. \
+                                           Only required for calibrations with more than 1 \
+                                           sub-view.
 
         Returns:
 
@@ -1397,7 +1406,7 @@ class Calibration():
 
 
 
-    def set_calib_intrinsics(self,intrinsics_calib):
+    def set_calib_intrinsics(self,intrinsics_calib,update_hist_recursion=True):
         '''
         For manual alignment or virtual calibrations: set the camera intrinsics
         of this calibration from an existing calcam calibration.
@@ -1406,10 +1415,15 @@ class Calibration():
 
             intrinsics_calib (calcam.Calibration) : Calibration from which to import \
                                                     the intrinsics.
+            update_hist_recursion (bool)          : If giving a non-fit type calibration \
+                                                    from which to load the intrinsics, whether \
+                                                    to add the loading of that to this calib's \
+                                                    history (if True) or just transparently pass \
+                                                    through the intrinsics history (if False)
         '''
         if self._type == 'fit':
             raise Exception('You cannot modify the intrinsics of a fitted calibration.')
-        
+
         self.view_models = intrinsics_calib.view_models
         self.subview_mask = intrinsics_calib.subview_mask.copy()
         self.geometry = copy.copy(intrinsics_calib.geometry)
@@ -1422,11 +1436,15 @@ class Calibration():
             self.intrinsics_constraints.append((intrinsics_calib.get_image(coords='Display'),intrinsics_calib.pointpairs))
             self.intrinsics_constraints = self.intrinsics_constraints + intrinsics_calib.intrinsics_constraints
             self.intrinsics_type = 'calibration'
-            self.history['intrinsics'] = intrinsics_calib.history
+            self.history['intrinsics'] = (intrinsics_calib.history,'Loaded from calibration "{:s}" by {:s} on {:s} at {:s}'.format(intrinsics_calib.name,_user,_host,_get_formatted_time()))
+
         else:
             self.intrinsics_type = intrinsics_calib.intrinsics_type
-            self.history['intrinsics'] = intrinsics_calib.history['intrinsics']
             self.intrinsics_constraints = intrinsics_calib.intrinsics_constraints
+            if update_hist_recursion:
+                self.history['intrinsics'] = (intrinsics_calib.history['intrinsics'],'Loaded from calibration "{:s}" by {:s} on {:s} at {:s}'.format(intrinsics_calib.name,_user,_host,_get_formatted_time()))
+            else:
+                self.history['intrinsics'] = intrinsics_calib.history['intrinsics']
 
 
 
@@ -1498,7 +1516,7 @@ class Calibration():
         self.history['intrinsics'] = 'Set by {:s} on {:s} at {:s}'.format(_user,_host,_get_formatted_time())
 
 
-    def set_extrinsics(self,campos,upvec,camtar=None,view_dir=None):
+    def set_extrinsics(self,campos,upvec,camtar=None,view_dir=None,src=None):
         '''
         Manually set the camera extrinsics parameters.
 
@@ -1540,8 +1558,209 @@ class Calibration():
         self.view_models[0].tvec = np.array(-Rmatrix.T * campos)
         self.view_models[0].rvec = np.array(-cv2.Rodrigues(Rmatrix)[0])
 
-        self.history['extrinsics'] = 'Set by {:s} on {:s} at {:s}'.format(_user,_host,_get_formatted_time())
+        if src is None:
+            self.history['extrinsics'] = 'Set by {:s} on {:s} at {:s}'.format(_user,_host,_get_formatted_time())
+        else:
+            self.history['extrinsics'] = src
 
+
+    def __str__(self):
+        '''
+        Get a pretty string describing the calibration object in great detail.
+
+        Returns:
+            str : Multi-line string, separated with \\n, describing the object.
+        '''
+        # Header
+        if self._type == 'fit':
+            msg =  'Calcam Point Pair Fiting Calibration'
+        elif self._type == 'alignment':
+            msg =  'Calcam Manual Alignment Calibration'
+        elif self._type == 'virtual':
+            msg =  'Calcam Synthetic Calibration'
+
+        msg = '='*len(msg) + '\n' + msg + '\n' + '='*len(msg) + '\n\n'
+
+        # File info
+        try:
+            if self.filename is not None:
+                msg = msg + '----\nFile\n----\n'
+                msg = msg + 'File name: {:s}\n'.format(self.filename.replace('/',os.sep))
+                msg = msg + 'File size: {:.2f} MiB\n\n'.format(os.path.getsize(self.filename) / 1024.**2)
+        except AttributeError:
+            pass
+
+        # Image info
+        if self.image is not None:
+            msg = msg + '-----\nImage\n-----\n{:s}\n\n'.format(self.history['image'])
+            geometry = self.geometry
+            im_array = self.get_image()
+            if np.any(np.array(geometry.get_display_shape()) != np.array(geometry.get_original_shape())):
+                msg = msg + 'Image shape:         {0:d} x {1:d} pixels as displayed (Raw data: {2:d} x {3:d})\n'.format(geometry.get_display_shape()[0],geometry.get_display_shape()[1],geometry.get_original_shape()[0],geometry.get_original_shape()[1])
+            else:
+                msg = msg + 'Image shape:         {0:d} x {1:d} pixels\n'.format(geometry.get_display_shape()[0],geometry.get_display_shape()[1],np.prod(geometry.get_display_shape()) / 1e6 )
+            
+            if len(im_array.shape) == 2:
+                msg = msg + 'Colour:              Monochrome'
+            elif len(im_array.shape) == 3:
+                if np.all(im_array[:,:,0] == im_array[:,:,1]) and np.all(im_array[:,:,2] == im_array[:,:,1]):
+                    msg = msg + 'Colour:              Monochrome'
+                else:
+                    msg = msg + 'Colour:              RGB Colour'
+                if im_array.shape[2] == 4:
+                    msg = msg + ' + Transparency'
+
+            if len(self.geometry.transform_actions) > 0:
+                transform_list = []
+                for action in self.geometry.transform_actions:
+                    if action == 'flip_up_down':
+                        transform_list.append('Vertical flip')
+                    elif action == 'flip_left_right':
+                        transform_list.append('Horizontal flip')
+                    elif action == 'rotate_clockwise_90':
+                        transform_list.append(u'90 degree clockwise rotation')
+                    elif action == 'rotate_clockwise_180':
+                        transform_list.append(u'180 degree rotation')
+                    elif action == 'rotate_clockwise_270':
+                        transform_list.append(u'90 degree anti-clockwise rotation')
+                
+                msg = msg + '\nDisplay Orientation: {:s}'.format(' + '.join(transform_list))
+
+            if self.pixel_size is not None:
+                msg = msg + '\nCamera pixel size:   {:.1f} x {:.1f} um'.format(1e6*self.pixel_size,1e6*self.pixel_size*self.geometry.pixel_aspectratio)
+
+            msg = msg + '\nSub-views:           {:d} ({:s})\n\n'.format(self.n_subviews,', '.join(['"{:s}"'.format(name) for name in self.subview_names]))
+
+
+        # Point paiir info for fitting selfs
+        if self.pointpairs is not None:
+            msg = msg + '------------------\nCalibration Points\n------------------\n{:s}\n'.format(self.history['pointpairs'][0])
+            if self.history['pointpairs'][1] is not None:
+                msg = msg + self.history['pointpairs'][1]
+            msg = msg + '\n\n'
+
+            total_pp = self.pointpairs.get_n_points()
+            subview_string = ''
+
+            if self.n_subviews > 1:
+                subview_string = ': ' + ', '.join( ['{:d} on {:s}'.format(self.pointpairs.get_n_points(subview=n),self.subview_names[n]) for n in range(self.n_subviews)] )
+     
+            subview_string = subview_string +  '.'
+
+            msg = msg + '{:d} point pairs{:s}\n'.format(total_pp,subview_string)
+            if len(self.intrinsics_constraints) > 0:
+                n_ims = len(self.intrinsics_constraints)
+                n_points = 0
+                for ic in self.intrinsics_constraints:
+                    n_points = n_points + ic[1].get_n_points()
+                msg = msg + '{:d} point pairs over {:d} image(s) for additional intsinrics constraints.'.format(n_points,n_ims)
+            msg = msg + '\n\n'
+
+
+        # Fit info for fitting selfs.
+        if self._type == 'fit':
+            if self.view_models.count(None) < len(self.view_models):
+                msg = msg + '----------------------\nFitted Camera Model(s)\n----------------------\n'
+
+            for subview in range(self.n_subviews):
+                if self.view_models[subview] is not None:
+                    if self.n_subviews > 1:
+                        msg = msg + '\n{:s}\n{:s}\n'.format(self.subview_names[subview],'~'*len(self.subview_names[subview]))
+
+                    msg = msg + self.history['fit'][subview] + '\n'
+                    msg = msg + 'Fit options used: {:s}\n\n'.format(', '.join(self.view_models[subview].fit_options))
+                    msg = msg + 'RMS Re-projection error:     {:.2f} px\n'.format(self.view_models[subview].reprojection_error)
+                    msg = msg + self.extrinsics_info_str(subview)
+                    msg = msg + self.intrinsics_info_str(subview)
+
+
+        # Model info for alignment or virtual selfs
+        if self._type in ['alignment','virtual']:
+            msg = msg + '------------\nCamera Model\n------------\n\n'
+            if self.intrinsics_type == 'calibration':
+                hist_str = self.history['intrinsics'][1]
+            else:
+                hist_str = self.history['intrinsics']
+            msg = msg + 'Intrinsics\n~~~~~~~~~~\nType: {:s}\n{:s}\n\n'.format(self.intrinsics_type.capitalize(),hist_str)
+            if self.pixel_size is not None:
+                msg = msg + 'Camera pixel size:           {:.1f} x {:.1f} um\n'.format(1e6*self.pixel_size,1e6*self.pixel_size*self.geometry.pixel_aspectratio)
+            if np.any(np.array(self.geometry.get_display_shape()) != np.array(self.geometry.get_original_shape())):
+                msg = msg + 'Number of pixels:            {0:d} x {1:d} as displayed (Original coords: {2:d} x {3:d})\n'.format(self.geometry.get_display_shape()[0],self.geometry.get_display_shape()[1],self.geometry.get_original_shape()[0],self.geometry.get_original_shape()[1])
+            else:
+                msg = msg + 'Number of pixels:            {0:d} x {1:d}\n'.format(self.geometry.get_display_shape()[0],self.geometry.get_display_shape()[1],np.prod(self.geometry.get_display_shape()) / 1e6 )
+
+            msg = msg + self.intrinsics_info_str(0)
+            msg = msg + 'Extrinsics\n~~~~~~~~~~\n{:s}\n\n'.format(self.history['extrinsics'])
+            msg = msg + self.extrinsics_info_str(0)        
+
+        return msg
+
+
+    def intrinsics_info_str(self,subview):
+        '''
+        Get a pretty string describing the intrinsics for a given sub-view.
+
+        Parameters:
+            subview (int) : Which subview to get the description of.
+
+        Returns:
+            str : Multi-line string, separated with \\n, describing the intrinsics.
+        '''
+        model = self.view_models[subview]
+
+        msg = ''
+        msg = msg + 'Optical centre (x,y):        ( {:.0f}, {:.0f} ) px\n'.format(model.cam_matrix[0,2],model.cam_matrix[1,2])
+        if model.cam_matrix[0,0] == model.cam_matrix[1,1]:
+            fl = [model.cam_matrix[0,0]]
+        else:
+            fl = [model.cam_matrix[0,0],model.cam_matrix[1,1]]
+
+        msg = msg + 'Focal Length:                '
+        bkt1 = ''
+        bkt2 = '\n'
+        if self.pixel_size is not None:
+            msg = msg + '{:s} mm'.format(' x '.join(['{:.1f}'.format(f*self.pixel_size*1000) for f in fl]))
+            bkt1 = ' ('
+            bkt2 = ')\n'
+        msg = msg + bkt1 + '{:s} px'.format(' x '.join(['{:.0f}'.format(f) for f in fl])) + bkt2
+
+        msg = msg + 'Field of view (h x v):       {:.1f} x {:.1f} degrees\n'.format(*self.get_fov(subview=subview))
+            
+        msg = msg + 'Distortion model:            {:s}\n'.format(model.model.capitalize())
+        if model.model == 'perspective':
+            msg = msg + 'Radial dist. (k) coeffs:     ( {:.4f}, {:.4f}, {:.4f} ) \n'.format(model.kc[0][0],model.kc[0][1],model.kc[0][4])
+            msg = msg + 'Decentring dist. (p) coeffs: ( {:.4f}, {:.4f} )\n\n'.format(model.kc[0][2],model.kc[0][3])
+        elif model.model == 'fisheye':
+            msg = msg + 'Radial dist. (k) coeffs:     ( {:.4f}, {:.4f}, {:.4f}, {:.4f} ) \n'.format(model.k1,model.k2,model.k3,model.k4)
+
+        return msg
+
+
+    def extrinsics_info_str(self,subview):
+        '''
+        Get a pretty string describing the extrinsics for a given sub-view.
+
+        Parameters:
+            subview (int) : Which subview to get the description of.
+
+        Returns:
+            str : Multi-line string, separated with \\n, describing the extrinsics.
+        '''
+        model = self.view_models[subview]
+
+        msg = ''
+        # Line of sight at the field centre
+        ypx,xpx = CoM( self.get_subview_mask(coords='Display') == subview)
+        los_centre = model.get_los_direction(xpx,ypx)
+        los_cc = model.get_los_direction( model.cam_matrix[0,2], model.cam_matrix[1,2])
+
+        pupilpos = self.get_pupilpos(subview=subview)
+        msg = msg + 'Pupil Position (X,Y,Z):      ( {:.3f}, {:.3f}, {:.3f} ) m\n'.format(pupilpos[0],pupilpos[1],pupilpos[2])
+        msg = msg + 'View Direction (X,Y,Z):      ( {:.3f}, {:.3f}, {:.3f} ) at view centre\n'.format(los_centre[0],los_centre[1],los_centre[2]) + ' ' * 29 + '( {:.3f}, {:.3f}, {:.3f} ) along optical axis\n'.format(los_cc[0],los_cc[1],los_cc[2])
+        if np.isfinite(model.get_cam_roll()): 
+            msg = msg + 'Camera roll:                 {:.1f} degrees \n'.format(model.get_cam_roll())
+
+        return msg
 
 
 # The 'fitter' class 
@@ -1794,10 +2013,11 @@ class Fitter:
     def set_pointpairs(self,pointpairs,subview=0):
         # The primary point pairs are always first in the list.
         self.pointpairs[0] = (pointpairs,subview)
-        
-        # Set up image properties from the image that belongs to these point pairs
-        self.image_display_shape = tuple(pointpairs.image_shape)
 
+
+    def set_image_shape(self,im_shape):
+
+        self.image_display_shape = tuple(im_shape)
 
         # Initialise initial values for fitting
         initial_matrix = np.zeros((3,3))
@@ -1806,7 +2026,7 @@ class Fitter:
         initial_matrix[2,2] = 1
         initial_matrix[0,2] = self.image_display_shape[0]/2    # Cx
         initial_matrix[1,2] = self.image_display_shape[1]/2    # Cy
-        self.initial_matrix = initial_matrix
+        self.initial_matrix = initial_matrix        
 
 
     def add_intrinsics_pointpairs(self,pointpairs,subview=0):

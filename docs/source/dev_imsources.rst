@@ -44,7 +44,7 @@ transform_actions   List of strings    | List of strings specifying the geometri
                                        | rotate_clockwise_180
                                        | rotate_clockwise_270
 ------------------- ------------------ ------------------------------------------------------------
-pixel_size          float              | Physical size of the camera pixels in microns
+pixel_size          float              | Physical height of the camera pixels, in metres
 ------------------- ------------------ ------------------------------------------------------------
 coords              String             | Either Display or Original: whether the image is 
                                        | being returned in display or original orientation. 

@@ -25,7 +25,7 @@ import copy
 
 from .core import *
 from .vtkinteractorstyles import CalcamInteractorStyle2D, CalcamInteractorStyle3D
-from ..calibration import Calibration, Fitter
+from ..calibration import Calibration, Fitter, _user, _host, _get_formatted_time
 from ..pointpairs import PointPairs
 from ..render import render_cam_view,get_image_actor
 
@@ -115,6 +115,7 @@ class FittingCalib(CalcamGUIWindow):
         self.action_save_as.triggered.connect(lambda: self.save_calib(saveas=True))
         self.action_open.triggered.connect(self.load_calib)
         self.action_new.triggered.connect(self.reset)
+        self.action_cal_info.triggered.connect(self.show_calib_info)
 
 
         self.control_sensitivity_slider.valueChanged.connect(lambda x: self.interactor3d.set_control_sensitivity(x*0.01))
@@ -177,7 +178,7 @@ class FittingCalib(CalcamGUIWindow):
 
         self.fit_overlay = None
 
-        self.chessboard_source = None
+        self.chessboard_history = None
 
         self.fit_results = []
 
@@ -384,11 +385,11 @@ class FittingCalib(CalcamGUIWindow):
 
         if newim['pixel_size'] is not None:
             self.pixel_size_checkbox.setChecked(True)
-            self.pixel_size_box.setValue(newim['pixel_size'])
+            self.pixel_size_box.setValue(newim['pixel_size']*1e6)
         else:
             self.pixel_size_checkbox.setChecked(False)
 
-        self.calibration.set_image( newim['image_data'] , newim['source'],subview_mask = newim['subview_mask'], transform_actions = newim['transform_actions'],coords=newim['coords'],subview_names=newim['subview_names'],pixel_aspect=newim['pixel_aspect'] )
+        self.calibration.set_image( newim['image_data'] , newim['source'],subview_mask = newim['subview_mask'], transform_actions = newim['transform_actions'],coords=newim['coords'],subview_names=newim['subview_names'],pixel_aspect=newim['pixel_aspect'],pixel_size=newim['pixel_size'] )
 
         self.calibration.view_models = [None] * self.calibration.n_subviews
 
@@ -596,15 +597,16 @@ class FittingCalib(CalcamGUIWindow):
             new_tab.setLayout(new_layout)
             self.subview_tabs.addTab(new_tab,self.calibration.subview_names[field])
 
+            if self.calibration.image is not None:
+                for fitter in self.fitters:
+                    fitter.set_image_shape(self.calibration.geometry.get_display_shape())
+
             #self.fit_results.hide()
             self.tabWidget.setTabEnabled(3,True)
             self.tabWidget.setTabEnabled(4,True)
 
 
-        # Set pixel size, if the image knows its pixel size.
-        if self.calibration.pixel_size is not None:
-            self.pixel_size_box.setValue(self.calibration.pixel_size * 1.e6)
-            self.pixel_size_checkbox.setChecked(True)
+
 
 
 
@@ -644,7 +646,7 @@ class FittingCalib(CalcamGUIWindow):
         # Update the image and point pairs
         self.interactor2d.set_image(self.calibration.get_image(coords='Display'),n_subviews = self.calibration.n_subviews,subview_lookup=self.calibration.subview_lookup)
         if orig_pointpairs is not None:
-            self.load_pointpairs(pointpairs = self.calibration.geometry.original_to_display_pointpairs(orig_pointpairs),history=self.calibration.history['pointpairs'],force_clear=True)       
+            self.load_pointpairs(pointpairs = self.calibration.geometry.original_to_display_pointpairs(orig_pointpairs),history=self.calibration.history['pointpairs'],force_clear=True,clear_fit=False)       
 
         for i in range(len(self.chessboard_pointpairs)):
             self.chessboard_pointpairs[i][0] = self.calibration.geometry.original_to_display_image(self.chessboard_pointpairs[i][0])
@@ -700,7 +702,7 @@ class FittingCalib(CalcamGUIWindow):
 
                 self.point_pairings.append([cursorid_3d,cursorid_2d])
 
-            self.update_pointpairs(src=src,history=history)
+            self.update_pointpairs(src=src,history=history,clear_fit=clear_fit)
             self.update_n_points()
             self.update_cursor_info()
             self.app.restoreOverrideCursor()
@@ -790,7 +792,10 @@ class FittingCalib(CalcamGUIWindow):
 
 
 
-    def update_pointpairs(self,src=None,history=None):
+    def update_pointpairs(self,src=None,history=None,clear_fit=True):
+
+        if clear_fit:
+            self.reset_fit(reset_options = False)
 
         pp = PointPairs()
 
@@ -798,20 +803,20 @@ class FittingCalib(CalcamGUIWindow):
             if pointpair[0] is not None and pointpair[1] is not None:
                 pp.add_pointpair(self.interactor3d.get_cursor_coords(pointpair[0]) , self.interactor2d.get_cursor_coords(pointpair[1]) )
 
-        pp.image_shape = self.calibration.geometry.get_display_shape()
-
         if pp.get_n_points() > 0:
+
             self.calibration.set_pointpairs(pp,src=src,history=history)
-        else:
-            self.calibration.set_pointpairs(None)
 
-        # Add the intrinsics constraints
-        self.calibration.clear_intrinsics_constraints()
-
-        if self.calibration.pointpairs is not None:
             for subview in range(self.calibration.n_subviews):
                 self.fitters[subview].set_pointpairs(self.calibration.pointpairs,subview=subview)
                 self.fitters[subview].clear_intrinsics_pointpairs()
+
+        else:
+            self.calibration.set_pointpairs(None)
+
+
+        # Add the intrinsics constraints
+        self.calibration.clear_intrinsics_constraints()
 
         if self.intrinsics_calib_checkbox.isChecked():
             self.calibration.add_intrinsics_constraints(calibration=self.intrinsics_calib)
@@ -821,12 +826,11 @@ class FittingCalib(CalcamGUIWindow):
                     self.fitters[subview].add_intrinsics_pointpairs(ic[1])
 
         if self.chessboard_checkbox.isChecked():
-            src = self.chessboard_source
-            for chessboard_constraint in self.chessboard_pointpairs:
-                self.calibration.add_intrinsics_constraints(image=chessboard_constraint[0],pointpairs = chessboard_constraint[1],src=src)
+            for n,chessboard_constraint in enumerate(self.chessboard_pointpairs):
+                self.calibration.add_intrinsics_constraints(image=chessboard_constraint[0],im_history=self.chessboard_history[0][n],pointpairs = chessboard_constraint[1],pp_history=self.chessboard_history[1])
                 for subview in range(self.calibration.n_subviews):
                     self.fitters[subview].add_intrinsics_pointpairs(chessboard_constraint[1],subview=subview)
-                src = None
+
 
         self.unsaved_changes = True
 
@@ -843,7 +847,7 @@ class FittingCalib(CalcamGUIWindow):
             params = self.calibration.view_models[subview]
 
             # Get CoM of this field on the chip
-            ypx,xpx = CoM( (self.calibration.subview_mask + 1) * (self.calibration.subview_mask == subview) )
+            ypx,xpx = CoM( self.calibration.get_subview_mask(coords='Display') == subview)
 
             # Line of sight at the field centre
             los_centre = params.get_los_direction(xpx,ypx)
@@ -1170,7 +1174,7 @@ class FittingCalib(CalcamGUIWindow):
 
         # Load the point pairs
         if opened_calib.pointpairs is not None:
-            self.load_pointpairs(pointpairs=opened_calib.pointpairs,history=opened_calib.history['pointpairs'],force_clear=False)
+            self.load_pointpairs(pointpairs=opened_calib.pointpairs,history=opened_calib.history['pointpairs'],force_clear=False,clear_fit=False)
 
 
         # Load the appropriate CAD model, if we know what that is
@@ -1284,19 +1288,11 @@ class FittingCalib(CalcamGUIWindow):
             if choice:
                 self.pixel_size_box.setEnabled(True)
                 self.update_pixel_size()
-                '''
-                for field in range(self.calibration.n_subviews):
-                    self.fit_settings_widgets[field][10].setSuffix(' mm')
-                    self.fit_settings_widgets[field][10].setValue(self.fit_settings_widgets[field][10].value() * self.image.pixel_size*1e3)
-                '''
+
             else:
                 self.pixel_size_box.setEnabled(False)
                 self.update_pixel_size()
-                '''
-                for field in range(self.calibration.n_subviews):
-                    self.fit_settings_widgets[field][10].setSuffix(' px')
-                    self.fit_settings_widgets[field][10].setValue(self.fit_settings_widgets[field][10].value() / (self.image.pixel_size*1e3))
-                '''
+
     
 
         
@@ -1336,7 +1332,8 @@ class FittingCalib(CalcamGUIWindow):
 
         if dialog.results != []:
             self.chessboard_pointpairs = dialog.results
-            self.chessboard_source = dialog.chessboard_source
+            im_history = ['Chessboard image from {:s}, loaded by {:s} on {:s} at {:s}.'.format(fname,_user,_host,_get_formatted_time) for fname in dialog.filenames]
+            self.chessboard_history = [im_history, ['Auto-detected based on {:d}x{:d} square chessboard pattern with {:.1f}mm squares.'.format(dialog.chessboard_squares_x.value(),dialog.chessboard_squares_y.value(),dialog.chessboard_square_size.value()),None]  ]
             self.chessboard_checkbox.setChecked(True)
 
         del dialog

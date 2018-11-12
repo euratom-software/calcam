@@ -24,7 +24,7 @@ import copy
 
 from .core import *
 from .vtkinteractorstyles import CalcamInteractorStyle3D
-from ..calibration import Calibration, Fitter
+from ..calibration import Calibration
 from ..render import get_image_actor
 
 # View designer window.
@@ -110,6 +110,7 @@ class AlignmentCalib(CalcamGUIWindow):
         self.action_save_as.triggered.connect(lambda: self.save(saveas=True))
         self.action_open.triggered.connect(self.open_calib)
         self.action_new.triggered.connect(self.reset)
+        self.action_cal_info.triggered.connect(self.show_calib_info)
 
         self.viewport_calibs = DodgyDict()
 
@@ -135,6 +136,8 @@ class AlignmentCalib(CalcamGUIWindow):
         self.vtk_aspect = None
         self.intrinsics_calib = None
 
+        self.extrinsics_src = None
+
         self.calibration = None
 
 
@@ -159,7 +162,8 @@ class AlignmentCalib(CalcamGUIWindow):
 
 
     def _load_model(self):
-        self.load_model(hold_view = self.calibration is not None)
+        self.load_model(hold_view = self.cadmodel is not None)
+        self.update_intrinsics()
 
 
     def reset(self,keep_cadmodel=False):
@@ -301,7 +305,7 @@ class AlignmentCalib(CalcamGUIWindow):
             if opened_calib.pixel_size is not None:
                 fl = fl * opened_calib.pixel_size  / 1000
 
-                self.pixel_size_box.setValue(opened_calib.pixel_size)
+                self.pixel_size_box.setValue(opened_calib.pixel_size*1e6)
                 self.pixel_size_checkbox.setChecked(True)
             else:
                 self.pixel_size_checkbox.setChecked(False)
@@ -312,7 +316,7 @@ class AlignmentCalib(CalcamGUIWindow):
         elif opened_calib.intrinsics_type == 'chessboard':
             self.chessboard_fit = opened_calib.view_models[0]
             self.chessboard_pointpairs = opened_calib.intrinsics_constraints
-            self.chessboard_source = opened_calib.history['intrinsics']
+            self.chessboard_src = opened_calib.history['intrinsics']
             self.chessboard_intrinsics.setChecked(True)
 
         elif opened_calib.intrinsics_type == 'calibration':
@@ -337,6 +341,7 @@ class AlignmentCalib(CalcamGUIWindow):
 
         if self.pixel_size_checkbox.isChecked():
             self.pixel_size_box.setEnabled(True)
+            self.calibration.pixel_size = self.pixel_size_box.value() / 1e6
         else:
             self.pixel_size_box.setEnabled(False)
 
@@ -348,16 +353,18 @@ class AlignmentCalib(CalcamGUIWindow):
             
             if self.intrinsics_calib is None:
                 self.intrinsics_calib = self.object_from_file('calibration')
-                if self.intrinsics_calib is not None:
-                    if len(self.intrinsics_calib.view_models) != 1:
-                        self.intrinsics_calib = None
-                        self.current_intrinsics_combobox.setChecked(True)
-                        raise UserWarning('This calibration has multiple sub-fields; no worky; sorry.')
-                    
-                    self.calibration.set_calib_intrinsics(self.intrinsics_calib)
-                    self.current_intrinsics_combobox = self.calcam_intrinsics
-                else:
+
+            if self.intrinsics_calib is not None:
+                if len(self.intrinsics_calib.view_models) != 1:
+                    self.intrinsics_calib = None
                     self.current_intrinsics_combobox.setChecked(True)
+                    raise UserWarning('This calibration has multiple sub-fields; no worky; sorry.')
+                
+                self.calibration.set_calib_intrinsics(self.intrinsics_calib,update_hist_recursion = not (self.intrinsics_calib is self.calibration))
+                self.current_intrinsics_combobox = self.calcam_intrinsics
+            else:
+                self.calibration.set_calib_intrinsics(self.intrinsics_calib,update_hist_recursion = not (self.intrinsics_calib is self.calibration))
+                self.current_intrinsics_combobox.setChecked(True)
 
 
         elif self.pinhole_intrinsics.isChecked():
@@ -381,7 +388,6 @@ class AlignmentCalib(CalcamGUIWindow):
 
             nx,ny = self.calibration.geometry.get_display_shape()
 
-            #fov = 3.14159 * self.camera_3d.GetViewAngle() / 180.
             f = self.focal_length_box.value()
             if self.pixel_size_checkbox.isChecked():
                 f = 1e3 * f / self.pixel_size_box.value()
@@ -397,12 +403,13 @@ class AlignmentCalib(CalcamGUIWindow):
 
             if self.chessboard_fit is None:
                 self.update_chessboard_intrinsics()
-
-            if self.chessboard_fit is not None:
-                self.calibration.set_chessboard_intrinsics(self.chessboard_fit,self.chessboard_pointpairs,self.chessboard_source)
-                self.current_intrinsics_combobox = self.chessboard_intrinsics
+                if self.chessboard_fit is None:
+                    self.current_intrinsics_combobox.setChecked(True)
+                return
             else:
-                self.current_intrinsics_combobox.setChecked(True)
+                self.calibration.set_chessboard_intrinsics(self.chessboard_fit,self.chessboard_pointpairs,self.chessboard_src)
+                self.current_intrinsics_combobox = self.chessboard_intrinsics
+
 
         self.update_overlay()
 
@@ -411,7 +418,7 @@ class AlignmentCalib(CalcamGUIWindow):
         wcx = -2.*(mat[0,2] - n[0]/2.) / float(n[0])
         wcy = 2.*(mat[1,2] - n[1]/2.) / float(n[1])
         self.camera_3d.SetWindowCenter(wcx,wcy)
-        fov = 360*np.arctan( float(n[1]) / (2*self.calibration.view_models[0].cam_matrix[1,1]))/3.14159
+        fov = 360*np.arctan( float(n[1]) / (2*mat[1,1]))/3.14159
         self.camera_3d.SetViewAngle(fov)
         self.unsaved_changes = True
 
@@ -421,11 +428,11 @@ class AlignmentCalib(CalcamGUIWindow):
 
         if newim['pixel_size'] is not None:
             self.pixel_size_checkbox.setChecked(True)
-            self.pixel_size_box.setValue(newim['pixel_size'])
+            self.pixel_size_box.setValue(newim['pixel_size']*1e6)
         else:
             self.pixel_size_checkbox.setChecked(False)
 
-        self.calibration.set_image( newim['image_data'] , newim['source'],subview_mask = newim['subview_mask'], transform_actions = newim['transform_actions'],coords=newim['coords'],subview_names=newim['subview_names'],pixel_aspect=newim['pixel_aspect'] )
+        self.calibration.set_image( newim['image_data'] , newim['source'],subview_mask = newim['subview_mask'], transform_actions = newim['transform_actions'],coords=newim['coords'],subview_names=newim['subview_names'],pixel_aspect=newim['pixel_aspect'],pixel_size=newim['pixel_size'] )
 
         imshape = self.calibration.geometry.get_display_shape()
         self.interactor3d.force_aspect = float( imshape[1] ) / float( imshape[0] )
@@ -532,28 +539,6 @@ class AlignmentCalib(CalcamGUIWindow):
 
 
 
-    def update_chessboard_intrinsics(self):
-
-        dialog = ChessboardDialog(self,modelselection=True)
-        dialog.exec_()
-
-        if dialog.results != []:
-            chessboard_pointpairs = dialog.results
-            if dialog.perspective_model.isChecked():
-                fitter = Fitter('perspective')
-            elif dialog.fisheye_model.isChecked():
-                fitter = Fitter('fisheye')
-            fitter.set_pointpairs(chessboard_pointpairs[0][1])
-            for chessboard_im in chessboard_pointpairs[1:]:
-                fitter.add_intrinsics_pointpairs(chessboard_im[1])
-
-            self.chessboard_pointpairs = chessboard_pointpairs
-            self.chessboard_fit = fitter.do_fit()
-            self.chessboard_source = dialog.chessboard_source
-
-        del dialog
-
-
 
 
     def save(self,saveas=False):
@@ -567,18 +552,7 @@ class AlignmentCalib(CalcamGUIWindow):
 
         if self.filename is not None:
 
-            # First we have to add the extrinsics to the calibration object
-            campos = np.matrix(self.camera_3d.GetPosition())
-            camtar = np.matrix(self.camera_3d.GetFocalPoint())
-
-            # We need to pass the view up direction to set_exirtinsics, but it isn't kept up-to-date by
-            # the VTK camera. So here we explicitly ask for it to be updated then pass the correct
-            # version to set_extrinsics, but then reset it back to what it was, to avoid ruining 
-            # the mouse interaction.
-            self.camera_3d.OrthogonalizeViewUp()
-            upvec = np.array(self.camera_3d.GetViewUp())
-
-            self.calibration.set_extrinsics(campos,upvec,camtar = camtar)
+            self.update_extrinsics()
 
             if self.cadmodel is not None:
                 self.calibration.cad_config = {'model_name':self.cadmodel.machine_name , 'model_variant':self.cadmodel.model_variant , 'enabled_features':self.cadmodel.get_enabled_features(),'viewport':[self.camX.value(),self.camY.value(),self.camZ.value(),self.tarX.value(),self.tarY.value(),self.tarZ.value(),self.camera_3d.GetViewAngle()] }

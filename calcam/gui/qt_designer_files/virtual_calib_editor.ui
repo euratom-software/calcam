@@ -803,6 +803,8 @@
    <addaction name="action_open"/>
    <addaction name="action_save"/>
    <addaction name="action_save_as"/>
+   <addaction name="separator"/>
+   <addaction name="action_cal_info"/>
   </widget>
   <action name="action_open">
    <property name="text">
@@ -831,6 +833,14 @@
   <action name="action_new">
    <property name="text">
     <string>New</string>
+   </property>
+  </action>
+  <action name="action_cal_info">
+   <property name="text">
+    <string>Calibration Properties</string>
+   </property>
+   <property name="toolTip">
+    <string>Calibration Properties</string>
    </property>
   </action>
  </widget>

@@ -37,6 +37,7 @@ def get_image(filename):
 
         # If we have a colour image swap the G and B channels, since OpenCV loads them in the wrong order.
         if dat.shape[2] == 3:
+          
             dat[:,:,:3] = dat[:,:,2::-1]
 
             # If R, G and B channels are all the same, just return a monochrome image

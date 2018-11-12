@@ -21,8 +21,11 @@
 
 import os
 import sys
+import cv2
+import webbrowser
 
-from .core import guipath
+from .. import __version__, vtk
+from .core import guipath, DodgyDict
 from ..config import CalcamConfig
 from . import qt_wrapper as qt
 from .launcher import launch
@@ -36,31 +39,48 @@ class Settings(qt.QMainWindow):
         qt.QMainWindow.__init__(self, parent)
         qt.uic.loadUi(os.path.join(guipath,'qt_designer_files','settings.ui'), self)
 
-        self.setWindowIcon(qt.QIcon(os.path.join(guipath,'icon.png')))
+        self.setWindowIcon(qt.QIcon(os.path.join(guipath,'icons','calcam.png')))
 
         self.cad_path_list.itemChanged.connect(self.change_cad_paths)
         self.add_modelpath_button.clicked.connect(self.add_cadpath)
         self.cad_path_list.itemSelectionChanged.connect(self.update_cadpath_selection)
         self.imsource_path_list.itemChanged.connect(self.change_imsource_paths)
-        self.imsource_path_list.itemSelectionChanged.connect(self.update_imsource_selection)
+        self.imsource_path_list.itemSelectionChanged.connect(self.update_imsource_path_selection)
+        self.imsource_list.itemSelectionChanged.connect(self.update_imsource_selection)
         self.model_list.itemSelectionChanged.connect(self.update_model_selection)
         self.add_impath_button.clicked.connect(self.add_imsource_path)
         self.rem_modelpath_button.clicked.connect(self.remove_cad_path)
         self.rem_impath_button.clicked.connect(self.remove_imsource_path)
         self.edit_model_button.clicked.connect(self.open_model_edit)
         self.new_model_button.clicked.connect(self.open_model_edit)
+        self.edit_imsource_button.clicked.connect(self.edit_imsource)
 
         self.refresh_timer = qt.QTimer()
         self.refresh_timer.setInterval(5000)
         self.refresh_timer.timeout.connect(self.update)
         self.refresh_timer.start()
 
+        if vtk is not None:
+            vtk_str = vtk.vtkVersion().GetVTKVersion()
+        else:
+            vtk_str = 'NO VTK!'
+
+        env_str_left = '<pre>Calcam version: {:s}\nPython version: {:s}\nPlatform:       {:s}</pre>'.format(__version__,'.'.join([str(num) for num in sys.version_info[:3]]),sys.platform,)
+        env_str_right = '<pre>VTK version:    {:s}\nOpenCV version: {:s}\nPyQt version:   {:s}</pre>'.format(vtk_str,cv2.__version__,qt.QT_VERSION_STR)
+
+        self.env_info_left.setText(env_str_left)
+        self.env_info_right.setText(env_str_right)
 
         self.app = app
 
         self.update()
 
         self.show()
+
+
+    def edit_imsource(self):
+        path = self.imsource_paths[self.imsource_list.selectedItems()[0]]
+        webbrowser.open('file://{:s}'.format(path))
 
 
     def remove_cad_path(self):
@@ -72,6 +92,7 @@ class Settings(qt.QMainWindow):
 
     def update_model_selection(self):
         self.edit_model_button.setEnabled(True)
+
 
     def remove_imsource_path(self):
 
@@ -130,12 +151,21 @@ class Settings(qt.QMainWindow):
             self.update()
 
 
-    def update_imsource_selection(self):
+    def update_imsource_path_selection(self):
         if len(self.imsource_path_list.selectedItems()) > 0:
             self.rem_impath_button.setEnabled(True)       
         else:
             self.rem_impath_button.setEnabled(False)
 
+    def update_imsource_selection(self):
+
+        if len(self.imsource_list.selectedItems()) > 0:
+            if self.imsource_paths[self.imsource_list.selectedItems()[0]] is not None:
+                self.edit_imsource_button.setEnabled(True)
+            else:
+                self.edit_imsource_button.setEnabled(False)
+        else:
+            self.edit_imsource_button.setEnabled(False)
 
     def update(self):
 
@@ -200,11 +230,15 @@ class Settings(qt.QMainWindow):
             to_select = None   
 
         self.imsource_list.clear()
+        self.imsource_paths = DodgyDict()
 
         for imsource in sorted(self.config.get_image_sources(meta_only=True)):
             listitem = qt.QListWidgetItem(imsource[0])
-            if imsource[1]:
+            self.imsource_paths[listitem] = imsource[1]
+            if imsource[2]:
                 listitem.setForeground(qt.Qt.red)
+                listitem.setToolTip(imsource[2])
+            else:
                 listitem.setToolTip(imsource[1])
 
             self.imsource_list.addItem(listitem)

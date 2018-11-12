@@ -198,6 +198,16 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
         self.projection = projection
 
 
+    def set_upvec(self,upvec):
+
+        self.camera_3d.SetViewUp(upvec)
+        cam_roll = self.camera_3d.GetRoll()
+
+
+
+    def get_projection(self):
+        return self.projection
+
     # Middle click + drag to pan
     def middle_press(self,obj,event):
         self.orig_dist = self.camera.GetDistance()
@@ -628,11 +638,11 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
 
             # Make sure we maintain the set camera roll.
             if self.rmb_down and np.abs(self.cam_roll) > 0:
-                self.set_roll(self.cam_roll,run_viewport_callback=False)
+                self.set_roll(self.cam_roll)
 
         # Right click + drag rolls the camera.
         # This first case for if we're not looking vertically
-        elif np.abs(view_direction[2]) < 0.99:
+        elif np.abs(view_direction[2]) < 0.98:
             lastxy = xy + delta
             cc = np.array(self.vtkwindow.GetSize())/2.
             delta_theta = (np.arctan( (xy[0] - cc[0])/(xy[1] - cc[1]) ) - np.arctan( (lastxy[0] - cc[0])/(lastxy[1] - cc[1]) ) )
@@ -642,7 +652,7 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
 
             if np.abs(self.cam_roll - 180*delta_theta/3.14159) < 90:
                 roll = self.cam_roll - 180*delta_theta/3.14159
-                self.set_roll(roll,run_viewport_callback=False)
+                self.set_roll(roll)
 
         # If we are looking vertically, pretend the mouse has only moved horizontally
         # and call the regular handler. Believe it or not this enables consistent and smooth-ish rotation.
@@ -654,21 +664,41 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
             self.update_clipping()
 
 
-    def set_roll(self,roll,rerender=True,run_viewport_callback=True):
+    def set_roll(self,roll):
 
         self.cam_roll = roll
         view_direction = self.camera.GetDirectionOfProjection()
-        if np.abs(view_direction[2]) < 0.99:
+        if np.abs(view_direction[2]) < 0.9:
             z_projection = np.array([ -view_direction[0]*view_direction[2], -view_direction[1]*view_direction[2],1-view_direction[2]**2 ])
             upvec = rotate_3D(z_projection,view_direction,self.cam_roll)
             self.camera.SetViewUp(upvec)
             roll = self.camera.GetRoll()
+            tar = self.camera.GetFocalPoint()
             self.camera.SetViewUp(0,0,1)
             self.camera.SetRoll(roll)
-            if self.viewport_callback is not None and run_viewport_callback:
-                self.viewport_callback(keep_selection=True)     
-            if rerender:
-                self.refresh_callback()  
+            self.camera.SetFocalPoint(tar)
+
+            if self.refresh_callback is not None:
+                self.refresh_callback()
+
+
+    def set_upvec(self,upvec):
+
+        self.camera.SetViewUp(upvec)
+
+        view_direction = self.camera.GetDirectionOfProjection()
+        pitch_angle = -180.*np.arcsin(view_direction[2])/3.1415927
+        self.camera.Pitch(pitch_angle)
+        
+        self.cam_roll = 0.
+
+        camroll = self.camera.GetRoll()
+        self.camera.SetViewUp(0,0,1)
+        self.camera.SetRoll(camroll)
+        
+        self.camera.Pitch(-pitch_angle)
+
+
 
     def set_overlay_image(self,im_array):
 

@@ -1,11 +1,12 @@
-======================
-Theoretical Background
-======================
+=========================
+Camera Calibration Theory
+=========================
 
+This page details the mathematics of the camera calibration.
 
 Camera Model
 ------------
-Calcam works by fitting a model which describes the relationship between 3D real-world coordinates and image coordinates. It supports two different models: one for conventional perspective projection lenses and one for fisheye lenses. In both cases, we wish to relate the coordinates of a point :math:`(X,Y,Z)` in the lab frame to its pixel coordinates :math:`(x{_p},y{_p})` in the camera image. First, we must consider the position and viewing direction of the camera in the lab frame, which is described by a 3D translation and rotation. The translation and rotation parameters are known as the *extrinsic* parameters in the model.  Knowing these, we can apply a suitable translation and rotation to obtain the point of interest's coordinates in the camera frame: a 3D real space coordinate system where the camera pupil is at the origin and the camera looks along the positive :math:`Z` axis. We denote the coordinates of our point of interest in the camera frame as :math:`(X^\prime,Y^\prime,Z^\prime)`. 
+Calcam is based on fitting or otherwise creating a model which describes the relationship between 3D real-world coordinates and image coordinates. It supports two different models: one for conventional perspective projection lenses and one for fisheye lenses. In both cases, we wish to relate the coordinates of a point :math:`(X,Y,Z)` in the lab frame to its pixel coordinates :math:`(x{_p},y{_p})` in the camera image. First, we must consider the position and viewing direction of the camera in the lab frame, which is described by a 3D translation and rotation. The translation and rotation parameters are known as the *extrinsic* parameters in the model.  Knowing these, we can apply a suitable translation and rotation to obtain the point of interest's coordinates in the camera frame: a 3D real space coordinate system where the camera pupil is at the origin and the camera looks along the positive :math:`Z` axis. We denote the coordinates of our point of interest in the camera frame as :math:`(X^\prime,Y^\prime,Z^\prime)`. 
 
 In order to find the pixel coordinates of this point in the camera image, we start with a simple perspective projection, where the height of an object in the image is inversely proportional to its distance from the camera pupil:
 
@@ -44,3 +45,7 @@ The fisheye distortion model only includes radial fisheye distortion. Unlike the
 
 where :math:`r = \sqrt{x_n^2 + y_n^2}` and :math:`\theta = \tan^{-1}(r)`.
 
+
+Underlying OpenCV Documentation
+--------------------------------
+Calcam does not implement the above camera models within its own code; under the hood it uses the OpenCV camera calibration functions. It may therefore be helpful to also refer to the OpenCV camera calibration documentation, which can be found `here <https://docs.opencv.org/>`_.

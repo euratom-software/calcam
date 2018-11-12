@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>851</width>
-    <height>224</height>
+    <height>211</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -19,15 +19,15 @@
   <property name="windowTitle">
    <string>CalCam</string>
   </property>
-  <layout class="QHBoxLayout" name="horizontalLayout">
-   <item>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="0" column="0" colspan="2">
     <widget class="QLabel" name="logolabel">
      <property name="text">
       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
     </widget>
    </item>
-   <item>
+   <item row="0" column="2" rowspan="3">
     <widget class="QFrame" name="frame">
      <property name="frameShape">
       <enum>QFrame::NoFrame</enum>
@@ -36,16 +36,29 @@
       <enum>QFrame::Raised</enum>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
       <property name="topMargin">
        <number>0</number>
       </property>
-      <item row="5" column="1">
-       <widget class="QPushButton" name="image_analysis_button">
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item row="6" column="1">
+       <widget class="QPushButton" name="cad_viewer_button">
         <property name="text">
-         <string>Image Analyser</string>
+         <string>3D Viewer</string>
         </property>
         <property name="autoDefault">
          <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="3">
+       <widget class="QLabel" name="label_6">
+        <property name="text">
+         <string>Use a saved calibration to map between image and lab coordinates.</string>
         </property>
        </widget>
       </item>
@@ -66,61 +79,13 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="3">
-       <widget class="QLabel" name="label_5">
+      <item row="0" column="1">
+       <widget class="QPushButton" name="calcam_button">
         <property name="text">
-         <string>Perform calibrations by manually aligning images and CAD render.</string>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="3">
-       <widget class="QLabel" name="label_2">
-        <property name="text">
-         <string>View CAD models; visualise camera sight lines; create figures</string>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="1">
-       <widget class="QPushButton" name="cad_viewer_button">
-        <property name="text">
-         <string>3D Viewer</string>
+         <string>Calibration Tool (Point Fitting)</string>
         </property>
         <property name="autoDefault">
          <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="3">
-       <widget class="QLabel" name="label_6">
-        <property name="text">
-         <string>Use a saved calibration to map between image and lab coordinates.</string>
-        </property>
-       </widget>
-      </item>
-      <item row="8" column="1">
-       <widget class="QPushButton" name="userguide_button">
-        <property name="text">
-         <string>Documentation</string>
-        </property>
-        <property name="autoDefault">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QPushButton" name="alignment_calib_button">
-        <property name="text">
-         <string>Calibration Tool (Manual Alignment)</string>
-        </property>
-        <property name="autoDefault">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="8" column="3">
-       <widget class="QLabel" name="label_4">
-        <property name="text">
-         <string>Open the online documentation.</string>
         </property>
        </widget>
       </item>
@@ -131,10 +96,17 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="1">
-       <widget class="QPushButton" name="calcam_button">
+      <item row="7" column="3">
+       <widget class="QLabel" name="label_7">
         <property name="text">
-         <string>Calibration Tool (Point Fitting)</string>
+         <string>Configure CAD models and custom image sources</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QPushButton" name="alignment_calib_button">
+        <property name="text">
+         <string>Calibration Tool (Manual Alignment)</string>
         </property>
         <property name="autoDefault">
          <bool>false</bool>
@@ -151,15 +123,74 @@
         </property>
        </widget>
       </item>
-      <item row="7" column="3">
-       <widget class="QLabel" name="label_7">
+      <item row="1" column="3">
+       <widget class="QLabel" name="label_5">
         <property name="text">
-         <string>Configure CAD models and custom image sources</string>
+         <string>Perform calibrations by manually aligning images and CAD render.</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1">
+       <widget class="QPushButton" name="image_analysis_button">
+        <property name="text">
+         <string>Image Analyser</string>
+        </property>
+        <property name="autoDefault">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="3">
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>View CAD models; visualise camera sight lines; create figures</string>
         </property>
        </widget>
       </item>
      </layout>
     </widget>
+   </item>
+   <item row="1" column="0" colspan="2" alignment="Qt::AlignHCenter">
+    <widget class="QLabel" name="label_4">
+     <property name="text">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;https://euratom-software.github.io/calcam/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;Online Documentation&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="openExternalLinks">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="2" alignment="Qt::AlignLeft">
+    <widget class="QLabel" name="update_label">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string>Update prompt lives here.</string>
+     </property>
+     <property name="wordWrap">
+      <bool>false</bool>
+     </property>
+     <property name="openExternalLinks">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="2">
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>0</height>
+      </size>
+     </property>
+    </spacer>
    </item>
   </layout>
  </widget>

@@ -43,18 +43,23 @@ class PointPairs():
             self.load(loadhandle)
 
 
-    def get_n_points(self,subview=0):
+    def get_n_points(self,subview=None):
 
         if self.n_subviews == 0:
             return 0
             
-        if subview > (self.n_subviews - 1) or subview < 0:
-            raise ValueError('Subview index out of bounds!')
+        if subview is not None:
+            if subview > (self.n_subviews - 1) or subview < 0:
+                raise ValueError('Subview index out of bounds!')
 
         npts = 0
-        for point in self.image_points:
-            if point[subview] is not None:
-                npts = npts + 1
+        if subview is not None:
+            for point in self.image_points:
+                if point[subview] is not None:
+                    npts = npts + 1
+        else:
+            for subview in range(self.n_subviews):
+                npts = npts + self.get_n_points(subview)
 
         return npts
 
@@ -81,7 +86,7 @@ class PointPairs():
                 if self.image_points[i][j] is None:
                     row = row + ',,,'
                 else:
-                    row = row + ',,{:.1f},{:.1f}'.format(self.image_points[i][j][0],self.image_points[i][j][1])
+                    row = row + ',,{:.2f},{:.2f}'.format(self.image_points[i][j][0],self.image_points[i][j][1])
 
             savefile.write(row + '\n')
 

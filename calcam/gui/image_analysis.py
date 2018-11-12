@@ -95,6 +95,8 @@ class ImageAnalyser(CalcamGUIWindow):
         self.load_calib_button.clicked.connect(self.load_calib)
         self.reset_view_button.clicked.connect(lambda: self.set_view_from_calib(self.calibration,0))
         self.cursor_closeup_button.clicked.connect(self.set_view_to_cursor)
+        self.cal_props_button.clicked.connect(self.show_calib_info)
+        self.viewport_load_calib.clicked.connect(self.load_viewport_calib)
 
         self.sightline_checkbox.toggled.connect(lambda: self.update_from_3d(self.coords_3d))
 
@@ -103,6 +105,7 @@ class ImageAnalyser(CalcamGUIWindow):
         self.hist_eq_checkbox.stateChanged.connect(self.toggle_hist_eq)
 
         self.image = None
+        self.viewport_calibs = DodgyDict()
 
         self.control_sensitivity_slider.valueChanged.connect(lambda x: self.interactor3d.set_control_sensitivity(x*0.01))
         self.rmb_rotate.toggled.connect(self.interactor3d.set_rmb_rotate)
@@ -337,9 +340,7 @@ class ImageAnalyser(CalcamGUIWindow):
                 
             self.calibration = opened_calib
             self.calib_name.setText(os.path.split(self.calibration.filename)[1].replace('.ccc',''))
-            imshape = self.calibration.geometry.get_display_shape()
-            self.calib_im_size.setText('{:d} x {:d} pixels'.format(imshape[0],imshape[1]))
-            self.calib_type.setText(type_description[self.calibration._type])
+            self.cal_props_button.setEnabled(True)
 
             self.overlay_checkbox.setEnabled(True)
             self.reset_view_button.setEnabled(True)
@@ -398,12 +399,11 @@ class ImageAnalyser(CalcamGUIWindow):
         if self.calibration is not None:
             self.calibration = None
             self.calib_name.setText('No Calibration Loaded.')
-            self.calib_im_size.setText('No Calibration Loaded.')
-            self.calib_type.setText('No Calibration Loaded.')
             self.overlay_checkbox.setChecked(False)
             self.overlay_checkbox.setEnabled(False)
             self.reset_view_button.setEnabled(False)
             self.overlay = None
+            self.cal_props_button.setEnabled(False)
             
             if self.cursor_ids['2d']['visible'] is not None:
                 self.interactor2d.remove_active_cursor(self.cursor_ids['2d']['visible'])

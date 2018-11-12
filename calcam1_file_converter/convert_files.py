@@ -151,7 +151,7 @@ def load_calib(path,match_images=True,virtual=False):
         SaveFile.seek(0)
         save = pickle.load(SaveFile,encoding='latin1')
 
-    calname = os.path.split(path)[-1][:-4]
+    calname = os.path.split(path)[-1][:-7]
 
     if 'type' in save and not virtual:
         if save['type'] == 'fit':
