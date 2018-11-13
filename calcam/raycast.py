@@ -26,8 +26,11 @@ Written by Scott Silburn
 2015-05-17
 """
 
+try:
+    import vtk
+except:
+    vtk = None
 
-import vtk
 import numpy as np
 import datetime
 import time
@@ -67,6 +70,10 @@ def raycast_sightlines(calibration,cadmodel,x=None,y=None,binning=1,coords='Disp
         calcam.RayData                   : Object containing the results.
 
     '''
+
+    if vtk is None:
+        raise Exception('VTK is not available, and this Calcam feature requires VTK!')
+
     if not verbose:
         original_callback = cadmodel.get_status_callback()
         cadmodel.set_status_callback(None)
@@ -236,6 +243,7 @@ def raycast_sightlines(calibration,cadmodel,x=None,y=None,binning=1,coords='Disp
 
 def check_visible(start_coords,target,cadmodel,verbose=False,tol=1e-3):
 
+    
     start_coords = np.array(start_coords)
     target = np.array(target)
 
@@ -351,8 +359,8 @@ class RayData:
         if len(self.x.shape) == 2:
             udim = f.createDimension('udim',self.x.shape[1])
             vdim = f.createDimension('vdim',self.x.shape[0])
-            rayhit = f.createVariable('RayEndcoords','f4',('vdim','udim','pointdim'))
-            raystart = f.createVariable('RayStartcoords','f4',('vdim','udim','pointdim'))
+            rayhit = f.createVariable('RayEndCoords','f4',('vdim','udim','pointdim'))
+            raystart = f.createVariable('RayStartCoords','f4',('vdim','udim','pointdim'))
             x = f.createVariable('PixelXLocation','i4',('vdim','udim'))
             y = f.createVariable('PixelYLocation','i4',('vdim','udim'))
             
@@ -362,8 +370,8 @@ class RayData:
             y[:,:] = self.y
         elif len(self.x.shape) == 1:
             udim = f.createDimension('udim',self.x.size)
-            rayhit = f.createVariable('RayEndcoords','f4',('udim','pointdim'))
-            raystart = f.createVariable('RayStartcoords','f4',('udim','pointdim'))
+            rayhit = f.createVariable('RayEndCoords','f4',('udim','pointdim'))
+            raystart = f.createVariable('RayStartCoords','f4',('udim','pointdim'))
             x = f.createVariable('PixelXLocation','i4',('udim',))
             y = f.createVariable('PixelYLocation','i4',('udim',))
 
@@ -408,9 +416,9 @@ class RayData:
             filename (str) : File name to load from.
         '''
         f = netcdf_file(filename, 'r',mmap=False)
-        self.ray_end_coords = f.variables['RayEndcoords'].data
-        self.ray_start_coords = f.variables['RayStartcoords'].data
-        self.binning = f.variables['Binning'].data
+        self.ray_end_coords = f.variables['RayEndCoords'].data
+        self.ray_start_coords = f.variables['RayStartCoords'].data
+        self.binning = f.variables['Binning'].data[()]
         if self.binning == 0:
             self.binning = None
             self.fullchip = False
@@ -424,7 +432,7 @@ class RayData:
         self.transform.set_transform_actions(eval(f.image_transform_actions))
         self.transform.x_pixels = f.variables['image_original_shape'][0]
         self.transform.y_pixels = f.variables['image_original_shape'][1]
-        self.transform.pixel_aspectratio = f.variables['image_original_pixel_aspect'].data
+        self.transform.pixel_aspectratio = f.variables['image_original_pixel_aspect'].data[()]
 
         f.close()
 

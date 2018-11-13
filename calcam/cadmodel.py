@@ -765,7 +765,11 @@ class CADModel():
             self.status_callback('Closing model definition {:s}/{:s}...'.format(self.machine_name,self.model_variant))
 
         if self.def_file is not None:
-            self.def_file.close(discard_changes=self.discard_changes)
+            temp_dir = self.def_file.get_temp_path()
+            try:
+                self.def_file.close(discard_changes=self.discard_changes)
+            except:
+                raise UserWarning('CAD model definition file could not be closed cleanly. There may be temporary files left in {:s}'.format(temp_dir))
 
         if self.status_callback is not None:
             self.status_callback(None)

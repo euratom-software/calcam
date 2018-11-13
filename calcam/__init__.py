@@ -31,7 +31,7 @@ __version__ = '2.0.0b3'
 # Import the top level "public facing" classes & functions
 from .calibration import Calibration
 from .raycast import RayData
-
+from .pointpairs import PointPairs
 
 # Some stuff will only work if we have VTK.
 try:

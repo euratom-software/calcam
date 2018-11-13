@@ -25,6 +25,7 @@ import traceback
 import imp
 import inspect
 import copy
+import numpy as np
 
 from .core import *
 from .vtkinteractorstyles import CalcamInteractorStyle3D
@@ -718,7 +719,8 @@ class CADEdit(CalcamGUIWindow):
             sys.path.pop(0)
         except Exception as e:
             sys.path.pop(0)
-            raise UserWarning('Error while importing user defined code:<br>'+traceback.format_exc())
+            self.show_msgbox('Error while re-importing coordinate formatter:',traceback.format_exc())
+            return
 
         try:
             self.validate_formatter(self.coord_formatter[0])
@@ -771,8 +773,9 @@ class CADEdit(CalcamGUIWindow):
                     usermodule = __import__(codename)
                     sys.path.pop(0)
                 except Exception as e:
-                    raise UserWarning('Error while importing user defined code:<br>'+traceback.format_exc())
+                    self.show_msgbox('Error while importing coordinate formatter:',traceback.format_exc())
                     sys.path.pop(0)
+                    return
 
                 if self.validate_formatter(usermodule):
                     self.coord_formatter = (usermodule,codepath,codename)
@@ -1208,8 +1211,9 @@ class CADEdit(CalcamGUIWindow):
 
 
 def recursive_reload(module,loaded=None):
+
     if loaded is None:
-        loaded = set()
+        loaded = set([np])
     for name in dir(module):
         member = getattr(module, name)
         if inspect.ismodule(member) and member not in loaded:
