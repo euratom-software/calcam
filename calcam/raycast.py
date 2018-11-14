@@ -241,56 +241,6 @@ def raycast_sightlines(calibration,cadmodel,x=None,y=None,binning=1,coords='Disp
     return results
 
 
-def check_visible(start_coords,target,cadmodel,verbose=False,tol=1e-3):
-
-    
-    start_coords = np.array(start_coords)
-    target = np.array(target)
-
-    # Work out how big the model is. This is to make sure the rays we cast aren't too short.
-    model_extent = cadmodel.get_extent()
-    model_size = model_extent[1::2] - model_extent[::2]
-    max_ray_length = model_size.max() * 4
-    
-    if verbose:
-        sys.stdout.write('Getting CAD model octree...')
-
-    # Get the CAD model's octree
-    cell_locator = cadmodel.get_cell_locator()
-
-    if verbose:
-        sys.stdout.write('Done.\n')
-
-
-    # Line of sight directions
-    LOSDir = target - start_coords
-    LOSDir = LOSDir / np.sqrt(np.sum(LOSDir**2))
-
-
-
-    # Some variables to give to VTK becasue of its annoying C-like interface
-    t = vtk.mutable(0)
-    pos = np.zeros(3)
-    coords_ = np.zeros(3)
-    subid = vtk.mutable(0)
-
-
-    # Do the raycast
-    rayend = start_coords + LOSDir*max_ray_length
-    retval = cell_locator.IntersectWithLine(start_coords,rayend,1.e-6,t,pos,coords_,subid)
-
-    if abs(retval) > 0:
-        hit_coords = pos
-    else:
-        return True
-
-    target_vect = target - start_coords
-    hit_vect = hit_coords - start_coords
-
-    if np.sqrt(np.sum(hit_vect**2)) > np.sqrt(np.sum(target_vect**2)) - tol:
-        return True
-    else:
-        return False
 
 
 

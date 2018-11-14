@@ -527,7 +527,7 @@ class CADEdit(CalcamGUIWindow):
 
 
         self.cadmodel = CADModel(status_callback = self.update_cad_status)
-        self.coord_formatter = (self.cadmodel,None,None)
+        self.coord_formatter = [self.cadmodel,None,None,False]
         self.cadmodel.discard_changes = True
         self.cadmodel.add_to_renderer(self.renderer_3d)
         # Make sure the light lights up the whole model without annoying shadows or falloff.
@@ -661,13 +661,13 @@ class CADEdit(CalcamGUIWindow):
             self.load_formatter_button.setText('Load Custom...')
             self.refresh_formatter_button.setEnabled(False)
             self.remove_formatter_button.setEnabled(False)
-            self.coord_formatter = (self.cadmodel,None,None)
+            self.coord_formatter = [self.cadmodel,None,None,False]
         else:
             self.formatter_info.setText('Coordinate formatter: Model Specific')
             self.load_formatter_button.setText('Edit...')
             self.refresh_formatter_button.setEnabled(True)
             self.remove_formatter_button.setEnabled(True)
-            self.coord_formatter = (self.cadmodel.usermodule,self.cadmodel.def_file.get_temp_path(),'usercode')
+            self.coord_formatter = [self.cadmodel.usermodule,self.cadmodel.def_file.get_temp_path(),'usercode',True]
 
         if self.cadmodel.wall_contour is not None:
             self.contour_description.setText('Stored in model: {:d} points'.format(self.cadmodel.wall_contour.shape[0]))
@@ -713,6 +713,8 @@ class CADEdit(CalcamGUIWindow):
 
     def refresh_formatter(self):
 
+        self.coord_formatter[3] = False
+
         try:
             sys.path.insert(0,self.coord_formatter[1])
             recursive_reload(self.coord_formatter[0])
@@ -722,19 +724,18 @@ class CADEdit(CalcamGUIWindow):
             self.show_msgbox('Error while re-importing coordinate formatter:',traceback.format_exc())
             return
 
-        try:
-            self.validate_formatter(self.coord_formatter[0])
-            if self.cursor is not None:
-                self.update_cursor_position(0,self.interactor3d.get_cursor_coords(self.cursor))
-        except:
-            self.remove_formatter()
-            raise
+
+        self.validate_formatter(self.coord_formatter[0])
+        if self.cursor is not None:
+            self.update_cursor_position(0,self.interactor3d.get_cursor_coords(self.cursor))
+
+        self.coord_formatter[3] = True
 
 
     def remove_formatter(self):
 
         self.cadmodel.usermodule = None
-        self.coord_formatter = (self.cadmodel,None,None)
+        self.coord_formatter = [self.cadmodel,None,None,False]
         self.formatter_info.setText('Coordinate formatter: Built-in default')
         self.remove_formatter_button.setEnabled(False)
         self.refresh_formatter_button.setEnabled(False)
@@ -772,13 +773,13 @@ class CADEdit(CalcamGUIWindow):
                 try:
                     usermodule = __import__(codename)
                     sys.path.pop(0)
-                except Exception as e:
+                except Exception:
                     self.show_msgbox('Error while importing coordinate formatter:',traceback.format_exc())
                     sys.path.pop(0)
                     return
 
                 if self.validate_formatter(usermodule):
-                    self.coord_formatter = (usermodule,codepath,codename)
+                    self.coord_formatter = [usermodule,codepath,codename,True]
                     self.formatter_info.setText('Coordinate formatter: loaded from module "{:s}"'.format(codename))
                     self.remove_formatter_button.setEnabled(True)
                     self.refresh_formatter_button.setEnabled(True)
@@ -1099,6 +1100,10 @@ class CADEdit(CalcamGUIWindow):
         if self.cadmodel.initial_view is None:
             raise UserWarning('No default viewport has been set up. You must set a default view on the "Viewports" tab before saving the model definition.')
 
+        if self.coord_formatter[1] is not None and self.coord_formatter[3] == False:
+            raise UserWarning('The current user-defined 3D coordinate formatting function appears to be broken. You must fix and refresh this code or remove it (In the "Additional Information" tab) before saving.')
+
+
         model_def_dict = {}
         add_path_prompt = None
 
@@ -1173,14 +1178,7 @@ class CADEdit(CalcamGUIWindow):
             if full_path != os.path.join(self.cadmodel.def_file.get_temp_path(),'usercode'):
                 self.cadmodel.def_file.add_usercode(full_path,replace=True)
         else:
-            try:
-                self.cadmodel.def_file.remove('usercode')
-            except IOError:
-                pass
-            try:
-                self.cadmodel.def_file.remove('usercode.py')
-            except IOError:
-                pass
+            self.cadmodel.def_file.clear_usercode()
 
         for old_mesh in self.removed_mesh_files:
             self.cadmodel.def_file.remove(old_mesh)

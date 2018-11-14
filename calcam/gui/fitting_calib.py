@@ -269,13 +269,11 @@ class FittingCalib(CalcamGUIWindow):
         self.calibration.history['fit'] = [None] * self.calibration.n_subviews
         self.unsaved_changes = True
 
+
     def update_cursor_position(self,cursor_id,position):
         self.unsaved_changes = True
-        #info = 'Cursor location: ' + self.cadmodel.format_coord(position).replace('\n',' | ')
-
-        pass
-
-        #self.statusbar.showMessage(info)
+        self.update_cursor_info()
+        self.update_pointpairs()
 
 
     def new_point_2d(self,im_coords):
@@ -284,6 +282,7 @@ class FittingCalib(CalcamGUIWindow):
             if self.point_pairings[self.selected_pointpair][1] is None:
                 self.point_pairings[self.selected_pointpair][1] = self.interactor2d.add_active_cursor(im_coords)
                 self.interactor2d.set_cursor_focus(self.point_pairings[self.selected_pointpair][1])
+                self.update_pointpairs()
                 self.update_n_points()
                 return
 
@@ -302,6 +301,7 @@ class FittingCalib(CalcamGUIWindow):
             if self.point_pairings[self.selected_pointpair][0] is None:
                 self.point_pairings[self.selected_pointpair][0] = self.interactor3d.add_cursor(coords)
                 self.interactor3d.set_cursor_focus(self.point_pairings[self.selected_pointpair][0])
+                self.update_pointpairs()
                 self.update_n_points()
                 return
 
@@ -1120,10 +1120,10 @@ class FittingCalib(CalcamGUIWindow):
         if self.filename is not None:
 
             if self.cadmodel is not None:
-                self.calibration.cad_config = {'model_name':self.cadmodel.machine_name , 'model_variant':self.cadmodel.model_variant , 'enabled_features':self.cadmodel.get_enabled_features(),'viewport':[self.camX.value(),self.camY.value(),self.camZ.value(),self.tarX.value(),self.tarY.value(),self.tarZ.value(),self.camFOV.value()] }
+                viewport = {'cam_x':self.camX.value(),'cam_y':self.camY.value(),'cam_z':self.camZ.value(),'tar_x':self.tarX.value(),'tar_y':self.tarY.value(),'tar_z':self.tarZ.value(),'fov':self.camFOV.value(),'roll':self.cam_roll.value()}
+                self.calibration.cad_config = {'model_name':self.cadmodel.machine_name , 'model_variant':self.cadmodel.model_variant , 'enabled_features':self.cadmodel.get_enabled_features(),'viewport':viewport}
 
             self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
-            self.update_pointpairs()
             self.statusbar.showMessage('Saving...')
             self.calibration.save(self.filename)
             self.unsaved_changes = False
@@ -1210,13 +1210,14 @@ class FittingCalib(CalcamGUIWindow):
                 if load_model:
                     self.load_model(featurelist=cconfig['enabled_features'])
             
-            self.camX.setValue(cconfig['viewport'][0])
-            self.camY.setValue(cconfig['viewport'][1])
-            self.camZ.setValue(cconfig['viewport'][2])
-            self.tarX.setValue(cconfig['viewport'][3])
-            self.tarY.setValue(cconfig['viewport'][4])
-            self.tarZ.setValue(cconfig['viewport'][5])
-            self.camFOV.setValue(cconfig['viewport'][6])
+            self.camX.setValue(cconfig['viewport']['cam_x'])
+            self.camY.setValue(cconfig['viewport']['cam_y'])
+            self.camZ.setValue(cconfig['viewport']['cam_z'])
+            self.tarX.setValue(cconfig['viewport']['tar_x'])
+            self.tarY.setValue(cconfig['viewport']['tar_y'])
+            self.tarZ.setValue(cconfig['viewport']['tar_z'])
+            self.camFOV.setValue(cconfig['viewport']['fov'])
+            self.cam_roll.setValue(cconfig['viewport']['roll'])
 
         for field in range(len(self.fit_settings_widgets)):
             if opened_calib.view_models[field] is not None:

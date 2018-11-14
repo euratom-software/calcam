@@ -560,7 +560,8 @@ class AlignmentCalib(CalcamGUIWindow):
             self.update_extrinsics()
 
             if self.cadmodel is not None:
-                self.calibration.cad_config = {'model_name':self.cadmodel.machine_name , 'model_variant':self.cadmodel.model_variant , 'enabled_features':self.cadmodel.get_enabled_features(),'viewport':[self.camX.value(),self.camY.value(),self.camZ.value(),self.tarX.value(),self.tarY.value(),self.tarZ.value(),self.camera_3d.GetViewAngle()] }
+                viewport = {'cam_x':self.camX.value(),'cam_y':self.camY.value(),'cam_z':self.camZ.value(),'tar_x':self.tarX.value(),'tar_y':self.tarY.value(),'tar_z':self.tarZ.value(),'fov':self.camera_3d.GetViewAngle(),'roll':self.cam_roll.value()}
+                self.calibration.cad_config = {'model_name':self.cadmodel.machine_name , 'model_variant':self.cadmodel.model_variant , 'enabled_features':self.cadmodel.get_enabled_features(),'viewport':viewport }
 
 
             self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))

@@ -571,6 +571,11 @@ class Calibration():
                 with save_file.open_file('cad_config.json','r') as f:
                     self.cad_config = json.load(f)
 
+                # Bit of code required for calibrations created with Calcam 2.0.0-dev
+                #-----------------------------------------------------------------------
+                if type(self.cad_config['viewport']) is list:
+                    self.cad_config['viewport'] = {'cam_x':self.cad_config['viewport'][0],'cam_y':self.cad_config['viewport'][1],'cam_z':self.cad_config['viewport'][2],'tar_x':self.cad_config['viewport'][3],'tar_y':self.cad_config['viewport'][4],'tar_z':self.cad_config['viewport'][5],'fov':self.cad_config['viewport'][6],'roll':0.}
+
             # Load any intrinsics constraints
             for i in range( len( [f for f in save_file.list_contents() if f.startswith('intrinsics_constraints') and 'points_' in f] ) ):
 
@@ -1404,7 +1409,7 @@ class Calibration():
 
 
 
-    def set_calib_intrinsics(self,intrinsics_calib,update_hist_recursion=True):
+    def set_calib_intrinsics(self,intrinsics_calib,update_hist_recursion=True,subview=None):
         '''
         For manual alignment or virtual calibrations: set the camera intrinsics
         of this calibration from an existing calcam calibration.
@@ -1418,12 +1423,29 @@ class Calibration():
                                                     to add the loading of that to this calib's \
                                                     history (if True) or just transparently pass \
                                                     through the intrinsics history (if False)
+            subview (int)                         : If setting th intrinsics from a calibration with
+                                                    more than 1 subview, which sub-view from which to 
+                                                    take the intrinsics.
         '''
         if self._type == 'fit':
             raise Exception('You cannot modify the intrinsics of a fitted calibration.')
 
-        self.view_models = intrinsics_calib.view_models
-        self.subview_mask = intrinsics_calib.subview_mask.copy()
+        if len(intrinsics_calib.view_models) > 1 and subview is None:
+            raise Exception('When setting intrinsics from a calibration with multiple sub-views, the sub-view to set intrinsics from must be specified!')
+
+        if subview is None:
+            subview = 0
+
+        coeffs_dict = intrinsics_calib.view_models[subview].get_dict()
+
+        try:
+            coeffs_dict['rvec'] = self.view_models[0].get_dict()['rvec']
+            coeffs_dict['tvec'] = self.view_models[0].get_dict()['tvec']
+        except:
+            pass
+
+        self.view_models = [ViewModel.from_dict(coeffs_dict)]
+        self.subview_mask = np.zeros(intrinsics_calib.subview_mask.shape,dtype=np.uint8)
         self.geometry = copy.copy(intrinsics_calib.geometry)
         self.pixel_size = intrinsics_calib.pixel_size
         self.intrinsics_constraints = []
@@ -1459,7 +1481,14 @@ class Calibration():
         if self._type == 'fit':
             raise Exception('You cannot modify the intrinsics of a fitted calibration.')
 
-        self.view_models[0] = view_model
+        coeffs_dict = view_model.get_dict()
+        try:
+            coeffs_dict['rvec'] = self.view_models[0].get_dict()['rvec']
+            coeffs_dict['tvec'] = self.view_models[0].get_dict()['tvec']
+        except:
+            pass
+
+        self.view_models = [ViewModel.from_dict(coeffs_dict)]
 
         self.subview_mask = np.zeros(images_and_points[0][0].shape[:2],dtype=np.uint8)
         self.geometry = CoordTransformer(orig_x=self.subview_mask.shape[1],orig_y = self.subview_mask.shape[0])
@@ -1504,6 +1533,12 @@ class Calibration():
                 cy = shape[1]/2
 
         coeffs_dict = {'fx':fx,'fy':fy,'cx':cx,'cy':cy,'dist_coeffs':np.zeros(5)}
+
+        try:
+            coeffs_dict['rvec'] = self.view_models[0].get_dict()['rvec']
+            coeffs_dict['tvec'] = self.view_models[0].get_dict()['tvec']
+        except:
+            pass
 
         self.view_models = [PerspectiveViewModel(coeffs_dict=coeffs_dict)]
 

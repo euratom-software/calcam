@@ -1148,9 +1148,6 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
         # Add new cursor to screen
         self.renderer.AddActor(actor)
 
-        if self.cursor_move_callback is not None and run_move_callback:
-            self.cursor_move_callback(new_cursor_id,self.get_cursor_coords(new_cursor_id))
-
         self.update_cursor_style()
 
         if self.refresh_callback is not None:

@@ -207,6 +207,7 @@ class VirtualCalib(CalcamGUIWindow):
         n = self.calibration.geometry.get_display_shape()
         wcx = -2.*(mat[0,2] - n[0]/2.) / float(n[0])
         wcy = 2.*(mat[1,2] - n[1]/2.) / float(n[1])
+
         self.camera_3d.SetWindowCenter(wcx,wcy)
         self.camera_3d.SetViewAngle(self.calibration.get_fov()[1])
 
@@ -238,7 +239,8 @@ class VirtualCalib(CalcamGUIWindow):
             self.update_extrinsics()
 
             if self.cadmodel is not None:
-                self.calibration.cad_config = {'model_name':self.cadmodel.machine_name , 'model_variant':self.cadmodel.model_variant , 'enabled_features':self.cadmodel.get_enabled_features(),'viewport':[self.camX.value(),self.camY.value(),self.camZ.value(),self.tarX.value(),self.tarY.value(),self.tarZ.value(),self.camera_3d.GetViewAngle()] }
+                viewport = {'cam_x':self.camX.value(),'cam_y':self.camY.value(),'cam_z':self.camZ.value(),'tar_x':self.tarX.value(),'tar_y':self.tarY.value(),'tar_z':self.tarZ.value(),'fov':self.camera_3d.GetViewAngle(),'roll':self.cam_roll.value()}
+                self.calibration.cad_config = {'model_name':self.cadmodel.machine_name , 'model_variant':self.cadmodel.model_variant , 'enabled_features':self.cadmodel.get_enabled_features(),'viewport':viewport }
 
             self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
             self.statusbar.showMessage('Saving...')
@@ -282,7 +284,7 @@ class VirtualCalib(CalcamGUIWindow):
         self.filename = opened_calib.filename
         self.setWindowTitle('Calcam Virtual Calibration Tool - {:s}'.format(os.path.split(self.filename)[-1][:-4]))
 
-
+        
         # Load the appropriate CAD model, if we know what that is
         if opened_calib.cad_config is not None:
             if keep_model:
@@ -304,9 +306,9 @@ class VirtualCalib(CalcamGUIWindow):
                     load_model=False
 
                 if load_model:
+
                     self.load_model(featurelist=cconfig['enabled_features'],hold_view=True)
-
-
+        
         self.calibration = opened_calib
 
         # Load the intrinsics
@@ -319,6 +321,7 @@ class VirtualCalib(CalcamGUIWindow):
                 fl = opened_calib.view_models[0].cam_matrix[0,0] * self.pixel_size_box.value()  / 1000
 
             im_size = opened_calib.geometry.get_display_shape()
+
             self.x_pixels_box.setValue(im_size[0])
             self.y_pixels_box.setValue(im_size[1])
 
@@ -371,6 +374,7 @@ class VirtualCalib(CalcamGUIWindow):
 
         self.chessboard_fit = None
         self.intrinsics_calib = None
+        self.pinhole_intrinsics.setChecked(True)
 
         self.unsaved_changes = False
         self.refresh_3d()

@@ -27,7 +27,7 @@ from .vtkinteractorstyles import CalcamInteractorStyle2D, CalcamInteractorStyle3
 from ..calibration import Calibration
 from ..render import render_cam_view
 from ..coordtransformer import CoordTransformer
-from ..raycast import raycast_sightlines, check_visible
+from ..raycast import raycast_sightlines
 
 type_description = {'alignment': 'Manual Alignment', 'fit':'Point pair fitting','virtual':'Virtual'}
 
@@ -271,8 +271,8 @@ class ImageAnalyser(CalcamGUIWindow):
                     if self.sightline_checkbox.isChecked():
                         linesource = vtk.vtkLineSource()
                         pupilpos = self.calibration.get_pupilpos(subview=i)
-                        linesource.SetPoint1(pupilpos[0],pupilpos[1],pupilpos[2])
-                        linesource.SetPoint2(intersection_coords)
+                        linesource.SetPoint1(*pupilpos)
+                        linesource.SetPoint2(*intersection_coords)
                         mapper = vtk.vtkPolyDataMapper()
                         mapper.SetInputConnection(linesource.GetOutputPort())
                         actor = vtk.vtkActor()
@@ -283,8 +283,8 @@ class ImageAnalyser(CalcamGUIWindow):
                         self.interactor3d.add_extra_actor(actor)
 
                         linesource = vtk.vtkLineSource()
-                        linesource.SetPoint1(intersection_coords)
-                        linesource.SetPoint2(coords_3d)
+                        linesource.SetPoint1(*intersection_coords)
+                        linesource.SetPoint2(*coords_3d)
                         mapper = vtk.vtkPolyDataMapper()
                         mapper.SetInputConnection(linesource.GetOutputPort())
                         actor = vtk.vtkActor()
@@ -416,6 +416,7 @@ class ImageAnalyser(CalcamGUIWindow):
                 
     def set_view_to_cursor(self):
         cursorpos = self.interactor3d.get_cursor_coords(self.cursor_ids['3d'])
+
         pupilpos = self.calibration.get_pupilpos(subview=0)
         campos_vect = (pupilpos - cursorpos)
         campos_vect = campos_vect / np.sqrt(np.sum(campos_vect**2))
@@ -423,11 +424,7 @@ class ImageAnalyser(CalcamGUIWindow):
         self.camera_3d.SetFocalPoint(cursorpos)
         self.camera_3d.SetViewAngle(60)
 
-        front_pos = cursorpos + 0.5*campos_vect
-        if check_visible(front_pos,cursorpos,self.cadmodel):
-            self.camera_3d.SetPosition(front_pos)
-        else:
-            self.camera_3d.SetPosition(cursorpos - 0.5*campos_vect)
+        self.camera_3d.SetPosition(cursorpos + 0.3*campos_vect)
 
         self.update_viewport_info()
         self.cam_roll.setValue(0)
@@ -619,6 +616,8 @@ class ImageAnalyser(CalcamGUIWindow):
 
         impos_fieldnames_str = ''
 
+        self.cursor_closeup_button.setEnabled(False)
+
         for field_index in range(self.calibration.n_subviews):
 
             if field_index > 0:
@@ -639,6 +638,7 @@ class ImageAnalyser(CalcamGUIWindow):
             else:
                 iminfo_str = iminfo_str + ' X,Y : ( {:.0f} , {:.0f} ) px'.format(coords_2d[field_index][0][0],coords_2d[field_index][0][1])
                 sightline_exists = True
+                self.cursor_closeup_button.setEnabled(True)
 
 
             sightline_fieldnames_str = sightline_fieldnames_str + '[{:s}]&nbsp;'.format( self.calibration.subview_names[field_index] )
