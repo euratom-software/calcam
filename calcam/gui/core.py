@@ -45,7 +45,7 @@ from . import qt_wrapper as qt
 guipath = os.path.split(os.path.abspath(__file__))[0]
 
 
-class colourcycle():
+class ColourCycle():
 
     def __init__(self):
 
@@ -1634,9 +1634,7 @@ class SplitFieldDialog(qt.QDialog):
         self.renderer.SetBackground(0, 0, 0)
         self.qvtkwidget.GetRenderWindow().AddRenderer(self.renderer)
         self.vtkInteractor = self.qvtkwidget.GetRenderWindow().GetInteractor()
-
-        if self.parent.calibration.n_subviews == 1:
-            self.no_split.setChecked(True)
+        self.overlay_opacity = int(2.55*self.mask_alpha_slider.value())
 
         # Callbacks for GUI elements
         self.method_mask.toggled.connect(self.change_method)
@@ -1653,6 +1651,7 @@ class SplitFieldDialog(qt.QDialog):
         self.points = []
 
         self.update_mask_alpha(self.mask_alpha_slider.value())
+            
 
         # Start the GUI!
         self.show()
@@ -1660,6 +1659,13 @@ class SplitFieldDialog(qt.QDialog):
         self.renderer.Render()
         self.vtkInteractor.Initialize()
         self.interactor.set_image(self.image)
+
+        if self.parent.calibration.n_subviews == 1:
+            self.no_split.setChecked(True)
+        else:
+            self.method_mask.setChecked(True)
+            self.update_fieldmask(mask=self.parent.calibration.get_subview_mask(coords='Display'))
+            
 
 
     def refresh_2d(self):
@@ -1832,9 +1838,8 @@ class SplitFieldDialog(qt.QDialog):
 
         if n_fields > 1:
             
-            for colour in colours:
-                colourcycle = colourcycle()
-                self.field_colours = [ np.uint8(np.array(next(colourcycle)) * 255) for i in range(n_fields) ]
+            colourcycle = ColourCycle()
+            self.field_colours = [ np.uint8(np.array(next(colourcycle)) * 255) for i in range(n_fields) ]
 
             y,x = self.image.shape[:2]
 

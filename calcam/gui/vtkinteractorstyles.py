@@ -409,8 +409,6 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
                     if self.focus_changed_callback is not None:
                         self.focus_changed_callback(clicked_cursor)
 
-                    if self.cursor_move_callback is not None:
-                        self.cursor_move_callback(clicked_cursor,self.cursors[clicked_cursor]['cursor3d'].GetFocalPoint())
 
                 # of if they didn't click another cursor, move the current cursor
                 # to where they clicked
@@ -903,8 +901,6 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
                 if self.focus_changed_callback is not None:
                     self.focus_changed_callback(clicked_cursor)
 
-                if self.cursor_move_callback is not None:
-                    self.cursor_move_callback( clicked_cursor,self.get_cursor_coords(clicked_cursor) )
 
             elif self.focus_cursor is not None:
 

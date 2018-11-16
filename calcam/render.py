@@ -118,7 +118,7 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
 
 
     # We need a field mask the same size as the output
-    fieldmask = cv2.resize(calibration.subview_mask,(int(x_pixels*oversampling),int(y_pixels*oversampling)),interpolation=cv2.INTER_NEAREST)
+    fieldmask = cv2.resize(calibration.get_subview_mask(coords='Display'),(int(x_pixels*oversampling),int(y_pixels*oversampling)),interpolation=cv2.INTER_NEAREST)
 
     for field in range(calibration.n_subviews):
 

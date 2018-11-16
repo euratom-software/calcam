@@ -257,16 +257,34 @@ class FittingCalib(CalcamGUIWindow):
         self.unsaved_changes = False
 
 
-    def reset_fit(self,reset_options=True):
+    def reset_fit(self,subview=None,reset_options=True):
 
-        self.fit_overlay = None
-        self.fitted_points_checkbox.setChecked(False)
-        self.fitted_points_checkbox.setEnabled(False)
         self.overlay_checkbox.setChecked(False)
-        self.overlay_checkbox.setEnabled(False)
+        self.fit_overlay = None
+
         self.rebuild_image_gui(reset_fitters=reset_options)
-        self.calibration.view_models = [None] * self.calibration.n_subviews
-        self.calibration.history['fit'] = [None] * self.calibration.n_subviews
+        
+        if subview is None:
+            self.calibration.view_models = [None] * self.calibration.n_subviews
+            self.calibration.history['fit'] = [None] * self.calibration.n_subviews
+        else:
+            self.calibration.view_models[subview] = None
+            self.calibration.history['fit'][subview] = None
+        
+        self.update_fit_results()
+
+        if np.any(self.calibration.view_models):
+            self.fitted_points_checkbox.setEnabled(True)
+            self.overlay_checkbox.setEnabled(True)
+        else:
+            self.fitted_points_checkbox.setEnabled(True)
+            self.overlay_checkbox.setEnabled(True)
+
+        if self.fitted_points_checkbox.isChecked():
+            self.fitted_points_checkbox.setChecked(False)
+            if self.fitted_points_checkbox.isEnabled():
+                self.fitted_points_checkbox.setChecked(True)
+                        
         self.unsaved_changes = True
 
 
@@ -342,8 +360,15 @@ class FittingCalib(CalcamGUIWindow):
     def update_cursor_info(self):
 
         if self.selected_pointpair is not None:
-            object_coords = self.interactor3d.get_cursor_coords(self.point_pairings[self.selected_pointpair][0])
-            image_coords = self.interactor2d.get_cursor_coords(self.point_pairings[self.selected_pointpair][1])
+            if self.point_pairings[self.selected_pointpair][0] is not None:
+                object_coords = self.interactor3d.get_cursor_coords(self.point_pairings[self.selected_pointpair][0])
+            else:
+                object_coords = None
+            
+            if self.point_pairings[self.selected_pointpair][1] is not None:
+                image_coords = self.interactor2d.get_cursor_coords(self.point_pairings[self.selected_pointpair][1])
+            else:
+                image_coords = None
 
             info_string = ''
 
@@ -434,6 +459,7 @@ class FittingCalib(CalcamGUIWindow):
     def rebuild_image_gui(self,reset_fitters = True):
 
         # Build the GUI to show fit options, according to the number of fields.
+        current_tab = self.subview_tabs.currentIndex()
         self.subview_tabs.clear()
 
         # List of settings widgets (for showing / hiding when changing model)
@@ -606,7 +632,8 @@ class FittingCalib(CalcamGUIWindow):
             self.tabWidget.setTabEnabled(3,True)
             self.tabWidget.setTabEnabled(4,True)
 
-
+        if current_tab < self.subview_tabs.count():
+            self.subview_tabs.setCurrentIndex(current_tab)
 
 
 
@@ -749,6 +776,7 @@ class FittingCalib(CalcamGUIWindow):
                 self.interactor2d.remove_active_cursor(pp_to_remove[1])
 
             self.update_cursor_info()
+            self.update_pointpairs()
             self.update_n_points()
 
 
@@ -777,8 +805,9 @@ class FittingCalib(CalcamGUIWindow):
         if len(self.fit_settings_widgets) == 0:
             return
 
+        
         # Check whether or not we have enough points to enable the fit button.
-        for i,fitter in enumerate(self.fitters):
+        for i in range(self.calibration.n_subviews):
             enable = True
 
             # We need at least 4 extrinsics points and at least as many total points as free parameters
@@ -795,14 +824,16 @@ class FittingCalib(CalcamGUIWindow):
 
     def update_pointpairs(self,src=None,history=None,clear_fit=True):
 
-        if clear_fit:
-            self.reset_fit(reset_options = False)
-
         pp = PointPairs()
 
         for pointpair in self.point_pairings:
             if pointpair[0] is not None and pointpair[1] is not None:
                 pp.add_pointpair(self.interactor3d.get_cursor_coords(pointpair[0]) , self.interactor2d.get_cursor_coords(pointpair[1]) )
+
+        if clear_fit and self.calibration.pointpairs is not None:
+            for subview,same in enumerate(pp == self.calibration.pointpairs):
+                if not same:
+                    self.reset_fit(subview=subview,reset_options = False)
 
         if pp.get_n_points() > 0:
 
@@ -838,7 +869,7 @@ class FittingCalib(CalcamGUIWindow):
                
 
     def update_fit_results(self):
-
+        
         for subview in range(self.calibration.n_subviews):
 
             if self.calibration.view_models[subview] is None:
@@ -940,7 +971,7 @@ class FittingCalib(CalcamGUIWindow):
 
             self.fit_results[subview].show()
             self.fitted_points_checkbox.setEnabled(True)
-            self.fitted_points_checkbox.setChecked(True)       
+            self.fitted_points_checkbox.setChecked(True)
 
 
 
@@ -954,7 +985,7 @@ class FittingCalib(CalcamGUIWindow):
         #if not self.fit_button.isEnabled():
         #    return
 
-        self.update_pointpairs()
+        #self.update_pointpairs()
 
         self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
         self.fitted_points_checkbox.setChecked(False)
@@ -969,11 +1000,7 @@ class FittingCalib(CalcamGUIWindow):
         except ImageUpsideDown:
             self.show_msgbox('The fitted calibration indicates that the images is upside down! Try rotating the image 180 degrees and fitting again.')
             self.app.restoreOverrideCursor()
-            return
-        except cv2.error as e:
-            self.show_msgbox('Could not complete fit: the OpenCV fitter returned the below error. Try changing the fit options and fitting again. If you think this might be a bug in Calcam, please report it at < a href=https://github.com/euratom-software/calcam/issues.>github.com/euratom-software/calcam/issues</a>.',e)
-            self.app.restoreOverrideCursor()
-            return            
+            return        
             
         self.update_fit_results()
 
@@ -1288,6 +1315,7 @@ class FittingCalib(CalcamGUIWindow):
             self.interactor2d.n_subviews = self.calibration.n_subviews
             self.rebuild_image_gui()
             self.unsaved_changes = True
+            self.update_n_points()
 
         del dialog
 
@@ -1318,7 +1346,7 @@ class FittingCalib(CalcamGUIWindow):
                 self.fit_settings_widgets[field][8].setEnabled(choice)
                 self.fit_settings_widgets[field][9].setEnabled(choice)
 
-        self.fit_enable_check()
+        self.update_n_points()
 
 
     def update_pixel_size(self):

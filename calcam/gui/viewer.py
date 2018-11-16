@@ -110,7 +110,7 @@ class Viewer(CalcamGUIWindow):
         self.model_custom_colour = None
         self.viewport_calibs = DodgyDict()
 
-        self.colourcycle = colourcycle()
+        self.colourcycle = ColourCycle()
 
         self.tabWidget.setTabEnabled(1,False)
         self.tabWidget.setTabEnabled(2,False)

@@ -530,7 +530,7 @@ class Calibration():
             self.geometry = CoordTransformer(transform_actions=meta['image_transform_actions'],paspect=meta['orig_paspect'])
             self.geometry.set_image_shape(subview_mask.shape[1],subview_mask.shape[0],coords='Display')
             
-            self.subview_mask = self.geometry.display_to_original_image(subview_mask)
+            self.subview_mask = self.geometry.display_to_original_image(subview_mask,interpolation='nearest')
             
             # Load the image. Note with the opencv imread function, it will silently return None if the image file does not exist.
             image = cv2.imread(os.path.join(save_file.get_temp_path(),'image.png'))
@@ -539,7 +539,7 @@ class Calibration():
                     if image.shape[2] == 3:
                         image[:,:,:3] = image[:,:,2::-1]
                 
-                self.image = self.geometry.display_to_original_image(image)        
+                self.image = self.geometry.display_to_original_image(image,interpolation='cubic')        
             
             self.n_subviews = meta['n_subviews']
             self.history = meta['history']
@@ -738,6 +738,8 @@ class Calibration():
             
         self.subview_names = subview_names
         self.n_subviews = n_subviews
+        
+        self.view_models = [None] * self.n_subviews
 
 
     def get_image(self,coords='Display'):
@@ -761,7 +763,7 @@ class Calibration():
         else:
             im_out = self.image.copy()
             if coords.lower() == 'display':
-                im_out = self.geometry.original_to_display_image(im_out)
+                im_out = self.geometry.original_to_display_image(im_out,interpolation='cubic')
            
             return im_out
         
@@ -788,7 +790,7 @@ class Calibration():
         else:
             mask_out = self.subview_mask.copy()
             if coords.lower() == 'display':
-                mask_out = self.geometry.original_to_display_image(mask_out)
+                mask_out = self.geometry.original_to_display_image(mask_out,interpolation='nearest')
            
             return mask_out        
       
@@ -2016,9 +2018,9 @@ class Fitter:
         # Do the fit!
         if self.model == 'perspective':
             if int(cv2.__version__[0]) == 3:
-                fit_output = cv2.calibrateCamera(obj_points,img_points,self.image_display_shape,self.initial_matrix,None,flags=self.get_fitflags())
+                fit_output = cv2.calibrateCamera(obj_points,img_points,self.image_display_shape,copy.copy(self.initial_matrix),None,flags=self.get_fitflags())
             else:
-                fit_output = cv2.calibrateCamera(obj_points,img_points,self.image_display_shape,self.initial_matrix,flags=self.get_fitflags())
+                fit_output = cv2.calibrateCamera(obj_points,img_points,self.image_display_shape,copy.copy(self.initial_matrix),flags=self.get_fitflags())
 
             fitted_model = PerspectiveViewModel(cv2_output = fit_output)
             fitted_model.fit_options = self.get_fitflags_strings()

@@ -29,6 +29,7 @@ Written by Scott Silburn (scott.silburn@ukaea.uk)
  
 
 import numpy as np
+import copy
 
 # Simple class for storing results.
 class PointPairs():
@@ -102,8 +103,11 @@ class PointPairs():
             if len(im_points) != self.n_subviews:
                 raise ValueError('{:d} image point(s) provided; expected {:d}!'.format(len(im_points),self.n_subviews))
 
-        self.object_points.append(obj_point)
-        self.image_points.append(im_points)
+        self.object_points.append( tuple(obj_point))
+        self.image_points.append(list(im_points))
+        for i in range(len(self.image_points[-1])):
+            if self.image_points[-1][i] is not None:
+                self.image_points[-1][i] = tuple(self.image_points[-1][i])
 
 
 
@@ -133,3 +137,41 @@ class PointPairs():
                     self.image_points[-1].append( [float(row[1 + (field+1)*3]) , float(row[2 + (field+1)*3])] )
                 else:
                     self.image_points[-1].append(None)
+                    
+
+    def get_pointpairs(self,subview=None):
+
+        if self.n_subviews == 0:
+            return [],[]
+        elif subview is None:
+            if self.n_subviews == 1:
+                subview = 0
+            else:
+                raise ValueError('Sub-view must be specified for point pairs with multiple subviews!')
+        elif subview > (self.n_subviews - 1) or subview < 0:
+                raise ValueError('Subview index out of bounds!')
+        
+        obj_points = []
+        im_points = []
+        for i in range(len(self.object_points)):
+            if self.image_points[i][subview] is not None:
+                obj_points.append(self.object_points[i])
+                im_points.append(self.image_points[i][subview])
+                                            
+        return obj_points,im_points
+                
+
+    def __eq__(self,other_pointpairs):
+        
+        if self.n_subviews != other_pointpairs.n_subviews:
+            return [False] * max(self.n_subviews,other_pointpairs.subviews)
+            
+        eq = []
+        for subview in range(self.n_subviews):
+            
+            these_pp = self.get_pointpairs(subview)
+            other_pp = other_pointpairs.get_pointpairs(subview)
+            
+            eq.append( (these_pp == other_pp) )
+        
+        return eq
