@@ -284,9 +284,8 @@ class FisheyeeViewModel(ViewModel):
             self.reprojection_error = cv2_output[0]
             self.cam_matrix = cv2_output[1]
             self.kc = cv2_output[2]
-            self.rvec = cv2_output[3][0][0].T
-            self.tvec = cv2_output[4][0][0].T
-
+            self.rvec = cv2_output[3][0]
+            self.tvec = cv2_output[4][0]
 
         elif coeffs_dict is not None:
             self.load_from_dict(coeffs_dict)
@@ -1775,7 +1774,7 @@ class Calibration():
             msg = msg + 'Radial dist. (k) coeffs:     ( {:.4f}, {:.4f}, {:.4f} ) \n'.format(model.kc[0][0],model.kc[0][1],model.kc[0][4])
             msg = msg + 'Decentring dist. (p) coeffs: ( {:.4f}, {:.4f} )\n\n'.format(model.kc[0][2],model.kc[0][3])
         elif model.model == 'fisheye':
-            msg = msg + 'Radial dist. (k) coeffs:     ( {:.4f}, {:.4f}, {:.4f}, {:.4f} ) \n'.format(model.k1,model.k2,model.k3,model.k4)
+            msg = msg + 'Radial dist. (k) coeffs:     ( {:.4f}, {:.4f}, {:.4f}, {:.4f} ) \n'.format(model.kc[0],model.kc[1],model.kc[2],model.kc[3])
 
         return msg
 
@@ -2049,6 +2048,7 @@ class Fitter:
             fit_output = cv2.fisheye.calibrate(obj_points,img_points,self.image_display_shape,self.initial_matrix, np.zeros(4),rvecs,tvecs,flags = self.get_fitflags())
         
             fitted_model = FisheyeeViewModel(cv2_output = fit_output)
+            #raise UserWarning(fitted_model.rvec)
             fitted_model.fit_options = self.get_fitflags_strings()
             
             if not self.ignore_upside_down and fitted_model.get_cam_to_lab_rotation()[2,1] > 0:

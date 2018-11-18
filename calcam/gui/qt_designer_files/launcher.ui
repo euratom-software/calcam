@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>851</width>
+    <width>868</width>
     <height>211</height>
    </rect>
   </property>
@@ -75,7 +75,7 @@
       <item row="0" column="3">
        <widget class="QLabel" name="label">
         <property name="text">
-         <string>Perform calibrations using feature matching between images and CAD (recommended).</string>
+         <string>Perform calibrations by matching points between images and CAD (recommended).</string>
         </property>
        </widget>
       </item>

@@ -25,7 +25,7 @@ CalCam package.
 """
 
 # Calcam version
-__version__ = '2.0.0rc1'
+__version__ = '2.0.0rc2'
 
 
 # Import the top level "public facing" classes & functions

@@ -165,7 +165,7 @@ def raycast_sightlines(calibration,cadmodel,x=None,y=None,binning=1,coords='Disp
         now = datetime.datetime.now()
         oom = np.floor( np.log(np.size(x)) / np.log(10) / 3. )
         raystring = ['{:.0f} rays','{:.1f}k rays','{:.2f}M rays'][int(oom)].format(np.size(x)/10**(3*oom))
-        print(datetime.datetime.now().strftime('Started casting {:s} at %Y-%m-%d %H:%M'.format(raystring)))
+        print(datetime.datetime.now().strftime('Started casting {:s} at %Y-%m-%d %H:%M:%S'.format(raystring)))
 
 
     # Some variables to give to VTK becasue of its annoying C-like interface

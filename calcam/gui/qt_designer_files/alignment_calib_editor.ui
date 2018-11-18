@@ -59,7 +59,7 @@
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <property name="movable">
        <bool>false</bool>
@@ -682,7 +682,7 @@
            <item row="3" column="0" colspan="3">
             <widget class="QCheckBox" name="cad_auto_load">
              <property name="text">
-              <string>Enable default features on Apply</string>
+              <string>Enable default model features on load</string>
              </property>
              <property name="checked">
               <bool>true</bool>

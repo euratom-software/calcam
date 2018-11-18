@@ -102,7 +102,7 @@ class FittingCalib(CalcamGUIWindow):
         self.hist_eq_checkbox.stateChanged.connect(self.toggle_hist_eq)
         self.im_define_splitFOV.clicked.connect(self.edit_split_field)
         #self.pointpairs_load_name.currentIndexChanged.connect(self.update_load_pp_button_status)
-        self.pixel_size_checkbox.toggled.connect(self.update_fitopts_gui)
+        self.pixel_size_checkbox.toggled.connect(self.update_pixel_size)
         self.pixel_size_box.valueChanged.connect(self.update_pixel_size)
         #self.toggle_controls_button.clicked.connect(self.toggle_controls)
         self.load_chessboard_button.clicked.connect(self.modify_chessboard_constraints)
@@ -214,6 +214,7 @@ class FittingCalib(CalcamGUIWindow):
             if self.intrinsics_calib is None:
                 self.intrinsics_calib_checkbox.setChecked(False)
 
+        self.update_pointpairs()
         self.update_n_points()
         self.unsaved_changes = True
 
@@ -496,9 +497,8 @@ class FittingCalib(CalcamGUIWindow):
                 widgetlist[1].setEnabled(False)
                 widgetlist[1].setToolTip('Requires OpenCV 3')
 
-            widgetlist[0].setChecked(True)
-            widgetlist[0].toggled.connect(self.update_fitopts_gui)
-            widgetlist[1].toggled.connect(self.update_fitopts_gui)
+            widgetlist[0].toggled.connect(self.change_dist_model)
+            widgetlist[1].toggled.connect(self.change_dist_model)
             sub_widget = qt.QWidget()
             sub_layout = qt.QHBoxLayout()
             sub_widget.setLayout(sub_layout)
@@ -517,7 +517,6 @@ class FittingCalib(CalcamGUIWindow):
 
             widgetlist = widgetlist + [qt.QCheckBox('Disable k1'),qt.QCheckBox('Disable k2'),qt.QCheckBox('Disable k3')]
 
-            widgetlist[-1].setChecked(True)
             sub_widget = qt.QWidget()
             sub_layout = qt.QHBoxLayout()
             sub_widget.setLayout(sub_layout)
@@ -571,7 +570,7 @@ class FittingCalib(CalcamGUIWindow):
             widgetlist[-2].setChecked(self.fitters[field].fixk3)
             widgetlist[-2].toggled.connect(lambda state,field=field: self.change_fit_params(self.fitters[field].fix_k3,state))
             widgetlist[-1].setChecked(self.fitters[field].fixk4)
-            widgetlist[-1].toggled.connect(lambda state,field=field: self.change_fit_params(self.fitters[field].fix_4,state))
+            widgetlist[-1].toggled.connect(lambda state,field=field: self.change_fit_params(self.fitters[field].fix_k4,state))
 
             for widgetno in [-4,-3,-2,-1]:
                 widgetlist[widgetno].toggled.connect(self.fit_enable_check)
@@ -581,8 +580,7 @@ class FittingCalib(CalcamGUIWindow):
 
             options_layout.addWidget(self.perspective_settings[-1])
             options_layout.addWidget(self.fisheye_settings[-1])
-            widgetlist[0].setChecked(True)
-            self.fisheye_settings[-1].hide()
+
             options_groupbox.setLayout(options_layout)
 
             fit_button = qt.QPushButton('Do Fit')
@@ -601,6 +599,11 @@ class FittingCalib(CalcamGUIWindow):
 
             self.fit_results.append(results_groupbox)
             results_groupbox.setHidden(True)
+
+            model = self.fitters[field].model
+            widgetlist[0].setChecked(model == 'perspective')
+            widgetlist[1].setChecked(model == 'fisheye')
+                
 
             # Build GUI to show the fit results, according to the number of fields.
 
@@ -952,10 +955,10 @@ class FittingCalib(CalcamGUIWindow):
                                                 '{:.1f}\xb0 x {:.1f}\xb0 '.format(fov[0],fov[1]).replace(' ','&nbsp;') ,
                                                 "{0:.1f} {2:s} x {1:.1f} {2:s}".format(fx,fy,fl_units).replace(' ','&nbsp;') ,
                                                 "( {: .0f} , {: .0f} )".format(params.cam_matrix[0,2], params.cam_matrix[1,2]).replace(' ','&nbsp;') ,
-                                                "{: 5.4f}".format(params.k1).replace(' ','&nbsp;') ,
-                                                "{: 5.4f}".format(params.k2).replace(' ','&nbsp;') ,
-                                                "{: 5.4f}".format(params.k3).replace(' ','&nbsp;') ,
-                                                "{: 5.4f}".format(params.k4).replace(' ','&nbsp;') ,
+                                                "{: 5.4f}".format(params.kc[0]).replace(' ','&nbsp;') ,
+                                                "{: 5.4f}".format(params.kc[1]).replace(' ','&nbsp;') ,
+                                                "{: 5.4f}".format(params.kc[2]).replace(' ','&nbsp;') ,
+                                                "{: 5.4f}".format(params.kc[3]).replace(' ','&nbsp;') ,
                                                 ''
                                                 ] ) )                
             if self.cadmodel is not None:
@@ -977,15 +980,13 @@ class FittingCalib(CalcamGUIWindow):
 
     def do_fit(self):
 
-        for i,button in enumerate(self.fit_buttons):
-            if self.sender() is button:
-                subview = i
+        subview = self.subview_tabs.currentIndex()
 
         # If this was called via a keyboard shortcut, we may be in no position to do a fit.
-        #if not self.fit_button.isEnabled():
-        #    return
+        if not self.fit_buttons[subview].isEnabled():
+            return
 
-        #self.update_pointpairs()
+        self.update_pointpairs()
 
         self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
         self.fitted_points_checkbox.setChecked(False)
@@ -1321,39 +1322,31 @@ class FittingCalib(CalcamGUIWindow):
 
 
     
-    def update_fitopts_gui(self,choice):
-
-        if self.sender() == self.pixel_size_checkbox:
-            if choice:
-                self.pixel_size_box.setEnabled(True)
-                self.update_pixel_size()
-
-            else:
-                self.pixel_size_box.setEnabled(False)
-                self.update_pixel_size()
-
-    
-
+    def change_dist_model(self,choice):
         
         for field in range(len(self.fit_settings_widgets)):
             if self.sender() == self.fit_settings_widgets[field][0]:
                 self.perspective_settings[field].show()
                 self.fisheye_settings[field].hide()
+                self.fitters[field].set_model('perspective')
             elif self.sender() == self.fit_settings_widgets[field][1]:
                 self.perspective_settings[field].hide()
                 self.fisheye_settings[field].show()
-            elif self.sender() == self.fit_settings_widgets[field][7]:
-                self.fit_settings_widgets[field][8].setEnabled(choice)
-                self.fit_settings_widgets[field][9].setEnabled(choice)
+                self.fitters[field].set_model('fisheye')
 
         self.update_n_points()
 
 
     def update_pixel_size(self):
+
         if self.pixel_size_checkbox.isChecked():
+            self.pixel_size_box.setEnabled(True)
             self.calibration.pixel_size = self.pixel_size_box.value() / 1e6
         else:
+            self.pixel_size_box.setEnabled(False)
             self.calibration.pixel_size = None
+
+        self.update_fit_results()
         self.unsaved_changes = True
 
 
@@ -1385,5 +1378,6 @@ class FittingCalib(CalcamGUIWindow):
             if len(self.chessboard_pointpairs) == 0:
                 self.chessboard_checkbox.setChecked(False)
 
+        self.update_pointpairs()
         self.update_n_points()
         self.fit_enable_check()

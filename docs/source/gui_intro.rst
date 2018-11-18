@@ -1,33 +1,24 @@
-====================================
-Calcam GUI Launcher
-====================================
+=============================
+Calcam GUI tools and launcher
+=============================
 
-Calcam includes 5 different GUI tools, which can all be easily accessed from the GUI launcher. On Unix-based systems the launcher can be opened from a terminal simply with::
+Calcam consists of 5 main GUI tools both for performing calibrations and visualising the results / doing some basic image position analysis, which can all be conveniently accessed via the Calcam GUI launcher interface. The launcher is shown below:
+
+.. image:: images/screenshots/launcher.png
+   :alt: Calcam Launcher Screenshot
+   :align: left
+
+The buttons to the right-hand side of the Calcam logo each open a new python instance running the selected GUI, and a link to the online copy of this documentation is provided under the logo. The launcher will also check whether you are using the most recent release version of Calcam and will display a message at the bottom of the window alerting you if a newer version is available. More details of each of the tools are given below.
+
+Starting the launcher
+---------------------
+At installation, the setup script will create a launch script for the Calcam GUI in your Python environment's script directory, which ideally will be in your OS's ``PATH`` environment variable. If this is the case, the Clacam GUI can be started simply by typing::
 
 	calcam
 
-On Windows, a ``calcam.exe`` launcher is created on installation, and the setup script will tell you where this file is located at the end of the installation.
+at a terminal / command prompt. On Windows, the launch script takes the form of an executable, so it is easy to make e.g. a desktop or start menu shortcut to start Calcam if you wish (the setup script will tell you where this exe has been created).
 
-Alternatively, the Calcam GUI launcher can be invoked as a function call in Python::
+Alternatively, the Calcam GUI launcher can be opened by calling the start_gui function in the Calcam Python package::
 
 	>>>import calcam
-	>>>calcam.gui.start_gui()
-
-The launcher window is shown below, it simply has buttons to start each GUI tool and short descriptions of the tools, and a button to access an offline copy of this documentation. 
-
-Note: when the GUI tools are opened from the launcher they open in their own new Python instances. This means that (1) The Launcher can be closed without affecting any other open Calcam windows, and (2) If editing the code, you can simply leave the launcher open and re-launch the relevant tool for the code changes to become effective.
-
-
-For more information aboutwhat each tool does and how to use it, please consult the other pages in this section.
-
-
-.. toctree::
-   :caption: GUI User Guides
-   :maxdepth: 1
-   :name: guitoc2
-
-   calib_tool_points
-   calib_tool_alignment
-   virtualcalib_editor
-   image_analyser
-   model_viewer
+	>>>calcam.start_gui()

@@ -177,7 +177,7 @@
            <item row="2" column="0" colspan="4">
             <widget class="QCheckBox" name="cad_auto_load">
              <property name="text">
-              <string>Automatically load default model parts</string>
+              <string>Enable default model features on load</string>
              </property>
              <property name="checked">
               <bool>true</bool>

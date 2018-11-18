@@ -185,7 +185,7 @@
             </sizepolicy>
            </property>
            <property name="text">
-            <string>2 Sub-fields separated by a straight line</string>
+            <string>2 Sub-views separated by a straight line</string>
            </property>
            <property name="checked">
             <bool>false</bool>
@@ -319,7 +319,16 @@
       <enum>QFrame::Raised</enum>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_3">
-      <property name="margin">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
        <number>0</number>
       </property>
       <item>

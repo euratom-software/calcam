@@ -1253,7 +1253,7 @@ class ChessboardDialog(qt.QDialog):
     def __init__(self, parent,modelselection=False,calibration=None):
 
         # GUI initialisation
-        qt.QDialog.__init__(self, parent)
+        qt.QDialog.__init__(self, parent,qt.Qt.WindowTitleHint | qt.Qt.WindowCloseButtonHint)
         qt.uic.loadUi(os.path.join(guipath,'qt_designer_files','chessboard_image_dialog.ui'), self)
 
         self.parent = parent
@@ -1618,7 +1618,7 @@ class SplitFieldDialog(qt.QDialog):
     def __init__(self, parent, image):
 
         # GUI initialisation
-        qt.QDialog.__init__(self, parent)
+        qt.QDialog.__init__(self, parent,qt.Qt.WindowTitleHint | qt.Qt.WindowCloseButtonHint)
         qt.uic.loadUi(os.path.join(guipath,'qt_designer_files','split_field_dialog.ui'), self)
 
         self.image = image

@@ -247,7 +247,7 @@ def load_calib(path,match_images=True,virtual=False):
         fitoptions = save['fitoptions']
     else:
         fitoptions = []
-    cal.history['fit'] = 'Converted from calcam 1.x calibration "{:s}" by {:s} on {:s} at {:s}'.format(calname,_user,_host,_get_formatted_time())
+    cal.history['fit'] = ['Converted from calcam 1.x calibration "{:s}" by {:s} on {:s} at {:s}'.format(calname,_user,_host,_get_formatted_time())]*cal.n_subviews
     if fitoptions is None:
         fitoptions = [None] * cal.n_subviews
 
