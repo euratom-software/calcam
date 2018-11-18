@@ -524,8 +524,12 @@ class CalcamGUIWindow(qt.QMainWindow):
         for path in [str(p) for p in selected_paths]:
 
             if obj_type.lower() == 'calibration':
-                obj = Calibration(path)
-                obj.filename = path
+                try:
+                    obj = Calibration(path)
+                except Exception as e:
+                    self.show_msgbox('Error while opening {:s}:<br>{:}'.format(os.path.split(path)[-1],e))
+                    obj = None
+	            
                 
             elif obj_type.lower() == 'pointpairs':
                 if path.endswith('.ccc'):

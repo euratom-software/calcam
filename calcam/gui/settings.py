@@ -200,6 +200,7 @@ class Settings(qt.QMainWindow):
         self.edit_model_button.setEnabled(False)
         for model in sorted(self.config.get_cadmodels().keys()):
             listitem = qt.QListWidgetItem(model)
+            listitem.setToolTip(self.config.get_cadmodels()[model][0])
             self.model_list.addItem(listitem)
             if model == to_select:
                 listitem.setSelected(True)
@@ -238,7 +239,7 @@ class Settings(qt.QMainWindow):
             if imsource[2]:
                 listitem.setForeground(qt.Qt.red)
                 listitem.setToolTip(imsource[2])
-            else:
+            elif imsource[1]:
                 listitem.setToolTip(imsource[1])
 
             self.imsource_list.addItem(listitem)
