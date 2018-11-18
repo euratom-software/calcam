@@ -31,10 +31,8 @@ from .coordtransformer import CoordTransformer
 from .pointpairs import PointPairs
 from . import __version__
 
-try:
-    from .raycast import raycast_sightlines
-except ImportError:
-    raycast_sightlines = None
+
+from .raycast import raycast_sightlines, RayData
 
 import datetime
 import socket
@@ -1136,7 +1134,7 @@ class Calibration():
 
         Parameters:
 
-            x,y (array-like of floats) : Image pixel coordinates at which to get the sight-line directions. \
+            x,y (sequence of floats)    : Image pixel coordinates at which to get the sight-line directions. \
                                          x and y must be the same shape. If not specified, the line of sight direction \
                                          at the centre of every detector pixel is returned.
 
@@ -1209,7 +1207,7 @@ class Calibration():
         return np.squeeze(output)
 
 
-    def project_points(self,points_3d,coords='display',check_occlusion_by=None,fill_value=np.nan,occlusion_tol=1e-3):
+    def project_points(self,points_3d,coords='display',check_occlusion_with=None,fill_value=np.nan,occlusion_tol=1e-3):
         '''
         Get the image coordinates corresponding to given real-world 3D coordinates. 
 
@@ -1218,14 +1216,16 @@ class Calibration():
         Parameters:
 
             points_3d                            : 3D point coordinates, in metres, to project on to the image. Can be EITHER an Nx3 array, where N is the \
-                                                   number of 3D points and each row gives [X,Y,Z] for a 3D point, or an array-like of 3 element array-likes,\
+                                                   number of 3D points and each row gives [X,Y,Z] for a 3D point, or a sequence of 3 element sequences,\
                                                    where each 3 element array specifies a 3D point.
             
             coords (str)                         : Either ``Display`` or ``Original``, specifies which image orientation the returned image coordinates \
                                                    should correspond to.
 
-            check_occlusion_by (calcam.CADModel) : If provided, for each projected point the function will check if the point \
-                                                   is hidden from the camera's view by part of the provided CAD model.
+            check_occlusion_with (calcam.CADModel or calcam.RayData) : If provided and fill_value is not None, for each 3D point the function will check if the point \
+                                                   is hidden from the camera's view by part of the provided CAD model. If a point is hidden its \
+                                                   returned image coordinates are set to fill_value. Note: if using a RayData onject, always use Raydata resulting \
+                                                   from a raycast of the complete detector, or else project_points will be incredibly slow.
 
             fill_value (float)                   : For any 3D points not visible to the camera, the returned image coordinates will be set equal to \
                                                    this value. If set to ``None``, image coordinates will be returned for every 3D point even if the \
@@ -1246,8 +1246,6 @@ class Calibration():
         # This will be the output
         points_2d = []
 
-        if check_occlusion_by is not None and raycast_sightlines is None:
-            raise Exception('VTK not available; cannot check occlusion without VTK.')
 
         for nview in range(self.n_subviews):
 
@@ -1278,19 +1276,30 @@ class Calibration():
 
                     # If given a CAD model to check occlusion against, compare the distances to the 3D points with
                     # the distance to a surface in the CAD model
-                    if check_occlusion_by is not None:
-
+                    if check_occlusion_with is not None:
                         point_vectors = points_3d - np.tile( self.view_models[nview].get_pupilpos() , (points_3d.shape[0],1) )
                         point_distances = np.sqrt( np.sum(point_vectors**2,axis= 1))
 
-                        # Ray cast to get the ray lengths
-                        ray_lengths = raycast_sightlines(self,check_occlusion_by,p2d[:,0],p2d[:,1],verbose=False,force_subview=nview).get_ray_lengths()
+                        if type(check_occlusion_with) is not RayData:
+                            # Ray cast to get the ray lengths
+                            ray_lengths = raycast_sightlines(self,check_occlusion_with,p2d[:,0],p2d[:,1],verbose=False,force_subview=nview).get_ray_lengths()
+                        else:
+                            if not check_occlusion_with.fullchip:
+                                print('WARNING: Checking for point occlusion using a RayData object which is not for the whole detector. This will be very, very slow - it is highly recommended to raycast the whole detector and use that RayData.') 
+                            try:
+                                if check_occlusion_with.binning is not None:
+                                    postol = np.sqrt(2) * check_occlusion_with.binning / 2.
+                                else:
+                                    postol = np.sqrt(2)
+                                ray_lengths = check_occlusion_with.get_ray_lengths(p2d[:,0],p2d[:,1],im_position_tol = postol)
+                            except:
+                                raise Exception('Could not use the supplied Ray Data to check occlusion.')
 
                         # The 3D points are invisible where the distance to the point is larger than the
                         # ray length
                         occluded_mask = ray_lengths < (point_distances - occlusion_tol)
 
-                        p2d[ np.tile(occluded_mask,(1,2))  ] = fill_value
+                        p2d[ np.tile(occluded_mask[:,np.newaxis],(1,2))  ] = fill_value
 
                     p2d[ np.tile(wrong_subview_mask[:,np.newaxis],(1,2)) ] = fill_value
 
@@ -1377,7 +1386,7 @@ class Calibration():
 
         Parameters:
 
-            x,y (array-like) : Arrays of x and y pixel coordinates to convert to normalised\
+            x,y (sequences)  : Sequences of x and y pixel coordinates to convert to normalised\
                                coordinates. x and y must be the same shape.
             subview (int)    : If specified, force the calculation to use the view model \
                                from the given sub-view. If not specified, the correct sub-view \
@@ -1557,11 +1566,11 @@ class Calibration():
 
         Parameters:
 
-            campos (array-like)   : 3-element array-like specifying the camera position (X,Y,Z) in metres.
-            upvec (array-like)    : 3-element array-like specifying the camera up vector.
-            camtar (array-like)   : 3-element array-like specifying a point in 3D space where the camera is pointed to. \
+            campos (sequence)   : 3-element sequence specifying the camera position (X,Y,Z) in metres.
+            upvec (sequence)    : 3-element sequence specifying the camera up vector.
+            camtar (sequence)   : 3-element sequence specifying a point in 3D space where the camera is pointed to. \
                                     If both camtar and view_dir are provided, camtar is used.
-            view_dir (array-like) : 3D vector [X,Y,Z] specifying the camera view direction. If both camtar and view_dir \
+            view_dir (sequence) : 3D vector [X,Y,Z] specifying the camera view direction. If both camtar and view_dir \
                                     are provided, camtar will be used instead.
         '''
 

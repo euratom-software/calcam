@@ -671,7 +671,7 @@ class CoordsDialog(qt.QDialog):
 
         # GUI initialisation
         qt.QDialog.__init__(self, parent)
-        qt.uic.loadUi(os.path.join(guipath,'line_coords.ui'), self)
+        qt.uic.loadUi(os.path.join(guipath,'qt_designer_files','line_coords.ui'), self)
 
         self.parent = parent
 

@@ -163,7 +163,9 @@ def raycast_sightlines(calibration,cadmodel,x=None,y=None,binning=1,coords='Disp
     
     if verbose:
         now = datetime.datetime.now()
-        print(datetime.datetime.now().strftime('Started casting {:d} rays at %Y-%m-%d %H:%M'.format(np.size(x))))
+        oom = np.floor( np.log(np.size(x)) / np.log(10) / 3. )
+        raystring = ['{:.0f} rays','{:.1f}k rays','{:.2f}M rays'][int(oom)].format(np.size(x)/10**(3*oom))
+        print(datetime.datetime.now().strftime('Started casting {:s} at %Y-%m-%d %H:%M'.format(raystring)))
 
 
     # Some variables to give to VTK becasue of its annoying C-like interface
@@ -393,7 +395,7 @@ class RayData:
 
         Parameters:
         
-            x,y (array-like)       : Image pixel coordinates at which to get the sight-line lengths. \
+            x,y (array-like)        : Image pixel coordinates at which to get the sight-line lengths. \
                                       If not specified, the lengths of all casted sight lines will be returned.
             im_position_tol (float) : If x and y are specified but no sight-line was cast at exactly the \
                                       input coordinates, the nearest casted sight-line will be returned \
@@ -409,8 +411,10 @@ class RayData:
                                       (h x w) where w nd h are the image width and height. Otherwise it will \
                                       be the same shape as the input x and y coordinates.
         '''
+        
         # Work out ray lengths for all raytraced pixels
         raylength = np.sqrt(np.sum( (self.ray_end_coords - self.ray_start_coords) **2,axis=-1))
+        
         # If no x and y given, return them all
         if x is None and y is None:
             if self.fullchip:
@@ -436,21 +440,33 @@ class RayData:
                 x = np.reshape(x,np.size(x),order='F')
                 y = np.reshape(y,np.size(y),order='F')
                 RL = np.zeros(np.shape(x))
-                raylength = raylength.flatten()
-                xflat = self.x.flatten()
-                yflat = self.y.flatten()
+
+                if not self.fullchip:
+                    raylength = raylength.flatten()
+                    xflat = self.x.flatten()
+                    yflat = self.y.flatten()
+
                 for pointno in range(x.size):
                     if np.isnan(x[pointno]) or np.isnan(y[pointno]):
                         RL[pointno] = np.nan
                         continue
 
-                    deltaX = xflat - x[pointno]
-                    deltaY = yflat - y[pointno]
-                    deltaR = np.sqrt(deltaX**2 + deltaY**2)
-                    if np.nanmin(deltaR) <= im_position_tol:
-                        RL[pointno] = raylength[np.nanargmin(deltaR)]
+                    if self.fullchip:
+                        xind = np.argmin(np.abs(self.x[0,:] - x[pointno]))
+                        yind = np.argmin(np.abs(self.y[:,0] - y[pointno]))
+                        deltaR = np.sqrt( (self.x[0,xind]-x[pointno])**2 + (self.y[yind,0]-y[pointno])**2)
+                        if deltaR < im_position_tol:
+                            RL[pointno] = raylength[yind,xind]
+                        else:
+                            raise Exception('No ray-traced pixel within im_position_tol of requested pixel!')
                     else:
-                        raise Exception('No ray-traced pixel within im_position_tol of requested pixel!')
+                        # This can be very slow if xflat and yflat are big arrays!
+                        deltaR = np.sqrt( (xflat - x[pointno])**2 + (yflat - y[pointno])**2 )
+                        if np.nanmin(deltaR) <= im_position_tol:
+                            RL[pointno] = raylength[np.nanargmin(deltaR)]
+                        else:
+                            raise Exception('No ray-traced pixel within im_position_tol of requested pixel!')
+
                 return np.reshape(RL,orig_shape,order='F')
 
 
