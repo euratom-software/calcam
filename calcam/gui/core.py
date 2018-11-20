@@ -216,7 +216,7 @@ class CalcamGUIWindow(qt.QMainWindow):
         else:
             usercode = True
 
-        traceback_lines = traceback.format_exception(excep_type,excep_value,tb)
+        traceback_lines = traceback.format_exception(excep_type,excep_value,tb,limit=10)
 
         if usercode and excep_type != UserWarning:
             dialog = qt.QMessageBox(self)

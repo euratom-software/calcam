@@ -805,7 +805,7 @@ class FittingCalib(CalcamGUIWindow):
 
         # This avoids raising errors if this function is called when we have no
         # fit options GUI.
-        if len(self.fit_settings_widgets) == 0:
+        if len(self.fit_settings_widgets) < self.calibration.n_subviews:
             return
 
         
