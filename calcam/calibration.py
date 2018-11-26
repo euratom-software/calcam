@@ -2045,7 +2045,7 @@ class Fitter:
             img_points = np.expand_dims(img_points,1)
             rvecs = [np.zeros((1,1,3),dtype='float32') for i in range(len(self.pointpairs))]
             tvecs = [np.zeros((1,1,3),dtype='float32') for i in range(len(self.pointpairs))]
-            fit_output = cv2.fisheye.calibrate(obj_points,img_points,self.image_display_shape,self.initial_matrix, np.zeros(4),rvecs,tvecs,flags = self.get_fitflags())
+            fit_output = cv2.fisheye.calibrate(obj_points,img_points,self.image_display_shape,copy.copy(self.initial_matrix), np.zeros(4),rvecs,tvecs,flags = self.get_fitflags())
         
             fitted_model = FisheyeeViewModel(cv2_output = fit_output)
             #raise UserWarning(fitted_model.rvec)

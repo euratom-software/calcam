@@ -292,7 +292,7 @@ class CalcamGUIWindow(qt.QMainWindow):
 
     def update_chessboard_intrinsics(self):
 
-        dialog = ChessboardDialog(self,modelselection=True)
+        dialog = ChessboardDialog(self,modelselection=True,calibration=self.calibration)
         dialog.exec_()
 
         if dialog.results != []:
@@ -1263,7 +1263,8 @@ class ChessboardDialog(qt.QDialog):
         self.parent = parent
         if calibration is not None:
             self.image_transformer = calibration.geometry
-            if np.any(self.image_transformer.get_display_shape() != self.image_transformer.get_original_shape()):
+
+            if self.image_transformer.get_display_shape() != self.image_transformer.get_original_shape() or self.image_transformer.transform_actions == []:
                 self.orientation_label.hide()
                 self.original_coords.hide()
                 self.display_coords.hide()

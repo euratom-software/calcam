@@ -118,6 +118,8 @@ class AlignmentCalib(CalcamGUIWindow):
         self.image_display_settings.hide()
         self.edge_detect_settings.hide()
 
+        self.tabWidget.setTabEnabled(2,False)
+
         # Populate image sources list and tweak GUI layout for image loading.
         self.imload_inputs = {}
         self.image_load_options.layout().setColumnMinimumWidth(0,100)
@@ -163,6 +165,8 @@ class AlignmentCalib(CalcamGUIWindow):
 
     def _load_model(self):
         self.load_model(hold_view = self.cadmodel is not None)
+        if self.calibration.image is not None:
+            self.tabWidget.setTabEnabled(2,True)
         self.update_intrinsics()
 
 
@@ -363,7 +367,6 @@ class AlignmentCalib(CalcamGUIWindow):
                 self.calibration.set_calib_intrinsics(self.intrinsics_calib,update_hist_recursion = not (self.intrinsics_calib is self.calibration))
                 self.current_intrinsics_combobox = self.calcam_intrinsics
             else:
-                self.calibration.set_calib_intrinsics(self.intrinsics_calib,update_hist_recursion = not (self.intrinsics_calib is self.calibration))
                 self.current_intrinsics_combobox.setChecked(True)
 
 
@@ -457,6 +460,9 @@ class AlignmentCalib(CalcamGUIWindow):
             
         self.image_settings.show()
         self.image_display_settings.show()
+
+        if self.cadmodel is not None:
+            self.tabWidget.setTabEnabled(2,True)
 
         self.update_image_info_string(newim['image_data'],self.calibration.geometry)
         self.update_overlay()

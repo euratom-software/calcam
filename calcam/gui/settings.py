@@ -56,7 +56,7 @@ class Settings(qt.QMainWindow):
         self.edit_imsource_button.clicked.connect(self.edit_imsource)
 
         self.refresh_timer = qt.QTimer()
-        self.refresh_timer.setInterval(5000)
+        self.refresh_timer.setInterval(7000)
         self.refresh_timer.timeout.connect(self.update)
         self.refresh_timer.start()
 

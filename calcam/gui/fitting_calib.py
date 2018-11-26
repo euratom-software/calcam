@@ -1317,6 +1317,7 @@ class FittingCalib(CalcamGUIWindow):
             self.rebuild_image_gui()
             self.unsaved_changes = True
             self.update_n_points()
+            self.reset_fit()
 
         del dialog
 
