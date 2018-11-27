@@ -1166,9 +1166,6 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
         if self.focus_cursor == cursor_id:
             self.focus_cursor = None
 
-            if self.focus_changed_callback is not None:
-                self.focus_changed_callback(None)
-
         if self.refresh_callback is not None:
             self.refresh_callback()
 
