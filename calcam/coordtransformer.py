@@ -317,7 +317,7 @@ class CoordTransformer:
 
         for action in self.transform_actions:
             if action.lower() in ['rotate_clockwise_90','rotate_clockwise_270']:
-                display_shape = reversed(display_shape)
+                display_shape.reverse()
 
         return tuple(display_shape)
 

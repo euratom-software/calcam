@@ -2,7 +2,7 @@
 Calibration by manual alignment
 ===============================
 
-While the best and most accurate calibration technique is :doc:`gui_calib`, in some cases this is simply not possible because well defined points cannot be identified in the image (e.g. narrow angle camera views which can see only round or curved features on the machine). In this case, Calcam provides a tool for calibration by manually moving the camera view with the mouse until it lines up with the camera image to be calibrated. This will be much more successful if the camera intrinsics can be calibrated accurately, e.g. using chessboard calibration images in the lab, leaving only the extrinsics to be determined "by hand". Manual calibration only currently supports images with a single sub-view. The manual alignment calibration tool can be started from the Calcam launcher. The layout of the window is shown below:
+While the best and most accurate calibration technique is :doc:`gui_calib`, in some cases this is simply not possible because well defined points cannot be identified in the image (e.g. narrow angle camera views which can see only round or curved features on the machine). In this case, Calcam provides a tool for calibration by manually moving the camera view with the mouse until it lines up with the camera image to be calibrated. This will be much more successful if the camera intrinsics can be calibrated accurately, e.g. using chessboard calibration images in the lab, leaving only the extrinsics to be determined "by hand". Manual calibration only currently supports images with a single :ref:`sub-view<subviews_intro>`. The manual alignment calibration tool can be started from the Calcam launcher. The layout of the window is shown below:
 
 .. image:: images/screenshots/alignment_calib_annotated.png
    :alt: Calibration tool screenshot
@@ -50,8 +50,8 @@ Camera Intrinsics
 ~~~~~~~~~~~~~~~~~
 The camera intrinsics are set using the top part of the :guilabel:`Alignment Calibration` control tab. Camera intrinsics can be set 3 different ways: using intrinsics from an existing calibration (e.g. to calibrate an existing camera & lens setup moved to a new view), using chessboard calibration pattern images from lab measurements, or using a simple pinhole camera model. It is highly recommended to use chessboard images, if possible, or another calcam calibration since this is likely to give much better results and will probably be easier.
 
-Calibration Intrinsics
-**********************
+Existing Calibration Intrinsics
+*******************************
 To use intrinsics from an existing Calcam calibration, select :guilabel:`Use intrinsics from existing calibration` and browse for the calibration you want to use. The loaded calibration can be changed using the :guilabel:`Load...` button.
 
 Chessboard Calibration Intrinsics
@@ -62,10 +62,43 @@ To prepare chessboard images: make a flat chessboard target with known square si
    :alt: Chessboard image example thumbnails
    :align: left
 
-To use the chessboard images to define the camera intrinsics, select :guilabel:`Calibrate from chessboard images`. tab. The first time this option is selected it will open the following window:
+To use the chessboard images to define the camera intrinsics, select :guilabel:`Calibrate from chessboard images`. The first time this option is selected it will open the following window:
 
 .. image:: images/screenshots/chessboard_intrinsics_dialog.png
    :alt: Chessboard dialog screenshot
    :align: left
 
 Chessboard loading consists of 4 steps, done in order by working down the right hand side of this window. First, browse for and select all of the chessboard images to use. Then, enter the details of the chessboard pattern: number of squares and square size. Next, select the :guilabel:`Detect Chessboard Corners` button to run an automatic detection of the boundaries between the chessboard squares. If the automatic detection fails on some images, a dialog box will open telling you which images the detection failed for, and that those cannot be used. If all images fail, check that the number of squares input is correct. Once the corner detection has been completed, cursors will be added to the image displayed on the left hand side of the window. You can pan and zoom to inspect the cursor positions using the usual image mouse controls, and look at different images using the :guilabel:`<<` and :guilabel:`>>` buttons above the image. Finally, select whether to use the perspective distortion model or fisheye distortion model. To complete loading of the images and use these to define the camera intrinsics constraints, click :guilabel:`Apply`.
+
+Pinhole Intrinsics
+******************
+If accurate intrinsics calibration is not available, an idealised pinhole camera model can be used to define the intrinsics. In this case, the centre of perspective is assumed to be at the image centre and the effective focal length is the only free parameter. To use the pinhole camera model, select :guilabel:`Use ideal pinhole camera model`. The focal length is set in the :guilabel:`Focal Length` box. If the physical camera pixel size has not been entered, this focal length is in units of pixels. If a physical pixel size has been entered on the :guilabel:`Camera Image` tab, the focal length is input in millimetres.
+
+Camera Extrinsics
+~~~~~~~~~~~~~~~~~
+The camera extrinsics are set by manually adjusting the CAD model view until it lines up as well as possible with the image displayed on top. This can be done by a combination of mouse controls and manually inputting numerical values. As with the intrinsics, the extrinsics are set on the :guilabel:`Alignment Calibration` control tab.
+
+Starting from an existing view
+******************************
+It will often make the alignment easier to start from a view either defined in the CAD model definition or from another Calcam calibration. In the :guilabel:`Camera Positioning` box, the list of views defined in the CAD model are displayed, and clicking on one of these will immediately set the camera position and orientation to match that view. The field of view from the preset view will not be set, since this is determined by the camera intrinsics which are set separately. To use the extrinsics from an existing Calcam calibration, click the :guilabel:`Load...` button underneath the view list to choose a calibration file to load. This will set the camera extrinsics to match the loaded calibration, and add that calibration to the list view box so it can be returned to easily.
+
+Mouse Controls
+**************
+- :kbd:`Right Click + Drag` - Look around (first-person shooter style control; default) or rotate CAD model depending on settings
+- :kbd:`Middle Click + Drag` - Pan (translate) sideways i.e. in the plane of the monitor.
+- :kbd:`Scroll Wheel` - Move forwards or backwards.
+- :kbd:`Ctrl + Right Click + Drag` - Roll the camera (rotate about the direction of view)
+
+For finer control, the mouse movement sensitivity can be adjusted using the slider in the :guilabel:`Mouse Control Settings` box at the bottom of the control tab.
+
+Manual Entry
+************
+If the camera position and view direction are already approximately known, these can be entered in the boxes at the bottom of the :guilabel:`Camera Positioning` box. 
+
+Saving / Loading and viewing calibration information
+----------------------------------------------------
+Once a satisfactory calibration has been obtained, the calibration can be saved to a Calcam calibration (``.ccc``) file using the :guilabel:`Save` / :guilabel:`Save As` buttons on the toolbar at the top of the window. The resulting file can then be loaded in the image analyser tool or using the Calcam :doc:`Python API <api_analysis>` to make use of the calibration. As with any computer application, it is advised to save your work regularly in case of computer crash or user error. Note: whenever the save button is clicked, the camera extrinsics in the saved calibration will be whatever the current CAD view alignment show.
+
+Existing manual alignment calibrations can be loaded using the :guilabel:`Open` button in the toolbar at the top of the window. This will load the image, extrinsics and intrinsics from the saved calibration. If the CAD model which was last used for thet calibration is available, it will also load and set up the CAD model as it was the last time that file was edited.
+
+Information about the current calibration can be viewed using the :guilabel:`Calibration Information` button on the toolbar.

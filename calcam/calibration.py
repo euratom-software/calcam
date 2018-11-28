@@ -533,7 +533,6 @@ class Calibration():
             subview_mask = cv2.imread(os.path.join(save_file.get_temp_path(),'subview_mask.png'))[:,:,0]
             self.geometry = CoordTransformer(transform_actions=meta['image_transform_actions'],paspect=meta['orig_paspect'])
             self.geometry.set_image_shape(subview_mask.shape[1],subview_mask.shape[0],coords='Display')
-            
             self.subview_mask = self.geometry.display_to_original_image(subview_mask,interpolation='nearest')
             
             # Load the image. Note with the opencv imread function, it will silently return None if the image file does not exist.
@@ -946,7 +945,7 @@ class Calibration():
         '''
         Get the camera pupil position in 3D space.
 
-        Can be used together with get_los_direction to obtain a full
+        Can be used together with :func:`get_los_direction` to obtain a full
         description of the camera's sight line geometry.
 
         Parameters:
@@ -1056,8 +1055,8 @@ class Calibration():
 
         Returns:
 
-            float         : Camera roll in degrees. Positive angles correspond to an anti-clockwise \
-                            roll of the camera i.e. clockwise roll of the image.
+            float         : Camera roll in degrees. Positive angles correspond to a clockwise \
+                            roll of the camera i.e. anti-clockwise roll of the image.
 
         '''
         if self.n_subviews > 1 and subview is None:
@@ -1136,7 +1135,7 @@ class Calibration():
         '''
         Get unit vectors representing the directions of the camera's sight-lines in 3D space. 
 
-        Can be used together with get_pupilpos to obtain a full description of the camera's sight-line geometry.
+        Can be used together with :func:`get_pupilpos` to obtain a full description of the camera's sight-line geometry.
 
         Parameters:
 

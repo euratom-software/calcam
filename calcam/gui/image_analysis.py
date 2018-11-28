@@ -208,7 +208,7 @@ class ImageAnalyser(CalcamGUIWindow):
             # Find where the cursor(s) is/are in 2D.
             image_pos_nocheck = self.calibration.project_points([coords_3d])
 
-            image_pos = self.calibration.project_points([coords_3d],check_occlusion_by=self.cadmodel,occlusion_tol=1e-2)
+            image_pos = self.calibration.project_points([coords_3d],check_occlusion_with=self.cadmodel,occlusion_tol=1e-2)
             for i in range(len(image_pos)):
                 if np.any(np.isnan(image_pos_nocheck[i])):
                     visible[i] = False
