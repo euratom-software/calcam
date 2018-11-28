@@ -64,6 +64,8 @@ class PointPairs():
 
         return npts
 
+    def get_n_pointpairs(self):
+        return len(self.object_points)
 
     # Save point pairs to csv file
     def save(self,savefile):

@@ -149,7 +149,14 @@ class ViewModel():
         z_proj = z_proj / np.sqrt(np.sum(z_proj**2))
 
         # The roll is the angle between this projection and -y
-        return 180 * np.arccos( -z_proj[0][1] ) / 3.14159
+        # Since we use arctan which returns an angle in [0,pi], we need to manually
+        # check the sign based on which side of -y the z projection is pointing.
+        if z_proj[0][0] > 0.:
+            sign = -1
+        else:
+            sign = 1
+            
+        return sign * 180 * np.arccos( -z_proj[0][1] ) / 3.14159
 
 
 # Class representing a perspective camera model.

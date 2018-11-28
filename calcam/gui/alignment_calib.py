@@ -181,11 +181,14 @@ class AlignmentCalib(CalcamGUIWindow):
                 self.feature_tree.blockSignals(False)
                 self.cadmodel = None
 
+        self.pinhole_intrinsics.setChecked(True)
+        self.pixel_size_checkbox.setChecked(False)
+
         self.interactor3d.set_overlay_image(None)
 
         self.calibration = Calibration(cal_type='alignment')
 
-        self.tabWidget.setTabEnabled(3,False)
+        self.tabWidget.setTabEnabled(2,False)
 
         self.filename = None
         self.setWindowTitle('Calcam Calibration Tool (Manual Alignment)')
@@ -307,7 +310,7 @@ class AlignmentCalib(CalcamGUIWindow):
         if opened_calib.intrinsics_type == 'pinhole':
             fl = opened_calib.view_models[0].cam_matrix[0,0]
             if opened_calib.pixel_size is not None:
-                fl = fl * opened_calib.pixel_size  / 1000
+                fl = fl * opened_calib.pixel_size  * 1000
 
                 self.pixel_size_box.setValue(opened_calib.pixel_size*1e6)
                 self.pixel_size_checkbox.setChecked(True)
@@ -332,6 +335,9 @@ class AlignmentCalib(CalcamGUIWindow):
         self.set_view_from_calib(self.calibration,0)
 
         self.app.restoreOverrideCursor()
+        if self.cadmodel is not None and self.calibration.image is not None:
+            self.tabWidget.setTabEnabled(2,True)
+            
         self.unsaved_changes = False
 
 
@@ -348,6 +354,7 @@ class AlignmentCalib(CalcamGUIWindow):
             self.calibration.pixel_size = self.pixel_size_box.value() / 1e6
         else:
             self.pixel_size_box.setEnabled(False)
+            self.calibration.pixel_size = None
 
         if self.calcam_intrinsics.isChecked():
             self.interactor3d.zoom_enabled = False

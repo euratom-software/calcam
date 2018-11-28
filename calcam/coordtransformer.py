@@ -333,9 +333,10 @@ class CoordTransformer:
 
         pp_out = copy.copy(pointpairs)
 
-        for ipoint in range(pp_out.get_n_points()):
+        for ipoint in range(pp_out.get_n_pointpairs()):
             for iview in range(pp_out.n_subviews):
-                pp_out.image_points[ipoint][iview][:] = self.display_to_original_coords(*pp_out.image_points[ipoint][iview])
+                if pp_out.image_points[ipoint][iview] is not None:
+                    pp_out.image_points[ipoint][iview] = tuple(self.display_to_original_coords(*pp_out.image_points[ipoint][iview]))
 
         return pp_out
 
@@ -347,8 +348,9 @@ class CoordTransformer:
 
         pp_out = copy.copy(pointpairs)
 
-        for ipoint in range(pp_out.get_n_points()):
+        for ipoint in range(pp_out.get_n_pointpairs()):
             for iview in range(pp_out.n_subviews):
-                pp_out.image_points[ipoint][iview][:] = self.original_to_display_coords(*pp_out.image_points[ipoint][iview])
+                if pp_out.image_points[ipoint][iview] is not None:
+                    pp_out.image_points[ipoint][iview] = tuple(self.original_to_display_coords(*pp_out.image_points[ipoint][iview]))
 
         return pp_out

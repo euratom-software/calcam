@@ -272,7 +272,7 @@ class FittingCalib(CalcamGUIWindow):
             self.calibration.view_models[subview] = None
             self.calibration.history['fit'][subview] = None
         
-        self.update_fit_results()
+        self.update_fit_results(force_show_reprojected=False)
 
         if np.any(self.calibration.view_models):
             self.fitted_points_checkbox.setEnabled(True)
@@ -403,7 +403,7 @@ class FittingCalib(CalcamGUIWindow):
     def on_model_load(self):
         # Enable the other tabs!
         self.tabWidget.setTabEnabled(2,True)
-        self.update_fit_results()
+        self.update_fit_results(force_show_reprojected=False)
         #self.tabWidget.setTabEnabled(2,True)
         #self.tabWidget.setTabEnabled(3,True)
 
@@ -871,7 +871,10 @@ class FittingCalib(CalcamGUIWindow):
 
                
 
-    def update_fit_results(self):
+    def update_fit_results(self,force_show_reprojected=True):
+        
+        if self.fitted_points_checkbox.isChecked():
+            force_show_reprojected = True
         
         for subview in range(self.calibration.n_subviews):
 
@@ -974,7 +977,9 @@ class FittingCalib(CalcamGUIWindow):
 
             self.fit_results[subview].show()
             self.fitted_points_checkbox.setEnabled(True)
-            self.fitted_points_checkbox.setChecked(True)
+            
+            if force_show_reprojected:
+                self.fitted_points_checkbox.setChecked(True)
 
 
 
@@ -1347,7 +1352,7 @@ class FittingCalib(CalcamGUIWindow):
             self.pixel_size_box.setEnabled(False)
             self.calibration.pixel_size = None
 
-        self.update_fit_results()
+        self.update_fit_results(force_show_reprojected=False)
         self.unsaved_changes = True
 
 

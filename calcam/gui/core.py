@@ -724,7 +724,7 @@ class CalcamGUIWindow(qt.QMainWindow):
             self.camera_3d.SetFocalPoint((self.tarX.value(),self.tarY.value(),self.tarZ.value()))
             if self.fov_enabled:
                 self.interactor3d.set_fov(self.camFOV.value())
-            self.interactor3d.set_roll(-self.cam_roll.value())
+            self.interactor3d.set_roll(self.cam_roll.value())
         
         self.interactor3d.update_cursor_style()
         self.interactor3d.update_clipping()
@@ -1033,7 +1033,7 @@ class CalcamGUIWindow(qt.QMainWindow):
             fov_min = 0.01
             decimals = 2
 
-        roll = -self.interactor3d.cam_roll
+        roll = self.interactor3d.cam_roll
 
         self.camX.blockSignals(True)
         self.camY.blockSignals(True)
