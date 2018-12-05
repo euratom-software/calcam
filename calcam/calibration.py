@@ -1574,9 +1574,9 @@ class Calibration():
             campos (sequence)   : 3-element sequence specifying the camera position (X,Y,Z) in metres.
             upvec (sequence)    : 3-element sequence specifying the camera up vector.
             camtar (sequence)   : 3-element sequence specifying a point in 3D space where the camera is pointed to. \
-                                    If both camtar and view_dir are provided, camtar is used.
+                                  If both camtar and view_dir are provided, camtar is used.
             view_dir (sequence) : 3D vector [X,Y,Z] specifying the camera view direction. If both camtar and view_dir \
-                                    are provided, camtar will be used instead.
+                                  are provided, camtar will be used instead.
         '''
 
         if self._type == 'fit':
@@ -1810,7 +1810,44 @@ class Calibration():
             msg = msg + 'Camera roll:                 {:.1f} degrees \n'.format(model.get_cam_roll())
 
         return msg
+        
+        
+    def get_raysect_camera(self,coords='Display'):
+        '''
+        Get a RaySect camera object corresponding to the calibrated camera.
 
+        Parameters:
+            coords (str)	: Either ``Display`` or ``Original`` specifying \
+                              the orientation of the raysect camera.
+        Returns:
+            raysect.optical.observer.imaging.VectorCamera : RaySect camera object.
+        '''    	
+        try:
+            from raysect.optical.observer.imaging import VectorCamera
+            from raysect.core.math.point import Point3D
+            from raysect.core.math.vector import Vector3D
+        except Exception as e:
+            raise Exception('Could not import RaySect classes: {:}'.format(e))
+    	
+
+        if coords.lower() == 'display':
+            x,y = np.meshgrid(np.arange(self.geometry.get_original_shape()[0]),np.arange(self.geometry.get_original_shape()[1]))    	
+        elif coords.lower() == 'original':
+            x,y = np.meshgrid(np.arange(self.geometry.get_original_shape()[0]),np.arange(self.geometry.get_original_shape()[1]))    
+
+        origins = np.ndarray(x.shape,dtype=object)
+        vectors = np.ndarray(x.shape,dtype=object)
+
+        ppos = self.get_pupilpos(x,y,coords=coords)
+        viewdirs = self.get_los_direction(x,y,coords=coords)
+
+        for ix in range(x.shape[1]):
+            for iy in range(x.shape[0]):
+                origins[iy,ix] = Point3D(*ppos[iy,ix,:])
+                vectors[iy,ix] = Vector3D(*viewdirs[iy,ix,:]) 	
+    	
+        return VectorCamera(origins.T,vectors.T)
+        
 
 # The 'fitter' class 
 class Fitter:
@@ -2093,6 +2130,7 @@ class Fitter:
 
     def clear_intrinsics_pointpairs(self):
         del self.pointpairs[1:]
+        
 
 
 
