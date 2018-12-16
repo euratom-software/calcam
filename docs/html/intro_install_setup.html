@@ -169,6 +169,7 @@
 <li class="toctree-l1"><a class="reference internal" href="gui_settings.html">Calcam Settings</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="gui_settings.html#cad-model-definition-settings">CAD Model Definition Settings</a></li>
 <li class="toctree-l2"><a class="reference internal" href="gui_settings.html#image-source-settings">Image Source Settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_settings.html#environment-information">Environment Information</a></li>
 </ul>
 </li>
 </ul>
@@ -325,6 +326,7 @@
 <img alt="Calcam 1.x file converter screenshot" src="_images/file_converter.png" />
 <p>This contains 2 sections: the top section for converting existing calibrations, and the bottom section for converting existing CAD model definitions. When the <span class="guilabel">Convert!</span> button is clicked in the relevant section, the large status bar at the bottom of the window will show the current progress during the conversion. The three text boxes containing path names are used to specify where the Calcam 2 calibration files should be saved to, since in Calcam 2 this can be wherever you want.</p>
 <p>When converting calibrations, if the <span class="guilabel">Try to match with image files based on name</span> checkbox is ticked, the tool will try to match up calibration results with images by looking for Calcam image save files whose name also appears in the name of the calibration result being converted. If such an image is found, the image will be added to the resulting Calcam 2 save file. To disable this auto-matching, un-tick this checkbox, and Calcam 2 calibration results converted from Calcam 1 files will simply not contain any images.</p>
+<p><em>Note:</em> the conversion process does not alter or remove any of the original Calcam 1 data, so if anything goes wrong and you have to, or want to, go back to using Calcam 1.x, the data will still be intact, and it is left to the user to remove the old Calcam 1 data when you feel sufficiently comfortable to do so.</p>
 </div>
 <div class="section" id="api-changes">
 <h3>API Changes<a class="headerlink" href="#api-changes" title="Permalink to this headline">¶</a></h3>

@@ -74,6 +74,9 @@ This contains 2 sections: the top section for converting existing calibrations, 
 
 When converting calibrations, if the :guilabel:`Try to match with image files based on name` checkbox is ticked, the tool will try to match up calibration results with images by looking for Calcam image save files whose name also appears in the name of the calibration result being converted. If such an image is found, the image will be added to the resulting Calcam 2 save file. To disable this auto-matching, un-tick this checkbox, and Calcam 2 calibration results converted from Calcam 1 files will simply not contain any images.
 
+*Note:* the conversion process does not alter or remove any of the original Calcam 1 data, so if anything goes wrong and you have to, or want to, go back to using Calcam 1.x, the data will still be intact, and it is left to the user to remove the old Calcam 1 data when you feel sufficiently comfortable to do so.
+
+
 API Changes
 ~~~~~~~~~~~
 The change from Calcam 1 to Calcam 2 includes several compatibility breaking API changes. The main changes to the API are:
