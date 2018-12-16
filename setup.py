@@ -153,8 +153,6 @@ setup(
       )
 
 
-
-
 # Post-install stuff
 # ---------------------------------------------------------------------------------
 if len(sys.argv) > 1 and 'install' in sys.argv or 'develop' in sys.argv:

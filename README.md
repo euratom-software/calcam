@@ -10,7 +10,6 @@ Calcam provides a set of GUI tools for doing the calibration of cameras and some
 Documentation
 --------------
 The full calcam documentation can be found at: https://euratom-software.github.io/calcam/
-
 or in the docs/ directory in this repository.
 
 For authorship information see AUTHORS.txt, and for details of how to cite the code in academic publications see CITE.txt.
