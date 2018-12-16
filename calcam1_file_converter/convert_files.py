@@ -21,10 +21,7 @@
 
 '''
 Converts Calcam 1 files to equivalent Calcam 2 versions.
-
-Work in progress.
 '''
-
 
 
 import sys
@@ -411,13 +408,20 @@ class MigrationToolWindow(qt.QMainWindow):
 
         self.app = app
 
-        n_calibs = len( [name for name in os.listdir(os.path.join(calcam1_root,'FitResults')) if name.endswith('.pickle')] )
-        n_virtual_calibs = len( [name for name in os.listdir(os.path.join(calcam1_root,'VirtualCameras')) if name.endswith('.pickle')] )
+        try:
+            n_calibs = len( [name for name in os.listdir(os.path.join(calcam1_root,'FitResults')) if name.endswith('.pickle')] )
+            n_virtual_calibs = len( [name for name in os.listdir(os.path.join(calcam1_root,'VirtualCameras')) if name.endswith('.pickle')] )
+        except:
+            n_calibs = 0
+            n_virtual_calibs = 0
 
         self.calib_count = n_calibs + n_virtual_calibs
 
-        self.n_cadmodels = len( [name for name in os.listdir(os.path.join(calcam1_root,'UserCode','machine_geometry')) if name.endswith('.py') and 'Example' not in name] )
-
+        try:
+            self.n_cadmodels = len( [name for name in os.listdir(os.path.join(calcam1_root,'UserCode','machine_geometry')) if name.endswith('.py') and 'Example' not in name] )
+        except:
+            self.n_cadmodels = 0
+            
         if self.n_cadmodels == 0 and self.calib_count == 0:
             print('Did not find any Calcam 1.x files to convert. Exiting.')
             sys.exit()

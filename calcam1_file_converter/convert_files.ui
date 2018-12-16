@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>513</width>
-    <height>606</height>
+    <width>449</width>
+    <height>441</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -27,7 +27,7 @@
     <property name="bottomMargin">
      <number>12</number>
     </property>
-    <item row="6" column="0">
+    <item row="5" column="0">
      <spacer name="verticalSpacer">
       <property name="orientation">
        <enum>Qt::Vertical</enum>
@@ -50,53 +50,26 @@
       </property>
      </widget>
     </item>
-    <item row="3" column="0">
-     <widget class="QGroupBox" name="cad_groupbox">
+    <item row="4" column="0">
+     <widget class="QGroupBox" name="groupBox_3">
       <property name="title">
-       <string>CAD Model Definitions</string>
+       <string>Progress</string>
       </property>
-      <layout class="QGridLayout" name="gridLayout_3">
-       <item row="3" column="1" colspan="3">
-        <widget class="QPushButton" name="cad_convert_button">
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QLabel" name="progresstext">
          <property name="text">
-          <string>Convert!</string>
+          <string>Idle.</string>
          </property>
         </widget>
        </item>
-       <item row="0" column="1" colspan="3">
-        <widget class="QLabel" name="cad_info">
-         <property name="text">
-          <string>TextLabel</string>
+       <item>
+        <widget class="QProgressBar" name="progressbar">
+         <property name="value">
+          <number>0</number>
          </property>
-         <property name="wordWrap">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="3">
-        <widget class="QPushButton" name="cad_output_browse">
-         <property name="text">
-          <string>Browse...</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="2">
-        <widget class="QLineEdit" name="cad_output_dir"/>
-       </item>
-       <item row="1" column="1">
-        <widget class="QLabel" name="label_7">
-         <property name="text">
-          <string>Output location:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="2" colspan="2">
-        <widget class="QCheckBox" name="add_cadpath">
-         <property name="text">
-          <string>Add to calcam model search path if not already.</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
+         <property name="textVisible">
+          <bool>false</bool>
          </property>
         </widget>
        </item>
@@ -173,44 +146,58 @@
       </layout>
      </widget>
     </item>
-    <item row="5" column="0">
-     <widget class="QGroupBox" name="groupBox_3">
+    <item row="3" column="0">
+     <widget class="QGroupBox" name="cad_groupbox">
       <property name="title">
-       <string>Progress</string>
+       <string>CAD Model Definitions</string>
       </property>
-      <layout class="QVBoxLayout" name="verticalLayout">
-       <item>
-        <widget class="QLabel" name="progresstext">
+      <layout class="QGridLayout" name="gridLayout_3">
+       <item row="3" column="1" colspan="3">
+        <widget class="QPushButton" name="cad_convert_button">
          <property name="text">
-          <string>Idle.</string>
+          <string>Convert!</string>
          </property>
         </widget>
        </item>
-       <item>
-        <widget class="QProgressBar" name="progressbar">
-         <property name="value">
-          <number>0</number>
+       <item row="0" column="1" colspan="3">
+        <widget class="QLabel" name="cad_info">
+         <property name="text">
+          <string>TextLabel</string>
          </property>
-         <property name="textVisible">
-          <bool>false</bool>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="3">
+        <widget class="QPushButton" name="cad_output_browse">
+         <property name="text">
+          <string>Browse...</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="2">
+        <widget class="QLineEdit" name="cad_output_dir"/>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLabel" name="label_7">
+         <property name="text">
+          <string>Output location:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="2" colspan="2">
+        <widget class="QCheckBox" name="add_cadpath">
+         <property name="text">
+          <string>Add to calcam model search path if not already.</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
       </layout>
      </widget>
-    </item>
-    <item row="4" column="0">
-     <spacer name="verticalSpacer_2">
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>20</width>
-        <height>40</height>
-       </size>
-      </property>
-     </spacer>
     </item>
    </layout>
   </widget>
