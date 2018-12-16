@@ -141,13 +141,13 @@ if 'install' in sys.argv or 'develop' in sys.argv:
 # Actually do the install
 setup(
       name='Calcam',
-      version='2.0.0rc2',
+      version='2.0.0',
       url='https://euratom-software.github.io/calcam/',
       license='European Union Public License 1.1',
       author='Scott Silburn et.al.',
       install_requires=['numpy','scipy'],
       packages=find_packages(),
-      package_data={'calcam':['gui/*.ui','gui/*.png','image_sources/*.py']},
+      package_data={'calcam':['gui/icons/*','gui/qt_designer_files/*.ui','gui/logo.png','builtin_image_sources/*.py']},
       entry_points={ 'gui_scripts': [ 'calcam = calcam:start_gui'] },
       zip_safe=False
       )
