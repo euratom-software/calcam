@@ -48,4 +48,4 @@ where :math:`r = \sqrt{x_n^2 + y_n^2}` and :math:`\theta = \tan^{-1}(r)`.
 
 Underlying OpenCV Documentation
 --------------------------------
-Calcam does not implement the above camera models within its own code; under the hood it uses the OpenCV camera calibration functions. It may therefore be helpful to also refer to the OpenCV camera calibration documentation, which can be found `here <https://docs.opencv.org/>`_.
+Calcam does not implement the above camera models within its own code; under the hood it uses the OpenCV camera calibration functions. It may therefore be helpful to also refer to the OpenCV camera calibration documentation, which can be found on the `OpenCV webpages <https://opencv.org/>`_.

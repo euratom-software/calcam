@@ -267,14 +267,19 @@ class Viewer(CalcamGUIWindow):
     def on_change_cad_features(self):
         
         for key,item in self.sightlines:
+
             recheck = False
+            self.colourcycle.queue_colour(item[1].GetProperty().GetColor())
+
             if key.checkState() == qt.Qt.Checked:
                 recheck = True
                 key.setCheckState(qt.Qt.Unchecked)
-                self.colourcycle.queue_colour(item[1].GetProperty().GetColor())
+
             item[1] = None
             if recheck:
                 key.setCheckState(qt.Qt.Checked)
+
+        self.update_selected_sightlines()
 
  
     def toggle_wireframe(self,wireframe):
@@ -336,25 +341,30 @@ class Viewer(CalcamGUIWindow):
 
     def update_selected_sightlines(self):
 
+        self.sightlines_settings_box.setEnabled(False)
+
         if len(self.sightlines_list.selectedItems()) > 0:
 
-            self.sightlines_settings_box.setEnabled(True)
-            first_sightlines = self.sightlines[self.sightlines_list.selectedItems()[0]]
+            for sightlines in self.sightlines_list.selectedItems():
 
-            self.sightline_type_volume.blockSignals(True)
-            if first_sightlines[2] == 'volume':
-                self.sightline_type_volume.setChecked(True)
-            else:
-                self.sightline_type_lines.setChecked(True)
-            self.sightline_type_volume.blockSignals(False)
+                if self.sightlines[sightlines][1] is not None:
 
-            self.sightline_opacity_slider.blockSignals(True)
-            self.sightline_opacity_slider.setValue(100*np.log(first_sightlines[1].GetProperty().GetOpacity()*100.)/np.log(100))
+                    self.sightlines_settings_box.setEnabled(True)
 
-            self.sightline_opacity_slider.blockSignals(False)
+                    self.sightline_type_volume.blockSignals(True)
+                    if self.sightlines[sightlines][2] == 'volume':
+                        self.sightline_type_volume.setChecked(True)
+                    else:
+                        self.sightline_type_lines.setChecked(True)
+                    self.sightline_type_volume.blockSignals(False)
 
-        else:
-            self.sightlines_settings_box.setEnabled(False)
+                    self.sightline_opacity_slider.blockSignals(True)
+                    self.sightline_opacity_slider.setValue(100*np.log(self.sightlines[sightlines][1].GetProperty().GetOpacity()*100.)/np.log(100))
+
+                    self.sightline_opacity_slider.blockSignals(False)
+
+                    break
+            
 
 
     def update_contour(self):
@@ -591,6 +601,8 @@ class Viewer(CalcamGUIWindow):
                 else:
 
                     self.interactor3d.add_extra_actor(self.sightlines[data][1])
+
+                self.update_selected_sightlines()
 
             else:
                 self.interactor3d.remove_extra_actor(self.sightlines[data][1])

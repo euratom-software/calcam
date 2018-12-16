@@ -1,0 +1,408 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>“Virtual” Calibrations &mdash; Calcam  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="Calcam  documentation" href="index.html"/>
+        <link rel="next" title="Image Analyser" href="gui_image_analyser.html"/>
+        <link rel="prev" title="Calibration by manual alignment" href="gui_alignment_calib.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html">
+          
+
+          
+            
+            <img src="_static/logo.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                Version 2.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="intro_general.html">Genral Introduction to Calcam</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro_theory.html">Camera Calibration Theory</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="intro_theory.html#camera-model">Camera Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intro_theory.html#perspective-distortion-model">Perspective Distortion Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intro_theory.html#fisheye-distirtion-model">Fisheye Distirtion Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intro_theory.html#underlying-opencv-documentation">Underlying OpenCV Documentation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="intro_install_setup.html">Installation &amp; Setup</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="intro_install_setup.html#dependencies">Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intro_install_setup.html#download-installation">Download &amp; Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intro_install_setup.html#cad-models-and-image-sources">CAD Models and Image Sources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intro_install_setup.html#upgrading-from-calcam-1-x">Upgrading from Calcam 1.x</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="intro_conventions.html">Concepts &amp; Conventions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="intro_conventions.html#image-pixel-coordinates">Image Pixel Coordinates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intro_conventions.html#sub-views">Sub-views</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intro_conventions.html#cad-models">CAD Models</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">GUI App User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="gui_intro.html">Calcam GUI tools and launcher</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gui_intro.html#starting-the-launcher">Starting the launcher</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gui_calib.html">Calibration by point fitting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#loading-an-image-to-calibrate">Loading an Image to Calibrate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#image-mouse-navigation">Image Mouse Navigation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#current-image-settings">Current Image Settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#loading-and-manipulating-a-cad-model">Loading and manipulating a CAD model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#defining-calibration-points">Defining Calibration Points</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#fitting-the-camera-model">Fitting the camera model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#saving-loading-and-viewing-calibration-information">Saving / Loading and viewing calibration information</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gui_alignment_calib.html">Calibration by manual alignment</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gui_alignment_calib.html#loading-an-image-to-calibrate">Loading an Image to Calibrate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_alignment_calib.html#current-image-settings">Current Image Settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_alignment_calib.html#loading-a-cad-model">Loading a CAD model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_alignment_calib.html#performing-the-alignment-calibration">Performing the alignment calibration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_alignment_calib.html#saving-loading-and-viewing-calibration-information">Saving / Loading and viewing calibration information</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">&#8220;Virtual&#8221; Calibrations</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#loading-a-cad-model">Loading a CAD model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#creating-the-virtual-calibration">Creating the Virtual Calibration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#saving-loading-and-viewing-calibration-information">Saving / Loading and viewing calibration information</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gui_image_analyser.html">Image Analyser</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gui_image_analyser.html#loading-an-image-to-analyse">Loading an image to analyse</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_image_analyser.html#loading-a-calibration">Loading a Calibration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_image_analyser.html#loading-a-cad-model">Loading a CAD model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_image_analyser.html#performing-position-analysis">Performing Position Analysis</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gui_viewer.html">3D Viewer</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#loading-a-cad-model">Loading a CAD model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#turning-cad-model-parts-on-off">Turning CAD model parts On/Off</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#cad-model-appearance-settings">CAD model appearance settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#wall-contour-display">Wall contour display</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#mouse-navigation">Mouse Navigation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#d-viewport-tab">3D ViewPort Tab</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#visualising-camera-fields-of-view">Visualising camera fields of view</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#displaying-arbitrary-3d-lines">Displaying Arbitrary 3D Lines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#rendering-and-saving-images">Rendering and saving images</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gui_settings.html">Calcam Settings</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gui_settings.html#cad-model-definition-settings">CAD Model Definition Settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_settings.html#image-source-settings">Image Source Settings</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">API User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api_analysis.html">Using Calibration Results</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api_analysis.html#the-calibration-class">The Calibration Class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_analysis.html#rendering-images">Rendering images</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_analysis.html#ray-casting">Ray casting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api_cadmodel.html">CAD Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_examples.html">Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api_examples.html#mapping-a-magnetic-field-line-on-ot-an-image">Mapping a magnetic field line on ot an image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_examples.html#showing-an-efit-contour-on-an-image">Showing an EFIT contour on an image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_examples.html#rendering-camera-view-wireframe">Rendering camera view wireframe</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_examples.html#finding-where-sight-lines-intersect-the-cad-model">Finding where sight-lines intersect the CAD model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_examples.html#synthetic-images-with-raysect">Synthetic Images with RaySect</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">Developer Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="dev_imsources.html">Image Sources</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="dev_imsources.html#return-format-of-image-loading-function">Return format of image loading function</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev_imsources.html#structure-of-get-image-arguments">Structure of get_image_arguments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev_imsources.html#example">Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev_imsources.html#adding-to-calcam">Adding to Calcam</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dev_coord_formatter.html">3D Coordinate Formatters</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="dev_coord_formatter.html#example">Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev_coord_formatter.html#adding-to-a-cad-model">Adding to a CAD model</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Calcam</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>&#8220;Virtual&#8221; Calibrations</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="virtual-calibrations">
+<h1>&#8220;Virtual&#8221; Calibrations<a class="headerlink" href="#virtual-calibrations" title="Permalink to this headline">¶</a></h1>
+<p>For design and development of new camera-based diagnostics, it can be desirable to have a calibration for a camera which does not yet exist in reality. These calibrations can be used exactly as any other calibration, so can be used, for example, to forward model images from new diagnostic, visualise the expected field of view, or find the optimal positioning and pointing for a new camera system.</p>
+<p>The virtual calibration tool in Calcam can be used for creating such &#8220;virtual&#8221; camera calibrations. It works very similarly to the manual calibration tool, except that there is no real camera image against which to calibrate. Currently virtual calibrations are limited to a single <a class="reference internal" href="intro_conventions.html#subviews-intro"><span class="std std-ref">sub-view</span></a>. The virtual calibration tool window is shown below:</p>
+<img alt="Calibration tool screenshot" class="align-left" src="_images/virtual_calib_annotated.png" />
+<div class="section" id="loading-a-cad-model">
+<h2>Loading a CAD model<a class="headerlink" href="#loading-a-cad-model" title="Permalink to this headline">¶</a></h2>
+<p>At the top the <span class="guilabel">Machine Model</span> control tab are controls for loading a CAD model to calibrate against. Two dropdown boxes are provided to select the CAD model to load and the <a class="reference internal" href="intro_conventions.html#cadmodel-intro"><span class="std std-ref">model variant</span></a>. The <span class="guilabel">Load</span> button to the right of the model variant then loads the model. Underneath the model variant dropdown box is a checkbox labeled <cite>Enable default model features on load</cite>: if checked, the default parts of the CAD model are all loaded as soon as the model itself is loaded. If not checked, the model definition will be loaded but none of the 3D mesh data will be loaded, and instead you can turn on features individually. This is useful if working with a large model on a slow computer where you don&#8217;t want to wait for the whole model to load if not needed. You can change to a different CAD model or variant at any time by selecting a different item from the dropdown boxes and clicking <span class="guilabel">Load</span> again.</p>
+<div class="section" id="turning-cad-model-features-on-off">
+<h3>Turning CAD model features On/Off<a class="headerlink" href="#turning-cad-model-features-on-off" title="Permalink to this headline">¶</a></h3>
+<p>For CAD models composed of multiple parts in separate mesh files, individual mesh files can be turned on or off by ticking/unticking them in the <span class="guilabel">Enable / Disable Features</span> panel. This can be done for individual parts, groups of parts (if defined in the CAD model) or the entire model. This can be helpful to improve performance when working with large models if not all parts are necessary for a particular calibration, or for removing parts which are in the way and make the calibration more difficult.</p>
+</div>
+</div>
+<div class="section" id="creating-the-virtual-calibration">
+<h2>Creating the Virtual Calibration<a class="headerlink" href="#creating-the-virtual-calibration" title="Permalink to this headline">¶</a></h2>
+<p>Creating a virtual calibration consists of definining both the camera intrinsic and extrinsic parameters, both of which are set using the <span class="guilabel">Virtual Calibration</span> control tab. The sections below detail how to set each.</p>
+<div class="section" id="camera-intrinsics">
+<h3>Camera Intrinsics<a class="headerlink" href="#camera-intrinsics" title="Permalink to this headline">¶</a></h3>
+<p>The camera intrinsics are set using the top part of the <span class="guilabel">Virtual Calibration</span> control tab. Camera intrinsics can be set 3 different ways: using intrinsics from an existing calibration (e.g. to represent an existing camera &amp; lens setup moved to a new view), using chessboard calibration pattern images from lab measurements, or using an idealised pinhole camera model.</p>
+<div class="section" id="existing-calibration-intrinsics">
+<h4>Existing Calibration Intrinsics<a class="headerlink" href="#existing-calibration-intrinsics" title="Permalink to this headline">¶</a></h4>
+<p>To use intrinsics from an existing Calcam calibration, select <span class="guilabel">Use intrinsics from existing calibration</span> and browse for the calibration you want to use. The loaded calibration can be changed using the <span class="guilabel">Load...</span> button.</p>
+</div>
+<div class="section" id="chessboard-calibration-intrinsics">
+<h4>Chessboard Calibration Intrinsics<a class="headerlink" href="#chessboard-calibration-intrinsics" title="Permalink to this headline">¶</a></h4>
+<p>To prepare chessboard images: make a flat chessboard target with known square size (there are various printable PDFs available by searching online). Then take a number of images with this chessboard target in front of the camera at a variety of positions, orientations and distances to the camera. The example below shows thumbnails of a set of chessboard calibration images:</p>
+<img alt="Chessboard image example thumbnails" class="align-left" src="_images/chessboard_example.png" />
+<p>To use the chessboard images to define the camera intrinsics, select <span class="guilabel">Calibrate from chessboard images</span>. The first time this option is selected it will open the following window:</p>
+<img alt="Chessboard dialog screenshot" class="align-left" src="_images/chessboard_intrinsics_dialog.png" />
+<p>Chessboard loading consists of 4 steps, done in order by working down the right hand side of this window. First, browse for and select all of the chessboard images to use. Then, enter the details of the chessboard pattern: number of squares and square size. Next, select the <span class="guilabel">Detect Chessboard Corners</span> button to run an automatic detection of the boundaries between the chessboard squares. If the automatic detection fails on some images, a dialog box will open telling you which images the detection failed for, and that those cannot be used. If all images fail, check that the number of squares input is correct. Once the corner detection has been completed, cursors will be added to the image displayed on the left hand side of the window. You can pan and zoom to inspect the cursor positions using the usual image mouse controls, and look at different images using the <span class="guilabel">&lt;&lt;</span> and <span class="guilabel">&gt;&gt;</span> buttons above the image. Finally, select whether to use the perspective distortion model or fisheye distortion model. To complete loading of the images and use these to define the camera intrinsics constraints, click <span class="guilabel">Apply</span>.</p>
+</div>
+<div class="section" id="pinhole-intrinsics">
+<h4>Pinhole Intrinsics<a class="headerlink" href="#pinhole-intrinsics" title="Permalink to this headline">¶</a></h4>
+<p>If not using intrinsics from an existing camera system, an idealised pinhole camera model can be used. In this case, the detector size and focal length are user-specified, and the model assumes no distortion and that the centre of perspective is at the detector centre. To use this model, select <span class="guilabel">Use ideal pinhole camera model</span> in the <span class="guilabel">Camera Intrinsics</span> box. There are then boxes to enter the physical pixel size, number of detector pixels and focal length of the virtual camera.</p>
+</div>
+</div>
+<div class="section" id="camera-extrinsics">
+<h3>Camera Extrinsics<a class="headerlink" href="#camera-extrinsics" title="Permalink to this headline">¶</a></h3>
+<p>The camera extrinsics are set by the current CAD model view shown in the window, and can be set by manually adjusting the CAD view with the mouse, and / or manually entering numerical values.</p>
+<div class="section" id="starting-from-an-existing-view">
+<h4>Starting from an existing view<a class="headerlink" href="#starting-from-an-existing-view" title="Permalink to this headline">¶</a></h4>
+<p>It can be convenient to start from a view either defined in the CAD model definition or from another Calcam calibration. In the <span class="guilabel">Camera Positioning</span> box, the list of views defined in the CAD model are displayed, and clicking on one of these will immediately set the camera position and orientation to match that view. The field of view from the preset view will not be set, since this is determined by the camera intrinsics which are set separately. To use the extrinsics from an existing Calcam calibration, click the <span class="guilabel">Load...</span> button underneath the view list to choose a calibration file to load. This will set the camera extrinsics to match the loaded calibration, and add that calibration to the list view box so it can be returned to easily.</p>
+</div>
+<div class="section" id="mouse-controls">
+<h4>Mouse Controls<a class="headerlink" href="#mouse-controls" title="Permalink to this headline">¶</a></h4>
+<ul class="simple">
+<li><code class="kbd docutils literal"><span class="pre">Right</span> <span class="pre">Click</span> <span class="pre">+</span> <span class="pre">Drag</span></code> - Look around (first-person shooter style control; default) or rotate CAD model depending on settings</li>
+<li><code class="kbd docutils literal"><span class="pre">Middle</span> <span class="pre">Click</span> <span class="pre">+</span> <span class="pre">Drag</span></code> - Pan (translate) sideways i.e. in the plane of the monitor.</li>
+<li><code class="kbd docutils literal"><span class="pre">Scroll</span> <span class="pre">Wheel</span></code> - Move forwards or backwards.</li>
+<li><code class="kbd docutils literal"><span class="pre">Ctrl</span> <span class="pre">+</span> <span class="pre">Right</span> <span class="pre">Click</span> <span class="pre">+</span> <span class="pre">Drag</span></code> - Roll the camera (rotate about the direction of view)</li>
+</ul>
+<p>For finer control, the mouse movement sensitivity can be adjusted using the slider in the <span class="guilabel">Mouse Control Settings</span> box at the bottom of the control tab.</p>
+</div>
+<div class="section" id="manual-entry">
+<h4>Manual Entry<a class="headerlink" href="#manual-entry" title="Permalink to this headline">¶</a></h4>
+<p>If the desired virtual camera position and view direction are already known, these can be entered in the boxes at the bottom of the <span class="guilabel">Camera Positioning</span> box.</p>
+</div>
+</div>
+</div>
+<div class="section" id="saving-loading-and-viewing-calibration-information">
+<h2>Saving / Loading and viewing calibration information<a class="headerlink" href="#saving-loading-and-viewing-calibration-information" title="Permalink to this headline">¶</a></h2>
+<p>When done setting up the camera intrinsics and extrinsics, the calibration can be saved to a Calcam calibration (<code class="docutils literal"><span class="pre">.ccc</span></code>) file using the <span class="guilabel">Save</span> / <span class="guilabel">Save As</span> buttons on the toolbar at the top of the window. The resulting file can then be loaded using the Calcam <a class="reference internal" href="api_analysis.html"><span class="doc">Python API</span></a> to make use of the calibration. As with any computer application, it is advised to save your work regularly in case of computer crash or user error. Note: whenever the save button is clicked, the camera extrinsics in the saved calibration will be whatever the current CAD view alignment show.</p>
+<p>Existing virtual calibrations can be loaded using the <span class="guilabel">Open</span> button in the toolbar at the top of the window. This will load the extrinsics and intrinsics from the saved calibration. If the CAD model which was last used for thet calibration is available, it will also load and set up the CAD model as it was the last time that file was edited.</p>
+<p>Information about the current calibration can be viewed using the <span class="guilabel">Calibration Information</span> button on the toolbar.</p>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="gui_image_analyser.html" class="btn btn-neutral float-right" title="Image Analyser" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="gui_alignment_calib.html" class="btn btn-neutral" title="Calibration by manual alignment" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015-2018, European Atomic Energy Community (EURATOM).
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  false,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

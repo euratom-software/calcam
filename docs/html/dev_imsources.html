@@ -1,0 +1,739 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Image Sources &mdash; Calcam  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="Calcam  documentation" href="index.html"/>
+        <link rel="next" title="3D Coordinate Formatters" href="dev_coord_formatter.html"/>
+        <link rel="prev" title="Examples" href="api_examples.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html">
+          
+
+          
+            
+            <img src="_static/logo.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                Version 2.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="intro_general.html">Genral Introduction to Calcam</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro_theory.html">Camera Calibration Theory</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="intro_theory.html#camera-model">Camera Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intro_theory.html#perspective-distortion-model">Perspective Distortion Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intro_theory.html#fisheye-distirtion-model">Fisheye Distirtion Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intro_theory.html#underlying-opencv-documentation">Underlying OpenCV Documentation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="intro_install_setup.html">Installation &amp; Setup</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="intro_install_setup.html#dependencies">Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intro_install_setup.html#download-installation">Download &amp; Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intro_install_setup.html#cad-models-and-image-sources">CAD Models and Image Sources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intro_install_setup.html#upgrading-from-calcam-1-x">Upgrading from Calcam 1.x</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="intro_conventions.html">Concepts &amp; Conventions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="intro_conventions.html#image-pixel-coordinates">Image Pixel Coordinates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intro_conventions.html#sub-views">Sub-views</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intro_conventions.html#cad-models">CAD Models</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">GUI App User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="gui_intro.html">Calcam GUI tools and launcher</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gui_intro.html#starting-the-launcher">Starting the launcher</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gui_calib.html">Calibration by point fitting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#loading-an-image-to-calibrate">Loading an Image to Calibrate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#image-mouse-navigation">Image Mouse Navigation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#current-image-settings">Current Image Settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#loading-and-manipulating-a-cad-model">Loading and manipulating a CAD model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#defining-calibration-points">Defining Calibration Points</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#fitting-the-camera-model">Fitting the camera model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#saving-loading-and-viewing-calibration-information">Saving / Loading and viewing calibration information</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gui_alignment_calib.html">Calibration by manual alignment</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gui_alignment_calib.html#loading-an-image-to-calibrate">Loading an Image to Calibrate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_alignment_calib.html#current-image-settings">Current Image Settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_alignment_calib.html#loading-a-cad-model">Loading a CAD model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_alignment_calib.html#performing-the-alignment-calibration">Performing the alignment calibration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_alignment_calib.html#saving-loading-and-viewing-calibration-information">Saving / Loading and viewing calibration information</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gui_virtual_calib.html">&#8220;Virtual&#8221; Calibrations</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gui_virtual_calib.html#loading-a-cad-model">Loading a CAD model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_virtual_calib.html#creating-the-virtual-calibration">Creating the Virtual Calibration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_virtual_calib.html#saving-loading-and-viewing-calibration-information">Saving / Loading and viewing calibration information</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gui_image_analyser.html">Image Analyser</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gui_image_analyser.html#loading-an-image-to-analyse">Loading an image to analyse</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_image_analyser.html#loading-a-calibration">Loading a Calibration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_image_analyser.html#loading-a-cad-model">Loading a CAD model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_image_analyser.html#performing-position-analysis">Performing Position Analysis</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gui_viewer.html">3D Viewer</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#loading-a-cad-model">Loading a CAD model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#turning-cad-model-parts-on-off">Turning CAD model parts On/Off</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#cad-model-appearance-settings">CAD model appearance settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#wall-contour-display">Wall contour display</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#mouse-navigation">Mouse Navigation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#d-viewport-tab">3D ViewPort Tab</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#visualising-camera-fields-of-view">Visualising camera fields of view</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#displaying-arbitrary-3d-lines">Displaying Arbitrary 3D Lines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#rendering-and-saving-images">Rendering and saving images</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gui_settings.html">Calcam Settings</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gui_settings.html#cad-model-definition-settings">CAD Model Definition Settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_settings.html#image-source-settings">Image Source Settings</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">API User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api_analysis.html">Using Calibration Results</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api_analysis.html#the-calibration-class">The Calibration Class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_analysis.html#rendering-images">Rendering images</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_analysis.html#ray-casting">Ray casting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api_cadmodel.html">CAD Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_examples.html">Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api_examples.html#mapping-a-magnetic-field-line-on-ot-an-image">Mapping a magnetic field line on ot an image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_examples.html#showing-an-efit-contour-on-an-image">Showing an EFIT contour on an image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_examples.html#rendering-camera-view-wireframe">Rendering camera view wireframe</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_examples.html#finding-where-sight-lines-intersect-the-cad-model">Finding where sight-lines intersect the CAD model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_examples.html#synthetic-images-with-raysect">Synthetic Images with RaySect</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">Developer Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Image Sources</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#return-format-of-image-loading-function">Return format of image loading function</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#structure-of-get-image-arguments">Structure of get_image_arguments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#example">Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#adding-to-calcam">Adding to Calcam</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dev_coord_formatter.html">3D Coordinate Formatters</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="dev_coord_formatter.html#example">Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev_coord_formatter.html#adding-to-a-cad-model">Adding to a CAD model</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Calcam</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Image Sources</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="image-sources">
+<h1>Image Sources<a class="headerlink" href="#image-sources" title="Permalink to this headline">¶</a></h1>
+<p>Custom image soruces are a way to plug in custon code for loading images to Calcam, and having it integrate nicely in to the Calcam GUI. A custom image source takes the form of a python module or package. The module or package is required to have the following attributes at its top level:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">get_image_function</span></code> : A function, or referece to a function, which actually loads the image data.</li>
+<li><code class="docutils literal"><span class="pre">display_name</span></code> : A string specifying a user-friendly name for the image source. This will be used to denote the image source in the Calcam GUI.</li>
+<li><code class="docutils literal"><span class="pre">get_image_arguments</span></code> : A list of dictionaries documenting the required inputs to the image loading function.</li>
+</ul>
+<div class="section" id="return-format-of-image-loading-function">
+<h2>Return format of image loading function<a class="headerlink" href="#return-format-of-image-loading-function" title="Permalink to this headline">¶</a></h2>
+<p>The return type of the image loading dunction must be a Python dictionary. The following keys are mandatory:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="17%" />
+<col width="19%" />
+<col width="64%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Key</th>
+<th class="head">Data Type</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>image_data</td>
+<td>NumPy ndarray</td>
+<td>Array containing the image data.</td>
+</tr>
+<tr class="row-odd"><td>source</td>
+<td>String</td>
+<td>Description of where the image was loaded from.</td>
+</tr>
+</tbody>
+</table>
+<p>The dictionary can also contain the following optional image metadata:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="20%" />
+<col width="19%" />
+<col width="62%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Key</th>
+<th class="head">Data Type</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>subview_mask</td>
+<td>NumPy ndarray</td>
+<td><div class="first last line-block">
+<div class="line">For images with multiple sub-views: array of</div>
+<div class="line">integers the same shape as the image</div>
+<div class="line">specifying which sub-view each image pixel belongs to.</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td>subview_names</td>
+<td>List of strings</td>
+<td><div class="first last line-block">
+<div class="line">For images with multiple sub-views: list of</div>
+<div class="line">strings containing user-friendly names for each sub-view</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td>transform_actions</td>
+<td>List of strings</td>
+<td><div class="first last line-block">
+<div class="line">List of strings specifying the geometrical transforms</div>
+<div class="line">required to convert the image from original to display</div>
+<div class="line">coordinates. Actions are performed from the beginning</div>
+<div class="line">to the end of the list. Valid actions are:</div>
+<div class="line">flip_up_down</div>
+<div class="line">flip_left_right</div>
+<div class="line">rotate_clockwise_90</div>
+<div class="line">rotate_clockwise_180</div>
+<div class="line">rotate_clockwise_270</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td>pixel_size</td>
+<td>float</td>
+<td><div class="first last line-block">
+<div class="line">Physical height of the camera pixels, in metres</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td>coords</td>
+<td>String</td>
+<td><div class="first last line-block">
+<div class="line">Either Display or Original: whether the image is</div>
+<div class="line">being returned in display or original orientation.</div>
+<div class="line">If not provided, Display is assumed.</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td>pixel_aspect</td>
+<td>float</td>
+<td><div class="first last line-block">
+<div class="line">For cameras with non-square pixels, the pixel</div>
+<div class="line">aspect ratio defined as pixel height/pixel width.</div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="structure-of-get-image-arguments">
+<h2>Structure of get_image_arguments<a class="headerlink" href="#structure-of-get-image-arguments" title="Permalink to this headline">¶</a></h2>
+<p>The top-level module attribute <code class="docutils literal"><span class="pre">get_image_arguments</span></code> must be a list of dictionaries describing the required input parameters to the image loading function. Each dictionary in the list corresponds to one input arguument. All argument dictionaries must contain the following keys:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="10%" />
+<col width="10%" />
+<col width="80%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Key</th>
+<th class="head">Data Type</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>arg_name</td>
+<td>String</td>
+<td>Name of the argument as written in the function definition.</td>
+</tr>
+<tr class="row-odd"><td>gui_label</td>
+<td>String</td>
+<td>User-friendly argument name which will be displayed in the GUI.</td>
+</tr>
+<tr class="row-even"><td>type</td>
+<td>String</td>
+<td>String specifying the type of input argument. See description below.</td>
+</tr>
+</tbody>
+</table>
+<p>Additional keys are required depending on the type of variable.</p>
+<div class="section" id="input-argument-type-filename">
+<h3>Input argument type: filename<a class="headerlink" href="#input-argument-type-filename" title="Permalink to this headline">¶</a></h3>
+<p>If the inpit variable type is <code class="docutils literal"><span class="pre">filename</span></code>, the user will be presented with a text box and &#8220;Browse...&#8221; button to browse for the file. Additional keys in the dictionary describing the parameter are:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="11%" />
+<col width="10%" />
+<col width="79%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Key</th>
+<th class="head">Data Type</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><strong>filter</strong></td>
+<td>String</td>
+<td><div class="first last line-block">
+<div class="line">File name filter to be used in the file browsing window.</div>
+<div class="line">Format: &#8220;File type description (*.ext1, *.ext2)&#8221;</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td>default</td>
+<td>String</td>
+<td><div class="first last line-block">
+<div class="line">Default value.</div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="input-argument-type-float">
+<h3>Input argument type: float<a class="headerlink" href="#input-argument-type-float" title="Permalink to this headline">¶</a></h3>
+<p>If the inpit variable type is <code class="docutils literal"><span class="pre">float</span></code>, the user will be presented with a box in which to input the value. Additional keys in the dictionary describing the parameter are:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="10%" />
+<col width="11%" />
+<col width="79%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Key</th>
+<th class="head">Data Type</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>limits</td>
+<td>array-like</td>
+<td><div class="first last line-block">
+<div class="line">2 element array-like specifying the lower and upper limits</div>
+<div class="line">of acceptable values for the argument.</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td>default</td>
+<td>float</td>
+<td><div class="first last line-block">
+<div class="line">Default value.</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td>decimals</td>
+<td>int</td>
+<td><div class="first last line-block">
+<div class="line">Number of decimal places to be shown in the user input box.</div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="input-argument-type-int">
+<h3>Input argument type: int<a class="headerlink" href="#input-argument-type-int" title="Permalink to this headline">¶</a></h3>
+<p>If the inpit variable type is <code class="docutils literal"><span class="pre">int</span></code>, the user will be presented with a box in which to input the value. Additional keys in the dictionary describing the parameter are:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="10%" />
+<col width="11%" />
+<col width="79%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Key</th>
+<th class="head">Data Type</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>limits</td>
+<td>array-like</td>
+<td><div class="first last line-block">
+<div class="line">2 element array-like specifying the lower and upper limits</div>
+<div class="line">of acceptable values for the argument.</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td>default</td>
+<td>int</td>
+<td><div class="first last line-block">
+<div class="line">Default value.</div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="input-argument-type-string">
+<h3>Input argument type: string<a class="headerlink" href="#input-argument-type-string" title="Permalink to this headline">¶</a></h3>
+<p>If the inpit variable type is <code class="docutils literal"><span class="pre">string</span></code>, the user will be presented with a single line box in which which to input the string. Additional keys in the dictionary describing the parameter are:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="10%" />
+<col width="11%" />
+<col width="79%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Key</th>
+<th class="head">Data Type</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>default</td>
+<td>string</td>
+<td><div class="first last line-block">
+<div class="line">Default value.</div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="input-argument-type-bool">
+<h3>Input argument type: bool<a class="headerlink" href="#input-argument-type-bool" title="Permalink to this headline">¶</a></h3>
+<p>If the inpit variable type is <code class="docutils literal"><span class="pre">bool</span></code>, the user will be presented with a checkbox to set the value true or false. Additional keys in the dictionary describing the parameter are:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="10%" />
+<col width="11%" />
+<col width="79%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Key</th>
+<th class="head">Data Type</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>default</td>
+<td>bool</td>
+<td><div class="first last line-block">
+<div class="line">Default value.</div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="input-argument-type-choice">
+<h3>Input argument type: choice<a class="headerlink" href="#input-argument-type-choice" title="Permalink to this headline">¶</a></h3>
+<p>If the inpit variable type is <code class="docutils literal"><span class="pre">choice</span></code>, the user will be presented with a dropdown box from whih they can choose a number of strings. The value passed to the image loading function is whatever string the user selects. Additional keys in the dictionary describing the parameter are:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="12%" />
+<col width="12%" />
+<col width="76%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Key</th>
+<th class="head">Data Type</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><strong>choices</strong></td>
+<td>list of str</td>
+<td><div class="first last line-block">
+<div class="line">List of strings from which the user should choose.</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td>default</td>
+<td>string</td>
+<td><div class="first last line-block">
+<div class="line">Default value.</div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="example">
+<h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
+<p>Below is a minimal example: the build-in Calcam image source for loading images from standard format image files.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">Built-in Calcam image source for loading images from an image file.</span>
+
+<span class="sd">Loads images using OpenCV.</span>
+<span class="sd">&#39;&#39;&#39;</span>
+
+<span class="kn">import</span> <span class="nn">cv2</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="c1"># The function which loads the image</span>
+<span class="k">def</span> <span class="nf">get_image</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+
+    <span class="c1"># Get the image data from a file</span>
+    <span class="n">dat</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">dat</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">UserWarning</span><span class="p">(</span><span class="s1">&#39;Could not read specified image file &quot;&#39;</span> <span class="o">+</span> <span class="n">filename</span> <span class="o">+</span> <span class="s1">&#39;&quot;&#39;</span><span class="p">)</span>
+
+    <span class="c1"># If it&#39;s a colour image, note OpenCV loads images in BGR.</span>
+    <span class="c1"># Here we change the channel order to RGB.</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dat</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+
+        <span class="k">if</span> <span class="n">dat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">dat</span><span class="p">[:,:,:</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">dat</span><span class="p">[:,:,</span><span class="mi">2</span><span class="p">::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+            <span class="c1"># If R, G and B channels are all the same, just return a monochrome image</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">dat</span><span class="p">[:,:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">dat</span><span class="p">[:,:,</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> <span class="ow">and</span> <span class="p">(</span><span class="n">dat</span><span class="p">[:,:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">dat</span><span class="p">[:,:,</span><span class="mi">2</span><span class="p">])</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+                <span class="n">dat</span> <span class="o">=</span> <span class="n">dat</span><span class="p">[:,:,</span><span class="mi">0</span><span class="p">]</span>
+
+
+    <span class="c1"># Minimal return dictionary.</span>
+    <span class="n">return_dict</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s1">&#39;image_data&#39;</span><span class="p">:</span> <span class="n">dat</span><span class="p">,</span>
+                    <span class="s1">&#39;source&#39;</span><span class="p">:</span> <span class="s1">&#39;Loaded from image file {:s}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">filename</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="n">return_dict</span>
+
+
+<span class="c1"># Display name</span>
+<span class="n">display_name</span> <span class="o">=</span> <span class="s1">&#39;Image File&#39;</span>
+
+<span class="c1"># Point calcam to the get_image function</span>
+<span class="n">get_image_function</span> <span class="o">=</span> <span class="n">get_image</span>
+
+<span class="c1"># Description of input parameters to get_image</span>
+<span class="n">get_image_arguments</span> <span class="o">=</span>  <span class="p">[</span>
+                            <span class="p">{</span>
+                            <span class="s1">&#39;arg_name&#39;</span><span class="p">:</span><span class="s1">&#39;filename&#39;</span><span class="p">,</span>
+                            <span class="s1">&#39;gui_label&#39;</span><span class="p">:</span> <span class="s1">&#39;File Name&#39;</span> <span class="p">,</span>
+                            <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;filename&#39;</span> <span class="p">,</span>
+                            <span class="s1">&#39;filter&#39;</span><span class="p">:</span><span class="s1">&#39;Image Files (*.png *.jpg *.jpeg *.bmp *.jp2 *.tiff *.tif)&#39;</span>
+                            <span class="p">},</span>
+                        <span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="adding-to-calcam">
+<h2>Adding to Calcam<a class="headerlink" href="#adding-to-calcam" title="Permalink to this headline">¶</a></h2>
+<p>Once written, custom image sources are added to Calcam using the <a class="reference internal" href="gui_settings.html"><span class="doc">Calcam Settings</span></a> interface.</p>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="dev_coord_formatter.html" class="btn btn-neutral float-right" title="3D Coordinate Formatters" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="api_examples.html" class="btn btn-neutral" title="Examples" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015-2018, European Atomic Energy Community (EURATOM).
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  false,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

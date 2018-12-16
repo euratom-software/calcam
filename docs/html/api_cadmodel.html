@@ -1,0 +1,637 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>CAD Models &mdash; Calcam  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="Calcam  documentation" href="index.html"/>
+        <link rel="next" title="Examples" href="api_examples.html"/>
+        <link rel="prev" title="Using Calibration Results" href="api_analysis.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html">
+          
+
+          
+            
+            <img src="_static/logo.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                Version 2.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="intro_general.html">Genral Introduction to Calcam</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro_theory.html">Camera Calibration Theory</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="intro_theory.html#camera-model">Camera Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intro_theory.html#perspective-distortion-model">Perspective Distortion Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intro_theory.html#fisheye-distirtion-model">Fisheye Distirtion Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intro_theory.html#underlying-opencv-documentation">Underlying OpenCV Documentation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="intro_install_setup.html">Installation &amp; Setup</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="intro_install_setup.html#dependencies">Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intro_install_setup.html#download-installation">Download &amp; Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intro_install_setup.html#cad-models-and-image-sources">CAD Models and Image Sources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intro_install_setup.html#upgrading-from-calcam-1-x">Upgrading from Calcam 1.x</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="intro_conventions.html">Concepts &amp; Conventions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="intro_conventions.html#image-pixel-coordinates">Image Pixel Coordinates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intro_conventions.html#sub-views">Sub-views</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intro_conventions.html#cad-models">CAD Models</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">GUI App User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="gui_intro.html">Calcam GUI tools and launcher</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gui_intro.html#starting-the-launcher">Starting the launcher</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gui_calib.html">Calibration by point fitting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#loading-an-image-to-calibrate">Loading an Image to Calibrate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#image-mouse-navigation">Image Mouse Navigation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#current-image-settings">Current Image Settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#loading-and-manipulating-a-cad-model">Loading and manipulating a CAD model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#defining-calibration-points">Defining Calibration Points</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#fitting-the-camera-model">Fitting the camera model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#saving-loading-and-viewing-calibration-information">Saving / Loading and viewing calibration information</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gui_alignment_calib.html">Calibration by manual alignment</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gui_alignment_calib.html#loading-an-image-to-calibrate">Loading an Image to Calibrate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_alignment_calib.html#current-image-settings">Current Image Settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_alignment_calib.html#loading-a-cad-model">Loading a CAD model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_alignment_calib.html#performing-the-alignment-calibration">Performing the alignment calibration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_alignment_calib.html#saving-loading-and-viewing-calibration-information">Saving / Loading and viewing calibration information</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gui_virtual_calib.html">&#8220;Virtual&#8221; Calibrations</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gui_virtual_calib.html#loading-a-cad-model">Loading a CAD model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_virtual_calib.html#creating-the-virtual-calibration">Creating the Virtual Calibration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_virtual_calib.html#saving-loading-and-viewing-calibration-information">Saving / Loading and viewing calibration information</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gui_image_analyser.html">Image Analyser</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gui_image_analyser.html#loading-an-image-to-analyse">Loading an image to analyse</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_image_analyser.html#loading-a-calibration">Loading a Calibration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_image_analyser.html#loading-a-cad-model">Loading a CAD model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_image_analyser.html#performing-position-analysis">Performing Position Analysis</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gui_viewer.html">3D Viewer</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#loading-a-cad-model">Loading a CAD model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#turning-cad-model-parts-on-off">Turning CAD model parts On/Off</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#cad-model-appearance-settings">CAD model appearance settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#wall-contour-display">Wall contour display</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#mouse-navigation">Mouse Navigation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#d-viewport-tab">3D ViewPort Tab</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#visualising-camera-fields-of-view">Visualising camera fields of view</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#displaying-arbitrary-3d-lines">Displaying Arbitrary 3D Lines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#rendering-and-saving-images">Rendering and saving images</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gui_settings.html">Calcam Settings</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gui_settings.html#cad-model-definition-settings">CAD Model Definition Settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_settings.html#image-source-settings">Image Source Settings</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">API User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="api_analysis.html">Using Calibration Results</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api_analysis.html#the-calibration-class">The Calibration Class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_analysis.html#rendering-images">Rendering images</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_analysis.html#ray-casting">Ray casting</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">CAD Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_examples.html">Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api_examples.html#mapping-a-magnetic-field-line-on-ot-an-image">Mapping a magnetic field line on ot an image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_examples.html#showing-an-efit-contour-on-an-image">Showing an EFIT contour on an image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_examples.html#rendering-camera-view-wireframe">Rendering camera view wireframe</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_examples.html#finding-where-sight-lines-intersect-the-cad-model">Finding where sight-lines intersect the CAD model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_examples.html#synthetic-images-with-raysect">Synthetic Images with RaySect</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">Developer Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="dev_imsources.html">Image Sources</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="dev_imsources.html#return-format-of-image-loading-function">Return format of image loading function</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev_imsources.html#structure-of-get-image-arguments">Structure of get_image_arguments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev_imsources.html#example">Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev_imsources.html#adding-to-calcam">Adding to Calcam</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dev_coord_formatter.html">3D Coordinate Formatters</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="dev_coord_formatter.html#example">Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev_coord_formatter.html#adding-to-a-cad-model">Adding to a CAD model</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Calcam</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>CAD Models</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="cad-models">
+<h1>CAD Models<a class="headerlink" href="#cad-models" title="Permalink to this headline">¶</a></h1>
+<p>Using CAD models programatically, e.g. loading them for rendering images or ray casting, is done with the <a class="reference internal" href="#calcam.CADModel" title="calcam.CADModel"><code class="xref py py-class docutils literal"><span class="pre">calcam.CADModel</span></code></a> class.</p>
+<dl class="class">
+<dt id="calcam.CADModel">
+<em class="property">class </em><code class="descclassname">calcam.</code><code class="descname">CADModel</code><span class="sig-paren">(</span><em>model_name=None</em>, <em>model_variant=None</em>, <em>status_callback=&lt;function print_status&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class for representing a CAD model in Calcam.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>model_name</strong> (<em>str</em>) &#8211; Either the machine name of a CAD model in Calcam&#8217;s model search path,                                   or filename of a .ccm file to load the model from.</li>
+<li><strong>model_variant</strong> (<em>str</em>) &#8211; Name of the model variant to load. If not specified, the default variant                                   specified in the CAD model is loaded.</li>
+<li><strong>status_callback</strong> (<em>func</em>) &#8211; Function to call with status messages. If given, this function is called                                   with a string describing the status. If set to None, no status updates are                                   issued.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="calcam.CADModel.enable_only">
+<code class="descname">enable_only</code><span class="sig-paren">(</span><em>features</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.enable_only" title="Permalink to this definition">¶</a></dt>
+<dd><p>Disable all model parts except those specified.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>features</strong> (<em>list of str</em>) &#8211; List of names of the feature(s) and/or                                      group(s) to have enabled.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="calcam.CADModel.format_coord">
+<code class="descname">format_coord</code><span class="sig-paren">(</span><em>coords</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.format_coord" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a pretty string giving information about a specified 3D position.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>coords</strong> (<em>array-like</em>) &#8211; 3 element array-like specifying a point in 3D                                   as X,Y,Z in metres.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">String containing information about the given point.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="calcam.CADModel.get_colour">
+<code class="descname">get_colour</code><span class="sig-paren">(</span><em>features=None</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.get_colour" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the current colour of part or all of the CAD model.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>features</strong> (<em>list of str</em>) &#8211; List of names of the features to get the colour for.                                       If not specified, all feature colours are returned.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">List of 3 element tuples specifying the colours (R,G,B)                                       of the given features, where R, G and B range from 0 to 1.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">List</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="calcam.CADModel.get_enabled_features">
+<code class="descname">get_enabled_features</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.get_enabled_features" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a list of the currently enabled features.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Names of the currently enabled features.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list of str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="calcam.CADModel.get_extent">
+<code class="descname">get_extent</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.get_extent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the extent of the model in 3D space.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">6 element array specifying the extent of the model in metres:                        [x_min, x_max, y_min, y_max, z_min, z_max]</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">np.array</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="calcam.CADModel.get_feature_list">
+<code class="descname">get_feature_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.get_feature_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a list of the names of all features
+which constitute the model.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">List of feature names.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list of str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="calcam.CADModel.get_group_enable_state">
+<code class="descname">get_group_enable_state</code><span class="sig-paren">(</span><em>group=None</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.get_group_enable_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check the enable status of a named group of features.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>group</strong> (<em>str</em>) &#8211; Name of the group to check. If not given,                           the entire model is taken to be the group.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">0 if no features in the group are anebled;                           1 if some features in the group are enabled;                           2 if all features in the group are enabled.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">int</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="calcam.CADModel.get_linewidth">
+<code class="descname">get_linewidth</code><span class="sig-paren">(</span><em>features=None</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.get_linewidth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the line width used for rendering the model as wireframe.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>features</strong> (<em>list of str</em>) &#8211; List of names of the features to get the line width for.                                       If not specified, all feature line widths are returned.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">List of the line widths.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">list of float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="calcam.CADModel.get_status_callback">
+<code class="descname">get_status_callback</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.get_status_callback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the current callback function</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Current status callback function, if present.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">func or NoneType</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="calcam.CADModel.reset_colour">
+<code class="descname">reset_colour</code><span class="sig-paren">(</span><em>features=None</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.reset_colour" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset the colour of part or all of the CAD model to the default(s).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>features</strong> (<em>list of str</em>) &#8211; List of features for which to reset the colours.                                       If not given, all features will have their colours reset.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="calcam.CADModel.set_colour">
+<code class="descname">set_colour</code><span class="sig-paren">(</span><em>colour</em>, <em>features=None</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.set_colour" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the colour of part or all of the CAD model.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>colour</strong> (<em>tuple</em>) &#8211; 3-element tuple specifying a colour in (R,G,B)                                       where the values are in the range 0 to 1.</li>
+<li><strong>features</strong> (<em>list of str</em>) &#8211; List of names of the features to set this colour.                                       If not specified, applies to the whole model.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="calcam.CADModel.set_features_enabled">
+<code class="descname">set_features_enabled</code><span class="sig-paren">(</span><em>enable</em>, <em>features=None</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.set_features_enabled" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enable or disable parts of the CAD model.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>enable</strong> (<em>bool</em>) &#8211; Whether to set the relevant features                                      as enabeled (True) or disabled (False).</li>
+<li><strong>features</strong> (<em>list of str</em>) &#8211; List of the feature(s) and/or group(s)                                      of features of  to enable or disable.                                      If not specified, applies to all features                                      in the model.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="calcam.CADModel.set_flat_shading">
+<code class="descname">set_flat_shading</code><span class="sig-paren">(</span><em>flat_shading</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.set_flat_shading" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set flat shading (no lighting applied to model rendering)
+enabled or disabled.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>flat_shading</strong> (<em>bool</em>) &#8211; Whether to enable or disable flat shading.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="calcam.CADModel.set_linewidth">
+<code class="descname">set_linewidth</code><span class="sig-paren">(</span><em>linewidth</em>, <em>features=None</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.set_linewidth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the line width used when rendering the CAD model as wireframe.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>linewidth</strong> (<em>float</em>) &#8211; Line width.</li>
+<li><strong>features</strong> (<em>list of str</em>) &#8211; List of names of the features to set the line                                       width for. If not specified, applies to the whole model.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="calcam.CADModel.set_status_callback">
+<code class="descname">set_status_callback</code><span class="sig-paren">(</span><em>status_callback</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.set_status_callback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the status callback function.</p>
+<p>The given function will be called with a string when the CAD model
+object does something, and is called with None when the operatio is
+finished. If set to None, the object will provide no output when it is
+busy doing things.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>status_callback</strong> (<em>fun</em>) &#8211; Status callback function.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="calcam.CADModel.set_wireframe">
+<code class="descname">set_wireframe</code><span class="sig-paren">(</span><em>wireframe</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.set_wireframe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enable or disable rendering the model as wireframe.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>wireframe</strong> (<em>bool</em>) &#8211; Whether to render as wireframe.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="calcam.CADModel.unload">
+<code class="descname">unload</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.unload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unloads the CAD model object.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="api_examples.html" class="btn btn-neutral float-right" title="Examples" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="api_analysis.html" class="btn btn-neutral" title="Using Calibration Results" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015-2018, European Atomic Energy Community (EURATOM).
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  false,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

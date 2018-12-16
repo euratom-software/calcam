@@ -369,7 +369,7 @@
       </widget>
       <widget class="QWidget" name="views_tab">
        <attribute name="title">
-        <string>Viewport</string>
+        <string>3D Viewport</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>

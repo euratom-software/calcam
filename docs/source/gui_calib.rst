@@ -67,7 +67,7 @@ You can interactively navigate around the CAD model using the following mouse co
 - :kbd:`Ctrl + Scroll Wheel` Reduce or increase the CAD field-of-view angle (i.e. Zoom)
 - :kbd:`Ctrl + Right Click + Drag` - Roll the camera (rotate about the direction of view)
 
-Turning CADmodel features On/Off
+Turning CAD model parts On/Off
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 For CAD models composed of multiple parts in separate mesh files, individual mesh files can be turned on or off by ticking/unticking them in the :guilabel:`Enable / Disable Features` panel. This can be done for individual parts, groups of parts (if defined in the CAD model) or the entire model. This can be helpful to improve performance when working with large models if not all parts are necessary for a particular calibration, or for removing parts which are in the way and make the calibration more difficult.
 

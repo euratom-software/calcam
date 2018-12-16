@@ -255,7 +255,7 @@ class RayData:
 
     Parameters:
         
-        filename (str)  : File name of .crd file containing saved RayData to load. \
+        filename (str)  : File name of netCDF file containing saved RayData to load. \
                           If not given, an empty RayData object is created.
 
     '''
@@ -293,7 +293,7 @@ class RayData:
     # Save to a netCDF file
     def save(self,filename):
         '''
-        Save the RayData to a file.
+        Save the RayData to a netCDF file.
 
         Parameters:
 

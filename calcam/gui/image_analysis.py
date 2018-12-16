@@ -312,7 +312,7 @@ class ImageAnalyser(CalcamGUIWindow):
 
     def update_from_2d(self,coords_2d):
 
-        if self.calibration is not None and self.image is not None:
+        if self.calibration is not None and self.image is not None and self.cadmodel is not None:
             for i,coords in enumerate(coords_2d):
                 if coords is not None and np.any(coords != self.coords_2d[i]):
                     raydata = raycast_sightlines(self.calibration,self.cadmodel,coords[0],coords[1])

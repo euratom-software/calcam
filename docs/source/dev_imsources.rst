@@ -2,7 +2,7 @@
 Image Sources
 =============
 
-Custom image soruces are a way to plug in custon code for loading images to Calcam, and having it integrate nicely in to the Calcam GUI. A custom image source takes the form of a python module or package. The module or package is required to provide the following attributes at its top level:
+Custom image soruces are a way to plug in custon code for loading images to Calcam, and having it integrate nicely in to the Calcam GUI. A custom image source takes the form of a python module or package. The module or package is required to have the following attributes at its top level:
 
 * ``get_image_function`` : A function, or referece to a function, which actually loads the image data.
 * ``display_name`` : A string specifying a user-friendly name for the image source. This will be used to denote the image source in the Calcam GUI.
@@ -57,7 +57,6 @@ pixel_aspect        float              | For cameras with non-square pixels, the
 
 Structure of get_image_arguments
 --------------------------------
-
 The top-level module attribute ``get_image_arguments`` must be a list of dictionaries describing the required input parameters to the image loading function. Each dictionary in the list corresponds to one input arguument. All argument dictionaries must contain the following keys:
 
 ========= ========= ======================================================================
@@ -206,3 +205,7 @@ Below is a minimal example: the build-in Calcam image source for loading images 
                                'filter':'Image Files (*.png *.jpg *.jpeg *.bmp *.jp2 *.tiff *.tif)' 
                                },
                            ]
+
+Adding to Calcam
+----------------
+Once written, custom image sources are added to Calcam using the :doc:`gui_settings` interface.

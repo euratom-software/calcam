@@ -27,7 +27,7 @@ import os
 import sys
 import time
 from .raycast import raycast_sightlines
-
+import copy
 
 def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampling=1,aa=1,transparency=False,verbose=True,coords = 'Display',interpolation='Cubic'):
     '''
@@ -227,8 +227,8 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
             filename = filename[:-3] + 'png'
 
         # Re-shuffle the colour channels for saving (openCV needs BGR / BGRA)
-        save_im = output
-        save_im[:,:,:3] = output[:,:,2::-1]
+        save_im = copy.copy(output)
+        save_im[:,:,:3] = save_im[:,:,2::-1]
         cv2.imwrite(filename,save_im)
         if verbose:
             print('[Calcam Renderer] Result saved as {:s}'.format(filename))

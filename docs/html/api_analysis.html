@@ -1,0 +1,759 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Using Calibration Results &mdash; Calcam  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="Calcam  documentation" href="index.html"/>
+        <link rel="next" title="CAD Models" href="api_cadmodel.html"/>
+        <link rel="prev" title="Calcam Settings" href="gui_settings.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html">
+          
+
+          
+            
+            <img src="_static/logo.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                Version 2.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="intro_general.html">Genral Introduction to Calcam</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro_theory.html">Camera Calibration Theory</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="intro_theory.html#camera-model">Camera Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intro_theory.html#perspective-distortion-model">Perspective Distortion Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intro_theory.html#fisheye-distirtion-model">Fisheye Distirtion Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intro_theory.html#underlying-opencv-documentation">Underlying OpenCV Documentation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="intro_install_setup.html">Installation &amp; Setup</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="intro_install_setup.html#dependencies">Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intro_install_setup.html#download-installation">Download &amp; Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intro_install_setup.html#cad-models-and-image-sources">CAD Models and Image Sources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intro_install_setup.html#upgrading-from-calcam-1-x">Upgrading from Calcam 1.x</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="intro_conventions.html">Concepts &amp; Conventions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="intro_conventions.html#image-pixel-coordinates">Image Pixel Coordinates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intro_conventions.html#sub-views">Sub-views</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intro_conventions.html#cad-models">CAD Models</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">GUI App User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="gui_intro.html">Calcam GUI tools and launcher</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gui_intro.html#starting-the-launcher">Starting the launcher</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gui_calib.html">Calibration by point fitting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#loading-an-image-to-calibrate">Loading an Image to Calibrate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#image-mouse-navigation">Image Mouse Navigation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#current-image-settings">Current Image Settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#loading-and-manipulating-a-cad-model">Loading and manipulating a CAD model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#defining-calibration-points">Defining Calibration Points</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#fitting-the-camera-model">Fitting the camera model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#saving-loading-and-viewing-calibration-information">Saving / Loading and viewing calibration information</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gui_alignment_calib.html">Calibration by manual alignment</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gui_alignment_calib.html#loading-an-image-to-calibrate">Loading an Image to Calibrate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_alignment_calib.html#current-image-settings">Current Image Settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_alignment_calib.html#loading-a-cad-model">Loading a CAD model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_alignment_calib.html#performing-the-alignment-calibration">Performing the alignment calibration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_alignment_calib.html#saving-loading-and-viewing-calibration-information">Saving / Loading and viewing calibration information</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gui_virtual_calib.html">&#8220;Virtual&#8221; Calibrations</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gui_virtual_calib.html#loading-a-cad-model">Loading a CAD model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_virtual_calib.html#creating-the-virtual-calibration">Creating the Virtual Calibration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_virtual_calib.html#saving-loading-and-viewing-calibration-information">Saving / Loading and viewing calibration information</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gui_image_analyser.html">Image Analyser</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gui_image_analyser.html#loading-an-image-to-analyse">Loading an image to analyse</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_image_analyser.html#loading-a-calibration">Loading a Calibration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_image_analyser.html#loading-a-cad-model">Loading a CAD model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_image_analyser.html#performing-position-analysis">Performing Position Analysis</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gui_viewer.html">3D Viewer</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#loading-a-cad-model">Loading a CAD model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#turning-cad-model-parts-on-off">Turning CAD model parts On/Off</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#cad-model-appearance-settings">CAD model appearance settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#wall-contour-display">Wall contour display</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#mouse-navigation">Mouse Navigation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#d-viewport-tab">3D ViewPort Tab</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#visualising-camera-fields-of-view">Visualising camera fields of view</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#displaying-arbitrary-3d-lines">Displaying Arbitrary 3D Lines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#rendering-and-saving-images">Rendering and saving images</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gui_settings.html">Calcam Settings</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gui_settings.html#cad-model-definition-settings">CAD Model Definition Settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_settings.html#image-source-settings">Image Source Settings</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">API User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Using Calibration Results</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#the-calibration-class">The Calibration Class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#rendering-images">Rendering images</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ray-casting">Ray casting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api_cadmodel.html">CAD Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_examples.html">Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api_examples.html#mapping-a-magnetic-field-line-on-to-an-image">Mapping a magnetic field line on to an image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_examples.html#rendering-camera-view-wireframe">Rendering: camera view wireframe</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_examples.html#ray-casting">Ray casting</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">Developer Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="dev_imsources.html">Image Sources</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="dev_imsources.html#return-format-of-image-loading-function">Return format of image loading function</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev_imsources.html#structure-of-get-image-arguments">Structure of get_image_arguments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev_imsources.html#example">Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev_imsources.html#adding-to-calcam">Adding to Calcam</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dev_coord_formatter.html">3D Coordinate Formatters</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="dev_coord_formatter.html#example">Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev_coord_formatter.html#adding-to-a-cad-model">Adding to a CAD model</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Calcam</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Using Calibration Results</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="using-calibration-results">
+<h1>Using Calibration Results<a class="headerlink" href="#using-calibration-results" title="Permalink to this headline">¶</a></h1>
+<p>Once you have created calibrations using the Calcam GUI tools, you can import calcam as a Python package and use it to extract information from the calibrations and/or integrate use of the results in to your workflow in Python. This page documents the features of the Calcam API for working with calibration results.</p>
+<p>For examples of using these features, see the examples page.</p>
+<div class="section" id="the-calibration-class">
+<h2>The Calibration Class<a class="headerlink" href="#the-calibration-class" title="Permalink to this headline">¶</a></h2>
+<p>The calibration class is used to represent Calcam calibrations and provides various methods for getting information about the camera viewing geometry.</p>
+<dl class="class">
+<dt id="calcam.Calibration">
+<em class="property">class </em><code class="descclassname">calcam.</code><code class="descname">Calibration</code><span class="sig-paren">(</span><em>load_filename=None</em>, <em>cal_type=None</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.Calibration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class representing a camera view calibration.</p>
+<p>A complete Calibration object contains the camera
+image which was calibrated (if any), the point
+pairs used for fitting (if applicable), the camera
+model parameters, and metadata about each of these.</p>
+<p>If instantiated with the name of a .ccc file to load,
+the resulting  object represents the calibration
+contained in that file. If no file name is given, an
+empty calibration object of a specified type is created.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>load_filename</strong> (<em>str</em>) &#8211; File name of the calibration to load. If not given, an &#8220;empty&#8221;                              calibration object is created.</li>
+<li><strong>cal_type</strong> (<em>str</em>) &#8211; Required only if load_file is not specified i.e. creating an empty                              calibration object. Must be one of &#8220;fit&#8221;, &#8220;alignment&#8221; or &#8220;virtual&#8221;.                             If load_file is provided, this is ignored.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="calcam.Calibration.get_cam_matrix">
+<code class="descname">get_cam_matrix</code><span class="sig-paren">(</span><em>subview=None</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.Calibration.get_cam_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the camera matrix.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>subview</strong> (<em>int</em>) &#8211; For calibrations with multiple sub-views,                             which sub-view index to return the camera                             matrix for.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">3x3 camera matrix.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">np.matrix</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="calcam.Calibration.get_cam_roll">
+<code class="descname">get_cam_roll</code><span class="sig-paren">(</span><em>subview=None</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.Calibration.get_cam_roll" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the camera roll. This is the angle between the lab
++Z axis and the camera&#8217;s &#8220;view up&#8221; direction.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>subview</strong> (<em>int</em>) &#8211; For calibrations with multiple sub-views,                             which sub-view index to return the camera                             roll for.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Camera roll in degrees. Positive angles correspond to a clockwise                             roll of the camera i.e. anti-clockwise roll of the image.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="calcam.Calibration.get_cam_to_lab_rotation">
+<code class="descname">get_cam_to_lab_rotation</code><span class="sig-paren">(</span><em>subview=None</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.Calibration.get_cam_to_lab_rotation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a 3D rotation matrix which will rotate a point in the camera coordinate system
+(see Calcam theory documentation) in to the lab coordinate system&#8217;s orientation.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>subview</strong> (<em>int</em>) &#8211; For calibrations with multiple sub-views, specifies which sub-view                            to return the rotation matrix for.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">3x3 rotation matrix.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">np.matrix</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="calcam.Calibration.get_fov">
+<code class="descname">get_fov</code><span class="sig-paren">(</span><em>subview=None</em>, <em>fullchip=False</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.Calibration.get_fov" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the camera field of view.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>subview</strong> (<em>int</em>) &#8211; For calibrations with multiple sub-views,                               which sub-view index to return the field                               of view for.</li>
+<li><strong>fullchip</strong> (<em>bool</em>) &#8211; For calibrations with multiple sub-views,                               setting this to True will return the field of                               view defined by the camaera model of the specified                               sub-view, as if that sub-view covered the whole image.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">2-element tuple containing the full angles of the horizontal and                               vertical fields of view (h_fov,v_fov) in degrees.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">tuple</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="calcam.Calibration.get_image">
+<code class="descname">get_image</code><span class="sig-paren">(</span><em>coords='Display'</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.Calibration.get_image" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the image which was calibrated.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>coords</strong> (<em>str</em>) &#8211; Either <code class="docutils literal"><span class="pre">Display</span></code> or <code class="docutils literal"><span class="pre">Original</span></code>,                                      what orientation to return the image.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">If the calibration contains an image: returns image data array                                      with shape (h x w x n) where n is the number of colour                                      channels in the image. If the calibration does not contain                                      an image, returns None.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">np.ndarray or NoneType</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="calcam.Calibration.get_los_direction">
+<code class="descname">get_los_direction</code><span class="sig-paren">(</span><em>x=None</em>, <em>y=None</em>, <em>coords='Display'</em>, <em>subview=None</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.Calibration.get_los_direction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get unit vectors representing the directions of the camera&#8217;s sight-lines in 3D space.</p>
+<p>Can be used together with <code class="xref py py-func docutils literal"><span class="pre">get_pupilpos()</span></code> to obtain a full description of the camera&#8217;s sight-line geometry.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong><strong>,</strong><strong>y</strong> (<em>sequence of floats</em>) &#8211; Image pixel coordinates at which to get the sight-line directions.                                          x and y must be the same shape. If not specified, the line of sight direction                                          at the centre of every detector pixel is returned.</li>
+<li><strong>coords</strong> (<em>str</em>) &#8211; Either <code class="docutils literal"><span class="pre">Display</span></code> or <code class="docutils literal"><span class="pre">Original</span></code>, specifies which image orientation the provided x and y                                          inputs and/or shape of the returned array correspond to.</li>
+<li><strong>subview</strong> (<em>int</em>) &#8211; If specified, forces the use of the camera model from the specified sub-view index.                                          If not given, the correct sub-view(s) will be chosen automatically.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Array of sight-line vectors. If specifying x_pixels and y_pixels, the output array will be                                          the same shape as the input arrays but with an extra dimension added. The extra dimension contains                                          the [X,Y,Z] components of the sight-line vectors. If not specifying x_pixels and y_pixels, the output                                          array shape will be (h x w x 3) where w and h are the image width and height in pixels.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">np.ndarray</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="calcam.Calibration.get_pupilpos">
+<code class="descname">get_pupilpos</code><span class="sig-paren">(</span><em>x=None</em>, <em>y=None</em>, <em>coords='display'</em>, <em>subview=None</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.Calibration.get_pupilpos" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the camera pupil position in 3D space.</p>
+<p>Can be used together with <code class="xref py py-func docutils literal"><span class="pre">get_los_direction()</span></code> to obtain a full
+description of the camera&#8217;s sight line geometry.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong><strong>,</strong><strong>y</strong> (<em>float</em><em> or </em><em>numpy.ndarray</em>) &#8211; For calibrations with more than one subview, get the pupil                                            position(s) corresponding to these given image pixel coordinates.</li>
+<li><strong>coords</strong> (<em>str</em>) &#8211; Only used if x and y are also given. Either <code class="docutils literal"><span class="pre">Display</span></code>                                            or <code class="docutils literal"><span class="pre">Original</span></code>, specifies whether the provided x and y are in                                            display or original coordinates.</li>
+<li><strong>subview</strong> (<em>int</em>) &#8211; Which sub-view to get the pupil position for.                                            Only required for calibrations with more than 1                                            sub-view.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Camera pupil position in 3D space. If not specifying                                           x or y inputs, this will be a 3 element array containing                                           the [X,Y,Z] coordinates of the pupil position in metres.                                           If using x and y inputs, the output array will be the same                                           shape as the x and y input arrays with an additional dimension                                           added; the X, Y and Z components are then given along the new                                           new array dimension.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">np.ndarray</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="calcam.Calibration.get_raysect_camera">
+<code class="descname">get_raysect_camera</code><span class="sig-paren">(</span><em>coords='Display'</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.Calibration.get_raysect_camera" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a RaySect camera object corresponding to the calibrated camera.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>coords</strong> (<em>str</em>) &#8211; Either <code class="docutils literal"><span class="pre">Display</span></code> or <code class="docutils literal"><span class="pre">Original</span></code> specifying                               the orientation of the raysect camera.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">RaySect camera object.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">raysect.optical.observer.imaging.VectorCamera</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="calcam.Calibration.project_points">
+<code class="descname">project_points</code><span class="sig-paren">(</span><em>points_3d</em>, <em>coords='display'</em>, <em>check_occlusion_with=None</em>, <em>fill_value=nan</em>, <em>occlusion_tol=0.001</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.Calibration.project_points" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the image coordinates corresponding to given real-world 3D coordinates.</p>
+<p>Optionally can also check whether the 3D points are hidden from the camera&#8217;s view by part of the CAD model being in the way.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>points_3d</strong> &#8211; 3D point coordinates, in metres, to project on to the image. Can be EITHER an Nx3 array, where N is the                                                    number of 3D points and each row gives [X,Y,Z] for a 3D point, or a sequence of 3 element sequences,                                                   where each 3 element array specifies a 3D point.</li>
+<li><strong>coords</strong> (<em>str</em>) &#8211; Either <code class="docutils literal"><span class="pre">Display</span></code> or <code class="docutils literal"><span class="pre">Original</span></code>, specifies which image orientation the returned image coordinates                                                    should correspond to.</li>
+<li><strong>check_occlusion_with</strong> (<a class="reference internal" href="api_cadmodel.html#calcam.CADModel" title="calcam.CADModel"><em>calcam.CADModel</em></a><em> or </em><a class="reference internal" href="#calcam.RayData" title="calcam.RayData"><em>calcam.RayData</em></a>) &#8211; If provided and fill_value is not None, for each 3D point the function will check if the point                                                    is hidden from the camera&#8217;s view by part of the provided CAD model. If a point is hidden its                                                    returned image coordinates are set to fill_value. Note: if using a RayData onject, always use Raydata resulting                                                    from a raycast of the complete detector, or else project_points will be incredibly slow.</li>
+<li><strong>fill_value</strong> (<em>float</em>) &#8211; For any 3D points not visible to the camera, the returned image coordinates will be set equal to                                                    this value. If set to <code class="docutils literal"><span class="pre">None</span></code>, image coordinates will be returned for every 3D point even if the                                                    point is outside the camera&#8217;s field of view or hidden from view.</li>
+<li><strong>occlusion_tol</strong> (<em>float</em>) &#8211; Tolerance (in mrtres) to use to check point occlusion. Try increasing this value if having trouble                                                    with points being wrongly detected as occluded.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A list of Nx2 NumPY arrays containing the image coordinates of the given 3D points (N is the number of input 3D points).                                                   Each NumPY array corresponds to a single sub-view, so for images without multuiple sub-views this will return a single element                                                   list containing an Nx2 array. Each row of the NumPY arrays contains the [X,Y] image coordinates of the corresponding input point.                                                   If fill_value is not None, points not visible to the camera have their coordinates set to <code class="docutils literal"><span class="pre">[fill_value,</span> <span class="pre">fill_value]</span></code>.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list of np.ndarray</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="calcam.Calibration.undistort_image">
+<code class="descname">undistort_image</code><span class="sig-paren">(</span><em>image</em>, <em>coords='display'</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.Calibration.undistort_image" title="Permalink to this definition">¶</a></dt>
+<dd><p>Correct lens distortion a given image from the calibrated camera,
+to give an image with a pure perspective projection.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>image</strong> (<em>np.ndarray</em>) &#8211; (h x w x N) array containing the image to be un-distorted,
+where N is the number of colour channels.</li>
+<li><strong>coords</strong> (<em>str</em>) &#8211; Either <code class="docutils literal"><span class="pre">Display</span></code> or <code class="docutils literal"><span class="pre">Original</span></code>, specifies which orientation                                  the input image is in.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Image data array the same shape as the input array containing the                                  corrected image.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">np.ndarray</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="rendering-images">
+<h2>Rendering images<a class="headerlink" href="#rendering-images" title="Permalink to this headline">¶</a></h2>
+<p>Calcam can be used to render images of a CAD model from the calibrated camera&#8217;s point of view. The render includes all lens distortion in the camera model, so should match exactly with a well calibrated real camera image.</p>
+<dl class="function">
+<dt id="calcam.render_cam_view">
+<code class="descclassname">calcam.</code><code class="descname">render_cam_view</code><span class="sig-paren">(</span><em>cadmodel</em>, <em>calibration</em>, <em>extra_actors=[]</em>, <em>filename=None</em>, <em>oversampling=1</em>, <em>aa=1</em>, <em>transparency=False</em>, <em>verbose=True</em>, <em>coords='Display'</em>, <em>interpolation='Cubic'</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.render_cam_view" title="Permalink to this definition">¶</a></dt>
+<dd><p>Render an image of a given CAD model from the point of view of a given calibration.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>cadmodel</strong> (<a class="reference internal" href="api_cadmodel.html#calcam.CADModel" title="calcam.CADModel"><em>calcam.CADModel</em></a>) &#8211; CAD model of scene</li>
+<li><strong>calibration</strong> (<a class="reference internal" href="#calcam.Calibration" title="calcam.Calibration"><em>calcam.Calibration</em></a>) &#8211; Calibration whose point-of-view to render from.</li>
+<li><strong>extra_actors</strong> (<em>list of vtk.vtkActor</em>) &#8211; List containing any additional vtkActors to add to the scene                                               in addition to the CAD model.</li>
+<li><strong>filename</strong> (<em>str</em>) &#8211; Filename to which to save the resulting image. If not given, no file is saved.</li>
+<li><strong>oversampling</strong> (<em>float</em>) &#8211; Used to render the image at higer (if &gt; 1) or lower (if &lt; 1) resolution than the                                               calibrated camera. Must be an integer power of 2.</li>
+<li><strong>aa</strong> (<em>int</em>) &#8211; Anti-aliasing factor. 1 = no anti-aliasing.</li>
+<li><strong>transparency</strong> (<em>bool</em>) &#8211; If true, empty areas of the image are set transparent. Otherwise they are black.</li>
+<li><strong>verbose</strong> (<em>bool</em>) &#8211; Whether to print status updates while rendering.</li>
+<li><strong>coords</strong> (<em>str</em>) &#8211; Either <code class="docutils literal"><span class="pre">Display</span></code> or <code class="docutils literal"><span class="pre">Original</span></code>, the image orientation in which to return the image.</li>
+<li><strong>interpolation</strong> (<em>str</em>) &#8211; Either <code class="docutils literal"><span class="pre">nearest</span></code> or <code class="docutils literal"><span class="pre">cubic</span></code>, inerpolation used if re-sampling of the image during                                               the rendering process. Note: if set to <code class="docutils literal"><span class="pre">nesrest</span></code>, will make aa &gt; 1 ineffective.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Array containing the rendered 8-bit per channel RGB (h x w x 3) or RGBA (h x w x 4) image.                                              Also saves the result to disk if the filename parameter is set.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">np.ndarray</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="ray-casting">
+<h2>Ray casting<a class="headerlink" href="#ray-casting" title="Permalink to this headline">¶</a></h2>
+<p>The calibration class can provide line-of-sight directions for given pixel coordinates, however it is often necessary to know where these sight lines terminate at a surface in the CAD model. For example in calculation of geometry matricies for camera data inversion, the length of each camera sight line needs to be known. The function <a class="reference internal" href="#calcam.raycast_sightlines" title="calcam.raycast_sightlines"><code class="xref py py-func docutils literal"><span class="pre">calcam.raycast_sightlines()</span></code></a> is provided for this purpose; it determines the 3D coordinates where the given pixels&#8217; sight-lines intersect the CAD model.</p>
+<dl class="function">
+<dt id="calcam.raycast_sightlines">
+<code class="descclassname">calcam.</code><code class="descname">raycast_sightlines</code><span class="sig-paren">(</span><em>calibration</em>, <em>cadmodel</em>, <em>x=None</em>, <em>y=None</em>, <em>binning=1</em>, <em>coords='Display'</em>, <em>verbose=True</em>, <em>force_subview=None</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.raycast_sightlines" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ray cast camera sight-lines to determine where they intersect the given CAD model.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>calibration</strong> (<a class="reference internal" href="#calcam.Calibration" title="calcam.Calibration"><em>calcam.Calibration</em></a>) &#8211; Calibration whose sight-lines to raycast.</li>
+<li><strong>cadmodel</strong> (<a class="reference internal" href="api_cadmodel.html#calcam.CADModel" title="calcam.CADModel"><em>calcam.CADModel</em></a>) &#8211; CAD model to check intersection with.</li>
+<li><strong>y</strong> (<em>x</em><em>,</em><em></em>) &#8211; x and y image pixel coordinates for which to cast sight-lines.                                            If not specified, one ray is cast at the centre of every detector pixel.                                           x and y must be the same shape.</li>
+<li><strong>binning</strong> (<em>int</em>) &#8211; If not explicitly providing x and y image coordinates, pixel binning for ray casting.                                           This specifies NxN binning, i.e. for a value of 2, one ray is cast at the centre of                                            every 2x2 cluster of pixels.</li>
+<li><strong>coords</strong> (<em>str</em>) &#8211; Either <code class="docutils literal"><span class="pre">Display</span></code> or <code class="docutils literal"><span class="pre">Original</span></code>. If specifying x and y coordinates,                                           specifies whether the input x and y are in original or display coords.                                            Otherwise, specifies the orientation of the returned data.</li>
+<li><strong>verbose</strong> (<em>bool</em>) &#8211; Whether to print status updates during ray casting.</li>
+<li><strong>force_subview</strong> (<em>int</em>) &#8211; If specified, forces use of the camera model from this index of sub-view                                            in the calibration. Otherwise, sub-views are chosen according to the                                            sub-view mask in the calibration.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Object containing the results.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#calcam.RayData" title="calcam.RayData">calcam.RayData</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="calcam.RayData">
+<em class="property">class </em><code class="descclassname">calcam.</code><code class="descname">RayData</code><span class="sig-paren">(</span><em>filename=None</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class representing ray casting results.</p>
+<p>Objects of this class are returned by <a class="reference internal" href="#calcam.raycast_sightlines" title="calcam.raycast_sightlines"><code class="xref py py-func docutils literal"><span class="pre">calcam.raycast_sightlines()</span></code></a>.
+It can also be used to save and load ray cast results to disk.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>filename</strong> (<em>str</em>) &#8211; File name of netCDF file containing saved RayData to load.                           If not given, an empty RayData object is created.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="calcam.RayData.get_ray_directions">
+<code class="descname">get_ray_directions</code><span class="sig-paren">(</span><em>x=None</em>, <em>y=None</em>, <em>im_position_tol=1</em>, <em>coords='Display'</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData.get_ray_directions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get unit vectors specifying the sight-line directions. Note that ray casting         is not required to get this information: see <a class="reference internal" href="#calcam.Calibration.get_los_direction" title="calcam.Calibration.get_los_direction"><code class="xref py py-func docutils literal"><span class="pre">calcam.Calibration.get_los_direction()</span></code></a>         for the same functionality, however this can be useful if you have the RayData         but not <a class="reference internal" href="#calcam.Calibration" title="calcam.Calibration"><code class="xref py py-class docutils literal"><span class="pre">calcam.Calibration</span></code></a> object loaded when doing the analysis.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong><strong>,</strong><strong>y</strong> (<em>array-like</em>) &#8211; x and y pixel coordinates at which to get the ray directions.                                       If not specified, the ray directions of every sight-line are returned.</li>
+<li><strong>im_position_tol</strong> (<em>float</em>) &#8211; If x and y are specified but no sight-line was cast at exactly the                                       input coordinates, the nearest casted sight-line will be returned                                       instead provided the pixel coordinates wre within this many pixels of                                       the requested coordinates.</li>
+<li><strong>coords</strong> (<em>str</em>) &#8211; Either <code class="docutils literal"><span class="pre">Display</span></code> or <code class="docutils literal"><span class="pre">Coords</span></code>, specifies what orientation the input x                                       and y correspond to or orientation of the returned array.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Array containing the sight-line directions. If the ray cast was for the                                       full detector and x and y are not specified, the array shape will be                                       (h x w x 3) where w nd h are the image width and height. Otherwise it will                                       be the same shape as the input x and y coordinates plus an extra dimension.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">np.ndarray</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="calcam.RayData.get_ray_lengths">
+<code class="descname">get_ray_lengths</code><span class="sig-paren">(</span><em>x=None</em>, <em>y=None</em>, <em>im_position_tol=1</em>, <em>coords='Display'</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData.get_ray_lengths" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the sight-line lengths either of all casted sight-lines or at the specified image coordinates.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong><strong>,</strong><strong>y</strong> (<em>array-like</em>) &#8211; Image pixel coordinates at which to get the sight-line lengths.                                       If not specified, the lengths of all casted sight lines will be returned.</li>
+<li><strong>im_position_tol</strong> (<em>float</em>) &#8211; If x and y are specified but no sight-line was cast at exactly the                                       input coordinates, the nearest casted sight-line will be returned                                       instead provided the pixel coordinates wre within this many pixels of                                       the requested coordinates.</li>
+<li><strong>coords</strong> (<em>str</em>) &#8211; Either <code class="docutils literal"><span class="pre">Display</span></code> or <code class="docutils literal"><span class="pre">Coords</span></code>, specifies what orientation the input x                                       and y correspond to or orientation of the returned array.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Array containing the sight-line lengths. If the ray cast was for the                                       full detector and x and y are not specified, the array shape will be                                       (h x w) where w nd h are the image width and height. Otherwise it will                                       be the same shape as the input x and y coordinates.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">np.ndarray</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="calcam.RayData.ray_end_coords">
+<code class="descname">ray_end_coords</code><em class="property"> = None</em><a class="headerlink" href="#calcam.RayData.ray_end_coords" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>np.ndarray</em> &#8211; An array containing the 3D coordinates, in metres, of the points where the sight lines intersect the CAD model. If x and y coordinates were input to raycast_sightlines, the shape of this array is the same as the input x and y arrays with an additional dimension added which contains the [X,Y,Z] 3D coordinates. Otherwise the shape is (h x w x 3) where w and h are the image width and height.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="calcam.RayData.ray_start_coords">
+<code class="descname">ray_start_coords</code><em class="property"> = None</em><a class="headerlink" href="#calcam.RayData.ray_start_coords" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>np.ndarray</em> &#8211; An array containing the 3D coordinates, in metres, of the start of each sight line (i.e. camera pupil position). If x and y coordinates were input to raycast_sightlines, the shape of this array is the same as the input x and y arrays with an additional dimension added which contains the [X,Y,Z] 3D coordinates. Otherwise the shape is (h x w x 3) where w and h are the image width and height.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="calcam.RayData.save">
+<code class="descname">save</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save the RayData to a netCDF file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>filename</strong> (<em>str</em>) &#8211; File name to save to.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="api_cadmodel.html" class="btn btn-neutral float-right" title="CAD Models" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="gui_settings.html" class="btn btn-neutral" title="Calcam Settings" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015-2018, European Atomic Energy Community (EURATOM).
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  false,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

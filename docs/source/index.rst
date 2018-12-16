@@ -32,6 +32,7 @@ Welcome to the Calcam documentation index page. If you want to know what it's al
    gui_virtual_calib
    gui_image_analyser
    gui_viewer
+   gui_settings
 
 .. toctree::
    :caption: API User Guide
@@ -40,6 +41,7 @@ Welcome to the Calcam documentation index page. If you want to know what it's al
 
    api_analysis
    api_cadmodel
+   api_examples
 
 
 .. toctree::
@@ -48,3 +50,4 @@ Welcome to the Calcam documentation index page. If you want to know what it's al
    :name: devtoc
 
    dev_imsources
+   dev_coord_formatter
