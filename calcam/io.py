@@ -26,6 +26,7 @@ import os
 import shutil
 import hashlib
 import atexit
+import inspect
 
 # Get a list of directory contents, including sub-directories.
 # Returned list has absolute paths.
@@ -72,6 +73,7 @@ class ZipSaveFile():
         self.pypaths = []
         self.is_open = False
         self.open(self.mode)
+        self.usermodule = None
 
         atexit.register(self.close)
 
@@ -157,11 +159,15 @@ class ZipSaveFile():
             if 'w' in self.mode and not discard_changes and self.get_hashes() != self.initial_hashes:
                 self.update()
 
+            # Make sure we properly unload any user code
+            self.unload_usercode()
+
+            self.is_open = False
+            
             # Tidy up the temp directory after ourselves
             shutil.rmtree(self.tempdir)
-
             self.tempdir = None
-            self.is_open = False
+
 
 
     def update(self):
@@ -201,18 +207,19 @@ class ZipSaveFile():
         if 'r' not in self.mode or not self.is_open:
             raise IOError('File not open in read mode!')
 
-        if os.path.join('usercode','__init__.py') in self.list_contents() or 'usercode.py' in self.list_contents():
+        if self.usermodule is None and (os.path.join('usercode','__init__.py') in self.list_contents() or 'usercode.py' in self.list_contents()):
 
             sys.path.insert(0,self.tempdir)
             try:
-                usermodule = __import__('usercode')
+                self.usermodule = __import__('usercode')
             except:
+                self.usermodule = None
                 sys.path.remove(self.tempdir)
                 raise
 
-            return usermodule
-        else:
-            return None
+        return self.usermodule
+
+
 
 
     # Get a list of the files within.
@@ -354,3 +361,29 @@ class ZipSaveFile():
     # temp files get cleaned up.
     def __del__(self):
         self.close()
+
+
+    # Function to fully un-load any loaded user-code.
+    def unload_usercode(self,module=None,unloaded=None):
+
+        if unloaded is None:
+            if self.usermodule is None:
+                return
+            unloaded = set()
+            module = self.usermodule
+            if self.tempdir in sys.path:
+                sys.path.remove(self.tempdir)
+
+        for name in dir(module):
+            member = getattr(module, name)
+            if inspect.ismodule(member) and member not in unloaded and self.tempdir in member.__file__:
+                try:
+                    self.unload_usercode(member, unloaded)
+                except AttributeError:
+                    continue
+            unloaded.add(module)
+            
+        for key in sys.modules.keys():
+            if sys.modules[key] == module:
+                del sys.modules[key]
+                break

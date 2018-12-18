@@ -2,7 +2,7 @@ Project Changelog
 =================
 
 
-Bug fix release 2.0.1 (17 Dec 2018)
+Bug fix release 2.0.1 (18 Dec 2018)
 -----------------------------------
 
 Fixes:
@@ -14,8 +14,11 @@ Fixes:
 * Changed exception raised in CAD model editor when loading UTF8 encoded data to a friendlier message.
 * Fixed exceptions raised in calibration tools when loading calibrations if the CAD model has a different set of features than expected.
 * Fixed checked features in CAD model feature tree becoming out of sync when loading calibrations.
+* Fixed bug which could cause CAD model definitions to be corrupted if they did not close cleanly.
+* Fixed undesirable behaviour which caused 1 broken CAD definition file to stop all others being detected.
+* Fixed bug where custom coordinate formatters were not properly reloaded when reloading CAD models (can cause exceptions in some circumstances).
 * Minor typo fixes
-* Added missing image in documentation
+* Added missing image + notes on user code structure in documentation
 
 
 

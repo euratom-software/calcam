@@ -34,23 +34,20 @@ Below is a simple example of a coordinate formatter
 
       return  formatted_coord
 
-Note on package structure
--------------------------
-If the custom coordinate formatter takes the format of a package (i.e. a folder containing ``__init__.py`` along with other python files), care must be taken if you wish to be able to edit the code "live" i.e. see changes in the code take effect when using the :guilabel:`Refresh` button in the CAD model editor. In order for this to work properly, the coordinate formatter code must be able to be recursively reloaded by the calcam. For example, the following minimal ``__init__.py`` would not work properly:
+Note on sub-module and function names
+-------------------------------------
+If the custom coordinate formatter takes the form of a package (i.e. a folder containing ``__init__.py`` along with other python files), some care should be taken not to import from a sub-module anything with the same name as that sub-module. This can cause problems if the coordinate formatter has to be re-loaded e.g. re-loading the CAD model or using the :guilabel:`Refresh` button in the CAD model editor, due to the way Calcam re-loads coordinate formatter code.  For example, doing the following in ``__init__.py`` :
 
 .. code-block:: python
 
-  from MySubModule import format_coord
+  from .do_something import do_something
 
-In this case because the ``MySubModule`` module is not a member of your package, but only its function :func:`format_coord` is, Calcam will not know to reload the ``MySubModule`` source and therefore changes in the code will not come in to effect when using the :guilabel:`Refresh` feature.
-
-Instead, either write the :func:`format_coord` function directly in ``__init__.py``, or import the entire ``MySubModule`` module and then make a reference to the correct function, e.g.:
+Would mean that if the coordinate formatting code is re-loaded, the ``do_something`` module would not be re-loaded with the rest of the code, which may or may not cause problems when the code is executed (depending on the contents of the ``do_something`` module). To avoid this issue, ensure functions (or any other object) imported in the coordinate formatting code do not have the same name as their parent modules. For instance, the above example could be fixed by renaming the ``do_something`` module so that the same line looks like:
 
 .. code-block:: python
 
-  import MySubModule 
+  from .DoSomething import do_something
 
-  format_coord = MySubModule.format_coord
 
 Adding to a CAD model
 ----------------------
