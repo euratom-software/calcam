@@ -57,6 +57,8 @@ class VirtualCalib(CalcamGUIWindow):
 
         self.filename = None
 
+        self.manual_exc = True
+
         # Callbacks for GUI elements
         self.viewlist.itemSelectionChanged.connect(self.change_cad_view)
         self.camX.valueChanged.connect(self.change_cad_view)
@@ -288,7 +290,12 @@ class VirtualCalib(CalcamGUIWindow):
         # Load the appropriate CAD model, if we know what that is
         if opened_calib.cad_config is not None:
             if keep_model:
-                self.cadmodel.enable_only(cconfig['enabled_features'])
+                try:
+                    self.cadmodel.enable_only(cconfig['enabled_features'])
+                except Exception as e:
+                    if 'Unknown feature' not in str(e):
+                        raise
+                self.update_feature_tree_checks()
             else:
                 cconfig = opened_calib.cad_config
                 load_model = True
@@ -306,8 +313,12 @@ class VirtualCalib(CalcamGUIWindow):
                     load_model=False
 
                 if load_model:
-
-                    self.load_model(featurelist=cconfig['enabled_features'],hold_view=True)
+                    try:
+                        self.load_model(featurelist=cconfig['enabled_features'],hold_view=True)
+                    except Exception as e:
+                        self.cadmodel = None
+                        if 'Unknown feature' not in str(e):
+                            raise
         
         self.calibration = opened_calib
 
@@ -352,7 +363,7 @@ class VirtualCalib(CalcamGUIWindow):
 
 
     def _load_model(self):
-        self.load_model(hold_view = self.cadmodel is not None)
+        self.load_model(hold_view = self.cadmodel is not None or self.calibration.filename is not None)
 
 
     def reset(self,keep_cadmodel=False):

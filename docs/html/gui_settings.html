@@ -278,6 +278,7 @@
 <div class="section" id="the-cad-model-definition-editor">
 <span id="cad-editor"></span><h3>The CAD Model Definition Editor<a class="headerlink" href="#the-cad-model-definition-editor" title="Permalink to this headline">¶</a></h3>
 <p>The CAD model editing window is shown below:</p>
+<img alt="CAD editor window screenshot" src="_images/cad_edit_annotated.png" />
 <div class="section" id="basic-model-properties">
 <h4>Basic Model Properties<a class="headerlink" href="#basic-model-properties" title="Permalink to this headline">¶</a></h4>
 <p>At the top of the <span class="guilabel">Mesh Files</span> control tab is a box to enter the name of the CAD model. Below this is a dropdown box showing the different variants of the model, where new variants can be added or the current variant renamed or removed, using the buttons directly below the <span class="guilabel">Model Variant</span> dropdown box.</p>
@@ -293,7 +294,7 @@
 </div>
 <div class="section" id="viewport-setup">
 <h4>Viewport Setup<a class="headerlink" href="#viewport-setup" title="Permalink to this headline">¶</a></h4>
-<p>It is usually convenient to define some preset views of the model (i.e. camera positions and orientations) which can be quickly switched to e.g. as starting points for calibrations. For example, it is usually convenient to make preset views through ports which are usually used for cameras. Viewport setup is performed on the <span class="guilabel">Viewport</span> tab. At the top of this tab is a list of the viewports defined in the CAD model definition. At least one view must be defined before saving the CAD model definition, to be set automatically when the CAD model is loaded.</p>
+<p>It is usually convenient to define some preset views of the model (i.e. camera positions and orientations) which can be quickly switched to e.g. as starting points for calibrations. For example, it is usually convenient to make preset views through ports which are usually used for cameras. Viewport setup is performed on the <span class="guilabel">Viewports</span> tab. At the top of this tab is a list of the viewports defined in the CAD model definition. At least one view must be defined before saving the CAD model definition, to be set automatically when the CAD model is loaded.</p>
 <p>To add the current 3D view shown in the window as a preset view, enter a name for the view in the box half way down the <span class="guilabel">Viewport</span> tab and click <span class="guilabel">Add</span>. The current viewport can be adjusted either with mouse controls or by manually entering the 3D position and viewing target of the camera in the boxes near the bottom of the tab. To control the viewport with the mouse, the following mouse controls can be used on the 3D view:</p>
 <ul class="simple">
 <li><code class="kbd docutils literal"><span class="pre">Left</span> <span class="pre">Click</span></code> - Place a cursor on the 3D model, or move the cursor if one already exists. This will display information about the cursor position in the window status bar and can be used by cross-sectioning / wall contour display features.</li>
@@ -308,7 +309,7 @@
 </div>
 <div class="section" id="adding-additional-information">
 <h3>Adding Additional Information<a class="headerlink" href="#adding-additional-information" title="Permalink to this headline">¶</a></h3>
-<p>Additional information can be added to the CAD model definition:</p>
+<p>Additional information can be added to the CAD model definition using the <span class="guilabel">Additional information</span> tab:</p>
 <div class="section" id="r-z-wall-contour">
 <h4>R,Z Wall Contour<a class="headerlink" href="#r-z-wall-contour" title="Permalink to this headline">¶</a></h4>
 <p>An R,Z wall contour can be saved as part of the model definition; currently this is only used for displaying in the 3D viewer but is intended to be used in future for geometry matrix calculation, for example. To add an R,Z wall contour to the CAD model, prepare the contour in a two-column ASCII file containing R,Z coordinates of the wall (in metres) around the poloidal cross-section, with one coordinate per line in the file. Then click <span class="guilabel">Load from file...</span> in the <span class="guilabel">R, Z Wall Contour</span> box to load the file. If a wall contour already exists in the model, its details will also be displayed in this box. If a cursor is placed on the 3D model, the current wall contour can be displayed, at the cursor position, using the <span class="guilabel">Show contour at cursor position</span> checkbox.</p>

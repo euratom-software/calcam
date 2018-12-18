@@ -698,8 +698,10 @@ class FittingCalib(CalcamGUIWindow):
         if pointpairs is None:
             pointpairs = self.object_from_file('pointpairs')
 
-
         if pointpairs is not None:
+
+            if pointpairs.n_subviews != self.calibration.n_subviews:
+                raise UserWarning('These point pairs cannot be used with the current image because they contain a different number of sub-views ({:d} in point pairs vs. {:d} in image).'.format(pointpairs.n_subviews,self.calibration.n_subviews))
 
             try:
                 history = pointpairs.history
@@ -1223,7 +1225,12 @@ class FittingCalib(CalcamGUIWindow):
         # Load the appropriate CAD model, if we know what that is
         if opened_calib.cad_config is not None:
             if keep_model:
-                self.cadmodel.enable_only(cconfig['enabled_features'])
+                try:
+                    self.cadmodel.enable_only(cconfig['enabled_features'])
+                except Exception as e:
+                    if 'Unknown feature' not in str(e):
+                        raise
+                self.update_feature_tree_checks()
             else:
                 cconfig = opened_calib.cad_config
                 load_model = True
@@ -1241,8 +1248,13 @@ class FittingCalib(CalcamGUIWindow):
                     load_model=False
 
                 if load_model:
-                    self.load_model(featurelist=cconfig['enabled_features'])
-            
+                    try:
+                        self.load_model(featurelist=cconfig['enabled_features'])
+                    except Exception as e:
+                        self.cadmodel = None
+                        if 'Unknown feature' not in str(e):
+                            raise
+
             self.camX.setValue(cconfig['viewport']['cam_x'])
             self.camY.setValue(cconfig['viewport']['cam_y'])
             self.camZ.setValue(cconfig['viewport']['cam_z'])

@@ -357,7 +357,12 @@ class ImageAnalyser(CalcamGUIWindow):
                     keep_model = False
 
                 if keep_model:
-                    self.cadmodel.enable_only(cconfig['enabled_features'])
+                    try:
+                        self.cadmodel.enable_only(cconfig['enabled_features'])
+                    except Exception as e:
+                        if 'Unknown feature' not in str(e):
+                            raise
+                    self.update_feature_tree_checks()
                 else:
                     cconfig = opened_calib.cad_config
                     load_model = True
@@ -375,7 +380,12 @@ class ImageAnalyser(CalcamGUIWindow):
                         load_model=False
 
                     if load_model:
-                        self.load_model(featurelist=cconfig['enabled_features'])            
+                        try:
+                            self.load_model(featurelist=cconfig['enabled_features'])
+                        except Exception as e:
+                            self.cadmodel = None
+                            if 'Unknown feature' not in str(e):
+                                raise          
                     
                     # I'm not sure why I have to call this twice to get it to work properly.
                     # On the first call it almost works, but not quite accurately. Then

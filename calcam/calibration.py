@@ -408,6 +408,7 @@ class Calibration():
         self.intrinsics_constraints = []
         self.pixel_size = None
         self.readonly = None
+        self.filename = None
         self.geometry = CoordTransformer()
 
         # Load calibration from disk if requested.
@@ -1631,13 +1632,11 @@ class Calibration():
         msg = '='*len(msg) + '\n' + msg + '\n' + '='*len(msg) + '\n\n'
 
         # File info
-        try:
-            if self.filename is not None:
-                msg = msg + '----\nFile\n----\n'
-                msg = msg + 'File name: {:s}\n'.format(self.filename.replace('/',os.sep))
-                msg = msg + 'File size: {:.2f} MiB\n\n'.format(os.path.getsize(self.filename) / 1024.**2)
-        except AttributeError:
-            pass
+        if self.filename is not None:
+            msg = msg + '----\nFile\n----\n'
+            msg = msg + 'File name: {:s}\n'.format(self.filename.replace('/',os.sep))
+            msg = msg + 'File size: {:.2f} MiB\n\n'.format(os.path.getsize(self.filename) / 1024.**2)
+
 
         # Image info
         if self.image is not None:

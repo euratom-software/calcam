@@ -34,6 +34,24 @@ Below is a simple example of a coordinate formatter
 
       return  formatted_coord
 
+Note on package structure
+-------------------------
+If the custom coordinate formatter takes the format of a package (i.e. a folder containing ``__init__.py`` along with other python files), care must be taken if you wish to be able to edit the code "live" i.e. see changes in the code take effect when using the :guilabel:`Refresh` button in the CAD model editor. In order for this to work properly, the coordinate formatter code must be able to be recursively reloaded by the calcam. For example, the following minimal ``__init__.py`` would not work properly:
+
+.. code-block:: python
+
+  from MySubModule import format_coord
+
+In this case because the ``MySubModule`` module is not a member of your package, but only its function :func:`format_coord` is, Calcam will not know to reload the ``MySubModule`` source and therefore changes in the code will not come in to effect when using the :guilabel:`Refresh` feature.
+
+Instead, either write the :func:`format_coord` function directly in ``__init__.py``, or import the entire ``MySubModule`` module and then make a reference to the correct function, e.g.:
+
+.. code-block:: python
+
+  import MySubModule 
+
+  format_coord = MySubModule.format_coord
+
 Adding to a CAD model
 ----------------------
 Once written, a custom coordinate formatter can be added to Calcam CAD model definitions using the :ref:`CAD model definition editor<cad_editor>` .

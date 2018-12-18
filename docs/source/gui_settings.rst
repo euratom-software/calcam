@@ -23,6 +23,8 @@ The CAD Model Definition Editor
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 The CAD model editing window is shown below:
 
+.. image:: images/screenshots/cad_edit_annotated.png
+   :alt: CAD editor window screenshot
 
 Basic Model Properties
 **********************
@@ -46,7 +48,7 @@ Features can be turned on or off by ticking or un-ticking the checkbox next to t
 
 Viewport Setup
 **************
-It is usually convenient to define some preset views of the model (i.e. camera positions and orientations) which can be quickly switched to e.g. as starting points for calibrations. For example, it is usually convenient to make preset views through ports which are usually used for cameras. Viewport setup is performed on the :guilabel:`Viewport` tab. At the top of this tab is a list of the viewports defined in the CAD model definition. At least one view must be defined before saving the CAD model definition, to be set automatically when the CAD model is loaded.
+It is usually convenient to define some preset views of the model (i.e. camera positions and orientations) which can be quickly switched to e.g. as starting points for calibrations. For example, it is usually convenient to make preset views through ports which are usually used for cameras. Viewport setup is performed on the :guilabel:`Viewports` tab. At the top of this tab is a list of the viewports defined in the CAD model definition. At least one view must be defined before saving the CAD model definition, to be set automatically when the CAD model is loaded.
 
 To add the current 3D view shown in the window as a preset view, enter a name for the view in the box half way down the :guilabel:`Viewport` tab and click :guilabel:`Add`. The current viewport can be adjusted either with mouse controls or by manually entering the 3D position and viewing target of the camera in the boxes near the bottom of the tab. To control the viewport with the mouse, the following mouse controls can be used on the 3D view:
 
@@ -62,7 +64,7 @@ When multiple views are defined in a CAD model, the default view, i.e. the view 
 
 Adding Additional Information
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Additional information can be added to the CAD model definition:
+Additional information can be added to the CAD model definition using the :guilabel:`Additional information` tab:
 
 R,Z Wall Contour
 ****************

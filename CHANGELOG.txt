@@ -2,6 +2,23 @@ Project Changelog
 =================
 
 
+Bug fix release 2.0.1 (17 Dec 2018)
+-----------------------------------
+
+Fixes:
+* Fixed bug in CAD model editor causing exceptions when removing model features which had been moved between groups.
+* Fixed CAD model editor often spuriously reported that there were unsaved changes to the CAD model.
+* Fixed reloading of user coordinate formatter in CAD model editor hitting recursion limit.
+* Fixed missing "Are you sure" prompt when removing viewports in CAD model editor.
+* Fixed some GUI elements not being reset properly when un-loading a model in the CAD model editor.
+* Changed exception raised in CAD model editor when loading UTF8 encoded data to a friendlier message.
+* Fixed exceptions raised in calibration tools when loading calibrations if the CAD model has a different set of features than expected.
+* Fixed checked features in CAD model feature tree becoming out of sync when loading calibrations.
+* Minor typo fixes
+* Added missing image in documentation
+
+
+
 Calcam v2.0.0 (16 Dec 2018)
 --------------------------------
 
@@ -10,11 +27,13 @@ New major version with many API, GUI and file format changes.
 See full documentation pages for notes on upgrading from Calcam 1.x.
 
 
+
 Bug fix release 1.9.4 (06 Nov 2018)
 -----------------------------------
 
 Fixes:
 * Fixed bug causing unhandled exceptions when opening GUI with no CAD models set up (e.g. on first run)
+
 
 
 Bug fix release 1.9.3 (11 Mar 2018)
@@ -25,6 +44,7 @@ Fixes:
 * Fixed string formatting in exception handling under Python 3.6
 * Fixed bug when checking if "Do Fit" button should be enabled which caused exceptions when loading some previously used images.
 * Fixed image points disappearing when loading a different image of the same shape when they should be persistent.
+
 
 
 Bug fix relase 1.9.2 (21 Feb 2018)

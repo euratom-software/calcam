@@ -147,6 +147,8 @@ class CalcamGUIWindow(qt.QMainWindow):
 
         self.config = CalcamConfig()
 
+        self.manual_exc = False
+
         # See how big the screen is and open the window at an appropriate size
         desktopinfo = self.app.desktop()
         available_space = desktopinfo.availableGeometry(self)
@@ -281,13 +283,14 @@ class CalcamGUIWindow(qt.QMainWindow):
 
     def show_calib_info(self):
 
-        if self.calibration._type != 'fit':
+        if self.manual_exc:
             self.update_extrinsics()
         dialog = CalibInfoDialog(self,self.calibration)
 
     def update_vtk_size(self,vtksize):
 
         self.vtksize = vtksize
+
 
 
     def update_chessboard_intrinsics(self):
@@ -1235,7 +1238,6 @@ class CalcamGUIWindow(qt.QMainWindow):
 
     def update_extrinsics(self):
         # Set the calibration's extrinsics to match the current view.
-        
         campos = np.matrix(self.camera_3d.GetPosition())
         camtar = np.matrix(self.camera_3d.GetFocalPoint())
 
@@ -1601,7 +1603,7 @@ class NameInputDialog(qt.QDialog):
         self.setWindowTitle(title)
 
 
-class AReYouSureDialog(qt.QDialog):
+class AreYouSureDialog(qt.QDialog):
 
     def __init__(self,parent,title,question):
 

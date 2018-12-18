@@ -184,6 +184,8 @@ class CADEdit(CalcamGUIWindow):
             if fname in fnames:
                 self.model_features[self.cadmodel.model_variant][fname]['default_enable'] = item.checkState(0) == qt.Qt.Checked
 
+        self.unsaved_changes = True
+
 
     def change_default_view(self):
         selected_view = str(self.viewlist.selectedItems()[0].text(0)).replace('*','')
@@ -228,8 +230,11 @@ class CADEdit(CalcamGUIWindow):
                     except ValueError:
                         continue
 
-            if contour.shape[1] != 2:
-                raise UserWarning('Loaded file contains a {:s} array. Expected a 2 column list of R,Z coordinates.'.format(' x '.join([str(d) for d in contour.shape])))
+            try:
+                if contour.shape[1] != 2:
+                    raise UserWarning('Loaded file contains a {:s} array. Expected a 2 column list of R,Z coordinates.'.format(' x '.join([str(d) for d in contour.shape])))
+            except NameError:
+                raise UserWarning('Could not load numeric data from the selected file.<br>Please select a file containing tab, space or comma delimited data and which is not UTF encoded.')
 
             self.contour_description.setText('Loaded from file: {:d} points'.format(contour.shape[0]))
             self.wall_contour = contour
@@ -241,7 +246,7 @@ class CADEdit(CalcamGUIWindow):
 
     def remove_wall_contour(self):
 
-        dialog = AReYouSureDialog('Remove wall contour?','Are you sure you want to remove the wall contour?')
+        dialog = AreYouSureDialog('Remove wall contour?','Are you sure you want to remove the wall contour?')
         dialog.exec_()
         if dialog.result() == 1:
             self.show_contour_checkbox.setChecked(False)
@@ -273,7 +278,6 @@ class CADEdit(CalcamGUIWindow):
                 self.cadmodel.set_features_enabled(True,self.selected_feature)
 
         elif self.sender() is self.mesh_scale_box:
-
             self.cadmodel.set_features_enabled(False,self.selected_feature)
             self.model_features[self.cadmodel.model_variant][self.selected_feature]['mesh_scale'] = self.mesh_scale_box.value()
             self.cadmodel.features[self.selected_feature].scale = self.mesh_scale_box.value()
@@ -288,10 +292,13 @@ class CADEdit(CalcamGUIWindow):
             self.model_features[self.cadmodel.model_variant][self.selected_feature]['colour'] = self.cadmodel.features[self.selected_feature].colour
 
         elif self.sender() is self.del_feature_button:
-
-            dialog = AReYouSureDialog(self,'Confirm Delete Model Part','Are you sure you want to remove the model part "{:s}"?'.format(self.selected_feature))
+            dialog = AreYouSureDialog(self,'Confirm Delete Model Part','Are you sure you want to remove the model part "{:s}"?'.format(self.selected_feature.split('/')[-1]))
             dialog.exec_()
             if dialog.result():
+
+                # Make sure any dragging & dropping is sorted.
+                self.update_feature_tree()
+
                 self.cadmodel.set_features_enabled(False,self.selected_feature)
                 defdict = self.model_features[self.cadmodel.model_variant].pop(self.selected_feature)
                 if self.cadmodel.def_file is not None:
@@ -340,7 +347,7 @@ class CADEdit(CalcamGUIWindow):
         if len(self.model_features.keys()) == 1:
             raise UserWarning('Cannot remove the only model variant!')
 
-        dialog = AReYouSureDialog(self,'Remove model variant','Are you sure you want to remove the model variant "{:s}"?'.format(self.cadmodel.model_variant))
+        dialog = AreYouSureDialog(self,'Remove model variant','Are you sure you want to remove the model variant "{:s}"?'.format(self.cadmodel.model_variant))
         dialog.exec_()
         
         if dialog.result() == 1:
@@ -397,7 +404,9 @@ class CADEdit(CalcamGUIWindow):
         filename = filename + ' [{:.1f} MiB]'.format(filesize)
 
         self.mesh_filename.setText(filename)
+        self.mesh_scale_box.blockSignals(True)
         self.mesh_scale_box.setValue(scale)
+        self.mesh_scale_box.blockSignals(False)
 
         feature_extent = feature.get_polydata().GetBounds()
 
@@ -415,7 +424,6 @@ class CADEdit(CalcamGUIWindow):
 
         self.part_size.setText(size_str)
 
-        self.unsaved_changes = True
 
 
     def rename_variant(self):
@@ -504,6 +512,9 @@ class CADEdit(CalcamGUIWindow):
                 self.tree_root.setText(0,'{:s} ({:s})'.format(self.cadmodel.machine_name,self.cadmodel.model_variant))
                 self.feature_tree.blockSignals(False)
 
+            self.update_model_views(show_default=True)
+            self.unsaved_changes = True
+
 
     def reset(self):
 
@@ -511,11 +522,13 @@ class CADEdit(CalcamGUIWindow):
             dialog = qt.QMessageBox(self)
             dialog.setStandardButtons(qt.QMessageBox.Save|qt.QMessageBox.Discard|qt.QMessageBox.Cancel)
             dialog.setWindowTitle('Save changes?')
-            dialog.setText('There are unsaved changes. Save before exiting?')
+            dialog.setText('There are unsaved changes. Save before closing the current file?')
             dialog.setIcon(qt.QMessageBox.Information)
             choice = dialog.exec_()
             if choice == qt.QMessageBox.Save:
                 self.action_save.trigger()
+            elif choice == qt.QMessageBox.Cancel:
+                return
 
         # Dispose of the old model
         if self.cadmodel is not None:
@@ -527,9 +540,16 @@ class CADEdit(CalcamGUIWindow):
 
 
         self.cadmodel = CADModel(status_callback = self.update_cad_status)
-        self.coord_formatter = [self.cadmodel,None,None,False]
         self.cadmodel.discard_changes = True
         self.cadmodel.add_to_renderer(self.renderer_3d)
+        self.update_model_views(show_default=True)
+
+        self.coord_formatter = [self.cadmodel,None,None,False]
+        self.formatter_info.setText('Coordinate formatter: Built-in default')
+        self.remove_formatter_button.setEnabled(False)
+        self.refresh_formatter_button.setEnabled(False)
+        self.load_formatter_button.setText('Load Custom...')
+
         # Make sure the light lights up the whole model without annoying shadows or falloff.
         light = self.renderer_3d.GetLights().GetItemAsObject(0)
         light.PositionalOn()
@@ -549,6 +569,8 @@ class CADEdit(CalcamGUIWindow):
             self.interactor3d.remove_cursor(self.cursor)
             self.cursor = None
 
+        self.coord_info.setText('No cursor exists. Click on the model to create one.')
+
         self.model_variant.blockSignals(True)
         self.model_variant.clear()
         self.model_variant.addItem('New...')
@@ -558,6 +580,8 @@ class CADEdit(CalcamGUIWindow):
         self.model_name_box.setText('New Model')
         self.add_variant('Default')
 
+        self.show_contour_checkbox.setEnabled(False)
+        self.contour_description.setText('No wall contour.')
         self.show_contour_checkbox.setChecked(False)
         self.wall_contour = None
         self.contour_actor = None
@@ -686,6 +710,7 @@ class CADEdit(CalcamGUIWindow):
         else:
             self.action_save.setEnabled(True)
 
+        self.unsaved_changes = False
         self.app.restoreOverrideCursor()
 
 
@@ -703,12 +728,15 @@ class CADEdit(CalcamGUIWindow):
     def remove_view(self):
 
         selected_view = str(self.viewlist.selectedItems()[0].text(0)).replace(' (Default)','')
-        dialog = AReYouSureDialog('Remove preset view','Are you sure you want to remove the view "{:s}"?'.format(selected_view))
-        self.cadmodel.views.pop(selected_view)
-        if self.cadmodel.initial_view == selected_view:
-            self.cadmodel.initial_view = None
+        dialog = AreYouSureDialog(self,'Remove preset view','Are you sure you want to remove the view "{:s}"?'.format(selected_view))
+        dialog.exec_()
+        if dialog.result() == 1:
+            self.cadmodel.views.pop(selected_view)
+            if self.cadmodel.initial_view == selected_view:
+                self.cadmodel.initial_view = None
 
-        self.update_model_views(show_default=True,keep_selection=True)
+            self.update_model_views(show_default=True,keep_selection=True)
+            self.unsaved_changes = True
 
 
     def refresh_formatter(self):
@@ -818,7 +846,7 @@ class CADEdit(CalcamGUIWindow):
             old_extent = self.cadmodel.get_extent()
             
         mesh_paths = self.browse_for_mesh(multiple=True)
-
+        self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
         for mesh_path in mesh_paths:
             init_name = os.path.split(mesh_path)[-1][:-4]
 
@@ -832,6 +860,7 @@ class CADEdit(CalcamGUIWindow):
             self.cadmodel.set_features_enabled(True,init_name)
             self.model_features[self.cadmodel.model_variant][init_name]['default_enable'] = True
 
+        self.selected_feature = init_name
         self.update_feature_tree()
 
         if not set_view:
@@ -841,6 +870,10 @@ class CADEdit(CalcamGUIWindow):
 
         if set_view:
             self.set_view_to_whole()
+        else:
+            self.refresh_3d()
+
+        self.app.restoreOverrideCursor()
 
 
     def set_view_to_whole(self):
@@ -871,19 +904,34 @@ class CADEdit(CalcamGUIWindow):
         # Make sure any drag and dropping has been applied to the model
         for feature in self.pending_parent_change:
             feature_name = self.cad_tree_items[feature]
+            if self.selected_feature == feature_name:
+                current_feature = True
+            else:
+                current_feature = False
+
+            fo = self.cadmodel.features.pop(feature_name)
             parent = feature.parent()
             fdict = self.model_features[self.cadmodel.model_variant][feature_name]
             del self.model_features[self.cadmodel.model_variant][feature_name]
+
+            if len(feature_name.split('/')) == 2:
+                self.cadmodel.groups[feature_name.split('/')[0]].remove(feature_name)
 
             if len(feature_name.split('/')) == 2:
                 feature_name = feature_name.split('/')[1]
 
             if parent is self.tree_root:
                 self.model_features[self.cadmodel.model_variant][feature_name] = fdict
+                self.cadmodel.features[feature_name] = fo
+                self.selected_feature = feature_name
             else:
                 self.model_features[self.cadmodel.model_variant]['{:s}/{:s}'.format(parent.text(0),feature_name)] = fdict
+                self.cadmodel.features['{:s}/{:s}'.format(parent.text(0),feature_name)] = fo
+                self.cadmodel.groups[parent.text(0)].append('{:s}/{:s}'.format(parent.text(0),feature_name))
+                self.selected_feature = '{:s}/{:s}'.format(parent.text(0),feature_name)
 
         self.pending_parent_change = []
+
 
         # -------------------------- Populate the model feature tree ------------------------------
         self.feature_tree.blockSignals(True)
@@ -957,6 +1005,7 @@ class CADEdit(CalcamGUIWindow):
                 self.pending_parent_change.append(selected_items[0])
 
             self.unsaved_changes = True
+
         return False
 
 
@@ -1199,7 +1248,7 @@ class CADEdit(CalcamGUIWindow):
         self.statusbar.clearMessage()
 
         if add_path_prompt:
-            dialog = AReYouSureDialog(self,'Add to calcam configuration?',"Model saved.<br><br>The folder it is saved in:<br><br> {:s}<br><br>is currently not in Calcam's cad model search path,<br>so this model will not yet be detected by Calcam.<br><br>Would you like to add this path to Calcam's<br>model search path configuration now?".format(add_path_prompt))
+            dialog = AreYouSureDialog(self,'Add to calcam configuration?',"Model saved.<br><br>The folder it is saved in:<br><br> {:s}<br><br>is currently not in Calcam's cad model search path,<br>so this model will not yet be detected by Calcam.<br><br>Would you like to add this path to Calcam's<br>model search path configuration now?".format(add_path_prompt))
             dialog.exec_()
             if dialog.result() == 1:
                 self.config.cad_def_paths.append(add_path_prompt)
@@ -1215,6 +1264,11 @@ def recursive_reload(module,loaded=None):
     for name in dir(module):
         member = getattr(module, name)
         if inspect.ismodule(member) and member not in loaded:
-            recursive_reload(member, loaded)
-    loaded.add(module)
+            try:
+                member.__file__
+                recursive_reload(member, loaded)
+            except AttributeError:
+                continue
+
+        loaded.add(module)
     imp.reload(module)
