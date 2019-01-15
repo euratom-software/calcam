@@ -28,9 +28,10 @@ Perspective Distortion Model
 ----------------------------
 The image distortion model for perspective projection lenses takes in to account radial (barrel or pincushion) distortion, and tangential (wedge-prism like, usually due to de-centring of optical components) distortions. The equation relating the undistorted and distorted normalised image coordinates in this model is:
 
+.. _distortion_eqn:
 .. math::
 	\begin{pmatrix}x_d\\y_d\end{pmatrix} = \left[ 1 + k_1r^2 + k_2r^4 + k_3r^6\right]\begin{pmatrix}x_n\\y_n\end{pmatrix} +  \begin{pmatrix}2p_1x_ny_n + p_2(r^2 + 2x_n^2)\\p_1(r^2 + 2y^2) + 2p_2x{_n}y{_n}\end{pmatrix},
-	\label{eqn:perspective_distortion}
+	\label{eq:perspective_distortion}
 
 where :math:`r = \sqrt{x_n^2 + y_n^2}`, and :math:`k_n` and :math:`p_n` are radial and tangential distortion coefficients, respectively. The polynomial in :math:`r^2` in the first term describes the radial distortion while the second term represents tangential distortion.
 

@@ -27,6 +27,7 @@ import copy
 
 from .io import ZipSaveFile
 from scipy.ndimage.measurements import center_of_mass as CoM
+from scipy.optimize import minimize
 from .coordtransformer import CoordTransformer
 from .pointpairs import PointPairs
 from . import __version__
@@ -1493,7 +1494,7 @@ class Calibration():
         Parameters:
 
             view_model (calcam.calibration.ViewModel) : Calibration from which to import \
-                                                    the intrinsics.
+                                                        the intrinsics.
         '''
         if self._type == 'fit':
             raise Exception('You cannot modify the intrinsics of a fitted calibration.')
@@ -1612,6 +1613,104 @@ class Calibration():
             self.history['extrinsics'] = 'Set by {:s} on {:s} at {:s}'.format(_user,_host,_get_formatted_time())
         else:
             self.history['extrinsics'] = src
+
+
+    def get_undistort_coeffs(self,radial_terms=None,include_tangential=None,subview=None):
+        '''
+        Get a set of parameters which can be used to analytically calculate image coordinate un-distortion.
+        This can be useful if you need to calculate point un-distortion faster than the usual numerical method.
+        This fits a model of the form of the :ref:`perspective distortion model <distortion_eqn>` but with 
+        :math:`x_n` and :math:`x_d` interchanged. Which coefficients are included can be set by optional input
+        arguments; by default the same terms which were enabled in the calibration fit are also included in this
+        fit. Note: this function does not work with fisheye calibrations.
+
+        Parameters:
+
+            radial_terms (int)        : Number of terms to include in the radial distortion model, can be in \
+                                        the range 1 - 3. If < 3, 0 is returned for higher order coefficients. \
+                                        If not provided, uses the same order as the calibration fit.
+
+            include_tangential (bool) : Whether to include the tangential distortion coefficients p1 and p2. \
+                                        If not given, uses the same option as was use in the calibration.
+                                        
+            subview (int)             : For calibrations with multiple sub-views, what sub-view to get the parameters for.
+
+        Returns:
+
+            dict : A dictionary containing the fitted coeffcients. Radial distortion coefficients are in keys: \
+                   'k1', 'k2' and 'k3'; tangential coefficients are in 'p1' and 'p2'. An additional key 'rms_error' \
+                   gives the RMS fit error, in pixels, which indicates how well these fitted parameters reproduce \
+                   the full numerical distortion inversion.
+
+        '''
+
+        if subview is None:
+            if self.n_subviews == 1:
+                subview = 0
+            else:
+                raise Exception('This calibration contains muyltiple sub-views; therefore the subview number must be specified.')
+
+        if self.view_models[subview].model != 'perspective':
+            raise Exception('Undistortion parameter getting is not supported for this model type.')
+
+        if radial_terms is None:
+            if 'Disable k3' in self.view_models[subview].fit_options:
+                if 'Disable k2' in self.view_models[subview].fit_options:
+                    radial_terms = 1
+                else:
+                    rdial_terms = 2
+            else:
+                radial_terms = 3
+
+        if include_tangential is None:
+            if 'Disable Tangential Distortion' in self.view_models[subview].fit_options:
+                include_tangential = False
+            else:
+                include_tangential = True
+
+
+        # First we make a 32x32 array of points over the image (these are our distorted points)
+        px,py = np.meshgrid(np.linspace(0,self.geometry.get_display_shape()[0]-1,32),np.linspace(0,self.geometry.get_display_shape()[1]-1,32))
+        xd = np.hstack((px.flatten()[:,np.newaxis],py.flatten()[:,np.newaxis]))
+
+        # Now run the numerical un-distoirtion on these points
+        px,py = self.view_models[subview].normalise(xd[:,0],xd[:,1])
+        xn = np.hstack((px.flatten()[:,np.newaxis],py.flatten()[:,np.newaxis]))
+
+        # We actually need xd in normalised coordinates, also...
+        xd[:,0] = (xd[:,0] - self.view_models[subview].cam_matrix[0,2]) / self.view_models[subview].cam_matrix[0,0]
+        xd[:,1] = (xd[:,1] - self.view_models[subview].cam_matrix[1,2]) / self.view_models[subview].cam_matrix[1,1]
+
+        # Now fit the model!
+        x0 = [0] * radial_terms + [0,0] * include_tangential
+        opt_result = minimize(undistort_model_residual,x0,args=(xd,xn,radial_terms,include_tangential))
+
+        # Put the results in to a friendly dictionary
+        res = {'k1':opt_result.x[0]}
+        param_ind = 1
+
+        if radial_terms > 1:
+            res['k2'] = opt_result.x[param_ind]
+            param_ind += 1
+        else:
+            res['k2'] = 0.
+        if radial_terms > 2:
+            res['k3'] = opt_result.x[param_ind]
+            param_ind += 1
+        else:
+            res['k3'] = 0.
+        if include_tangential:
+            res['p1'] = opt_result.x[param_ind]
+            param_ind += 1
+            res['p2'] = opt_result.x[param_ind]
+        else:
+            res['p1'] = 0.
+            res['p2'] = 0.
+
+        res['rms_error'] = opt_result.fun * (self.view_models[subview].cam_matrix[0,0] + self.view_models[subview].cam_matrix[1,1])/2.
+
+        return res
+
 
 
     def __str__(self):
@@ -1813,24 +1912,24 @@ class Calibration():
         
     def get_raysect_camera(self,coords='Display'):
         '''
-        Get a RaySect camera object corresponding to the calibrated camera.
+        Get a RaySect observer corresponding to the calibrated camera.
 
         Parameters:
-            coords (str)	: Either ``Display`` or ``Original`` specifying \
+            coords (str)    : Either ``Display`` or ``Original`` specifying \
                               the orientation of the raysect camera.
         Returns:
             raysect.optical.observer.imaging.VectorCamera : RaySect camera object.
-        '''    	
+        '''     
         try:
             from raysect.optical.observer.imaging import VectorCamera
             from raysect.core.math.point import Point3D
             from raysect.core.math.vector import Vector3D
         except Exception as e:
             raise Exception('Could not import RaySect classes: {:}'.format(e))
-    	
+        
 
         if coords.lower() == 'display':
-            x,y = np.meshgrid(np.arange(self.geometry.get_original_shape()[0]),np.arange(self.geometry.get_original_shape()[1]))    	
+            x,y = np.meshgrid(np.arange(self.geometry.get_original_shape()[0]),np.arange(self.geometry.get_original_shape()[1]))        
         elif coords.lower() == 'original':
             x,y = np.meshgrid(np.arange(self.geometry.get_original_shape()[0]),np.arange(self.geometry.get_original_shape()[1]))    
 
@@ -1843,8 +1942,8 @@ class Calibration():
         for ix in range(x.shape[1]):
             for iy in range(x.shape[0]):
                 origins[iy,ix] = Point3D(*ppos[iy,ix,:])
-                vectors[iy,ix] = Vector3D(*viewdirs[iy,ix,:]) 	
-    	
+                vectors[iy,ix] = Vector3D(*viewdirs[iy,ix,:])   
+        
         return VectorCamera(origins.T,vectors.T)
         
 
@@ -2133,3 +2232,41 @@ class Fitter:
 
 
 
+def undistort_model_residual(params,xd,xn,radial_order=2,include_tangential=True):
+
+    if radial_order < 1 or radial_order > 3:
+        raise ValueError('Order must be between 1 and 3!')
+
+    params_index = 1
+    k1 = params[0]
+    if radial_order > 1:
+        k2 = params[params_index]
+        params_index += 1
+    else:
+        k2 = 0.
+
+    if radial_order > 2:
+        k3 = params[params_index]
+        params_index += 1
+    else:
+        k3 = 0.
+
+    if include_tangential:
+        p1 = params[params_index]
+        params_index += 1
+        p2 = params[params_index]
+    else:
+        p1 = 0.
+        p2 = 0.
+
+    if params_index < params.size  - 1:
+        raise ValueError('Too many parameters givem!')
+
+    delta = 0.
+    for i in range(xd.shape[0]):
+        r = np.sqrt(np.sum(xd[i,:]**2))
+        x_out = xd[i,0]*(1 + k1*r**2 + k2*r**4 + k3*r**6) + 2*p1*np.prod(xd[i,:]) + p2*(r**2 + 2*xd[i,0]**2)
+        y_out = xd[i,1]*(1 + k1*r**2 + k2*r**4 + k3*r**6) + p1*(r**2+2*xd[i,1]**2) + 2*p2*np.prod(xd[i,:])
+        delta = delta + ((x_out - xn[i,0])**2 + (y_out - xn[i,1])**2)/xd.shape[0]
+
+    return np.sqrt(delta)

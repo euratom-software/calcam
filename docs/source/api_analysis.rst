@@ -10,7 +10,7 @@ The Calibration Class
 The calibration class is used to represent Calcam calibrations and provides various methods for getting information about the camera viewing geometry.
 
 .. autoclass:: calcam.Calibration
-	:members: get_cam_matrix,get_cam_roll,get_cam_to_lab_rotation,get_fov,get_image,get_los_direction,get_pupilpos,project_points,undistort_image,get_raysect_camera
+	:members: get_cam_matrix,get_cam_roll,get_cam_to_lab_rotation,get_fov,get_image,get_los_direction,get_pupilpos,project_points,undistort_image,get_raysect_camera,get_undistort_coeffs
 
 Rendering images
 ----------------
