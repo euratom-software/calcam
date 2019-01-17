@@ -183,6 +183,8 @@ class FittingCalib(CalcamGUIWindow):
 
         self.intrinsics_calib = None
 
+        self.fit_initted = False
+
         # Start the GUI!
         self.show()
         self.interactor2d.init()
@@ -214,6 +216,8 @@ class FittingCalib(CalcamGUIWindow):
 
 
     def reset(self,keep_cadmodel=False):
+
+        self.fit_initted = False
 
         if not keep_cadmodel:
             self.tabWidget.setTabEnabled(2,False)
@@ -251,33 +255,21 @@ class FittingCalib(CalcamGUIWindow):
         self.unsaved_changes = False
 
 
-    def reset_fit(self,subview=None,reset_options=True):
+    def reset_fit(self,subview=None):
 
-        self.overlay_checkbox.setChecked(False)
-        self.fit_overlay = None
-
-        self.rebuild_image_gui(reset_fitters=reset_options)
-        
         if subview is None:
+            if not any(self.calibration.view_models):
+                return
             self.calibration.view_models = [None] * self.calibration.n_subviews
             self.calibration.history['fit'] = [None] * self.calibration.n_subviews
         else:
+            if self.calibration.view_models[subview] is None:
+                return
             self.calibration.view_models[subview] = None
             self.calibration.history['fit'][subview] = None
-        
-        self.update_fit_results(force_show_reprojected=False)
 
-        if np.any(self.calibration.view_models):
-            self.fitted_points_checkbox.setEnabled(True)
-            self.overlay_checkbox.setEnabled(True)
-        else:
-            self.fitted_points_checkbox.setEnabled(True)
-            self.overlay_checkbox.setEnabled(True)
-
-        if self.fitted_points_checkbox.isChecked():
-            self.fitted_points_checkbox.setChecked(False)
-            if self.fitted_points_checkbox.isEnabled():
-                self.fitted_points_checkbox.setChecked(True)
+        self.fit_overlay = None
+        self.update_fit_results(show_points = self.fitted_points_checkbox.isChecked())
                         
         self.unsaved_changes = True
 
@@ -396,7 +388,7 @@ class FittingCalib(CalcamGUIWindow):
     def on_model_load(self):
         # Enable the other tabs!
         self.tabWidget.setTabEnabled(2,True)
-        self.update_fit_results(force_show_reprojected=False)
+        self.update_fit_results()
         #self.tabWidget.setTabEnabled(2,True)
         #self.tabWidget.setTabEnabled(3,True)
 
@@ -420,26 +412,9 @@ class FittingCalib(CalcamGUIWindow):
             self.hist_eq_checkbox.setChecked(False)
             self.hist_eq_checkbox.setChecked(True)
 
-        self.rebuild_image_gui()
+        self.init_fitting()
         self.unsaved_changes = True
 
-        keep_points = False
-        if keep_points:
-
-            if self.overlay_checkbox.isChecked():
-                self.overlay_checkbox.setChecked(False)
-                self.overlay_checkbox.setChecked(True)
-
-            if self.fitted_points_checkbox.isChecked():
-                self.fitted_points_checkbox.setChecked(False)
-                self.fitted_points_checkbox.setChecked(True)
-
-        else:
-
-            self.fitted_points_checkbox.setChecked(False)
-            self.overlay_checkbox.setChecked(False)
-
-        self.reset_fit()
         self.update_image_info_string(newim['image_data'],self.calibration.geometry)
 
 
@@ -450,7 +425,10 @@ class FittingCalib(CalcamGUIWindow):
         self.fit_enable_check()
 
 
-    def rebuild_image_gui(self,reset_fitters = True):
+    def init_fitting(self):
+
+        self.fit_initted = False
+        self.reset_fit()
 
         # Build the GUI to show fit options, according to the number of fields.
         current_tab = self.subview_tabs.currentIndex()
@@ -463,19 +441,14 @@ class FittingCalib(CalcamGUIWindow):
         self.fit_buttons = []
         self.fit_results = []
 
-        if reset_fitters:
-            self.fitters = []
-
-        if self.fitters == []:
-            reset_fitters = True
+        self.fitters = []
 
         self.fit_results_widgets = []
         self.view_to_fit_buttons = []
 
         for field in range(self.calibration.n_subviews):
             
-            if reset_fitters:
-                self.fitters.append(Fitter())
+            self.fitters.append(Fitter())
 
             new_tab = qt.QWidget()
             new_layout = qt.QVBoxLayout()
@@ -631,7 +604,7 @@ class FittingCalib(CalcamGUIWindow):
         if current_tab < self.subview_tabs.count():
             self.subview_tabs.setCurrentIndex(current_tab)
 
-
+        self.fit_initted = True
 
 
 
@@ -682,7 +655,7 @@ class FittingCalib(CalcamGUIWindow):
  
 
         self.update_image_info_string(self.calibration.get_image(),self.calibration.geometry)
-        self.rebuild_image_gui()
+        self.init_fitting()
         self.unsaved_changes = True
 
 
@@ -792,7 +765,7 @@ class FittingCalib(CalcamGUIWindow):
 
         self.point_pairings = []
 
-        self.reset_fit(reset_options=False)
+        self.reset_fit()
         self.update_n_points()
 
 
@@ -831,7 +804,7 @@ class FittingCalib(CalcamGUIWindow):
         if clear_fit and self.calibration.pointpairs is not None:
             for subview,same in enumerate(pp == self.calibration.pointpairs):
                 if not same:
-                    self.reset_fit(subview=subview,reset_options = False)
+                    self.reset_fit(subview=subview)
 
         if pp.get_n_points() > 0:
 
@@ -866,14 +839,20 @@ class FittingCalib(CalcamGUIWindow):
 
                
 
-    def update_fit_results(self,force_show_reprojected=True):
-        
-        if self.fitted_points_checkbox.isChecked():
-            force_show_reprojected = True
-        
+    def update_fit_results(self,show_points=True):
+
+        self.overlay_checkbox.setChecked(False)
+        self.overlay_checkbox.setEnabled(False)
+        self.fitted_points_checkbox.setChecked(False)
+        self.fitted_points_checkbox.setEnabled(False)
+
+        if not self.fit_initted:
+            return
+
         for subview in range(self.calibration.n_subviews):
 
             if self.calibration.view_models[subview] is None:
+                self.fit_results[subview].hide()
                 continue
 
             # Put the results in to the GUI
@@ -961,20 +940,14 @@ class FittingCalib(CalcamGUIWindow):
                                                 ] ) )                
             if self.cadmodel is not None:
                 widgets[3].setEnabled(True)
-            else:
-                widgets[3].setEnabled(False)
-
-     
-            if self.cadmodel is None:
-                self.overlay_checkbox.setEnabled(False)
-            else:
                 self.overlay_checkbox.setEnabled(True)
-
+                
             self.fit_results[subview].show()
             self.fitted_points_checkbox.setEnabled(True)
-            
-            if force_show_reprojected:
-                self.fitted_points_checkbox.setChecked(True)
+        
+        if self.fitted_points_checkbox.isEnabled() and show_points:
+            self.fitted_points_checkbox.setChecked(True)
+
 
 
 
@@ -1037,6 +1010,7 @@ class FittingCalib(CalcamGUIWindow):
                     self.cadmodel.set_wireframe(True)
                     self.cadmodel.set_colour((0,0,1))
                     self.fit_overlay = render_cam_view(self.cadmodel,self.calibration,transparency=True,verbose=False,aa=2)
+                    self.fit_overlay[:,:,3] = self.fit_overlay[:,:,3] * 0.6
                     self.cadmodel.set_colour(orig_colours)
                     self.cadmodel.set_wireframe(False)
 
@@ -1319,7 +1293,7 @@ class FittingCalib(CalcamGUIWindow):
         if result == 1:
             self.calibration.set_subview_mask(dialog.fieldmask,subview_names=dialog.field_names,coords='Display')
             self.interactor2d.n_subviews = self.calibration.n_subviews
-            self.rebuild_image_gui()
+            self.init_fitting()
             self.unsaved_changes = True
             self.update_n_points()
             self.reset_fit()
@@ -1352,7 +1326,7 @@ class FittingCalib(CalcamGUIWindow):
             self.pixel_size_box.setEnabled(False)
             self.calibration.pixel_size = None
 
-        self.update_fit_results(force_show_reprojected=False)
+        self.update_fit_results()
         self.unsaved_changes = True
 
 
