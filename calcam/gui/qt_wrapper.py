@@ -26,6 +26,8 @@ to enable the GUI module to work easily with either
 PyQt 4 or 5.
 """
 
+from .qvtkrenderwindowinteractor import QVTKRenderWindowInteractor
+
 try:
     from PyQt5.QtCore import *
     from PyQt5.QtGui import *
@@ -45,16 +47,9 @@ try:
 except:
     QString = str
 
-try:
-    if qt_ver == 4:
-        from vtk.qt4.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
-    else:
-        from vtk.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
-except:
-    raise ImportError('VTK Qt module could not be imported. Check your VTK library has been built with Qt support.')
 
-# Here's a function which creates a new instance of QTreeWidgetItem,
-# which will work in either PyQt4 or 5. For PyQt4 we have to make string list
+# Here's a little custom constructor for QTreeWidgetItems, which will
+# work in either PyQt4 or 5. For PyQt4 we have to make string list
 # arguments in to QStringLists.
 def QTreeWidgetItem(*args):
     if qt_ver == 4:

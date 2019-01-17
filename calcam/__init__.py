@@ -27,7 +27,6 @@ CalCam package.
 # Calcam version
 __version__ = '2.1.0-dev'
 
-
 # Import the top level "public facing" classes & functions
 from .calibration import Calibration
 from .raycast import RayData

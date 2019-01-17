@@ -58,7 +58,8 @@ class CalcamConfig():
             self.default_model = None
             self.default_image_source = 'Image File'
             self.mouse_sensitivity = 75
-
+            self.main_overlay_colour = (0,0,1)
+            self.second_overlay_colour = (0,1,0)
             self.save()
 
 
@@ -75,6 +76,8 @@ class CalcamConfig():
         self.default_model = load_dict['default_model']
         self.default_image_source = load_dict['default_im_source']
         self.mouse_sensitivity = load_dict['mouse_sensitivity']
+        self.main_overlay_colour = load_dict['main_overlay_colour']
+        self.second_overlay_colour = load_dict['second_overlay_colour']
 
 
     def save(self):
@@ -86,6 +89,8 @@ class CalcamConfig():
                         'image_source_paths':self.image_source_paths,
                         'default_im_source':self.default_image_source,
                         'mouse_sensitivity':self.mouse_sensitivity,
+                        'main_overlay_colour':self.main_overlay_colour,
+                        'second_overlay_colour':self.second_overlay_colour,
                     }
 
         with open(self.filename,'w') as f:

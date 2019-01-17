@@ -110,13 +110,15 @@ class FittingCalib(CalcamGUIWindow):
         self.load_intrinsics_calib_button.clicked.connect(self.modify_intrinsics_calib)
         self.intrinsics_calib_checkbox.toggled.connect(self.toggle_intrinsics_calib)
         self.viewport_load_calib.clicked.connect(self.load_viewport_calib)
-
         self.action_save.triggered.connect(self.save_calib)
         self.action_save_as.triggered.connect(lambda: self.save_calib(saveas=True))
         self.action_open.triggered.connect(self.load_calib)
         self.action_new.triggered.connect(self.reset)
         self.action_cal_info.triggered.connect(self.show_calib_info)
-
+        self.overlay_colour_button.clicked.connect(self.change_overlay_colour)
+        self.comparison_overlay_colour_button.clicked.connect(self.change_comparison_colour)
+        self.open_comparison_calib.clicked.connect(self.select_comparison_calib)
+        self.comparison_overlay_checkbox.toggled.connect(self.toggle_overlay)
 
         self.control_sensitivity_slider.valueChanged.connect(lambda x: self.interactor3d.set_control_sensitivity(x*0.01))
         self.rmb_rotate.toggled.connect(self.interactor3d.set_rmb_rotate)
@@ -138,10 +140,6 @@ class FittingCalib(CalcamGUIWindow):
         sc = qt.QShortcut(qt.QKeySequence("Ctrl+P"),self)
         sc.setContext(qt.Qt.ApplicationShortcut)
         sc.activated.connect(self.toggle_reprojected)
-
-        sc = qt.QShortcut(qt.QKeySequence("Ctrl+O"),self)
-        sc.setContext(qt.Qt.ApplicationShortcut)
-        sc.activated.connect(self.toggle_overlay)
 
         # Odds & sods
         self.pixel_size_box.setSuffix(u' \u00B5m')
@@ -170,6 +168,7 @@ class FittingCalib(CalcamGUIWindow):
         self.fit_settings_widgets = []
 
         self.fit_overlay = None
+        self.comp_overlay = None
 
         self.chessboard_history = None
 
@@ -214,6 +213,34 @@ class FittingCalib(CalcamGUIWindow):
         self.unsaved_changes = True
 
 
+    def select_comparison_calib(self):
+        
+        cal = self.object_from_file('calibration')
+        
+        if cal is not None:
+            curr_shape = self.calibration.geometry.get_display_shape()
+            comp_shape = cal.geometry.get_display_shape()
+            if curr_shape != comp_shape:
+                raise UserWarning('The selected calibration has different image dimensions ({:d} x {:d}) to the current calibration ({:d} x {:d}), so cannot be used to compare!'.format(comp_shape[0],comp_shape[1],curr_shape[0],curr_shape[1]))
+
+            fname = cal.filename
+            self.comparison_name.setText( ('...' + fname[-20:]) if len(fname) > 23 else fname )
+            self.statusbar.showMessage('Rendering wireframe overlay...')
+            self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
+            self.app.processEvents()
+
+            orig_colours = self.cadmodel.get_colour()
+            self.cadmodel.set_wireframe(True)
+            self.cadmodel.set_colour((1,1,1))
+            self.comp_overlay = render_cam_view(self.cadmodel,cal,transparency=True,verbose=False,aa=2)
+            self.cadmodel.set_colour(orig_colours)
+            self.cadmodel.set_wireframe(False)
+
+            self.statusbar.clearMessage()
+            self.app.restoreOverrideCursor()
+            self.comparison_overlay_checkbox.setEnabled(True)
+            self.comparison_overlay_checkbox.setChecked(True)
+
 
     def reset(self,keep_cadmodel=False):
 
@@ -254,6 +281,30 @@ class FittingCalib(CalcamGUIWindow):
         self.refresh_3d()
         self.unsaved_changes = False
 
+
+    def change_overlay_colour(self):
+        
+        old_colour = self.config.main_overlay_colour
+        new_colour = self.pick_colour(init_colour=old_colour)
+        if new_colour is not None:
+            self.config.main_overlay_colour = new_colour
+
+            if self.overlay_checkbox.isChecked():
+                self.overlay_checkbox.setChecked(False)
+                self.overlay_checkbox.setChecked(True)
+                
+
+    def change_comparison_colour(self):
+        
+        old_colour = self.config.second_overlay_colour
+        new_colour = self.pick_colour(init_colour=old_colour)
+        if new_colour is not None:
+            self.config.second_overlay_colour = new_colour
+
+            if self.comparison_overlay_checkbox.isChecked():
+                self.comparison_overlay_checkbox.setChecked(False)
+                self.comparison_overlay_checkbox.setChecked(True)                
+        
 
     def reset_fit(self,subview=None):
 
@@ -991,13 +1042,16 @@ class FittingCalib(CalcamGUIWindow):
         self.unsaved_changes = True
 
 
-    def toggle_overlay(self,show=None):
+    def toggle_overlay(self):
 
-        if show is None:
-            if self.overlay_checkbox.isEnabled():
-                self.overlay_checkbox.setChecked(not self.overlay_checkbox.isChecked())
+        if not self.overlay_checkbox.isChecked() and not self.comparison_overlay_checkbox.isChecked():
+            self.interactor2d.set_overlay_image(None)
+            return
 
-        elif show:
+        overlay_im = np.zeros(tuple(self.calibration.geometry.get_display_shape()[::-1]) + (4,),dtype=np.float16)
+        opacity = 0.6
+        
+        if self.overlay_checkbox.isChecked():
 
             if self.fit_overlay is None:
 
@@ -1005,45 +1059,48 @@ class FittingCalib(CalcamGUIWindow):
                 self.statusbar.showMessage('Rendering wireframe overlay...')
                 self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
                 self.app.processEvents()
-                try:
-                    orig_colours = self.cadmodel.get_colour()
-                    self.cadmodel.set_wireframe(True)
-                    self.cadmodel.set_colour((0,0,1))
-                    self.fit_overlay = render_cam_view(self.cadmodel,self.calibration,transparency=True,verbose=False,aa=2)
-                    self.fit_overlay[:,:,3] = self.fit_overlay[:,:,3] * 0.6
-                    self.cadmodel.set_colour(orig_colours)
-                    self.cadmodel.set_wireframe(False)
+
+                orig_colours = self.cadmodel.get_colour()
+                self.cadmodel.set_wireframe(True)
+                self.cadmodel.set_colour((1,1,1))
+                self.fit_overlay = render_cam_view(self.cadmodel,self.calibration,transparency=True,verbose=False,aa=2)
+                self.cadmodel.set_colour(orig_colours)
+                self.cadmodel.set_wireframe(False)
 
 
-                    if np.max(self.fit_overlay) == 0:
-                        dialog = qt.QMessageBox(self)
-                        dialog.setStandardButtons(qt.QMessageBox.Ok)
-                        dialog.setWindowTitle('Calcam - Information')
-                        dialog.setTextFormat(qt.Qt.RichText)
-                        dialog.setText('Wireframe overlay image is blank.')
-                        dialog.setInformativeText('This usually means the fit is wildly wrong.')
-                        dialog.setIcon(qt.QMessageBox.Information)
-                        dialog.exec_()
-                        
-                
-                except:
-                    self.interactor2d.set_overlay_image(None)
-                    self.statusbar.clearMessage()
-                    self.overlay_checkbox.setChecked(False) 
-                    self.app.restoreOverrideCursor()
-                    raise
-
+                if np.max(self.fit_overlay) == 0:
+                    dialog = qt.QMessageBox(self)
+                    dialog.setStandardButtons(qt.QMessageBox.Ok)
+                    dialog.setWindowTitle('Calcam - Information')
+                    dialog.setTextFormat(qt.Qt.RichText)
+                    dialog.setText('Wireframe overlay image is blank.')
+                    dialog.setInformativeText('This usually means the fit is wildly wrong.')
+                    dialog.setIcon(qt.QMessageBox.Information)
+                    dialog.exec_()
 
                 self.statusbar.clearMessage()
                 self.app.restoreOverrideCursor()
 
-
-            self.interactor2d.set_overlay_image(self.fit_overlay)
+            
+            for channel in range(3):
+                overlay_im[:,:,channel] = overlay_im[:,:,channel] + self.fit_overlay[:,:,channel] * self.config.main_overlay_colour[channel]
+            
+            overlay_im[:,:,3] = overlay_im[:,:,3] + self.fit_overlay[:,:,3] * opacity
+            
             self.fitted_points_checkbox.setChecked(False)
-            self.refresh_2d()
-
-        else:
-            self.interactor2d.set_overlay_image(None)
+            
+        if self.comparison_overlay_checkbox.isChecked():
+            for channel in range(3):
+                overlay_im[:,:,channel] = overlay_im[:,:,channel] + self.comp_overlay[:,:,channel] * self.config.second_overlay_colour[channel]
+            
+            overlay_im[:,:,3] = overlay_im[:,:,3] + self.comp_overlay[:,:,3] * opacity
+        
+        overlay_im[:,:,3] = np.minimum(overlay_im[:,:,3],opacity * 255)
+        overlay_im[:,:,:2] = 255 * overlay_im[:,:,:2] / overlay_im[:,:,:2].max()
+        
+        self.interactor2d.set_overlay_image(overlay_im.astype(np.uint8))
+            
+        self.refresh_2d()
    
 
 
