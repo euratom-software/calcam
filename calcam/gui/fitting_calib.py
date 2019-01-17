@@ -218,13 +218,17 @@ class FittingCalib(CalcamGUIWindow):
         cal = self.object_from_file('calibration')
         
         if cal is not None:
+
+            if all([vm is None for vm in cal.view_models]):
+                raise UserWarning('The selected calibration file does not contain a camera model so cannot be used for comparison.')
+
             curr_shape = self.calibration.geometry.get_display_shape()
             comp_shape = cal.geometry.get_display_shape()
             if curr_shape != comp_shape:
                 raise UserWarning('The selected calibration has different image dimensions ({:d} x {:d}) to the current calibration ({:d} x {:d}), so cannot be used to compare!'.format(comp_shape[0],comp_shape[1],curr_shape[0],curr_shape[1]))
 
             fname = cal.filename
-            self.comparison_name.setText( ('...' + fname[-20:]) if len(fname) > 23 else fname )
+            self.comparison_name.setText( ('...' + fname[-25:]) if len(fname) > 28 else fname )
             self.statusbar.showMessage('Rendering wireframe overlay...')
             self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
             self.app.processEvents()
@@ -261,10 +265,13 @@ class FittingCalib(CalcamGUIWindow):
         self.interactor2d.set_image(None)
 
         self.calibration = Calibration(cal_type='fit')
-        # Disable image transform buttons if we have no image
-        self.image_settings.hide()
-        #self.fit_results.hide()
 
+        self.image_settings.hide()
+
+        self.comp_overlay = None
+        self.comparison_overlay_checkbox.setChecked(False)
+        self.comparison_overlay_checkbox.setEnabled(False)
+        self.comparison_name.setText('No comparison calibration loaded')
         
         self.tabWidget.setTabEnabled(3,False)
         self.tabWidget.setTabEnabled(4,False)
@@ -285,8 +292,11 @@ class FittingCalib(CalcamGUIWindow):
     def change_overlay_colour(self):
         
         old_colour = self.config.main_overlay_colour
-        new_colour = self.pick_colour(init_colour=old_colour)
+
+        new_colour = self.pick_colour(init_colour=old_colour,pick_alpha=True)
+
         if new_colour is not None:
+
             self.config.main_overlay_colour = new_colour
 
             if self.overlay_checkbox.isChecked():
@@ -297,7 +307,8 @@ class FittingCalib(CalcamGUIWindow):
     def change_comparison_colour(self):
         
         old_colour = self.config.second_overlay_colour
-        new_colour = self.pick_colour(init_colour=old_colour)
+        new_colour = self.pick_colour(init_colour=old_colour,pick_alpha=True)
+
         if new_colour is not None:
             self.config.second_overlay_colour = new_colour
 
@@ -446,6 +457,39 @@ class FittingCalib(CalcamGUIWindow):
 
     def on_load_image(self,newim):
 
+        imshape = newim['image_data'].shape[1::-1]
+
+        # If we already have an image in the calibration, check if the new one is the same size.
+        try:
+            # If the new image is the same size, assume all its metadata are the same as the existing image.
+            if imshape == tuple(self.calibration.geometry.get_display_shape()):
+                newim['coords'] = 'display'
+                newim['subview_mask'] == self.calibration.get_subview_mask(coords='Display')
+                newim['transform_actions'] = self.calibration.geometry.transform_actions
+                newim['subview_names'] = self.calibration.subview_names
+                newim['pixel_aspect'] = self.calibration.geometry.pixel_aspectratio
+                newim['pixel_size'] = self.calibration.pixel_size
+            elif imshape == tuple(self.calibration.geometry.get_display_shape()):
+                newim['coords'] = 'original'
+                newim['subview_mask'] == self.calibration.get_subview_mask(coords='Original')
+                newim['transform_actions'] = self.calibration.geometry.transform_actions
+                newim['subview_names'] = self.calibration.subview_names
+                newim['pixel_aspect'] = self.calibration.geometry.pixel_aspectratio
+                newim['pixel_size'] = self.calibration.pixel_size
+            else:
+                # If the new image is the wrong size, we have to start a new calibration.
+                msg = 'The selected image has different dimensions ({:d}x{:d}) to the current one so cannot be loaded without starting a new calibration.<br><br>Do you want to start a new calibration based on the loaded image?'.format(imshape[0],imshape[1])
+                reply = qt.QMessageBox.question(self, 'Start new calibration?', msg, qt.QMessageBox.Yes, qt.QMessageBox.Cancel)
+
+                if reply == qt.QMessageBox.Cancel:
+                    return
+                elif reply == qt.QMessageBox.Yes:
+                    self.reset()
+
+        # A TypeError signifies no image in the existing calibration
+        except TypeError:
+            pass
+
         if newim['pixel_size'] is not None:
             self.pixel_size_checkbox.setChecked(True)
             self.pixel_size_box.setValue(newim['pixel_size']*1e6)
@@ -454,8 +498,6 @@ class FittingCalib(CalcamGUIWindow):
 
         self.calibration.set_image( newim['image_data'] , newim['source'],subview_mask = newim['subview_mask'], transform_actions = newim['transform_actions'],coords=newim['coords'],subview_names=newim['subview_names'],pixel_aspect=newim['pixel_aspect'],pixel_size=newim['pixel_size'] )
 
-        self.calibration.view_models = [None] * self.calibration.n_subviews
-
         self.interactor2d.set_image(self.calibration.get_image(coords='Display'),n_subviews = self.calibration.n_subviews,subview_lookup = self.calibration.subview_lookup)
 
         self.image_settings.show()
@@ -463,7 +505,9 @@ class FittingCalib(CalcamGUIWindow):
             self.hist_eq_checkbox.setChecked(False)
             self.hist_eq_checkbox.setChecked(True)
 
-        self.init_fitting()
+        if not self.fit_initted:
+            self.init_fitting()
+        
         self.unsaved_changes = True
 
         self.update_image_info_string(newim['image_data'],self.calibration.geometry)
@@ -686,6 +730,9 @@ class FittingCalib(CalcamGUIWindow):
 
         if self.overlay_checkbox.isChecked():
             self.overlay_checkbox.setChecked(False)
+
+        if self.comparison_overlay_checkbox.isChecked()
+            self.comparison_overlay_checkbox.setChecked(False)
 
         if self.fitted_points_checkbox.isChecked():
             self.fitted_points_checkbox.setChecked(False)
@@ -1049,7 +1096,6 @@ class FittingCalib(CalcamGUIWindow):
             return
 
         overlay_im = np.zeros(tuple(self.calibration.geometry.get_display_shape()[::-1]) + (4,),dtype=np.float16)
-        opacity = 0.6
         
         if self.overlay_checkbox.isChecked():
 
@@ -1082,20 +1128,17 @@ class FittingCalib(CalcamGUIWindow):
                 self.app.restoreOverrideCursor()
 
             
-            for channel in range(3):
+            for channel in range(4):
                 overlay_im[:,:,channel] = overlay_im[:,:,channel] + self.fit_overlay[:,:,channel] * self.config.main_overlay_colour[channel]
-            
-            overlay_im[:,:,3] = overlay_im[:,:,3] + self.fit_overlay[:,:,3] * opacity
             
             self.fitted_points_checkbox.setChecked(False)
             
         if self.comparison_overlay_checkbox.isChecked():
-            for channel in range(3):
+            for channel in range(4):
                 overlay_im[:,:,channel] = overlay_im[:,:,channel] + self.comp_overlay[:,:,channel] * self.config.second_overlay_colour[channel]
             
-            overlay_im[:,:,3] = overlay_im[:,:,3] + self.comp_overlay[:,:,3] * opacity
         
-        overlay_im[:,:,3] = np.minimum(overlay_im[:,:,3],opacity * 255)
+        overlay_im[:,:,3] = np.minimum(overlay_im[:,:,3],max(self.config.main_overlay_colour[3],self.config.second_overlay_colour[3]) * 255)
         overlay_im[:,:,:2] = 255 * overlay_im[:,:,:2] / overlay_im[:,:,:2].max()
         
         self.interactor2d.set_overlay_image(overlay_im.astype(np.uint8))
@@ -1341,6 +1384,10 @@ class FittingCalib(CalcamGUIWindow):
         if self.overlay_checkbox.isChecked():
             self.overlay_checkbox.setChecked(False)
             self.overlay_checkbox.setChecked(True)
+
+        if self.comparison_overlay_checkbox.isChecked():
+            self.comparison_overlay_checkbox.setChecked(False)
+            self.comparison_overlay_checkbox.setChecked(True)
 
 
     def edit_split_field(self):

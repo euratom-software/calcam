@@ -1567,32 +1567,55 @@ class Calibration():
         self.history['intrinsics'] = 'Set by {:s} on {:s} at {:s}'.format(_user,_host,_get_formatted_time())
 
 
-    def set_extrinsics(self,campos,upvec,camtar=None,view_dir=None,src=None):
+    def set_extrinsics(self,campos,upvec=None,camtar=None,view_dir=None,cam_roll=None,src=None):
         '''
-        Manually set the camera extrinsics parameters.
+        Manually set the camera extrinsics parameters. 
+        Only applicable for synthetic or manual alignment type calibrations.
 
         Parameters:
 
             campos (sequence)   : 3-element sequence specifying the camera position (X,Y,Z) in metres.
-            upvec (sequence)    : 3-element sequence specifying the camera up vector.
+
+            view_dir (sequence) : 3D vector [X,Y,Z] specifying the camera view direction. Either view_dir or camtar must \
+                                  be given; if both are given then view_dir is used.
+            
             camtar (sequence)   : 3-element sequence specifying a point in 3D space where the camera is pointed to. \
-                                  If both camtar and view_dir are provided, camtar is used.
-            view_dir (sequence) : 3D vector [X,Y,Z] specifying the camera view direction. If both camtar and view_dir \
-                                  are provided, camtar will be used instead.
+                                  Either camtar or view_dir must be given; if both are given then view_dir is used.
+
+            upvec (sequence)    : 3-element sequence specifying the camera up vector. Either upvec or cam_roll must \
+                                  be given; if both are given then upvec is used. upvec must be orthogonal to the viewing \
+                                  direction.
+
+            cam_roll (float)    : Camera roll in degrees. This is the angle between the lab +Z axis and the camera's "view up" \
+                                  direction. Either cam_roll or upvec must be given; if both are given the upvec is used.
+
+            src (str)           : Human-readable string describing where these extrinsics come from, for data provenance. \
+                                  If not given, basic information like current username, hostname and time are used. 
         '''
 
         if self._type == 'fit':
             raise Exception('You cannot modify the extrinsics of a fitted calibration.')
 
-        if camtar is not None:
-            w = np.squeeze(np.array(camtar) - np.array(campos))
-        elif view_dir is not None:
+        if view_dir is not None:
             w = view_dir
+        elif camtar is not None:
+            w = np.squeeze(np.array(camtar) - np.array(campos))
         else:
             raise ValueError('Either viewing target or view direction must be specified!')
 
         w = w / np.sqrt(np.sum(w**2))
-        v = upvec / np.sqrt(np.sum(upvec**2))
+
+        if upvec is not None:
+            v = upvec
+        elif cam_roll is not None:
+            # INSERT CODE FOR UPVEC CALC HERE!
+        else:
+            raise ValueError('Either upvec or camera roll must be given!')
+
+        upvec / np.sqrt(np.sum(upvec**2))
+
+        if np.dot(w,v) > 1e-6:
+            raise ValueError('Camera view direction and up vector must be orthogonal!')
 
         u = np.cross(w,v)
 

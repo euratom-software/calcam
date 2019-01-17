@@ -376,19 +376,25 @@ class CalcamGUIWindow(qt.QMainWindow):
             raise
 
 
-    def pick_colour(self,init_colour):
+    def pick_colour(self,init_colour,pick_alpha=False):
 
         col_init = np.array(init_colour) * 255
 
-        dialog = qt.QColorDialog(qt.QColor(col_init[0],col_init[1],col_init[2]),self)
-        res = dialog.exec_()
+        if pick_alpha:
+            if col_init.size < 4:
+                raise ValueError('If pick_alpha = True, you must supply a 4 element RGBA initial colour!')
+            alpha_init = col_init[3]
+        else:
+            alpha_init = 255
 
-        if res:
-            ret_col = ( dialog.currentColor().red() / 255. , dialog.currentColor().green() / 255. , dialog.currentColor().blue() / 255.)
+        new_col = qt.QColorDialog.getColor(qt.QColor(col_init[0],col_init[1],col_init[2],alpha_init),self,'Choose Colour...',qt.QColorDialog.ColorDialogOptions(qt.QColorDialog.ShowAlphaChannel*pick_alpha))
+
+        if new_col.isValid():
+            ret_col = ( new_col.red() / 255. , new_col.green() / 255. , new_col.blue() / 255.)
+            if pick_alpha:
+                ret_col = ret_col + ( (new_col.alpha() / 255.), )
         else:
             ret_col = None
-
-        del dialog
 
         return ret_col
 

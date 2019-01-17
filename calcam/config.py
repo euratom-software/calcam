@@ -58,8 +58,8 @@ class CalcamConfig():
             self.default_model = None
             self.default_image_source = 'Image File'
             self.mouse_sensitivity = 75
-            self.main_overlay_colour = (0,0,1)
-            self.second_overlay_colour = (0,1,0)
+            self.main_overlay_colour = (0,0,1.,0.6)
+            self.second_overlay_colour = (1.,0,0,0.6)
             self.save()
 
 
