@@ -111,13 +111,6 @@ class ImageAnalyser(CalcamGUIWindow):
         self.rmb_rotate.toggled.connect(self.interactor3d.set_rmb_rotate)
         self.interactor3d.set_control_sensitivity(self.control_sensitivity_slider.value()*0.01)
 
-        # If we have an old version of openCV, histo equilisation won't work :(
-        cv2_version = float('.'.join(cv2.__version__.split('.')[:2]))
-        cv2_micro_version = int(cv2.__version__.split('.')[2].split('-')[0])
-        if cv2_version < 2.4 or (cv2_version == 2.4 and cv2_micro_version < 6):
-            self.hist_eq_checkbox.setEnabled(False)
-            self.hist_eq_checkbox.setToolTip('Requires OpenCV 2.4.6 or newer; you have {:s}'.format(cv2.__version__))
-
 
 
         # Populate image sources list and tweak GUI layout for image loading.
@@ -580,22 +573,15 @@ class ImageAnalyser(CalcamGUIWindow):
 
 
 
-
-
     def toggle_hist_eq(self,check_state):
-
-        im_out = self.image.copy()
 
         # Enable / disable adaptive histogram equalisation
         if check_state == qt.Qt.Checked:
-            hist_equaliser = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
-            if len(im_out.shape) == 2:
-                im_out = hist_equaliser.apply(im_out.astype('uint8'))
-            elif len(im_out.shape) > 2:
-                for channel in range(3):
-                    im_out[:,:,channel] = hist_equaliser.apply(im_out.astype('uint8')[:,:,channel]) 
+            image = hist_eq(self.image)
+        else:
+            image = self.image
 
-        self.interactor2d.set_image(im_out,hold_position=True)
+        self.interactor2d.set_image(image,hold_position=True)
         if self.calibration is not None:
             self.interactor2d.set_subview_lookup(self.calibration.n_subviews,self.calibration.subview_lookup)
 

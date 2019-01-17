@@ -125,13 +125,6 @@ class FittingCalib(CalcamGUIWindow):
         self.del_pp_button.clicked.connect(self.remove_current_pointpair)
         self.clear_points_button.clicked.connect(self.clear_pointpairs)
 
-        # If we have an old version of openCV, histo equilisation won't work :(
-        cv2_version = float('.'.join(cv2.__version__.split('.')[:2]))
-        cv2_micro_version = int(cv2.__version__.split('.')[2].split('-')[0])
-        if cv2_version < 2.4 or (cv2_version == 2.4 and cv2_micro_version < 6):
-            self.hist_eq_checkbox.setEnabled(False)
-            self.hist_eq_checkbox.setToolTip('Requires OpenCV 2.4.6 or newer; you have {:s}'.format(cv2.__version__))
-
         # Set up some keyboard shortcuts
         # It is done this way in 3 lines per shortcut to avoid segfaults on some configurations
         sc = qt.QShortcut(qt.QKeySequence("Del"),self)
@@ -1306,18 +1299,13 @@ class FittingCalib(CalcamGUIWindow):
 
     def toggle_hist_eq(self,check_state):
 
-        im_out = self.calibration.get_image(coords='display')
-
+        image = self.calibration.get_image(coords='display')
+        
         # Enable / disable adaptive histogram equalisation
         if check_state == qt.Qt.Checked:
-            hist_equaliser = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
-            if len(im_out.shape) == 2:
-                im_out = hist_equaliser.apply(im_out.astype('uint8'))
-            elif len(im_out.shape) > 2:
-                for channel in range(3):
-                    im_out[:,:,channel] = hist_equaliser.apply(im_out.astype('uint8')[:,:,channel]) 
-
-        self.interactor2d.set_image(im_out,n_subviews = self.calibration.n_subviews,subview_lookup=self.calibration.subview_lookup,hold_position=True)
+            image = hist_eq(image)
+        
+        self.interactor2d.set_image(image,n_subviews = self.calibration.n_subviews,subview_lookup=self.calibration.subview_lookup,hold_position=True)
 
         if self.overlay_checkbox.isChecked():
             self.overlay_checkbox.setChecked(False)

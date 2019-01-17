@@ -1935,3 +1935,45 @@ class CalibInfoDialog(qt.QDialog):
         self.show()
 
 
+
+def hist_eq(image):
+    '''
+    Apply histogram equilisation to a given image to improve feature contrast.
+    By default, tries to apply OpenCV's adaptive histogram equilisation,
+    but if that's not available performs a global histogram equilisation with NuMPy.
+    
+    Paranmeters:
+            image (np.ndarray)  : 8-bit mono or RGB(A) image to be processed
+            
+    Returns:
+            np.ndarray : Histogram equilised image.
+            
+    '''    
+    im_out = image.copy()
+    
+    try:
+        
+        hist_eq_filter = cv2.createCLAHE(clipLimit=4.0, tileGridSize=(16,16))
+        if len(image.shape) == 2:
+            im_out = hist_eq_filter.apply(im_out.astype('uint8'))
+        elif len(image.shape) > 2:
+            for channel in range(3):
+                im_out[:,:,channel] = hist_eq_filter.apply(im_out.astype('uint8')[:,:,channel])
+
+    except Exception as e:
+
+        if len(image.shape) == 2:
+            data = image.flatten()
+            hist, bins = np.histogram(data, 256, density=True)
+            cdf = hist.cumsum()
+            cdf = 255*cdf/cdf[-1]
+            im_out = np.interp(data, bins[:-1], cdf).reshape(image.shape)
+        elif len(image.shape) > 2:
+            for channel in range(3):
+                data = image[:,:,channel].flatten()
+                hist, bins = np.histogram(data, 256, density=True)
+                cdf = hist.cumsum()
+                cdf = 255*cdf/cdf[-1]
+                im_out[:,:,channel] = np.interp(data, bins[:-1], cdf).reshape(image.shape[:2])
+        
+    return im_out
