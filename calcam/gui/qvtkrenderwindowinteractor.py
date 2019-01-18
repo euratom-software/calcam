@@ -54,7 +54,7 @@ QVTKRWIBase = "QWidget"
 try:
     import vtk.qt
     QVTKRWIBase = vtk.qt.QVTKRWIBase
-except ImportError:
+except (ImportError, AttributeError):
     pass
 
 if PyQtImpl is None:

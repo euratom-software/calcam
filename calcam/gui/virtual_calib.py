@@ -246,7 +246,10 @@ class VirtualCalib(CalcamGUIWindow):
 
             self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
             self.statusbar.showMessage('Saving...')
-            self.calibration.save(self.filename)
+            try:
+                self.calibration.save(self.filename)
+            except PermissionError:
+                raise UserWarning('Could not write to {:s}: permission denied.'.format(self.filename))
             self.unsaved_changes = False
             self.action_save.setEnabled(True)
             self.setWindowTitle('Calcam Virtual Calibration Tool - {:s}'.format(os.path.split(self.filename)[-1][:-4]))

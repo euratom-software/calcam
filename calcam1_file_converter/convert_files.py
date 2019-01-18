@@ -47,12 +47,6 @@ from calcam.gui import qt_wrapper as qt
 from calcam.config import CalcamConfig
 
 
-calcam1_root = os.path.join(os.path.expanduser('~'),'calcam')
-if os.path.isfile(os.path.join(calcam1_root,'.altpath.txt')):
-    f = open(os.path.join(calcam1_root,'.altpath.txt'),'r')
-    calcam1_root = f.readline().rstrip()
-    f.close()
-
 # This stuff is used for keeping track of calibration history
 _user = getpass.getuser()
 _host = socket.gethostname()
@@ -137,7 +131,7 @@ def convert_cadmodel(old_class,output_path,status_callback=None):
 
 
 
-def load_calib(path,match_images=True,virtual=False):
+def load_calib(path,root_path,match_images=True,virtual=False):
 
 
     SaveFile = open(path,'rb')
@@ -201,9 +195,9 @@ def load_calib(path,match_images=True,virtual=False):
             cal.pointpairs = load_pointpairs(save['PointPairs'][0])
             cal.image_points.append(pp['imagepoints'])
             cal.object_points.append(pp['objectpoints'])
-            cal.image = load_image(pp['image'])
+            cal.image = load_image(root_path,pp['image'])
 
-        elif 'objectpoints' in save:
+        elif 'objectpoints' in save and save['objectpoints'] is not None:
             if len(save['objectpoints']) > 0:
                 cal.pointpairs.object_points = save['objectpoints'][0]
                 cal.pointpairs.image_points = save['imagepoints'][0]
@@ -217,12 +211,12 @@ def load_calib(path,match_images=True,virtual=False):
 
     if match_images:
         matched_ims = []
-        imfiles = os.listdir(os.path.join(calcam1_root,'Images'))
+        imfiles = os.listdir(os.path.join(root_path,'Images'))
         for imname in [name[:-3] for name in imfiles if name.endswith('.nc')]:
             if imname in calname:
                 matched_ims.append(imname)
         if len(matched_ims) == 1:
-            im = load_image(matched_ims[0])
+            im = load_image(root_path,matched_ims[0])
             imshape = im['image_data'].shape[1::-1]
             if np.all(imshape == cal.geometry.get_original_shape()):
                 cal.image = im['image_data']
@@ -254,6 +248,7 @@ def load_calib(path,match_images=True,virtual=False):
     elif type(fitoptions[0]) != list:
         fitoptions = [fitoptions] * cal.n_subviews
 
+    cal.view_models = [None] * cal.n_subviews
     for nview in range(cal.n_subviews):
 
         if 'model' in save:
@@ -274,7 +269,7 @@ def load_calib(path,match_images=True,virtual=False):
                         'fit_options':fitoptions[nview]
                     }
 
-        cal.view_models.append(ViewModel.from_dict(coeff_dict))
+        cal.view_models[nview] = ViewModel.from_dict(coeff_dict)
 
 
     SaveFile.close()
@@ -282,11 +277,11 @@ def load_calib(path,match_images=True,virtual=False):
     return cal
 
 
-def load_image(loadname):
+def load_image(path,loadname):
 
     imret = {}
 
-    f = netcdf_file(os.path.join(calcam1_root,'Images',loadname + '.nc'), 'r',mmap=False)
+    f = netcdf_file(os.path.join(path,'Images',loadname + '.nc'), 'r',mmap=False)
 
     # This is for dealing with "old" format save files.
     # If things are saved as 64 bit ints (why did I ever think that was sensible???)
@@ -408,24 +403,6 @@ class MigrationToolWindow(qt.QMainWindow):
 
         self.app = app
 
-        try:
-            n_calibs = len( [name for name in os.listdir(os.path.join(calcam1_root,'FitResults')) if name.endswith('.pickle')] )
-            n_virtual_calibs = len( [name for name in os.listdir(os.path.join(calcam1_root,'VirtualCameras')) if name.endswith('.pickle')] )
-        except:
-            n_calibs = 0
-            n_virtual_calibs = 0
-
-        self.calib_count = n_calibs + n_virtual_calibs
-
-        try:
-            self.n_cadmodels = len( [name for name in os.listdir(os.path.join(calcam1_root,'UserCode','machine_geometry')) if name.endswith('.py') and 'Example' not in name] )
-        except:
-            self.n_cadmodels = 0
-            
-        if self.n_cadmodels == 0 and self.calib_count == 0:
-            print('Did not find any Calcam 1.x files to convert. Exiting.')
-            sys.exit()
-
         newpath_root = os.path.join(os.path.expanduser('~'),'Documents','Calcam 2')
 
         self.calib_output_dir.setText(os.path.join(newpath_root,'Calibrations'))
@@ -435,21 +412,59 @@ class MigrationToolWindow(qt.QMainWindow):
         self.calib_browse_button.clicked.connect(self.change_cal_dir)
         self.virtual_browse_button.clicked.connect(self.change_vcal_dir)
         self.cad_output_browse.clicked.connect(self.change_cad_dir)
+        self.src_browse.clicked.connect(self.change_src_dir)
 
         self.cal_convert_button.clicked.connect(self.convert_calibs)
         self.cad_convert_button.clicked.connect(self.convert_cadmodels)
 
-        self.calib_info.setText('{:d} calibrations and {:d} virtual calibrations in {:s} can be converted to Calcam 2 format. Select the output directories for the converted calibrations below:'.format(n_calibs,n_virtual_calibs,calcam1_root))
-        self.cad_info.setText('{:d} machine models in {:s} can be converted to Calcam 2 format. Select the desired output directory below.'.format(self.n_cadmodels,os.path.join(calcam1_root,'UserCode','machine_geometry')))
-
-        if self.calib_count == 0:
-            self.cal_groupbox.setEnabled(False)
-
-        if self.n_cadmodels == 0:
-            self.cad_groupbox.setEnabled(False)
+        calcam1_root = os.path.join(os.path.expanduser('~'),'calcam')
+        if os.path.isfile(os.path.join(calcam1_root,'.altpath.txt')):
+            f = open(os.path.join(calcam1_root,'.altpath.txt'),'r')
+            calcam1_root = f.readline().rstrip()
+            f.close()
+            
+        self.change_src_dir(newpath=calcam1_root)
 
         self.show()
 
+
+    def change_src_dir(self,event=None,newpath=None):
+        
+        if newpath is None:
+            newpath = self.browse_for_folder(str(self.calib_output_dir.text()))
+        
+        if newpath is not None:
+            self.src_path_label.setText(newpath)
+            self.src_root = newpath
+
+        try:
+            n_calibs = len( [name for name in os.listdir(os.path.join(newpath,'FitResults')) if name.endswith('.pickle')] )
+            n_virtual_calibs = len( [name for name in os.listdir(os.path.join(newpath,'VirtualCameras')) if name.endswith('.pickle')] )
+        except:
+            n_calibs = 0
+            n_virtual_calibs = 0
+
+        self.calib_count = n_calibs + n_virtual_calibs
+
+        try:
+            self.n_cadmodels = len( [name for name in os.listdir(os.path.join(newpath,'UserCode','machine_geometry')) if name.endswith('.py') and 'Example' not in name] )
+        except:
+            self.n_cadmodels = 0
+
+        self.calib_info.setText('{:d} calibrations and {:d} virtual calibrations can be converted to Calcam 2 format. Select the output directories for the converted calibrations below:'.format(n_calibs,n_virtual_calibs))
+        self.cad_info.setText('{:d} machine models can be converted to Calcam 2 format. Select the desired output directory below.'.format(self.n_cadmodels))
+
+        if self.calib_count == 0:
+            self.cal_groupbox.setEnabled(False)
+        else:
+            self.cal_groupbox.setEnabled(True)
+
+        if self.n_cadmodels == 0:
+            self.cad_groupbox.setEnabled(False)
+        else:
+            self.cad_groupbox.setEnabled(True)
+            
+            
 
     def change_cal_dir(self):
 
@@ -457,7 +472,7 @@ class MigrationToolWindow(qt.QMainWindow):
 
         if newpath is not None:
             self.calib_output_dir.setText(newpath)
-
+            
 
     def change_vcal_dir(self):
 
@@ -486,7 +501,7 @@ class MigrationToolWindow(qt.QMainWindow):
 
         self.progressbar.setMaximum(self.calib_count)
 
-        search_path = os.path.join(calcam1_root,'FitResults')
+        search_path = os.path.join(self.src_root,'FitResults')
 
         calib_files = [fn for fn in os.listdir(search_path) if fn.endswith('.pickle')]
 
@@ -500,11 +515,11 @@ class MigrationToolWindow(qt.QMainWindow):
             self.progressbar.setValue(done)
             self.app.processEvents()
             try:
-                cal = load_calib(os.path.join(search_path,file),match_images = self.match_images_checkbox.isChecked())
+                cal = load_calib(os.path.join(search_path,file),self.src_root,match_images = self.match_images_checkbox.isChecked())
                 if cal is not None:
                     cal.save( os.path.join(new_path,'{:s}.ccc'.format(new_filename)) )
-            except:
-                print(' -> Error, calibration not converted.\n')
+            except Exception as e:
+                print('-> Error: {:}, calibration {:s} not converted.'.format(e,new_filename))
             done += 1
 
         new_path = str(self.virtual_output_dir.text())
@@ -512,7 +527,7 @@ class MigrationToolWindow(qt.QMainWindow):
         if not os.path.exists(new_path):
             os.makedirs(new_path)
 
-        search_path = os.path.join(calcam1_root,'VirtualCameras')
+        search_path = os.path.join(self.src_root,'VirtualCameras')
 
         calib_files = [fn for fn in os.listdir(search_path) if fn.endswith('.pickle')]
 
@@ -522,7 +537,7 @@ class MigrationToolWindow(qt.QMainWindow):
             self.progressbar.setValue(done)
             self.app.processEvents()
             try:
-                cal = load_calib(os.path.join(search_path,file),virtual=True)
+                cal = load_calib(os.path.join(search_path,file),self.src_root,virtual=True)
                 if cal is not None:
                     cal.save( os.path.join(new_path,'{:s}.ccc'.format(new_filename)) )
             except:

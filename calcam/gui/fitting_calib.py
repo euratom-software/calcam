@@ -469,7 +469,7 @@ class FittingCalib(CalcamGUIWindow):
                 newim['subview_names'] = self.calibration.subview_names
                 newim['pixel_aspect'] = self.calibration.geometry.pixel_aspectratio
                 newim['pixel_size'] = self.calibration.pixel_size
-            elif imshape == tuple(self.calibration.geometry.get_display_shape()):
+            elif imshape == tuple(self.calibration.geometry.get_original_shape()):
                 newim['coords'] = 'original'
                 newim['subview_mask'] == self.calibration.get_subview_mask(coords='Original')
                 newim['transform_actions'] = self.calibration.geometry.transform_actions
@@ -504,6 +504,13 @@ class FittingCalib(CalcamGUIWindow):
         if self.hist_eq_checkbox.isChecked():
             self.hist_eq_checkbox.setChecked(False)
             self.hist_eq_checkbox.setChecked(True)
+        
+        if self.overlay_checkbox.isChecked():
+            self.overlay_checkbox.setChecked(False)
+            self.overlay_checkbox.setChecked(True)
+        elif self.comparison_overlay_checkbox.isChecked():
+            self.comparison_overlay_checkbox.setChecked(False)
+            self.comparison_overlay_checkbox.setChecked(True)
 
         if not self.fit_initted:
             self.init_fitting()
@@ -520,10 +527,12 @@ class FittingCalib(CalcamGUIWindow):
         self.fit_enable_check()
 
 
-    def init_fitting(self):
+    def init_fitting(self,reset_fit=True):
 
         self.fit_initted = False
-        self.reset_fit()
+
+        if reset_fit:
+            self.reset_fit()
 
         # Build the GUI to show fit options, according to the number of fields.
         current_tab = self.subview_tabs.currentIndex()
@@ -688,11 +697,10 @@ class FittingCalib(CalcamGUIWindow):
             new_tab.setLayout(new_layout)
             self.subview_tabs.addTab(new_tab,self.calibration.subview_names[field])
 
-            if self.calibration.image is not None:
-                for fitter in self.fitters:
-                    fitter.set_image_shape(self.calibration.geometry.get_display_shape())
 
-            #self.fit_results.hide()
+            for fitter in self.fitters:
+                fitter.set_image_shape(self.calibration.geometry.get_display_shape())
+
             self.tabWidget.setTabEnabled(3,True)
             self.tabWidget.setTabEnabled(4,True)
 
@@ -1227,13 +1235,17 @@ class FittingCalib(CalcamGUIWindow):
 
             self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
             self.statusbar.showMessage('Saving...')
-            self.calibration.save(self.filename)
+            
+            try:
+                self.calibration.save(self.filename)
+            except PermissionError:
+                raise UserWarning('Could not write to {:s}: permission denied.'.format(self.filename))
+
             self.unsaved_changes = False
             self.action_save.setEnabled(True)
+            self.setWindowTitle('Calcam Calibration Tool (Point Fitting) - {:s}'.format(os.path.split(self.filename)[-1][:-4]))
             self.statusbar.clearMessage()
             self.app.restoreOverrideCursor()
-
-            self.setWindowTitle('Calcam Calibration Tool (Point Fitting) - {:s}'.format(os.path.split(self.filename)[-1][:-4]))
             
         elif saveas:
             self.filename = orig_filename
@@ -1281,6 +1293,9 @@ class FittingCalib(CalcamGUIWindow):
                         raise
 
         self.calibration = opened_calib
+        
+        if not self.fit_initted:
+            self.init_fitting(reset_fit=False)
 
         self.interactor2d.set_subview_lookup(self.calibration.n_subviews,self.calibration.subview_lookup)
 
