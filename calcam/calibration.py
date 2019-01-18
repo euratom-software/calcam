@@ -31,7 +31,7 @@ from scipy.optimize import minimize
 from .coordtransformer import CoordTransformer
 from .pointpairs import PointPairs
 from . import __version__
-
+from .utils import rotate_3d
 
 from .raycast import raycast_sightlines, RayData
 
@@ -1569,7 +1569,7 @@ class Calibration():
 
     def set_extrinsics(self,campos,upvec=None,camtar=None,view_dir=None,cam_roll=None,src=None):
         '''
-        Manually set the camera extrinsics parameters. 
+        Manually set the camera extrinsic parameters. 
         Only applicable for synthetic or manual alignment type calibrations.
 
         Parameters:
@@ -1608,11 +1608,12 @@ class Calibration():
         if upvec is not None:
             v = upvec
         elif cam_roll is not None:
-            # INSERT CODE FOR UPVEC CALC HERE!
+            z_projection = np.array([ -w[0]*w[2], -w[1]*w[2],1-w[2]**2 ])
+            v = np.squeeze( rotate_3d(z_projection,w,cam_roll)	)
         else:
             raise ValueError('Either upvec or camera roll must be given!')
 
-        upvec / np.sqrt(np.sum(upvec**2))
+        v = v / np.sqrt(np.sum(v**2))
 
         if np.dot(w,v) > 1e-6:
             raise ValueError('Camera view direction and up vector must be orthogonal!')

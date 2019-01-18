@@ -42,16 +42,7 @@
        <enum>QFrame::Plain</enum>
       </property>
       <layout class="QGridLayout" name="gridLayout_6">
-       <property name="leftMargin">
-        <number>9</number>
-       </property>
-       <property name="topMargin">
-        <number>9</number>
-       </property>
-       <property name="rightMargin">
-        <number>9</number>
-       </property>
-       <property name="bottomMargin">
+       <property name="margin">
         <number>9</number>
        </property>
        <property name="spacing">
@@ -192,6 +183,12 @@
           <property name="enabled">
            <bool>true</bool>
           </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="title">
            <string>Enable / Disable Model Parts</string>
           </property>
@@ -221,6 +218,12 @@
          <widget class="QGroupBox" name="model_appearance_box">
           <property name="enabled">
            <bool>true</bool>
+          </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
           </property>
           <property name="title">
            <string>Appearance</string>
@@ -268,25 +271,19 @@
               <enum>QFrame::Raised</enum>
              </property>
              <layout class="QGridLayout" name="gridLayout_9">
-              <property name="leftMargin">
-               <number>0</number>
-              </property>
-              <property name="topMargin">
-               <number>0</number>
-              </property>
-              <property name="rightMargin">
-               <number>0</number>
-              </property>
-              <property name="bottomMargin">
+              <property name="margin">
                <number>0</number>
               </property>
               <property name="spacing">
                <number>6</number>
               </property>
-              <item row="0" column="0" colspan="2">
-               <widget class="QLabel" name="label_15">
+              <item row="3" column="1">
+               <widget class="QPushButton" name="cad_colour_reset_button">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
                 <property name="text">
-                 <string>Colour of selected feature(s):</string>
+                 <string>Reset</string>
                 </property>
                </widget>
               </item>
@@ -300,13 +297,10 @@
                 </property>
                </widget>
               </item>
-              <item row="3" column="1">
-               <widget class="QPushButton" name="cad_colour_reset_button">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
+              <item row="0" column="0" colspan="2">
+               <widget class="QLabel" name="label_15">
                 <property name="text">
-                 <string>Reset</string>
+                 <string>Colour of selected feature(s):</string>
                 </property>
                </widget>
               </item>
@@ -325,6 +319,12 @@
         </item>
         <item>
          <widget class="QGroupBox" name="groupBox_7">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="title">
            <string>Sow R,Z Wall Contour</string>
           </property>
@@ -374,6 +374,12 @@
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>
          <widget class="QGroupBox" name="groupBox_11">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="title">
            <string>3D Projection</string>
           </property>
@@ -413,11 +419,17 @@
         </item>
         <item>
          <widget class="QGroupBox" name="groupBox_8">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="title">
            <string>Cross-Sectioning</string>
           </property>
-          <layout class="QHBoxLayout" name="horizontalLayout_5">
-           <item>
+          <layout class="QGridLayout" name="gridLayout_14">
+           <item row="0" column="0">
             <widget class="QCheckBox" name="xsection_checkbox">
              <property name="enabled">
               <bool>true</bool>
@@ -427,27 +439,7 @@
              </property>
             </widget>
            </item>
-           <item>
-            <widget class="QRadioButton" name="xsection_origin">
-             <property name="text">
-              <string>Through Origin</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QRadioButton" name="xsection_cursor">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="text">
-              <string>Through Cursor</string>
-             </property>
-            </widget>
-           </item>
-           <item>
+           <item row="0" column="3">
             <spacer name="horizontalSpacer_6">
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
@@ -460,11 +452,37 @@
              </property>
             </spacer>
            </item>
+           <item row="1" column="0">
+            <widget class="QRadioButton" name="xsection_origin">
+             <property name="text">
+              <string>Through Origin</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="3">
+            <widget class="QRadioButton" name="xsection_cursor">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="text">
+              <string>Through Cursor</string>
+             </property>
+            </widget>
+           </item>
           </layout>
          </widget>
         </item>
         <item>
          <widget class="QGroupBox" name="groupBox_6">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="title">
            <string>Select pre-defined viewport</string>
           </property>
@@ -515,6 +533,12 @@
         </item>
         <item>
          <widget class="QGroupBox" name="groupBox_2">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="title">
            <string>Save current view as preset</string>
           </property>
@@ -570,16 +594,7 @@
               <enum>QFrame::Plain</enum>
              </property>
              <layout class="QGridLayout" name="gridLayout_3">
-              <property name="leftMargin">
-               <number>0</number>
-              </property>
-              <property name="topMargin">
-               <number>0</number>
-              </property>
-              <property name="rightMargin">
-               <number>0</number>
-              </property>
-              <property name="bottomMargin">
+              <property name="margin">
                <number>0</number>
               </property>
               <item row="1" column="2">
@@ -612,7 +627,7 @@
                <widget class="QDoubleSpinBox" name="tarX">
                 <property name="maximumSize">
                  <size>
-                  <width>55</width>
+                  <width>16777215</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -640,7 +655,7 @@
                <widget class="QDoubleSpinBox" name="tarY">
                 <property name="maximumSize">
                  <size>
-                  <width>55</width>
+                  <width>16777215</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -668,7 +683,7 @@
                <widget class="QDoubleSpinBox" name="tarZ">
                 <property name="maximumSize">
                  <size>
-                  <width>55</width>
+                  <width>16777215</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -696,7 +711,7 @@
                <widget class="QDoubleSpinBox" name="camY">
                 <property name="maximumSize">
                  <size>
-                  <width>55</width>
+                  <width>16777215</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -763,7 +778,7 @@
                <widget class="QDoubleSpinBox" name="camX">
                 <property name="maximumSize">
                  <size>
-                  <width>55</width>
+                  <width>16777215</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -791,7 +806,7 @@
                <widget class="QDoubleSpinBox" name="camZ">
                 <property name="maximumSize">
                  <size>
-                  <width>55</width>
+                  <width>16777215</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -832,7 +847,7 @@
                <widget class="QDoubleSpinBox" name="camFOV">
                 <property name="maximumSize">
                  <size>
-                  <width>55</width>
+                  <width>16777215</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -883,7 +898,7 @@
                <widget class="QDoubleSpinBox" name="cam_roll">
                 <property name="maximumSize">
                  <size>
-                  <width>55</width>
+                  <width>16777215</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -912,6 +927,12 @@
         </item>
         <item>
          <widget class="QGroupBox" name="groupBox_10">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="title">
            <string>Mouse Control Settings</string>
           </property>
@@ -936,14 +957,14 @@
            <item row="0" column="0">
             <widget class="QLabel" name="label_20">
              <property name="text">
-              <string>Right click + drag:</string>
+              <string>Right button:</string>
              </property>
             </widget>
            </item>
            <item row="1" column="0">
             <widget class="QLabel" name="label_23">
              <property name="text">
-              <string>Mouse sensitivity:</string>
+              <string>Sensitivity:</string>
              </property>
             </widget>
            </item>
@@ -981,6 +1002,12 @@
        <layout class="QVBoxLayout" name="verticalLayout_7">
         <item>
          <widget class="QGroupBox" name="groupBox_3">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="title">
            <string>Sight line cones to show:</string>
           </property>
@@ -1011,7 +1038,7 @@
              </property>
             </widget>
            </item>
-           <item row="1" column="1">
+           <item row="1" column="1" colspan="2">
             <widget class="QCheckBox" name="sightlines_legend_checkbox">
              <property name="enabled">
               <bool>true</bool>
@@ -1031,6 +1058,12 @@
          <widget class="QGroupBox" name="sightlines_settings_box">
           <property name="enabled">
            <bool>false</bool>
+          </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
           </property>
           <property name="title">
            <string>Appearance (applies to selected):</string>
@@ -1161,16 +1194,7 @@
               <property name="spacing">
                <number>6</number>
               </property>
-              <property name="leftMargin">
-               <number>0</number>
-              </property>
-              <property name="topMargin">
-               <number>0</number>
-              </property>
-              <property name="rightMargin">
-               <number>0</number>
-              </property>
-              <property name="bottomMargin">
+              <property name="margin">
                <number>0</number>
               </property>
               <item>
@@ -1208,6 +1232,12 @@
           <property name="enabled">
            <bool>false</bool>
           </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="title">
            <string>Appearance (applies to selected)</string>
           </property>
@@ -1244,12 +1274,24 @@
         </item>
         <item row="1" column="0">
          <widget class="QGroupBox" name="groupBox_9">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="title">
            <string>3D Lines to show</string>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_5">
            <item>
             <widget class="QLabel" name="label_17">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="text">
               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add additional arbitrary 3D lines from an ASCII file of coordinates.&lt;/p&gt;&lt;p&gt;For a series of un-connected line segments, the file should contain one row per line segment with 6 elements: 3D start and end coordinates.&lt;/p&gt;&lt;p&gt;For a single continous 3D line, the file should contain one row per point with 3 elements per row (3D coordinates of each point).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
@@ -1259,7 +1301,14 @@
             </widget>
            </item>
            <item>
-            <widget class="QListWidget" name="lines_3d_list"/>
+            <widget class="QListWidget" name="lines_3d_list">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+            </widget>
            </item>
            <item>
             <widget class="QPushButton" name="load_lines_button">

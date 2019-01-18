@@ -731,7 +731,7 @@ class FittingCalib(CalcamGUIWindow):
         if self.overlay_checkbox.isChecked():
             self.overlay_checkbox.setChecked(False)
 
-        if self.comparison_overlay_checkbox.isChecked()
+        if self.comparison_overlay_checkbox.isChecked():
             self.comparison_overlay_checkbox.setChecked(False)
 
         if self.fitted_points_checkbox.isChecked():

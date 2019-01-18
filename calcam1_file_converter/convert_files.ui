@@ -6,25 +6,16 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>449</width>
-    <height>441</height>
+    <width>510</width>
+    <height>622</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Calcam Migration Tool</string>
+   <string>Calcam File Conversion Tool</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
-    <property name="leftMargin">
-     <number>12</number>
-    </property>
-    <property name="topMargin">
-     <number>12</number>
-    </property>
-    <property name="rightMargin">
-     <number>12</number>
-    </property>
-    <property name="bottomMargin">
+    <property name="margin">
      <number>12</number>
     </property>
     <item row="5" column="0">
@@ -193,6 +184,48 @@
          </property>
          <property name="checked">
           <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item row="1" column="0">
+     <widget class="QGroupBox" name="groupBox">
+      <property name="title">
+       <string>Source Directory</string>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QLabel" name="label_4">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Calcam 1.x file path:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="src_path_label">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>TextLabel</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="src_browse">
+         <property name="text">
+          <string>Browse...</string>
          </property>
         </widget>
        </item>
