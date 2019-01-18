@@ -35,39 +35,9 @@ Written by Scott Silburn
 import vtk
 import numpy as np
 from ..render import get_image_actor
+from ..utils import rotate_3d
 
 import time
-
-# Rotate a given point about the given axis by the given angle
-# Angle input is in degrees
-def rotate_3D(vect,axis,angle):
-
-    vect = np.array(vect,dtype=np.float64)
-    vect_ = np.matrix(np.zeros([3,1]),dtype=np.float64)
-    vect_[0,0] = vect[0]
-    vect_[1,0] = vect[1]
-    vect_[2,0] = vect[2]
-    axis = np.array(axis)
-
-    # Put angle in radians
-    angle = angle * 3.14159 / 180.
-
-    # Make sure the axis is normalised
-    axis = axis / np.sqrt(np.sum(axis**2))
-
-    # Make a rotation matrix!
-    R = np.matrix(np.zeros([3,3]))
-    R[0,0] = np.cos(angle) + axis[0]**2*(1 - np.cos(angle))
-    R[0,1] = axis[0]*axis[1]*(1 - np.cos(angle)) - axis[2]*np.sin(angle)
-    R[0,2] = axis[0]*axis[2]*(1 - np.cos(angle)) + axis[1]*np.sin(angle)
-    R[1,0] = axis[1]*axis[0]*(1 - np.cos(angle)) + axis[2]*np.sin(angle)
-    R[1,1] = np.cos(angle) + axis[1]**2*(1 - np.cos(angle))
-    R[1,2] = axis[1]*axis[2]*(1 - np.cos(angle)) - axis[0]*np.sin(angle)
-    R[2,0] = axis[2]*axis[0]*(1 - np.cos(angle)) - axis[1]*np.sin(angle)
-    R[2,1] = axis[2]*axis[1]*(1 - np.cos(angle)) + axis[0]*np.sin(angle)
-    R[2,2] = np.cos(angle) + axis[2]**2*(1 - np.cos(angle))
-
-    return np.array( R * vect_)
 
 
 class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
@@ -668,7 +638,7 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
         view_direction = self.camera.GetDirectionOfProjection()
         if np.abs(view_direction[2]) < 0.999:
             z_projection = np.array([ -view_direction[0]*view_direction[2], -view_direction[1]*view_direction[2],1-view_direction[2]**2 ])
-            upvec = rotate_3D(z_projection,view_direction,self.cam_roll)
+            upvec = rotate_3d(z_projection,view_direction,self.cam_roll)
             self.camera.SetViewUp(upvec)
             roll = self.camera.GetRoll()
             tar = self.camera.GetFocalPoint()

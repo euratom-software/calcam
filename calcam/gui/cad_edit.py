@@ -1108,7 +1108,7 @@ class CADEdit(CalcamGUIWindow):
         filedialog.exec_()
 
         if filedialog.result() == 1:
-            mesh_paths = filedialog.selectedFiles()
+            mesh_paths = [str(path) for path in filedialog.selectedFiles()]
             if multiple:
                 return mesh_paths
             else:
@@ -1224,7 +1224,9 @@ class CADEdit(CalcamGUIWindow):
 
         if self.coord_formatter[1] is not None:
             full_path = os.path.join(self.coord_formatter[1],self.coord_formatter[2])
-            if full_path != os.path.join(self.cadmodel.def_file.get_temp_path(),'usercode'):
+            if os.path.join(self.cadmodel.def_file.get_temp_path(),'usercode') not in full_path:
+                if not os.path.isdir(full_path):
+                    full_path = full_path + '.py'
                 self.cadmodel.def_file.add_usercode(full_path,replace=True)
         else:
             self.cadmodel.def_file.clear_usercode()

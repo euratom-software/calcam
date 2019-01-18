@@ -42,16 +42,7 @@
        <enum>QFrame::Plain</enum>
       </property>
       <layout class="QGridLayout" name="gridLayout_6">
-       <property name="leftMargin">
-        <number>9</number>
-       </property>
-       <property name="topMargin">
-        <number>9</number>
-       </property>
-       <property name="rightMargin">
-        <number>9</number>
-       </property>
-       <property name="bottomMargin">
+       <property name="margin">
         <number>9</number>
        </property>
        <property name="spacing">
@@ -114,6 +105,12 @@
           <property name="enabled">
            <bool>false</bool>
           </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="title">
            <string>Selected part</string>
           </property>
@@ -130,16 +127,7 @@
               <enum>QFrame::Raised</enum>
              </property>
              <layout class="QGridLayout" name="gridLayout_9">
-              <property name="leftMargin">
-               <number>0</number>
-              </property>
-              <property name="topMargin">
-               <number>0</number>
-              </property>
-              <property name="rightMargin">
-               <number>0</number>
-              </property>
-              <property name="bottomMargin">
+              <property name="margin">
                <number>0</number>
               </property>
               <property name="spacing">
@@ -282,24 +270,16 @@
           <property name="enabled">
            <bool>true</bool>
           </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="title">
            <string>Model Parts</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_4">
-           <item row="0" column="1">
-            <widget class="QPushButton" name="new_group_button">
-             <property name="text">
-              <string>New Group...</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="0">
-            <widget class="QPushButton" name="new_feature_button">
-             <property name="text">
-              <string>Add...</string>
-             </property>
-            </widget>
-           </item>
            <item row="0" column="2">
             <widget class="QPushButton" name="del_feature_button">
              <property name="enabled">
@@ -335,6 +315,20 @@
                <string notr="true">1</string>
               </property>
              </column>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QPushButton" name="new_feature_button">
+             <property name="text">
+              <string>Add...</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QPushButton" name="new_group_button">
+             <property name="text">
+              <string>New Group...</string>
+             </property>
             </widget>
            </item>
           </layout>
@@ -400,22 +394,13 @@
            <item row="6" column="1" colspan="2">
             <widget class="QFrame" name="frame">
              <property name="frameShape">
-              <enum>QFrame::StyledPanel</enum>
+              <enum>QFrame::NoFrame</enum>
              </property>
              <property name="frameShadow">
               <enum>QFrame::Raised</enum>
              </property>
              <layout class="QHBoxLayout" name="horizontalLayout">
-              <property name="leftMargin">
-               <number>0</number>
-              </property>
-              <property name="topMargin">
-               <number>0</number>
-              </property>
-              <property name="rightMargin">
-               <number>0</number>
-              </property>
-              <property name="bottomMargin">
+              <property name="margin">
                <number>0</number>
               </property>
               <item>
@@ -555,16 +540,7 @@
               <enum>QFrame::Plain</enum>
              </property>
              <layout class="QGridLayout" name="gridLayout_3">
-              <property name="leftMargin">
-               <number>0</number>
-              </property>
-              <property name="topMargin">
-               <number>0</number>
-              </property>
-              <property name="rightMargin">
-               <number>0</number>
-              </property>
-              <property name="bottomMargin">
+              <property name="margin">
                <number>0</number>
               </property>
               <item row="1" column="2">
@@ -597,7 +573,7 @@
                <widget class="QDoubleSpinBox" name="tarX">
                 <property name="maximumSize">
                  <size>
-                  <width>55</width>
+                  <width>16777215</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -628,7 +604,7 @@
                <widget class="QDoubleSpinBox" name="tarY">
                 <property name="maximumSize">
                  <size>
-                  <width>55</width>
+                  <width>16777215</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -659,7 +635,7 @@
                <widget class="QDoubleSpinBox" name="tarZ">
                 <property name="maximumSize">
                  <size>
-                  <width>55</width>
+                  <width>16777215</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -690,7 +666,7 @@
                <widget class="QDoubleSpinBox" name="camY">
                 <property name="maximumSize">
                  <size>
-                  <width>55</width>
+                  <width>16777215</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -760,7 +736,7 @@
                <widget class="QDoubleSpinBox" name="camX">
                 <property name="maximumSize">
                  <size>
-                  <width>55</width>
+                  <width>16777215</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -791,7 +767,7 @@
                <widget class="QDoubleSpinBox" name="camZ">
                 <property name="maximumSize">
                  <size>
-                  <width>55</width>
+                  <width>16777215</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -835,7 +811,7 @@
                <widget class="QDoubleSpinBox" name="camFOV">
                 <property name="maximumSize">
                  <size>
-                  <width>55</width>
+                  <width>16777215</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -886,7 +862,7 @@
                <widget class="QDoubleSpinBox" name="cam_roll">
                 <property name="maximumSize">
                  <size>
-                  <width>55</width>
+                  <width>16777215</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -942,14 +918,14 @@
            <item row="0" column="0">
             <widget class="QLabel" name="label_20">
              <property name="text">
-              <string>Right click + drag:</string>
+              <string>Right button:</string>
              </property>
             </widget>
            </item>
            <item row="1" column="0">
             <widget class="QLabel" name="label_23">
              <property name="text">
-              <string>Mouse sensitivity:</string>
+              <string>Sensitivity:</string>
              </property>
             </widget>
            </item>

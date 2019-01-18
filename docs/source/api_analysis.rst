@@ -3,14 +3,14 @@ Using Calibration Results
 =========================
 Once you have created calibrations using the Calcam GUI tools, you can import calcam as a Python package and use it to extract information from the calibrations and/or integrate use of the results in to your workflow in Python. This page documents the features of the Calcam API for working with calibration results.
 
-For examples of using these features, see the examples page.
+For examples of using these features, see the :doc:`api_examples` page.
 
 The Calibration Class
 ---------------------
 The calibration class is used to represent Calcam calibrations and provides various methods for getting information about the camera viewing geometry.
 
 .. autoclass:: calcam.Calibration
-	:members: get_cam_matrix,get_cam_roll,get_cam_to_lab_rotation,get_fov,get_image,get_los_direction,get_pupilpos,project_points,undistort_image,get_raysect_camera
+	:members: get_cam_matrix,get_cam_roll,get_cam_to_lab_rotation,get_fov,get_image,get_los_direction,get_pupilpos,project_points,undistort_image,get_raysect_camera,get_undistort_coeffs,set_extrinsics
 
 Rendering images
 ----------------

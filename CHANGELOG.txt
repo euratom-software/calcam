@@ -1,6 +1,29 @@
 Project Changelog
 =================
 
+Minor Release 2.1.0 (18 Jan 2019)
+---------------------------------
+
+New & Enhancements:
+* Add Calibration.get_undistort_coeffs() method (Issue #24)
+* Add ability to customise the colour of the wireframe overlay including transparency in fitting tool (Issues #31 & 25)
+* Add fallback method for histogram equilisation if OpenCV hist eq unavailable, and adjust OpenCV Hist Eq parameters (Issue #25)
+* In fitting tool, the current points, fit and display are preserved when loading another image of compatible dimensions (Issue #30 + general improvement)
+* Add ability to load another calibration for overlay comparison in fitting tool (Issue #32)
+* Add ability to specify camera extrinsics by roll instead of upvec in Calibration.set_extrinsics() and also add check that upvec and viewdir are orthogonal.
+* Add ability to manually specify source directory in Calcam 1.x file converter
+* Various GUI appearance enhancements for non-Windows OSs.
+* Added friendlier error message if permission denied trying to save a file.
+
+Fixes:
+* Fix bug in Calcam 1.x file converter which caused fit results not to be converted properly.
+* Fixed incomplete reset of GUI state when resetting the fit (Issue #30)
+* Fix mesh files not being loadable in the CAD model editor under python 2.x
+* Fix incorrect classification of "user code" in exception handling
+* Add QVTKRenderWindowInteractor.py to Calcam distribution to work around compatibility issue with VTK + PyQt5 as distributed with Enthought Canopy.
+* Fix exceptions when opening calibrations not containing images.
+
+
 
 Bug fix release 2.0.1 (18 Dec 2018)
 -----------------------------------

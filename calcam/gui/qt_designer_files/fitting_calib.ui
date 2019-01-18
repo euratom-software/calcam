@@ -30,16 +30,7 @@
        <enum>QFrame::Raised</enum>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_5">
-       <property name="leftMargin">
-        <number>0</number>
-       </property>
-       <property name="topMargin">
-        <number>0</number>
-       </property>
-       <property name="rightMargin">
-        <number>0</number>
-       </property>
-       <property name="bottomMargin">
+       <property name="margin">
         <number>0</number>
        </property>
       </layout>
@@ -125,16 +116,7 @@
               </size>
              </property>
              <layout class="QGridLayout" name="gridLayout_6">
-              <property name="leftMargin">
-               <number>0</number>
-              </property>
-              <property name="topMargin">
-               <number>0</number>
-              </property>
-              <property name="rightMargin">
-               <number>0</number>
-              </property>
-              <property name="bottomMargin">
+              <property name="margin">
                <number>0</number>
               </property>
              </layout>
@@ -228,16 +210,7 @@
            <item>
             <widget class="QWidget" name="widget_4" native="true">
              <layout class="QGridLayout" name="gridLayout_7">
-              <property name="leftMargin">
-               <number>0</number>
-              </property>
-              <property name="topMargin">
-               <number>0</number>
-              </property>
-              <property name="rightMargin">
-               <number>0</number>
-              </property>
-              <property name="bottomMargin">
+              <property name="margin">
                <number>0</number>
               </property>
               <item row="2" column="2">
@@ -340,16 +313,7 @@
               <enum>QFrame::Plain</enum>
              </property>
              <layout class="QGridLayout" name="gridLayout_25">
-              <property name="leftMargin">
-               <number>0</number>
-              </property>
-              <property name="topMargin">
-               <number>0</number>
-              </property>
-              <property name="rightMargin">
-               <number>0</number>
-              </property>
-              <property name="bottomMargin">
+              <property name="margin">
                <number>0</number>
               </property>
               <property name="spacing">
@@ -782,7 +746,7 @@
               </sizepolicy>
              </property>
              <property name="frameShape">
-              <enum>QFrame::StyledPanel</enum>
+              <enum>QFrame::NoFrame</enum>
              </property>
              <property name="frameShadow">
               <enum>QFrame::Raised</enum>
@@ -1103,14 +1067,14 @@
            <item row="0" column="0">
             <widget class="QLabel" name="label_20">
              <property name="text">
-              <string>Right click + drag:</string>
+              <string>Right button:</string>
              </property>
             </widget>
            </item>
            <item row="1" column="0">
             <widget class="QLabel" name="label_23">
              <property name="text">
-              <string>Mouse sensitivity:</string>
+              <string>Sensitivity:</string>
              </property>
             </widget>
            </item>
@@ -1203,49 +1167,6 @@
           </layout>
          </widget>
         </item>
-        <item row="4" column="0">
-         <widget class="QGroupBox" name="groupBox_3">
-          <property name="title">
-           <string>Additional Intrinsics Constraints</string>
-          </property>
-          <layout class="QGridLayout" name="gridLayout_14">
-           <item row="2" column="1">
-            <widget class="QPushButton" name="load_intrinsics_calib_button">
-             <property name="text">
-              <string>Load...</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="0">
-            <widget class="QCheckBox" name="intrinsics_calib_checkbox">
-             <property name="text">
-              <string>Existing Calibration (None Loaded)</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="0">
-            <widget class="QCheckBox" name="chessboard_checkbox">
-             <property name="text">
-              <string>Chessboard Images (None Loaded)</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="1">
-            <widget class="QPushButton" name="load_chessboard_button">
-             <property name="maximumSize">
-              <size>
-               <width>16777215</width>
-               <height>16777215</height>
-              </size>
-             </property>
-             <property name="text">
-              <string>Load...</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-        </item>
         <item row="0" column="0">
          <widget class="QGroupBox" name="pp_groupbox">
           <property name="sizePolicy">
@@ -1332,6 +1253,49 @@
           </layout>
          </widget>
         </item>
+        <item row="4" column="0">
+         <widget class="QGroupBox" name="groupBox_3">
+          <property name="title">
+           <string>Additional Intrinsics Constraints</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_14">
+           <item row="2" column="1">
+            <widget class="QPushButton" name="load_intrinsics_calib_button">
+             <property name="text">
+              <string>Load...</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QCheckBox" name="intrinsics_calib_checkbox">
+             <property name="text">
+              <string>Existing Calibration (None Loaded)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QCheckBox" name="chessboard_checkbox">
+             <property name="text">
+              <string>Chessboard Images (None Loaded)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QPushButton" name="load_chessboard_button">
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>Load...</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
        </layout>
       </widget>
       <widget class="QWidget" name="fitting_tab">
@@ -1342,34 +1306,7 @@
         <string>Calibration Fitting</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_13">
-        <item row="0" column="0">
-         <widget class="QTabWidget" name="subview_tabs">
-          <property name="currentIndex">
-           <number>-1</number>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="0">
-         <widget class="QCheckBox" name="fitted_points_checkbox">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="text">
-           <string>Show fitted points</string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="0">
-         <widget class="QCheckBox" name="overlay_checkbox">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="text">
-           <string>Show wireframe overlay</string>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="0">
+        <item row="6" column="0">
          <spacer name="verticalSpacer_4">
           <property name="orientation">
            <enum>Qt::Vertical</enum>
@@ -1381,6 +1318,98 @@
            </size>
           </property>
          </spacer>
+        </item>
+        <item row="3" column="0" colspan="2">
+         <widget class="QGroupBox" name="groupBox_6">
+          <property name="title">
+           <string>Fit Results Inspection</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_17">
+           <item row="1" column="0">
+            <widget class="QCheckBox" name="overlay_checkbox">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="text">
+              <string>Show wireframe overlay</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QCheckBox" name="fitted_points_checkbox">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="text">
+              <string>Show fitted points</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QPushButton" name="overlay_colour_button">
+             <property name="text">
+              <string>Select Colour...</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="0" column="0" colspan="2">
+         <widget class="QTabWidget" name="subview_tabs">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="currentIndex">
+           <number>-1</number>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="0" colspan="2">
+         <widget class="QGroupBox" name="groupBox_4">
+          <property name="title">
+           <string>Compare with existing Calibration</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_16">
+           <item row="2" column="0">
+            <widget class="QCheckBox" name="comparison_overlay_checkbox">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="text">
+              <string>Show wireframe  overlay </string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QPushButton" name="comparison_overlay_colour_button">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>Select Colour...</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QPushButton" name="open_comparison_calib">
+             <property name="text">
+              <string>Select...</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="comparison_name">
+             <property name="text">
+              <string>No comparison calibration loaded</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
         </item>
        </layout>
       </widget>

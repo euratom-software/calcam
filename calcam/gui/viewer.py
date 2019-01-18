@@ -481,7 +481,7 @@ class Viewer(CalcamGUIWindow):
             return
 
         self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
-        self.statusbar.showMessage('Render image to {:s} ...'.format(filename))
+        self.statusbar.showMessage('Rendering image to {:s} ...'.format(filename))
 
 
         # Values of extra AA and oversampling to use

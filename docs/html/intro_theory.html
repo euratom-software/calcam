@@ -69,7 +69,7 @@
             
             
               <div class="version">
-                Version 2.0
+                Version 2.1
               </div>
             
           
@@ -284,9 +284,9 @@
 <div class="section" id="perspective-distortion-model">
 <h2>Perspective Distortion Model<a class="headerlink" href="#perspective-distortion-model" title="Permalink to this headline">¶</a></h2>
 <p>The image distortion model for perspective projection lenses takes in to account radial (barrel or pincushion) distortion, and tangential (wedge-prism like, usually due to de-centring of optical components) distortions. The equation relating the undistorted and distorted normalised image coordinates in this model is:</p>
-<div class="math">
+<div class="math" id="distortion-eqn">
 \[\begin{split}\begin{pmatrix}x_d\\y_d\end{pmatrix} = \left[ 1 + k_1r^2 + k_2r^4 + k_3r^6\right]\begin{pmatrix}x_n\\y_n\end{pmatrix} +  \begin{pmatrix}2p_1x_ny_n + p_2(r^2 + 2x_n^2)\\p_1(r^2 + 2y^2) + 2p_2x{_n}y{_n}\end{pmatrix},
-\label{eqn:perspective_distortion}\end{split}\]</div>
+\label{eq:perspective_distortion}\end{split}\]</div>
 <p>where <span class="math">\(r = \sqrt{x_n^2 + y_n^2}\)</span>, and <span class="math">\(k_n\)</span> and <span class="math">\(p_n\)</span> are radial and tangential distortion coefficients, respectively. The polynomial in <span class="math">\(r^2\)</span> in the first term describes the radial distortion while the second term represents tangential distortion.</p>
 </div>
 <div class="section" id="fisheye-distirtion-model">

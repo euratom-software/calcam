@@ -149,8 +149,6 @@ class AlignmentCalib(CalcamGUIWindow):
         cv2_version = float('.'.join(cv2.__version__.split('.')[:2]))
         cv2_micro_version = int(cv2.__version__.split('.')[2].split('-')[0])
         if cv2_version < 2.4 or (cv2_version == 2.4 and cv2_micro_version < 6):
-            self.hist_eq.setEnabled(False)
-            self.hist_eq.setToolTip('Requires OpenCV 2.4.6 or newer; you have {:s}'.format(cv2.__version__))
             self.edge_detect.setEnabled(False)
             self.edge_detect.setToolTip('Requires OpenCV 2.4.6 or newer; you have {:s}'.format(cv2.__version__))
 
@@ -493,12 +491,7 @@ class AlignmentCalib(CalcamGUIWindow):
         self.overlay_image = self.calibration.undistort_image( self.calibration.get_image(coords='display') )
 
         if self.hist_eq.isChecked() or self.edge_detect.isChecked():
-            hist_equaliser = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
-            if len(self.overlay_image.shape) == 2:
-                self.overlay_image = hist_equaliser.apply(self.overlay_image.astype('uint8'))
-            elif len(self.overlay_image.shape) > 2:
-                for channel in range(3):
-                    self.overlay_image[:,:,channel] = hist_equaliser.apply(self.overlay_image.astype('uint8')[:,:,channel]) 
+            self.overlay_image = hist_eq(self.overlay_image)
 
         if self.edge_detect.isChecked():
 
@@ -591,7 +584,10 @@ class AlignmentCalib(CalcamGUIWindow):
 
             self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
             self.statusbar.showMessage('Saving...')
-            self.calibration.save(self.filename)
+            try:
+                self.calibration.save(self.filename)
+            except PermissionError:
+                raise UserWarning('Could not write to {:s}: permission denied.'.format(self.filename))
             self.unsaved_changes = False
             self.statusbar.clearMessage()
             self.app.restoreOverrideCursor()

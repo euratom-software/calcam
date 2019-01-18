@@ -8,7 +8,7 @@ Calcam is known to work under Python versions from 2.7 -  3.6, and probably work
 
 	- OpenCV (cv2) 2.4+ [Some features only available with 3.0+]
 	- PyQt4 or PyQt5
-	- VTK 6.0+ [Tested with versions up to 8.1. Must be built with Qt support enabled for the correct Qt version]
+	- VTK 6.0+ [Tested with versions up to 8.1. Must be built with Qt support enabled]
 	
 These cannot be reliably installed automatically by the setup script on all platforms / environments, so the setup script will merely check if these are working and will issue an error or warning if not. It is highly recommended to get these libraries installed and working before installing Calcam. The easiest way to install them is usually through your OS's package manager, if applicable, or to use a Python distibution such as `Enthought Canopy <https://www.enthought.com/product/canopy/>`_ or `Python (x,y) <https://python-xy.github.io/>`_. which can provide these packages. It can be very tricky to build these libraries and their python bindings from source and get everything working properly together.
 
@@ -70,7 +70,9 @@ Whereas in Calcam 1, imported images, point pairs, calibration and fit results w
 .. image:: images/screenshots/file_converter.png
    :alt: Calcam 1.x file converter screenshot
 
-This contains 2 sections: the top section for converting existing calibrations, and the bottom section for converting existing CAD model definitions. When the :guilabel:`Convert!` button is clicked in the relevant section, the large status bar at the bottom of the window will show the current progress during the conversion. The three text boxes containing path names are used to specify where the Calcam 2 calibration files should be saved to, since in Calcam 2 this can be wherever you want.
+At the top of this window, the "Source Directory", where the tool will look for Calcam 1.x files to convert, is displayed. This is typically detected automatically, but you can also manually set the source directory manually using the :guilabel:`Browse...` button (this should be the complete Calcam 1.x data directory, i.e. the location of the `FitResults`, `Images`, `PointPairs` etc directories). 
+
+Below this are 2 main sections: the top section for converting existing calibrations, and the bottom section for converting existing CAD model definitions. When the :guilabel:`Convert!` button is clicked in the relevant section, the large status bar at the bottom of the window will show the current progress during the conversion. The three text boxes containing file paths are used to specify where the output Calcam 2 calibration files should be saved to, since in Calcam 2 this can be wherever you want.
 
 When converting calibrations, if the :guilabel:`Try to match with image files based on name` checkbox is ticked, the tool will try to match up calibration results with images by looking for Calcam image save files whose name also appears in the name of the calibration result being converted. If such an image is found, the image will be added to the resulting Calcam 2 save file. To disable this auto-matching, un-tick this checkbox, and Calcam 2 calibration results converted from Calcam 1 files will simply not contain any images.
 

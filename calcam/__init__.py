@@ -25,8 +25,7 @@ CalCam package.
 """
 
 # Calcam version
-__version__ = '2.0.1'
-
+__version__ = '2.1.0'
 
 # Import the top level "public facing" classes & functions
 from .calibration import Calibration
