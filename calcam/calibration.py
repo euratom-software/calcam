@@ -1643,26 +1643,26 @@ class Calibration():
         '''
         Get a set of parameters which can be used to analytically calculate image coordinate un-distortion.
         This can be useful if you need to calculate point un-distortion faster than the usual numerical method.
-        This fits a model of the form of the :ref:`perspective distortion model <distortion_eqn>` but with 
-        :math:`x_n` and :math:`x_d` interchanged. Which coefficients are included can be set by optional input
+        This fits a model of the form of the :ref:`perspective distortion model <distortion_eqn>` but with coordinate vectors
+        :math:`(x_n, y_n)` and :math:`(x_d,y_d)` interchanged. Which coefficients are included can be set by optional input
         arguments; by default the same terms which were enabled in the calibration fit are also included in this
         fit. Note: this function does not work with fisheye calibrations.
 
         Parameters:
 
             radial_terms (int)        : Number of terms to include in the radial distortion model, can be in \
-                                        the range 1 - 3. If < 3, 0 is returned for higher order coefficients. \
-                                        If not provided, uses the same order as the calibration fit.
+                                        the range 1 - 3. If < 3, higher order coefficients are set to 0. \
+                                        If not provided, uses the same number of terms as the calibration fit.
 
             include_tangential (bool) : Whether to include the tangential distortion coefficients p1 and p2. \
-                                        If not given, uses the same option as was use in the calibration.
+                                        If not given, uses the same option as was used in the calibration.
                                         
             subview (int)             : For calibrations with multiple sub-views, what sub-view to get the parameters for.
 
         Returns:
 
             dict : A dictionary containing the fitted coeffcients. Radial distortion coefficients are in keys: \
-                   'k1', 'k2' and 'k3'; tangential coefficients are in 'p1' and 'p2'. An additional key 'rms_error' \
+                   'k1', 'k2' and 'k3'; tangential coefficients are in keys 'p1' and 'p2'. An additional key 'rms_error' \
                    gives the RMS fit error, in pixels, which indicates how well these fitted parameters reproduce \
                    the full numerical distortion inversion.
 

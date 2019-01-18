@@ -268,7 +268,7 @@
   <div class="section" id="using-calibration-results">
 <h1>Using Calibration Results<a class="headerlink" href="#using-calibration-results" title="Permalink to this headline">¶</a></h1>
 <p>Once you have created calibrations using the Calcam GUI tools, you can import calcam as a Python package and use it to extract information from the calibrations and/or integrate use of the results in to your workflow in Python. This page documents the features of the Calcam API for working with calibration results.</p>
-<p>For examples of using these features, see the examples page.</p>
+<p>For examples of using these features, see the <a class="reference internal" href="api_examples.html"><span class="doc">Examples</span></a> page.</p>
 <div class="section" id="the-calibration-class">
 <h2>The Calibration Class<a class="headerlink" href="#the-calibration-class" title="Permalink to this headline">¶</a></h2>
 <p>The calibration class is used to represent Calcam calibrations and provides various methods for getting information about the camera viewing geometry.</p>
@@ -470,8 +470,8 @@ description of the camera&#8217;s sight line geometry.</p>
 <code class="descname">get_undistort_coeffs</code><span class="sig-paren">(</span><em>radial_terms=None</em>, <em>include_tangential=None</em>, <em>subview=None</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.Calibration.get_undistort_coeffs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get a set of parameters which can be used to analytically calculate image coordinate un-distortion.
 This can be useful if you need to calculate point un-distortion faster than the usual numerical method.
-This fits a model of the form of the <a class="reference internal" href="intro_theory.html#distortion-eqn"><span class="std std-ref">perspective distortion model</span></a> but with
-<span class="math">\(x_n\)</span> and <span class="math">\(x_d\)</span> interchanged. Which coefficients are included can be set by optional input
+This fits a model of the form of the <a class="reference internal" href="intro_theory.html#distortion-eqn"><span class="std std-ref">perspective distortion model</span></a> but with coordinate vectors
+<span class="math">\((x_n, y_n)\)</span> and <span class="math">\((x_d,y_d)\)</span> interchanged. Which coefficients are included can be set by optional input
 arguments; by default the same terms which were enabled in the calibration fit are also included in this
 fit. Note: this function does not work with fisheye calibrations.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -479,13 +479,13 @@ fit. Note: this function does not work with fisheye calibrations.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>radial_terms</strong> (<em>int</em>) &#8211; Number of terms to include in the radial distortion model, can be in                                         the range 1 - 3. If &lt; 3, 0 is returned for higher order coefficients.                                         If not provided, uses the same order as the calibration fit.</li>
-<li><strong>include_tangential</strong> (<em>bool</em>) &#8211; Whether to include the tangential distortion coefficients p1 and p2.                                         If not given, uses the same option as was use in the calibration.</li>
+<li><strong>radial_terms</strong> (<em>int</em>) &#8211; Number of terms to include in the radial distortion model, can be in                                         the range 1 - 3. If &lt; 3, higher order coefficients are set to 0.                                         If not provided, uses the same number of terms as the calibration fit.</li>
+<li><strong>include_tangential</strong> (<em>bool</em>) &#8211; Whether to include the tangential distortion coefficients p1 and p2.                                         If not given, uses the same option as was used in the calibration.</li>
 <li><strong>subview</strong> (<em>int</em>) &#8211; For calibrations with multiple sub-views, what sub-view to get the parameters for.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A dictionary containing the fitted coeffcients. Radial distortion coefficients are in keys:                    &#8216;k1&#8217;, &#8216;k2&#8217; and &#8216;k3&#8217;; tangential coefficients are in &#8216;p1&#8217; and &#8216;p2&#8217;. An additional key &#8216;rms_error&#8217;                    gives the RMS fit error, in pixels, which indicates how well these fitted parameters reproduce                    the full numerical distortion inversion.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A dictionary containing the fitted coeffcients. Radial distortion coefficients are in keys:                    &#8216;k1&#8217;, &#8216;k2&#8217; and &#8216;k3&#8217;; tangential coefficients are in keys &#8216;p1&#8217; and &#8216;p2&#8217;. An additional key &#8216;rms_error&#8217;                    gives the RMS fit error, in pixels, which indicates how well these fitted parameters reproduce                    the full numerical distortion inversion.</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict</p>
@@ -517,6 +517,29 @@ fit. Note: this function does not work with fisheye calibrations.</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list of np.ndarray</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="calcam.Calibration.set_extrinsics">
+<code class="descname">set_extrinsics</code><span class="sig-paren">(</span><em>campos</em>, <em>upvec=None</em>, <em>camtar=None</em>, <em>view_dir=None</em>, <em>cam_roll=None</em>, <em>src=None</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.Calibration.set_extrinsics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Manually set the camera extrinsic parameters.
+Only applicable for synthetic or manual alignment type calibrations.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>campos</strong> (<em>sequence</em>) &#8211; 3-element sequence specifying the camera position (X,Y,Z) in metres.</li>
+<li><strong>view_dir</strong> (<em>sequence</em>) &#8211; 3D vector [X,Y,Z] specifying the camera view direction. Either view_dir or camtar must                                   be given; if both are given then view_dir is used.</li>
+<li><strong>camtar</strong> (<em>sequence</em>) &#8211; 3-element sequence specifying a point in 3D space where the camera is pointed to.                                   Either camtar or view_dir must be given; if both are given then view_dir is used.</li>
+<li><strong>upvec</strong> (<em>sequence</em>) &#8211; 3-element sequence specifying the camera up vector. Either upvec or cam_roll must                                   be given; if both are given then upvec is used. upvec must be orthogonal to the viewing                                   direction.</li>
+<li><strong>cam_roll</strong> (<em>float</em>) &#8211; Camera roll in degrees. This is the angle between the lab +Z axis and the camera&#8217;s &#8220;view up&#8221;                                   direction. Either cam_roll or upvec must be given; if both are given the upvec is used.</li>
+<li><strong>src</strong> (<em>str</em>) &#8211; Human-readable string describing where these extrinsics come from, for data provenance.                                   If not given, basic information like current username, hostname and time are used.</li>
+</ul>
 </td>
 </tr>
 </tbody>
