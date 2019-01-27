@@ -28,13 +28,15 @@ CalCam package.
 __version__ = '2.x'
 
 # Some stuff will only work if we have VTK.
-# For some unknown reason, the GUI breaks if the GUI
-# imports are not done before geometry_matrix (?!?)
 try:
     import vtk
 except ImportError:
     vtk = None
 
+# Note: We have to import the GUI module before anything
+# else to make sure the Calcam GUI and Matplotlib are
+# using the same version of Qt and will therefore work well
+# together.
 if vtk:
     from . import gui
     from .cadmodel import CADModel

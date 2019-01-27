@@ -227,7 +227,7 @@ def raycast_sightlines(calibration,cadmodel,x=None,y=None,binning=1,coords='Disp
             time_string = time_string + '{0:.0f} min '.format(np.floor( (tot_time - 3600*np.floor(tot_time / 3600))  / 60))
         time_string = time_string + '{0:.0f} sec. '.format( tot_time - 60*np.floor(tot_time / 60) )
 
-        print('Finished casting {:d} rays in '.format(np.size(x)) + time_string)
+        print('Finished casting {:s} in {:s}'.format(raystring,time_string))
 
     results.x[valid_mask == 0] = np.nan
     results.y[valid_mask == 0] = np.nan

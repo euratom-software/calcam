@@ -11,6 +11,8 @@ import copy
 from .config import CalcamConfig
 from .io import ZipSaveFile
 
+import time
+
 calcam_config = CalcamConfig()
 
 try:
@@ -93,13 +95,35 @@ class PoloidalPolygonGrid():
 
             bbox = None
 
-        self.generate_grid(wall_contour,cell_area,bbox)
+        self._generate_grid(wall_contour,cell_area,bbox)
+        self._cull_unused_verts()
 
 
 
-    def generate_grid(self,wall_contour,cell_area,bbox):
+    def _generate_grid(self,wall_contour,cell_area,bbox):
+        '''
+        Function to generate the grid geometry; this must be handled by
+        a subclass. This method must generate the following two attributes 
+        for the object:
 
-        raise NotImplementedError('This has to be handled by the subclass.')
+            * self.vertices :   N_verts x 2 NumPy array of floats containing the  \
+                                R,Z coordinates of grid vertices.
+
+            * self.cells    :   N_cells x N_poly_corners NumPy array of integers specifying which \
+                                vertices (indexes in to self.vertices) belong to each \
+                                grid cell. On each row, the vertex indices for a single grid cell must be \
+                                listed in order around the polygon perimiter (doesn't matter in what direction).
+
+        Parameters:
+
+            wall_contour (np.ndarray)         : Nx2 NumPy array containing the wall contour in R,Z
+
+            cell_area (float)                 : Desired characteristic cell area in square metres
+
+            bbox (4 element sequence or None) : Rmin, Rmax, Zmin, Zmax limits of the desired grid extent.
+        '''
+
+        raise NotImplementedError('Mesh generation must be handled by a subclass; PoloidalPolygonGrid cannot be used directly.')
 
 
     def get_n_cells(self):
@@ -111,7 +135,7 @@ class PoloidalPolygonGrid():
             int : Number of grid cells
 
         '''
-        return self.cell_vertices.shape[0]
+        return self.cells.shape[0]
 
 
     def get_extent(self):
@@ -220,7 +244,7 @@ class PoloidalPolygonGrid():
                         cells = set()
                         segments = intersections[np.abs(intersect_l - los_pos) < 1e-10]
                         for segment in segments:
-                            cells.update(np.where(self.cell_segments == segment)[0])                    
+                            cells.update(np.where(self.cell_sides == segment)[0])                    
 
                         if len(in_cell) == 0:
                             # Initially entering the grid
@@ -260,7 +284,42 @@ class PoloidalPolygonGrid():
         return arr_out
 
 
-    def plot(self,data=None,clim=None,cmap=None,line_colour=(0,0,0),cell_linewidth=None,axes=None):
+    def plot(self,data=None,clim=None,cmap=None,line_colour=(0,0,0),cell_linewidth=None,cblabel=None,axes=None):
+        '''
+        Either plot a given data vector on the grid, or if no data vector is given,
+        plot the grid itself. Note: this does not call plt.show() itself when done.
+
+        Parameters:
+
+            data (array)                    : Data to plot on the grid. Must be a 1D array with as many elements \
+                                              as there are grid cells. If not given, only the grid structure is plotted.
+
+            clim (sequence or None)         : 2 element sequence giving the colourmap limits for the data [min,max]. \
+                                              If set to None, the data min and max are used.
+
+            cmap (str or None)              : Name of the matplotlib colourmap to use to display the data. If not given, \
+                                              matplotlib's default colourmap will be used.
+
+            line_colour (sequence or None)  : 3-element sequence of values between 0 and 1 specifying the R,G,B \
+                                              colour with which to draw the wall contour and grid cell boundaries. \
+                                              If set to None, the wall and cell boundaries are not drawn.
+
+            cell_linewidth (float)          : Line width to use to show the grid cell boundaries. If set to 0, the grid \
+                                              cell boundaries will not be drawn.
+
+            cblabel (str)                   : Label for the data colour bar
+
+            axes (matplotlib.pyplot.Axes)   : Matplotlib axes on which to plot. If not given, a new figure will be created.
+
+        Returns:
+            
+            matplotlib.collections.PatchCollection  : PatchCollection containing the patches used to show the data and \
+                                                      grid cells. This object has useful methods for further adjusting \
+                                                      the plot like set_cmap(), set_clim() etc.
+
+            list of matplotlib.lines.Line2D         : List of matpltolib line objects making up the wall contour.
+
+        '''
 
         # If we have some data to plot, validate that we have 1 value per grid cell
         if data is not None:
@@ -288,10 +347,10 @@ class PoloidalPolygonGrid():
         # Create a matplotlib patch collection to show the grid cells,
         # with the data associated with it if necessary
         patches = []
-        verts_per_cell = self.cell_vertices.shape[1]
+        verts_per_cell = self.cells.shape[1]
 
         for cell_ind in range(self.get_n_cells()):
-            xy = np.vstack( [ self.vertices[self.cell_vertices[cell_ind,i],:] for i in range(verts_per_cell)] )
+            xy = np.vstack( [ self.vertices[self.cells[cell_ind,i],:] for i in range(verts_per_cell)] )
             patches.append( PolyPatch( xy, closed=True) )
         pcoll = PatchCollection(patches)
         pcoll.set_array(np.squeeze(data))
@@ -319,10 +378,12 @@ class PoloidalPolygonGrid():
         if line_colour is not None:
             wall_lines = axes.plot(self.wall_contour[:,0],self.wall_contour[:,1],color=line_colour,linewidth=2,marker=None)
             wall_lines = wall_lines + axes.plot([self.wall_contour[-1,0],self.wall_contour[0,0]],[self.wall_contour[-1,1],self.wall_contour[0,1]],color=line_colour,linewidth=2,marker=None)
+        else:
+            wall_lines = []
 
         # Add a colour bar if we have data
         if data is not None:
-            plt.colorbar(pcoll)
+            plt.colorbar(pcoll,label=cblabel)
 
         # Prettification
         rmin,rmax,zmin,zmax = self.get_extent()
@@ -337,15 +398,45 @@ class PoloidalPolygonGrid():
 
 
 
+    def _cull_unused_verts(self):
+        '''
+        Remove any un-used vertices from the mesh definition.
+        '''
+
+        # Check what members of the set of all vertices
+        # appear in the list of vertices used by cells
+        used_vert_inds = set(self.cells.flatten())
+        all_vert_inds = set(range(self.vertices.shape[0]))
+        used_verts = np.array( sorted(list(all_vert_inds & used_vert_inds)),dtype=np.uint32)
+
+        # Remove the unused vertices and keep track of vertex indexing
+        ind_translation = np.zeros(self.vertices.shape[0],dtype=np.uint32)
+        ind_translation[used_verts] = np.arange(used_verts.size,dtype=np.uint32)
+
+        self.vertices = self.vertices[used_verts,:]
+        self.cells = ind_translation[self.cells]
+
+
+    def remove_cells(self,cell_inds):
+        '''
+        Remove grid cells with the given indices from the grid.
+        '''
+        cell_inds = np.array(cell_inds).astype(np.uint32)
+
+        self.cells = np.delete(self.cells,cell_inds,axis=0)
+        self.cell_sides = np.delete(self.cell_sides,cell_inds,axis=0)
+
+        self._cull_unused_verts()
+
 
 
 class SquareGrid(PoloidalPolygonGrid):
+    '''
+    A reconstruction grid with square grid cells.
+    '''
 
+    def _generate_grid(self,wall_contour,cell_area,bbox):
 
-    def generate_grid(self,wall_contour,cell_area,bbox):
-        '''
-        Generate a regular suqre-celled grid
-        '''
         cell_size = np.sqrt(cell_area)
 
         # If the bounding box is not given, set it to the extent of the wall outline
@@ -358,12 +449,12 @@ class SquareGrid(PoloidalPolygonGrid):
         Rpts = np.linspace(bbox[0],Rmax,int( (Rmax - bbox[0])/cell_size) + 1)
         Zpts = np.linspace(bbox[2],Zmax,int( (Zmax - bbox[2])/cell_size) + 1)
 
-        wall_path = mplpath.Path(wall_contour,closed=True)
+        wall_path = mplpath.Path(np.vstack((wall_contour,wall_contour[-1,:])),closed=True)
 
         self.vertices = []
-        self.cell_vertices = []
+        self.cells = []
         self.segments = []
-        self.cell_segments = []
+        self.cell_sides = []
 
         for iz in range(Zpts.size-1):
             for ir in range(Rpts.size-1):
@@ -379,57 +470,54 @@ class SquareGrid(PoloidalPolygonGrid):
                 if not np.any(wall_path.contains_points(verts)):
                     continue
 
-                self.cell_vertices.append([])
+                self.cells.append([])
                 for vert_ind in range(4):
 
                     try:
-                        self.cell_vertices[-1].append(self.vertices.index(verts[vert_ind]))
+                        self.cells[-1].append(self.vertices.index(verts[vert_ind]))
                     except ValueError:
                         self.vertices.append(verts[vert_ind])
-                        self.cell_vertices[-1].append(len(self.vertices)-1)
+                        self.cells[-1].append(len(self.vertices)-1)
 
-                self.cell_segments.append([])
+                self.cell_sides.append([])
                 for seg_ind in range(4):
-                    seg = sorted( [self.cell_vertices[-1][seg_ind], self.cell_vertices[-1][(seg_ind + 1) % 4]] )
+                    seg = sorted( [self.cells[-1][seg_ind], self.cells[-1][(seg_ind + 1) % 4]] )
 
                     try:
-                        self.cell_segments[-1].append(self.segments.index(seg))
+                        self.cell_sides[-1].append(self.segments.index(seg))
                     except ValueError:
                         self.segments.append(seg)
-                        self.cell_segments[-1].append(len(self.segments)-1)
+                        self.cell_sides[-1].append(len(self.segments)-1)
 
         self.vertices = np.array(self.vertices)
-        self.cell_vertices = np.array(self.cell_vertices)
+        self.cells = np.array(self.cells)
         self.segments = np.array(self.segments)
-        self.cell_segments = np.array(self.cell_segments)
+        self.cell_sides = np.array(self.cell_sides)
 
 
 
 class TriangularGrid(PoloidalPolygonGrid):
-
+    '''
+    A reconstruction grid with triangular grid cells,
+    allowing it to conform nicely to the wall contour.
+    '''
 
     def __init__(*args,**kwargs):
-        '''
-        When instantiating a TriangularGrid, make sure the
-        triangle library is available first.
-        '''
+
+        # When instantiating a TriangularGrid, make sure the triangle library is available.
         if triangle_err is not None:
             raise Exception('Cannot initialise triangular geometry matrix: triangle module failed to import with error: {:s}'.format(triangle_err))
 
         PoloidalPolygonGrid.__init__(*args,**kwargs)
 
 
-    def generate_grid(self,wall_contour,triangle_area,bbox):
-        '''
-        Generate a triangular grid conforming to the wall contour using
-        the triangle library.
-        '''
+    def _generate_grid(self,wall_contour,triangle_area,bbox):
 
+        # Whatever happens, the wall will define some vertices to pass to the mesher.
         verts = wall_contour
 
-        # Connectivity between wall contour vertices to make the wall contour
-        # is simply each one connected to the next, then the last connected to
-        # the first
+        # Connectivity between wall contour vertices is simply each one
+        # connected to the next, then the last connected to the first
         segments = np.zeros((verts.shape[0],2),dtype=np.uint32)
         segments[:,0] = np.arange(verts.shape[0])
         segments[:,1] = np.arange(1,verts.shape[0]+1)
@@ -437,7 +525,7 @@ class TriangularGrid(PoloidalPolygonGrid):
 
 
         # If we have a bounding box, add segments for it to the input geometry and 
-        # put an array of hole markers around it.
+        # put an array of hole markers around it so we only grid inside the bounding box.
         if bbox is not None:
 
             bbox_verts = np.zeros((4,2))
@@ -470,37 +558,68 @@ class TriangularGrid(PoloidalPolygonGrid):
 
 
         # Run triangle to make the grid!
-        mesh = triangle.triangulate( geometry , 'pqa{:.4f}'.format(triangle_area) )
+        # Do this in a separate process so that if the triangle library has a fail,
+        # it doesn't drag this whole python process down with it.
+        q = multiprocessing.Queue()
+        triprocess = multiprocessing.Process(target=self._run_triangle_python,args=(geometry,'pqa{:.4f}'.format(triangle_area),q))
+        triprocess.start()
+        while triprocess.is_alive() and q.empty():
+            time.sleep(0.1)
+        
+        if not q.empty():
+            mesh = q.get()
+        else:
+            raise Exception('Gridding using triangle module failed; most likely a precision issue caused by the boundary definition.')
+
 
         # The grid vertices and vertex connectivity to form cells come
         # straight out from triangle. 
         self.vertices = mesh['vertices']
-        self.cell_vertices = mesh['triangles']
+        self.cells = mesh['triangles']
 
         # Make the list of line segments and which line segments are
         # associated with each cell.
         self.segments = []
-        self.cell_segments = np.zeros(self.cell_vertices.shape,dtype=np.uint64)
+        self.cell_sides = np.zeros(self.cells.shape,dtype=np.uint64)
 
         # For each grid cell
-        for cell_index in range(self.cell_vertices.shape[0]):
+        for cell_index in range(self.cells.shape[0]):
 
             # For each side of the triangle
             for seg_index in range(3):
 
-                seg = sorted( [self.cell_vertices[cell_index][seg_index],self.cell_vertices[cell_index][(seg_index + 1) % 3]] )
+                seg = sorted( [self.cells[cell_index][seg_index],self.cells[cell_index][(seg_index + 1) % 3]] )
 
                 # Store the index if this line segment is already in the segment list,
                 # otherwise add it to the segment list and then store its index.
                 try:
-                    self.cell_segments[cell_index][seg_index] = self.segments.index(seg)
+                    self.cell_sides[cell_index][seg_index] = self.segments.index(seg)
                 except ValueError:
                     self.segments.append(seg)
-                    self.cell_segments[cell_index][seg_index] = len(self.segments)-1
+                    self.cell_sides[cell_index][seg_index] = len(self.segments)-1
 
 
         self.segments = np.array(self.segments)
 
+
+    def _run_triangle_python(self,geometry,options,queue):
+        '''
+        Run triangular mesh generation with the triangle library.
+        See: https://www.cs.cmu.edu/~quake/triangle.html
+    
+        This function is designed to be used from a multiprocessing call.
+
+        Parameters:
+
+            geometry (dict)               : Dictionary defining the bounding geometry, see triangle \
+                                            manual.
+
+            options (str)                 : Options to give to triangle, see triangle manual.
+
+            queue (multiprocessing.Queue) : Multiprocessing queue on which to place the result.
+
+        '''
+        queue.put( triangle.triangulate( geometry , options ) )
 
 
 
@@ -523,12 +642,15 @@ class GeometryMatrix():
         cull_grid (bool)                                   : Whether to remove grid cells without any sight-line coverage from the grid.
 
         n_processes (int)                                  : For multi-CPU computers, how many execution processes \
-                                                             to use for the calculation: speeds up processing ~linearly with \
+                                                             to use for calculations: speeds up processing ~linearly with \
                                                              number of processes. Default is 1 fewer than the number of CPUs present.
     '''
+
     def __init__(self,grid,raydata,los_order='F',cull_grid = True,n_processes=multiprocessing.cpu_count()-1):
 
+        # We'll take a copy of the grid because we might mess with it.
         self.grid = copy.copy(grid)
+
         self.los_order = los_order
 
         # Number of grid cells and sight lines
@@ -542,7 +664,40 @@ class GeometryMatrix():
         # Create the (so far empty) geometry matrix!
         self.data = scipy.sparse.dok_matrix((n_los,n_cells))
 
-        # Multi-threadedly loop over each sight-line and calculate its matrix row
+        # Multi-threadedly loop over each sight-line in raydata and calculate its matrix row
         with multiprocessing.Pool(n_processes) as cpupool:
             for los_ind , mat_row in enumerate( cpupool.imap( self.grid.get_cell_los_lengths , np.hstack((ray_start_coords,ray_end_coords)) , 10 ) ):
                 self.data[los_ind,:] = mat_row
+
+        # If enabled, remove any grid cells + matrix rows which have no sight-line coverage.
+        if cull_grid:
+            unused_cells = np.where(np.abs(np.sum(self.data,axis=0)) == 0)[1]
+            self.grid.remove_cells(unused_cells)
+
+            used_cols = np.where(np.abs(np.sum(self.data,axis=0)) > 0)[1]
+            self.data = self.data[:,used_cols]
+
+
+    def plot_coverage(self,metric='n_los'):
+        '''
+        Plot various metrics related to the coverage of the inversion grid
+        by the camera sight-lines. Possible choices are:
+
+        * 'l_tot' : Total length of all sight-lines passing through each cell.
+
+        * n_los   : Number of different lines-of-sight covering each cell.
+
+
+        Parameters:
+
+            metric (str)    : What metric to plot.
+
+        '''
+        if metric == 'l_tot':
+
+            coverage = np.abs(np.sum(self.data,axis=0))
+            self.grid.plot(coverage,cblabel='Total sight-line coverage [m]')
+
+        elif metric == 'n_los':
+            coverage = np.sum(self.data > 0,axis=0)
+            self.grid.plot(coverage,cblabel='Number of sight-lines seeing grid cell')
