@@ -41,94 +41,9 @@ from ..pointpairs import PointPairs
 from ..coordtransformer import CoordTransformer
 from .vtkinteractorstyles import CalcamInteractorStyle2D
 from . import qt_wrapper as qt
+from ..utils import ColourCycle,DodgyDict
 
 guipath = os.path.split(os.path.abspath(__file__))[0]
-
-
-class ColourCycle():
-
-    def __init__(self):
-
-        self.colours = [(0.121,0.466,0.705),
-                        (1,0.498,0.054),
-                        (0.172,0.627,0.172),
-                        (0.829,0.152,0.156),
-                        (0.580,0.403,0.741),
-                        (0.549,0.337,0.294),
-                        (0.890,0.466,0.760),
-                        (0.498,0.498,0.498),
-                        (0.737,0.741,0.133),
-                        (0.09,0.745,0.811),
-                        ]
-
-        self.extra_colours = []
-
-        self.next_index = 0
-
-        self.next = self.__next__
-
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        if len(self.extra_colours) > 0:
-            return self.extra_colours.pop()
-        else:
-            col = self.colours[self.next_index]
-            self.next_index = self.next_index + 1
-            if self.next_index > len(self.colours) - 1:
-                self.next_index = 0 
-            return col
-
-    def queue_colour(self,colour):
-        self.extra_colours.insert(0,colour)
-
-
-
-
-
-# Custom dictionary-like storage class.
-# Behaves more-or-less like a dictionary but without the requirement
-# that the keys are hashable. Needed so I can do things like use
-# QTreeWidgetItems as keys.
-class DodgyDict():
-
-    def __init__(self):
-
-        self.keylist = []
-        self.itemlist = []
-        self.iter_index = 0
-        self.next = self.__next__
-
-    def __getitem__(self,key):
-        for i,ikey in enumerate(self.keylist):
-            if key == ikey:
-                return self.itemlist[i]
-        raise IndexError()
-
-    def __setitem__(self,key,value):
-
-        for i,ikey in enumerate(self.keylist):
-            if key == ikey:
-                self.itemlist[i] = value
-                return
-
-        self.keylist.append(key)
-        self.itemlist.append(value)
-
-    def __iter__(self):
-        self.iter_index = 0
-        return self
-
-    def __next__(self):
-        if self.iter_index > len(self.keys()) - 1: 
-            raise StopIteration
-        else:
-            self.iter_index += 1
-            return (self.keylist[self.iter_index-1],self.itemlist[self.iter_index-1])
-
-    def keys(self):
-        return self.keylist
 
 
 

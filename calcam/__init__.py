@@ -31,6 +31,8 @@ __version__ = '2.1.0'
 from .calibration import Calibration
 from .raycast import RayData
 from .pointpairs import PointPairs
+from . import geometry_matrix
+from . import geometry_matrix_old
 
 # Some stuff will only work if we have VTK.
 try:
@@ -42,6 +44,5 @@ if vtk:
     from . import gui
     from .cadmodel import CADModel
     from .raycast import raycast_sightlines
-    from .geometry_matrix import RectangularGeometryMatrix
     from .gui import start_gui
     from .render import render_cam_view
