@@ -25,16 +25,11 @@ CalCam package.
 """
 
 # Calcam version
-__version__ = '2.1.0'
-
-# Import the top level "public facing" classes & functions
-from .calibration import Calibration
-from .raycast import RayData
-from .pointpairs import PointPairs
-from . import geometry_matrix
-from . import geometry_matrix_old
+__version__ = '2.x'
 
 # Some stuff will only work if we have VTK.
+# For some unknown reason, the GUI breaks if the GUI
+# imports are not done before geometry_matrix (?!?)
 try:
     import vtk
 except ImportError:
@@ -46,3 +41,13 @@ if vtk:
     from .raycast import raycast_sightlines
     from .gui import start_gui
     from .render import render_cam_view
+
+
+# Import the top level "public facing" classes & functions
+from .calibration import Calibration
+from .raycast import RayData
+from .pointpairs import PointPairs
+from . import geometry_matrix
+from . import geometry_matrix_old
+
+
