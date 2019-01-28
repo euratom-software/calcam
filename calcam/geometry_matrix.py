@@ -71,8 +71,8 @@ class PoloidalPolygonGrid():
         self._generate_grid(*args,**kwargs)
 
         self._validate_grid()
-        self._cull_unused_verts()
         self._build_edge_list()
+        self._cull_unused_verts()
 
 
     def _validate_grid(self):
@@ -140,6 +140,7 @@ class PoloidalPolygonGrid():
 
         self.vertices = self.vertices[used_verts,:]
         self.cells = ind_translation[self.cells]
+        self.segments = ind_translation[self.segments]
 
 
     def _build_edge_list(self):
@@ -230,7 +231,7 @@ class PoloidalPolygonGrid():
 
 
 
-    def get_cell_intersections(self,ray_start,ray_end):
+    def get_cell_intersections(self,ray_start,ray_end,plot=False):
         '''
         Get the intersections of a ray, i.e. a straight line
         in 3D space, with the grid.
@@ -328,7 +329,7 @@ class PoloidalPolygonGrid():
             seg_inds = seg_inds[sort_order]
             
             # This will be the output list of cell indices
-            cell_inds = [] 
+            cell_inds = []
             
             # Check which cells the intersected line segments belong to.
             for intersection_pos in np.unique( t_ray ):
@@ -340,7 +341,27 @@ class PoloidalPolygonGrid():
                     cells.update( np.where(self.cell_sides == seg)[0] )
                 
                 cell_inds.append(list(cells))
-        
+            
+            # We only want to return the unique intersection lengths
+            t_ray = np.unique(t_ray)
+
+            # If we're asked to, plot the sight line and intersection points.
+            if plot:
+                
+                # Plot the sight line
+                ray_dir = (ray_end - ray_start) / ray_length
+                l = np.linspace(0,ray_length,int(ray_length/1e-2))
+                R = np.sqrt( (ray_start[0] + l*ray_dir[0])**2 + (ray_start[1] + l*ray_dir[1])**2  )
+                Z = ray_start[2] + l*ray_dir[2]
+                plt.plot(R,Z)
+                
+                # Plot the intersections
+                points3d = np.tile(ray_start[np.newaxis,:],(t_ray.size,1)) + np.tile(t_ray[:,np.newaxis],(1,3)) * np.tile(ray_dir[np.newaxis,:],(t_ray.size,1))
+                R = np.sqrt(np.sum(points3d[:,:2]**2,axis=1))
+                Z = points3d[:,2]
+                plt.plot(R,Z,'ro')
+
+
         return t_ray,cell_inds
 
 
@@ -803,7 +824,7 @@ class GeometryMatrix():
         self.data = scipy.sparse.csr_matrix(self.data)
         
 
-    def _calc_matrix_row(self,ray_endpoints,plot=False):
+    def _calc_matrix_row(self,ray_endpoints):
         '''
         Calculate a matrix row given the sight-line start and end in 3D.
         
@@ -812,10 +833,6 @@ class GeometryMatrix():
             ray_endpoints (sequence) : 6-element sequence containing the \
                                        ray start and end coordinates: \
                                        (Xstart, Ystart, Zstart, Xend, Yend, Zend)/
-            
-            plot (bool)              : Whether to make a pretty plot of the \
-                                       ray, ray-grid intersections and grid cell coverage.\
-                                       Intended for debugging and algorithm demonstration purposes.   
             
         Returns:
             
@@ -873,29 +890,6 @@ class GeometryMatrix():
             else:
                 raise Exception('Something is wrong with this algorithm...could not identify which cell I have left.')
 
-        
-        # If we're plotting, make a plot!
-        if plot:
-            
-            # Plot the grid and the calculated cell weights
-            plot_data = np.squeeze(row_out.toarray())
-            self.grid.plot(plot_data,cell_linewidth=0.25,cblabel='Sight-line length in cell [m]')
-            
-            # Plot the sight line
-            ray_dir = (ray_end_coords - ray_start_coords) / ray_length
-            l = np.linspace(0,ray_length,int(ray_length/1e-3))
-            R = np.sqrt( (ray_start_coords[0] + l*ray_dir[0])**2 + (ray_start_coords[1] + l*ray_dir[1])**2  )
-            Z = ray_start_coords[2] + l*ray_dir[2]
-            plt.plot(R,Z)
-            
-            # Plot the intersections
-            for i in range(positions.size):
-                pos = ray_start_coords + positions[i]*ray_dir
-                R = np.sqrt(np.sum(pos[:2]**2))
-                Z = pos[2]
-                plt.plot(R,Z,'ro')
-                
-            plt.show()
                 
         return row_out
         
