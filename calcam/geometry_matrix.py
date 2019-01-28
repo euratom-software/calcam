@@ -1,39 +1,67 @@
+'''
+* Copyright 2015-2019 European Atomic Energy Community (EURATOM)
+*
+* Licensed under the EUPL, Version 1.1 or - as soon they
+  will be approved by the European Commission - subsequent
+  versions of the EUPL (the "Licence");
+* You may not use this work except in compliance with the
+  Licence.
+* You may obtain a copy of the Licence at:
+*
+* https://joinup.ec.europa.eu/software/page/eupl
+*
+* Unless required by applicable law or agreed to in
+  writing, software distributed under the Licence is
+  distributed on an "AS IS" basis,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+  express or implied.
+* See the Licence for the specific language governing
+  permissions and limitations under the Licence.
+'''
+
+
+'''
+Geometry matrix module for Calcam.
+
+Written by James Harrison, Mark Smithies & Scott Silburn.
+'''
+
+import multiprocessing
+import copy
+import time
+
 import numpy as np
+import scipy.sparse
 
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from matplotlib.patches import Polygon as PolyPatch
 from matplotlib.collections import PatchCollection
 import matplotlib.path as mplpath
-import scipy.sparse
-import multiprocessing
-import copy
+
 from .config import CalcamConfig
 from .io import ZipSaveFile
-
-import time
-
-calcam_config = CalcamConfig()
 
 try:
     import meshpy.triangle
     import meshpy.tet
     meshpy_err = None
 except Exception as e:
-    meshpy_err = '{:s}'.format(e)
+    meshpy_err = '{:}'.format(e)
 
 
 
 class PoloidalPolygonGrid():
     '''
-    Abstract parent class for representing a tomographic reconstruction grid
+    Base class for representing tomographic reconstruction grids
     in the R, Z plane. Grid cells can be arbitrary polygons but all 
     cells in the grid must all have the same number of sides, for now. 
-    Generating the polygons  must be implemented in a subclass; this 
+    Generating the grid geometry must be implemented in a subclass; this 
     parent class provides generic methods for plotting, sight-line intersection etc.
 
-    Paremeters needed to create the grid are defined by the subclass
+    Paremeters needed to construct a grid are defined by the subclass.
     '''
+    
     def __init__(self,*args,**kwargs):
 
         self.wall_contour = None
@@ -57,7 +85,7 @@ class PoloidalPolygonGrid():
         Get wall contour points for a named machine, if Calcam has a 
         CAD model for the machine with a wall contour in it.
         '''
-        cadmodels = calcam_config.get_cadmodels()
+        cadmodels = CalcamConfig().get_cadmodels()
         if model_name not in cadmodels.keys():
             raise ValueError('Unknown name "{:s}" for wall contour; available machine names are: {:s}'.format(model_name,', '.join(calcam_config.get_cadmodels.keys())))
         else:
@@ -72,26 +100,27 @@ class PoloidalPolygonGrid():
         return wall_contour
 
 
+
     def _generate_grid(self,*args,**kwargs):
         '''
-        Function to generate the grid geometry; this must be handled by
-        a subclass. This method must generate the following two attributes 
-        for the object:
+        Abstract method to create the grid geometry. This must be overloaded
+        by a derived class. The requirement is that this method sets the following
+        attributes of the grid object:
 
-            * self.wall_contour : Nx2 NumPy array containing the R,Z wall contour.
+           vertices (np.ndarray) :   N_verts x 2 NumPy array of floats containing the  \
+                                     R,Z coordinates of grid vertices.
 
-            * self.vertices :   N_verts x 2 NumPy array of floats containing the  \
-                                R,Z coordinates of grid vertices.
+           cells  (np.ndarray)   :   N_cells x N_poly_corners NumPy array of integers specifying which \
+                                     vertices (indexes in to self.vertices) define each grid cell.  \
+                                     On each row, the vertex indices for a single polygonal grid cell must be \
+                                     listed in order around the polygon perimeter (doesn't matter in what direction).
+                                     
+        It is also recommended but not mandatory to set the following attribute:
+            
+           wall_contour (np.ndarray) : Nx2 NumPy array containing the R,Z wall contour.
 
-            * self.cells    :   N_cells x N_poly_corners NumPy array of integers specifying which \
-                                vertices (indexes in to self.vertices) belong to each \
-                                grid cell. On each row, the vertex indices for a single grid cell must be \
-                                listed in order around the polygon perimiter (doesn't matter in what direction).
-
-        Input parameters should be defined by the specific subclass.
         '''
-
-        raise NotImplementedError('Mesh generation must be handled by a subclass; PoloidalPolygonGrid cannot be used directly.')
+        raise NotImplementedError('Mesh generation must be handled by a derived class; PoloidalPolygonGrid cannot be instantiated directly.')
 
 
 
@@ -99,7 +128,6 @@ class PoloidalPolygonGrid():
         '''
         Remove any un-used vertices from the mesh definition.
         '''
-
         # Check what members of the set of all vertices
         # appear in the list of vertices used by cells
         used_vert_inds = set(self.cells.flatten())
@@ -115,7 +143,10 @@ class PoloidalPolygonGrid():
 
 
     def _build_edge_list(self):
-
+        '''
+        Build the list of line segments in the grid
+        and which line segments border which grid cells.
+        '''
         # Make the list of line segments and which line segments are
         # associated with each cell.
         self.segments = np.zeros((np.prod(self.cells.shape),2),dtype=np.uint32)
@@ -141,7 +172,6 @@ class PoloidalPolygonGrid():
                     self.cell_sides[cell_index][seg_index] = segment_index
                     segment_index += 1
 
-
         self.segments = self.segments[:segment_index,:]
 
 
@@ -157,6 +187,16 @@ class PoloidalPolygonGrid():
         '''
         return self.cells.shape[0]
 
+    def n_segments(self):
+        '''
+        Get the number of line segments in the grid.
+
+        Reurns:
+
+            int : Number of grid cells
+
+        '''
+        return self.segments.shape[0]
 
     def verts_per_cell(self):
         '''
@@ -172,7 +212,14 @@ class PoloidalPolygonGrid():
 
 
     def get_extent(self):
-
+        '''
+        Get the R,Z extent of the grid.
+        
+        Returns:
+            
+            tuple : 4-element tuple of floats containing the \
+                    grid extent R_min,R_max,Z_min,Z_max
+        '''
         rmin = self.vertices[:,0].min()
         rmax = self.vertices[:,0].max()
         zmin = self.vertices[:,1].min()
@@ -183,147 +230,126 @@ class PoloidalPolygonGrid():
 
 
 
-    def get_cell_los_lengths(self,los_ends,step_length=2e-2,plot=False):
+    def get_cell_intersections(self,ray_start,ray_end):
         '''
-        Given line-of-sight start and end coordinates in 3D cartesian coordinates,
-        get the length for which that sight-line is in each grid cell. Approximates the
-        line-of-sight in R,Z as a series of straight line segments and finds intersections
-        with the grid cell boundaries using this technique: https://stackoverflow.com/a/565282
-
-        A current limitation is that every cell has to have the same number of vertices.
-
-        This will 
-
-        Parameters:
-
-            los_ends (np.array)    : 6 element array containing X,Y,Z sight-line start and end coordinates
-
-            step_length (float)  : Step length along the sight-line
-
-            plot (bool)          : Whether to plot the sight-line and intersection points.
-
-        '''
-
-        # Array to store the results
-        arr_out = np.zeros((1,self.n_cells()))
-
-        los_start = los_ends[:3]
-        los_end = los_ends[3:]
-
-        # Generate evenly spaced R,Z points along the sight line according to step_length
-        los_len = np.sqrt(np.sum((los_end-los_start)**2 ))
-        los_dir = (los_end - los_start) / los_len
-        npts = int( los_len / step_length ) + 1
-        step_length = los_len / (npts - 1)
-        xyz = np.tile(los_start[np.newaxis,:],(npts,1)) + np.tile(los_dir[np.newaxis,:],(npts,1)) * np.tile(np.linspace( 0., los_len, npts )[:,np.newaxis],(1,3))
-        rz = np.hstack( ( np.sqrt(np.sum(xyz[:,:2]**2,axis=1))[:,np.newaxis] , xyz[:,2][:,np.newaxis] ) )
-        del xyz
-
-        # Start and end points for every LoS segment
-        q = rz[:-1,:]
-        s = rz[1:,:] - q
-
-        # Start and end points for every line segment in the grid
-        p = self.vertices[self.segments[:,0],:]
-        r = self.vertices[self.segments[:,1],:] - p
+        Get the intersections of a ray, i.e. a straight line
+        in 3D space, with the grid.
         
-        if plot:
+        Parameters:
+            
+            ray_start (sequence) : 3-element sequence containing the X,Y,Z coordinates \
+                                   of the ray's start position.
 
-            # Plot the sight-line
-            plt.plot(rz[:,0],rz[:,1],'-')
+            ray_end (sequence)   : 3-element sequence containing the X,Y,Z coordinates \
+                                   of the ray's end position.
+                        
+        Returns:
+            
+            np.ndarray    : Lengths along the ray where intersections with grid \
+                            lines were found (in order from start to end of the ray).
+                         
+            list of lists : Indices of the grid cell(s) which were involved in \
+                            each intersection. There may be 1 or more cells per \
+                            intersection.
+            
+        '''
+        # Turn off some NumPy warnings because we will inevitably
+        # have some dividing by zero and such in here, but it's harmless.
+        with np.errstate(divide='ignore',invalid='ignore'):
+            
+            ray_start = np.array(ray_start)
+            ray_end = np.array(ray_end)
+            
+            ray_length = np.sqrt( np.sum( (ray_end - ray_start)**2 ) )
+            
+            # Parametric coefficients for ray
+            pax,pay,paz = ray_start
+            dpx,dpy,dpz = (ray_end - ray_start) / ray_length
+            
+            # Parametric coefficients for grid segments
+            lar = self.vertices[self.segments[:,0],0]
+            laz = self.vertices[self.segments[:,0],1]
+            dlr = self.vertices[self.segments[:,1],0] - lar
+            dlz = self.vertices[self.segments[:,1],1] - laz
+    
+            a = -dlz**2*dpx**2 - dlz**2*dpy**2 + dlr**2*dpz**2
+            b = 2*dlr*dlz*dpz*lar - 2*dlr**2*dpz*laz - 2*dlz**2*dpx*pax - 2*dlz**2*dpy*pay + 2*dlr**2*dpz*paz
+            c = (dlz**2*lar**2 - 2*dlr*dlz*lar*laz + dlr**2*laz**2 - dlz**2*pax**2 - dlz**2*pay**2 + 2*dlr*dlz*lar*paz - 2*dlr**2*laz*paz + dlr**2*paz**2)
+            
+            # These will be the intersection positions
+            n_lines = self.n_segments()
+            t_ray0 = np.zeros(n_lines) - 1.
+            t_seg0 = np.zeros(n_lines) - 1.
+            t_ray1 = np.zeros(n_lines) - 1.
+            t_seg1 = np.zeros(n_lines) - 1.
+    
+            # The magic number!
+            d = b**2 - 4*a*c
+    
+            # d > 0 means two real solutions and hence two intersections
+            indx = np.where(d > 0)
+            if len(indx) > 0:
+                q = -0.5 * (b[indx] + np.sign(b[indx]) * np.sqrt(d[indx]))
+                t_ray0[indx] = q/a[indx]
+                t_seg0[indx] = (-laz[indx] + paz + dpz * t_ray0[indx])/dlz[indx]
+                t_ray1[indx] = c[indx] / q
+                t_seg1[indx] = (-laz[indx] + paz + dpz * t_ray1[indx])/dlz[indx]
+    
+            # d == 0 means one real solution so one intersection
+            indx = np.where(d == 0)
+            if len(indx) > 0:
+                q = -0.5 * (b[indx] + np.sign(b[indx]) * np.sqrt(d[indx]))
+                t_ray0[indx] = q / a[indx]
+                t_seg0[indx] = (-laz[indx] + paz + dpz * t_ray0[indx])/dlz[indx]
+            
+            # Special case for exactly horizontal rays.
+            indx = np.where(dlz == 0)
+            if len(indx) > 0:
+                t_ray0[indx] = (-paz + laz[indx])/dpz
+                hitr      = np.sqrt((pax+t_ray0[indx]*dpx)**2+(pay+t_ray0[indx]*dpy)**2)
+                t_seg0[indx] = (-lar[indx] + hitr)/dlr[indx]
+            
+            # Valid intersections are ones within the line segment length and 
+            # within the ray length
+            valid_inds0 = (t_seg0 >= 0.) & (t_seg0 <= 1.) & (t_ray0 >= 0.) & (t_ray0 <= ray_length)
+            valid_inds1 = (t_seg1 >= 0.) & (t_seg1 <= 1.) & (t_ray1 >= 0.) & (t_ray1 <= ray_length)
+            
+            # Full list of intersection distance and segment index
+            t_ray = np.concatenate( (t_ray0[valid_inds0],t_ray1[valid_inds1]) )     
+            seg_inds = np.arange(self.n_segments(),dtype=np.uint32)
+            seg_inds = np.concatenate( (seg_inds[valid_inds0],seg_inds[valid_inds1]) )
+    
+            
+            # Sort the intersections by length along the sight-line.
+            # Also round t_ray to 9 figures because we'll want to find unique values
+            # of it shortly, so round to something well over machine precision.
+            sort_order = np.argsort(t_ray)
+            t_ray = t_ray[sort_order].round(decimals=9)
+            seg_inds = seg_inds[sort_order]
+            
+            # This will be the output list of cell indices
+            cell_inds = [] 
+            
+            # Check which cells the intersected line segments belong to.
+            for intersection_pos in np.unique( t_ray ):
+                
+                segs = seg_inds[t_ray == intersection_pos]
+                
+                cells = set()
+                for seg in seg_inds[ t_ray == intersection_pos]:
+                    cells.update( np.where(self.cell_sides == seg)[0] )
+                
+                cell_inds.append(list(cells))
+        
+        return t_ray,cell_inds
 
-
-        # Turn off numpy divide by zero warnings for the main calculation, 
-        # because it often does divide by zero but this is harmless.
-        with np.errstate(divide='ignore'):
-
-            # Step along the sight-line and check intersection
-            in_cell = set()
-            l_entry = None
-            left_grid = False
-            for los_segment in range(npts - 1):
-
-                s_ = np.tile(s[los_segment,:][np.newaxis,:],(self.segments.shape[0],1))
-
-                crs = np.cross(r, s_ )
-
-                diff = np.tile(q[los_segment,:][np.newaxis,:],(self.segments.shape[0],1)) - p
-
-                u = np.cross( diff , r) / crs
-                t = np.cross( diff , s_) / crs
-
-                intersections = np.logical_and(u >= 0, u < 1)
-                intersections = np.logical_and(intersections, t >= 0)
-                intersections = np.logical_and(intersections, t <= 1)
-                intersections = np.argwhere(intersections == True)
-
-                # If we have intersections, keep track of which cells we're in
-                if intersections.size > 0:
-
-                    # Distances along the LoS where we found intersections
-                    intersect_l = np.squeeze( (u[intersections] + los_segment) * step_length )
-
-                    # If we have multiplt intersections, sort them so we step 
-                    # along the intersections in the right order
-                    if intersect_l.size > 1:
-                        sort_order = np.argsort(intersect_l)
-                        intersect_l = intersect_l[sort_order]
-                        intersections = intersections[sort_order]
-
-                    # Now step along each intersection to get cell lengths.
-                    # Since we can have multiple segment intersections at the same
-                    # location, we step by distance along sight line and not by index.
-                    for los_pos in np.unique( intersect_l.round(decimals=10)):
-
-                        # Check which cells we've hit the border of
-                        cells = set()
-                        segments = intersections[np.abs(intersect_l - los_pos) < 1e-10]
-                        for segment in segments:
-                            cells.update(np.where(self.cell_sides == segment)[0])                    
-
-                        if len(in_cell) == 0:
-                            # Initially entering the grid
-                            in_cell = cells
-                            l_entry = los_pos
-
-                        else:
-                            # Leaving a cell
-                            leaving_cell = list(cells & in_cell)
-                            if len(leaving_cell) == 1:
-
-                                leaving_cell = leaving_cell[0]
-
-                                # The actual important bit: add the length to the output for the cell we're leaving
-                                arr_out[0,leaving_cell] = arr_out[0,leaving_cell] + los_pos - l_entry
-
-                                in_cell = cells
-                                in_cell.remove(leaving_cell)
-                                l_entry = los_pos
-
-                            # This isn't really needed, it's just reassuring for me while debugging the algorithm.
-                            elif len(leaving_cell) > 1 :
-                                raise Exception('Something is wrong with the algorithm; this number should always be 1!')
-
-
-                        if plot:
-                            point_coords_xyz = los_start + los_pos * los_dir
-                            point_R = np.sqrt(np.sum(point_coords_xyz[:2]**2))
-                            point_Z = point_coords_xyz[2]
-                            plt.plot( point_R, point_Z, 'ro')
-
-                # Make sure we count the bit of length right at the end of the LoS
-                # in case we reach the LoS end without exiting the grid.
-                if los_segment == npts - 2 and len(in_cell) == 1:
-                        arr_out[0,list(in_cell)[0]] = arr_out[0,list(in_cell)[0]] + los_len - l_entry
-
-        return arr_out
 
 
 
     def plot(self,data=None,clim=None,cmap=None,line_colour=(0,0,0),cell_linewidth=None,cblabel=None,axes=None):
         '''
         Either plot a given data vector on the grid, or if no data vector is given,
-        plot the grid itself. Note: this does not call plt.show() itself when done.
+        plot the grid itself.
 
         Parameters:
 
@@ -347,7 +373,10 @@ class PoloidalPolygonGrid():
 
             axes (matplotlib.pyplot.Axes)   : Matplotlib axes on which to plot. If not given, a new figure will be created.
 
+
         Returns:
+            
+            matplotlib.axes.Axes                    : The matplotlib axes containing the plot.
             
             matplotlib.collections.PatchCollection  : PatchCollection containing the patches used to show the data and \
                                                       grid cells. This object has useful methods for further adjusting \
@@ -356,7 +385,6 @@ class PoloidalPolygonGrid():
             list of matplotlib.lines.Line2D         : List of matpltolib line objects making up the wall contour.
 
         '''
-
         # If we have some data to plot, validate that we have 1 value per grid cell
         if data is not None:
 
@@ -411,7 +439,7 @@ class PoloidalPolygonGrid():
         axes.add_collection(pcoll)
 
         # Plot the wall
-        if line_colour is not None:
+        if line_colour is not None and self.wall_contour is not None:
             wall_lines = axes.plot(self.wall_contour[:,0],self.wall_contour[:,1],color=line_colour,linewidth=2,marker=None)
             wall_lines = wall_lines + axes.plot([self.wall_contour[-1,0],self.wall_contour[0,0]],[self.wall_contour[-1,1],self.wall_contour[0,1]],color=line_colour,linewidth=2,marker=None)
         else:
@@ -430,7 +458,7 @@ class PoloidalPolygonGrid():
         axes.set_xlabel('R [m]')
         axes.set_ylabel('Z [m]')
 
-        return pcoll,wall_lines
+        return axes,pcoll,wall_lines
 
 
 
@@ -450,8 +478,19 @@ class PoloidalPolygonGrid():
 class SquareGrid(PoloidalPolygonGrid):
     '''
     A reconstruction grid with square grid cells.
+    
+    Parameters:
+        
+        wall_contour (str or np.ndarray) : Either the name of a Calcam CAD model \
+                                           from which to use the wall contour, or an \
+                                           N x 2 array of R,Z points defining the machine wall.
+                                           
+        cell_size (float)                : Side length of each grid cell in metres.
+        
+        rmin, rmax, zmin, zmax  (float)  : Optional limits of the grid extent in the R, Z plane. \
+                                           Any combination of these may or may not be given; if none \
+                                           are given the entire wall contour interior is gridded.
     '''
-
     def _generate_grid(self,wall_contour,cell_size,rmin=None,rmax=None,zmin=None,zmax=None):
 
         # If given a machine name for the wall contour, get the R,Z contour
@@ -535,9 +574,24 @@ class SquareGrid(PoloidalPolygonGrid):
 
 class TriGrid(PoloidalPolygonGrid):
     '''
-    A reconstruction grid with triangular grid cells conforming to the wall contour.
+    A reconstruction grid with triangular grid cells conforming to the 
+    wall contour. Generated using triangle via the MeshPy module.
+    
+    Parameters:
+        
+        wall_contour (str or np.ndarray) : Either the name of a Calcam CAD model \
+                                           from which to use the wall contour, or an \
+                                           N x 2 array of R,Z points defining the machine wall.
+                                           
+        max_cell_area (float)            : Maximum area of a grid cell area in square metres.
+        
+        rmin, rmax, zmin, zmax  (float)  : Optional limits of the grid extent in the R, Z plane. \
+                                           Any combination of these may or may not be given; if none \
+                                           are given the entire wall contour interior is gridded.
+                                           
+    Any additional keyword arguments will be passed directly to the triangle mesher, meshpy.triangle.build().
+    This can be used to further control the meshing; see the MeshPy documentation for available arguments.
     '''
-
     def _generate_grid(self,wall_contour,max_cell_area,rmin=None,rmax=None,zmin=None,zmax=None,**kwargs):
 
         # Before trying to generate a triangular grid, check we have the meshpy package available.
@@ -628,7 +682,7 @@ class TriGrid(PoloidalPolygonGrid):
         triprocess = multiprocessing.Process(target=self._run_triangle_python,args=(geometry,q),kwargs=mesher_kwargs)
         triprocess.start()
         while triprocess.is_alive() and q.empty():
-            time.sleep(0.1)
+            time.sleep(0.05)
         
         if not q.empty():
             mesh = q.get()
@@ -658,9 +712,9 @@ class TriGrid(PoloidalPolygonGrid):
             geometry (dict)               : Dictionary defining the bounding geometry, see triangle \
                                             manual.
 
-            options (str)                 : Options to give to triangle, see triangle manual.
-
             queue (multiprocessing.Queue) : Multiprocessing queue on which to place the result.
+            
+        Any keyword arguments are all passed to meshpy.triangle.build()
 
         '''
 
@@ -689,7 +743,7 @@ class TriGrid(PoloidalPolygonGrid):
 
 class GeometryMatrix():
     '''
-    Class to represent a geometry matrix.
+    Class to represent a scalar geometry matrix.
 
     Parameters:
 
@@ -724,21 +778,127 @@ class GeometryMatrix():
         ray_start_coords = raydata.ray_start_coords.reshape(-1,3,order=self.los_order)
         ray_end_coords = raydata.ray_end_coords.reshape(-1,3,order=self.los_order)
         
-        # Create the (so far empty) geometry matrix!
-        self.data = scipy.sparse.dok_matrix((n_los,n_cells))
+        # Initialise the geometry matrix.
+        # Start off with a row-based-linked-list representation
+        # because it's quick and easy to construct.
+        self.data = scipy.sparse.lil_matrix((n_los,n_cells))
 
         # Multi-threadedly loop over each sight-line in raydata and calculate its matrix row
         with multiprocessing.Pool(n_processes) as cpupool:
-            for los_ind , mat_row in enumerate( cpupool.imap( self.grid.get_cell_los_lengths , np.hstack((ray_start_coords,ray_end_coords)) , 10 ) ):
-                self.data[los_ind,:] = mat_row
+            for row_ind , row_data in enumerate( cpupool.imap( self._calc_matrix_row, np.hstack((ray_start_coords,ray_end_coords)) , 10 ) ):          
+                self.data[row_ind,:] = row_data
 
+        
         # If enabled, remove any grid cells + matrix rows which have no sight-line coverage.
         if cull_grid:
-            unused_cells = np.where(np.abs(np.sum(self.data,axis=0)) == 0)[1]
+            unused_cells = np.where(np.abs(self.data.sum(axis=0)) == 0)[1]
             self.grid.remove_cells(unused_cells)
 
-            used_cols = np.where(np.abs(np.sum(self.data,axis=0)) > 0)[1]
+            used_cols = np.where(self.data.sum(axis=0) > 0)[1]
             self.data = self.data[:,used_cols]
+            
+        
+        # Convert to a Compressed Sparse Row Matrix representation,
+        # which should be more convenient to actually use.
+        self.data = scipy.sparse.csr_matrix(self.data)
+        
+
+    def _calc_matrix_row(self,ray_endpoints,plot=False):
+        '''
+        Calculate a matrix row given the sight-line start and end in 3D.
+        
+        Parameters:
+            
+            ray_endpoints (sequence) : 6-element sequence containing the \
+                                       ray start and end coordinates: \
+                                       (Xstart, Ystart, Zstart, Xend, Yend, Zend)/
+            
+            plot (bool)              : Whether to make a pretty plot of the \
+                                       ray, ray-grid intersections and grid cell coverage.\
+                                       Intended for debugging and algorithm demonstration purposes.   
+            
+        Returns:
+            
+            np.ndarray : Calculated geometry matrix row.
+
+        '''
+        
+        ray_start_coords = np.array(ray_endpoints[:3])
+        ray_end_coords = np.array(ray_endpoints[3:])
+        
+        # Total length of the ray
+        ray_length = np.sqrt( np.sum( (ray_end_coords - ray_start_coords)**2 ) )
+        
+        # Output will be stored in here
+        row_out = np.zeros( (1,self.grid.n_cells()) )       
+        
+        # Get the ray intersections with the grid cells
+        positions,intersected_cells = self.grid.get_cell_intersections(ray_start_coords,ray_end_coords)
+
+        # Convert the lists of intersected cells in to sets for later convenience.
+        intersected_cells = [set(cells) for cells in intersected_cells]
+
+        # For keeping track of which cell we're currently in
+        in_cell = set()
+        
+        # Loop over each intersection
+        for i in range(positions.size):
+            
+            if len(in_cell) == 0:
+                # Entering the grid
+                in_cell = intersected_cells[i]
+                
+            else:
+                # Going from one cell to another         
+                leaving_cell = list(intersected_cells[i] & in_cell)
+                
+                if len(leaving_cell) == 1:
+                    
+                    row_out[0,leaving_cell[0]] = row_out[0,leaving_cell[0]] + (positions[i] - positions[i-1])
+                
+                    in_cell = intersected_cells[i]
+                    in_cell.remove(leaving_cell[0])
+                
+                else:
+                    raise Exception('Something is wrong with this algorithm...could not identify which cell I have left.')
+        
+        
+        # If the sight line ends inside a cell, add the length it was inside that cell.
+        if len(in_cell) > 0:
+            
+            leaving_cell = list(in_cell)
+            
+            if len(leaving_cell) == 1:
+                row_out[0,leaving_cell[0]] = row_out[0,leaving_cell[0]] + (ray_length - positions[-1])
+            else:
+                raise Exception('Something is wrong with this algorithm...could not identify which cell I have left.')
+
+        
+        # If we're plotting, make a plot!
+        if plot:
+            
+            # Plot the grid and the calculated cell weights
+            plot_data = np.squeeze(row_out.toarray())
+            self.grid.plot(plot_data,cell_linewidth=0.25,cblabel='Sight-line length in cell [m]')
+            
+            # Plot the sight line
+            ray_dir = (ray_end_coords - ray_start_coords) / ray_length
+            l = np.linspace(0,ray_length,int(ray_length/1e-3))
+            R = np.sqrt( (ray_start_coords[0] + l*ray_dir[0])**2 + (ray_start_coords[1] + l*ray_dir[1])**2  )
+            Z = ray_start_coords[2] + l*ray_dir[2]
+            plt.plot(R,Z)
+            
+            # Plot the intersections
+            for i in range(positions.size):
+                pos = ray_start_coords + positions[i]*ray_dir
+                R = np.sqrt(np.sum(pos[:2]**2))
+                Z = pos[2]
+                plt.plot(R,Z,'ro')
+                
+            plt.show()
+                
+        return row_out
+        
 
 
     def plot_coverage(self,metric='n_los'):
@@ -758,9 +918,9 @@ class GeometryMatrix():
         '''
         if metric == 'l_tot':
 
-            coverage = np.abs(np.sum(self.data,axis=0))
+            coverage = self.data.sum(axis=0)
             self.grid.plot(coverage,cblabel='Total sight-line coverage [m]')
 
         elif metric == 'n_los':
-            coverage = np.sum(self.data > 0,axis=0)
+            coverage = np.diff(self.data.tocsc().indptr)
             self.grid.plot(coverage,cblabel='Number of sight-lines seeing grid cell')

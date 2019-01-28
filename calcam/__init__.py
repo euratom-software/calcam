@@ -49,7 +49,7 @@ if vtk:
 from .calibration import Calibration
 from .raycast import RayData
 from .pointpairs import PointPairs
-from . import geometry_matrix
-from . import geometry_matrix_old
+from . import geometry_matrix as gm
+from . import geometry_matrix_old as geometry_matrix
 
 

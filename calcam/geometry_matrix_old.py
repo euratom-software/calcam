@@ -700,10 +700,10 @@ class TriangularGeometryMatrix:
         b = 2*dlr*dlz*dpz*lar - 2*dlr**2*dpz*laz - 2*dlz**2*dpx*pax - 2*dlz**2*dpy*pay + 2*dlr**2*dpz*paz
         c = (dlz**2*lar**2 - 2*dlr*dlz*lar*laz + dlr**2*laz**2 - dlz**2*pax**2 - dlz**2*pay**2 + 2*dlr*dlz*lar*paz - 2*dlr**2*laz*paz + dlr**2*paz**2)
         
-        tp0 = zeros((len(a)))*nan
-        tl0 = zeros((len(a)))*nan
-        tp1 = zeros((len(a)))*nan
-        tl1 = zeros((len(a)))*nan
+        tp0 = zeros((len(a)))-1.
+        tl0 = zeros((len(a)))-1.
+        tp1 = zeros((len(a)))-1.
+        tl1 = zeros((len(a)))-1.
 
         d = b*b - 4*a*c
 
