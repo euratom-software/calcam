@@ -25,7 +25,7 @@ CalCam package.
 """
 
 # Calcam version
-__version__ = '2.x'
+__version__ = '2.2.0.a1'
 
 # Some stuff will only work if we have VTK.
 try:
@@ -49,7 +49,11 @@ if vtk:
 from .calibration import Calibration
 from .raycast import RayData
 from .pointpairs import PointPairs
-from . import geometry_matrix as gm
-from . import geometry_matrix_old as geometry_matrix
+
+from . import gm
+from .gm import GeometryMatrix, PoloidalPolyGrid
+
+from . import geometry_matrix
+
 
 

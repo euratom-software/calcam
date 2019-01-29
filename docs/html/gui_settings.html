@@ -24,27 +24,17 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="genindex.html"/>
-        <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="Calcam  documentation" href="index.html"/>
-        <link rel="next" title="Using Calibration Results" href="api_analysis.html"/>
-        <link rel="prev" title="3D Viewer" href="gui_viewer.html"/> 
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="next" title="Using Calibration Results" href="api_analysis.html" />
+    <link rel="prev" title="3D Viewer" href="gui_viewer.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -61,7 +51,7 @@
 
           
             
-            <img src="_static/logo.png" class="logo" />
+            <img src="_static/logo.png" class="logo" alt="Logo"/>
           
           </a>
 
@@ -182,6 +172,10 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="api_cadmodel.html">CAD Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_geom_matrix.html">Tomography Geometry Matrices</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api_geom_matrix.html#reconstruction-grids">Reconstruction grids</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="api_examples.html">Examples</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="api_examples.html#mapping-a-magnetic-field-line-on-to-an-image">Mapping a magnetic field line on to an image</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api_examples.html#rendering-camera-view-wireframe">Rendering: camera view wireframe</a></li>
@@ -215,7 +209,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">Calcam</a>
@@ -223,9 +217,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -268,7 +263,7 @@
   <div class="section" id="calcam-settings">
 <h1>Calcam Settings<a class="headerlink" href="#calcam-settings" title="Permalink to this headline">¶</a></h1>
 <p>The calcam settings GUI allows setup of directories where Calcam should search for CAD model definitions and custom image source definitions; allows access to the CAD model editing tool and also shows software environment information. The settings window is shown below:</p>
-<img alt="Settings Window Screenshot" src="_images/settings.png" />
+<img alt="Settings Window Screenshot" src="images/screenshots/settings.png" />
 <div class="section" id="cad-model-definition-settings">
 <h2>CAD Model Definition Settings<a class="headerlink" href="#cad-model-definition-settings" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="search-paths">
@@ -289,7 +284,7 @@
 <p>In the centre of the <span class="guilabel">Mesh Files</span> tab is a tree vbiew showing the parts of the model. Each part corresponds to a single 3D mesh file. To add a new part, click the <span class="guilabel">Add...</span> button above the part tree to browse for one or more mesh file(s) to add. Currently Calcam supports <cite>.obj</cite> and <cite>.stl</cite> format 3D mesh files. The selected file(s) will be added to the 3D view and the part tree, with a part name corresponding to the mesh file name. To rename a part, double-click on its name and type the new name.</p>
 <p>A part can be selected in the feature tree by clicking on its name. With the part selected, information about the part are shown in the <span class="guilabel">Selected Part</span> box at the bottom of the <span class="guilabel">Mesh Files</span> tab. This includes the mesh file name and file size and the physical size of the part. The mesh representing this part can be exchanged for a different file using the <span class="guilabel">Replace...</span> button under the mesh file details. Below this, the mesh file scale can be set. The mesh file scale is the physical length, in metres, which corresponds to a length of 1 in the loaded mesh file. For example if the model has been exported from CAD software in units of mm, this should be set to 0.001 to scale the model correctly. Whether the model is scaled correctly can be seen by checking that the displayed physical size of the part is as expected. Finally, the colour of the part can be changed using the <span class="guilabel">Choose...</span> button at the bottom of the tab.</p>
 <p>To logically organise CAD model parts, they can be collected in to groups. To create a group, click the <span class="guilabel">New Group...</span> box above the model part tree and enter a name for the group. Parts can be moved in and out of groups by clikcing and dragging the parts as desired in the parts tree. Groups can be convenient because the user can quickly turn on or off all items in a group together, and if the model is split in to a large number of parts it can be helpful to logically organise them. An example feature tree with parts split in to groups is shown below:</p>
-<img alt="Grouped CAD model parts" src="_images/model_parts_grouped.png" />
+<img alt="Grouped CAD model parts" src="images/screenshots/model_parts_grouped.png" />
 <p>To remove a part from the CAD model, select it from the feature tree and click the <span class="guilabel">Remove</span> button above the model tree.</p>
 <p>Features can be turned on or off by ticking or un-ticking the checkbox next to the feature&#8217;s name. Features which are ticked when saving the model definition will load by default whenever the model is loaded, while any un-ticked features will not be loaded by default.</p>
 </div>
@@ -340,9 +335,7 @@
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -360,11 +353,11 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015-2018, European Atomic Energy Community (EURATOM).
+        &copy; Copyright 2015-2018, European Atomic Energy Community (EURATOM)
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -379,36 +372,34 @@
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  false,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'./',
+              VERSION:'',
+              LANGUAGE:'en',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  false,
+              SOURCELINK_SUFFIX: ''
+          };
+      </script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
 
   
 
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>

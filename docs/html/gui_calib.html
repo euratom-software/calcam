@@ -24,27 +24,17 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="genindex.html"/>
-        <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="Calcam  documentation" href="index.html"/>
-        <link rel="next" title="Calibration by manual alignment" href="gui_alignment_calib.html"/>
-        <link rel="prev" title="Calcam GUI tools and launcher" href="gui_intro.html"/> 
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="next" title="Calibration by manual alignment" href="gui_alignment_calib.html" />
+    <link rel="prev" title="Calcam GUI tools and launcher" href="gui_intro.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -61,7 +51,7 @@
 
           
             
-            <img src="_static/logo.png" class="logo" />
+            <img src="_static/logo.png" class="logo" alt="Logo"/>
           
           </a>
 
@@ -182,6 +172,10 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="api_cadmodel.html">CAD Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_geom_matrix.html">Tomography Geometry Matrices</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api_geom_matrix.html#reconstruction-grids">Reconstruction grids</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="api_examples.html">Examples</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="api_examples.html#mapping-a-magnetic-field-line-on-to-an-image">Mapping a magnetic field line on to an image</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api_examples.html#rendering-camera-view-wireframe">Rendering: camera view wireframe</a></li>
@@ -215,7 +209,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">Calcam</a>
@@ -223,9 +217,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -293,7 +288,7 @@
 <div class="section" id="images-with-multiple-sub-views">
 <h3>Images with multiple sub-views<a class="headerlink" href="#images-with-multiple-sub-views" title="Permalink to this headline">¶</a></h3>
 <p>If the image to be calibrated contains multiple <a class="reference internal" href="intro_conventions.html#subviews-intro"><span class="std std-ref">Sub-views</span></a>, this can be set up by clicking the <span class="guilabel">Define Sub-Views</span> button at the bottom of the image controls, which opens the below window:</p>
-<img alt="Sub-view window screenshot" class="align-left" src="_images/subviews.png" />
+<img alt="Sub-view window screenshot" class="align-left" src="images/screenshots/subviews.png" />
 <p>This window shows the image on the left, with the different sub-views tinted in different colours. Below the image is a slider which can be used to control the opacity of this tint effect to. Mouse navigation controls for the image are the same as for the image in the main calibration window. On the right-of the window are 3 options for defining which pixels in the image belong to which sub-view:</p>
 <ul class="simple">
 <li><strong>No Split Field-of-View</strong>: If the image does not have a split field-of-view (i.e. only contains a single subview) as is the case for most images. This is the default for images loaded from image files.</li>
@@ -347,7 +342,7 @@
 <p>To prepare chessboard images: make a flat chessboard target with known square size (there are various printable PDFs available by searching online). Then take a number of images with this chessboard target in front of the camera at a variety of positions, orientations and distances to the camera. The example below shows thumbnails of a set of chessboard calibration images:</p>
 <img alt="Chessboard image example thumbnails" class="align-left" src="_images/chessboard_example.png" />
 <p>Chessboard images are loaded in to Calcam from the <span class="guilabel">Calibration Points</span> tab. Clicking the <span class="guilabel">Load...</span> button next to Chessboard Images in the <span class="guilabel">Additional Intrinsics Constraints</span> section will open the following window:</p>
-<img alt="Chessboard dialog screenshot" class="align-left" src="_images/chessboard_dialog.png" />
+<img alt="Chessboard dialog screenshot" class="align-left" src="images/screenshots/chessboard_dialog.png" />
 <p>Chessboard loading consists of 3 steps, done in order by working down the right hand side of this window. First, browse for and select all of the chessboard images to use. Then, enter the details of the chessboard pattern: number of squares and square size. Then, select the <span class="guilabel">Detect Chessboard Corners</span> button to run an automatic detection of the boundaries between the chessboard squares. If the automatic detection fails on some images, a dialog box will open telling you which images the detection failed for, and that those cannot be used. If all images fail, check that the number of squares input is correct. Once the corner detection has been completed, cursors will be added to the image displayed on the left hand side of the window. You can pan and zoom to inspect the cursor positions using the usual image mouse controls, and look at different images using the <span class="guilabel">&lt;&lt;</span> and <span class="guilabel">&gt;&gt;</span> buttons above the image. To complete loading of the images and use these as intrinsics constraints, click <span class="guilabel">Apply</span>.</p>
 </div>
 <div class="section" id="existing-calibrations">
@@ -392,9 +387,7 @@
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -412,11 +405,11 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015-2018, European Atomic Energy Community (EURATOM).
+        &copy; Copyright 2015-2018, European Atomic Energy Community (EURATOM)
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -431,36 +424,34 @@
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  false,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'./',
+              VERSION:'',
+              LANGUAGE:'en',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  false,
+              SOURCELINK_SUFFIX: ''
+          };
+      </script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
 
   
 
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>
