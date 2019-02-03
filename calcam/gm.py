@@ -23,7 +23,7 @@
 '''
 Geometry matrix module for Calcam.
 
-Written by James Harrison, Mark Smithies & Scott Silburn.
+Written by Scott Silburn & James Harrison.
 '''
 
 import multiprocessing
@@ -31,10 +31,12 @@ import copy
 import time
 import json
 import os
+import random
 
 import numpy as np
 import scipy.sparse
 import scipy.io
+import scipy.stats
 
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
@@ -49,15 +51,16 @@ try:
 except Exception as e:
     meshpy_err = '{:}'.format(e)
 
-from .config import CalcamConfig
+from . import config
+from . import misc
 from .io import ZipSaveFile
 
 
-
-class PoloidalPolyGrid:
+class PoloidalVolumeGrid:
     '''
     Class for representing tomographic reconstruction grids with
-    polygonal grid cells in the R, Z plane. Grid cells can be arbitrary 
+    polygonal grid cells in the R, Z plane. Quantities are assumed to be
+    uniform within the volume of each grid cell. Grid cells can be arbitrary 
     polygons but all cells in the grid must all have the same number of 
     sides.
     
@@ -79,14 +82,23 @@ class PoloidalPolyGrid:
         wall_contour (np.ndaray) : Nx2 array containing the R,Z wall contour of the machine. \
                                    If provided, this is used for plotting purposes.
                                    
+        src (str)                 : Human readable string describing where the grid came from.
+                                   
     '''
     
-    def __init__(self,vertices,cells,wall_contour=None):
+    def __init__(self,vertices,cells,wall_contour=None,src=None):
 
         
         self.vertices = vertices.copy()
         self.cells = cells.copy()
         self.wall_contour = wall_contour.copy()
+        
+        if src is None:
+            self.history = 'Created by {:s} on {:s} at {:s}'.format(misc.username,misc.hostname,misc.get_formatted_time())
+        elif 'by' in src and 'on' in src and 'at' in src:
+            self.history = history
+        else:
+            self.history = history + ' by {:s} on {:s} at {:s}'.format(misc.username,misc.hostname,misc.get_formatted_time())
 
         self._validate_grid()
         self._build_edge_list()
@@ -147,6 +159,7 @@ class PoloidalPolyGrid:
                     self.segments[segment_index,:] = seg
                     self.cell_sides[cell_index][seg_index] = segment_index
                     segment_index += 1
+
 
         self.segments = self.segments[:segment_index,:]
 
@@ -295,17 +308,19 @@ class PoloidalPolyGrid:
                 t_seg0[indx] = (-laz[indx] + paz + dpz * t_ray0[indx])/dlz[indx]
             
             # Special case for exactly horizontal rays.
-            indx = np.where(dlz == 0)
+            indx = np.where(np.abs(dlz) <1e-14)
             if len(indx) > 0:
                 t_ray0[indx] = (-paz + laz[indx])/dpz
-                hitr      = np.sqrt((pax+t_ray0[indx]*dpx)**2+(pay+t_ray0[indx]*dpy)**2)
+                hitr = np.sqrt((pax+t_ray0[indx]*dpx)**2+(pay+t_ray0[indx]*dpy)**2)
                 t_seg0[indx] = (-lar[indx] + hitr)/dlr[indx]
+                
             
             # Valid intersections are ones within the line segment length and 
             # within the ray length
             valid_inds0 = (t_seg0 >= 0.) & (t_seg0 <= 1.) & (t_ray0 >= 0.) & (t_ray0 <= ray_length)
             valid_inds1 = (t_seg1 >= 0.) & (t_seg1 <= 1.) & (t_ray1 >= 0.) & (t_ray1 <= ray_length)
             
+
             # Full list of intersection distance and segment index
             t_ray = np.concatenate( (t_ray0[valid_inds0],t_ray1[valid_inds1]) )     
             seg_inds = np.arange(self.n_segments(),dtype=np.uint32)
@@ -358,7 +373,7 @@ class PoloidalPolyGrid:
 
 
 
-    def plot(self,data=None,clim=None,cmap=None,line_colour=(0,0,0),cell_linewidth=None,cblabel=None,axes=None):
+    def plot(self,data=None,clim=None,cmap=None,line_colour=(0,0,0),cell_linewidth=None,cblabel='',axes=None):
         '''
         Either plot a given data vector on the grid, or if no data vector is given,
         plot the grid itself.
@@ -508,37 +523,50 @@ class GeometryMatrix:
 
     Parameters:
 
-        grid (calcam.PoloidalPolyGrid)  : Reconstruction grid to use
+        grid (calcam.PoloidalVolumeGrid)  : Reconstruction grid to use
 
-        raydata (calcam.RayData)        : Ray data for the camera to be inverted
+        raydata (calcam.RayData)          : Ray data for the camera to be inverted
+        
+        coords (str)                      : Either 'Original' (default) or 'Display'; whether the image \
+                                            being inverted will be in original or display orientation.
 
-        pixel_order (str)               : What pixel order to use when flattening \
-                                          the 2D image array in to the 1D data vector. \
-                                          Default 'F' goes verticallytop-to-bottom, column-by-column, \
-                                          alternatively 'C' goes horizontally left-to-right,  row-by-row.
+        pixel_order (str)                 : What pixel order to use when flattening \
+                                            the 2D image array in to the 1D data vector. \
+                                            Default 'F' goes verticallytop-to-bottom, column-by-column, \
+                                            alternatively 'C' goes horizontally left-to-right,  row-by-row.
+        
+        calc_status_callback (callable)   : Callable which takes a single argument to be called with status updates. \
+                                            The argument will either be a string for textual status updates or a float \
+                                            from 0 to 1 specifying the progress of the calculation. If set to None, no \
+                                            status updates are issued.
 
-        cull_grid (bool)                : Whether to remove grid cells without any sight-line coverage from the grid.
-
-        n_processes (int)               : For multi-CPU machines, how many execution processes to \
-                                          use for calculations: calculation speeds up ~linearly with \
-                                          number of processes. Default is 1 fewer than the number of CPUs present.
     '''
 
-    def __init__(self,grid,raydata,pixel_order='F',cull_grid = True,n_processes=multiprocessing.cpu_count()-1):
+    def __init__(self,grid,raydata,pixel_order='F',calc_status_callback = misc.LoopProgPrinter().update):
 
         if grid is not None and raydata is not None:
 
-            # We'll take a copy of the grid because we might mess with it.
-            self.grid = copy.copy(grid)
-    
-            # Keep track of what pixel order we use.
-            self.pixel_order = pixel_order
-    
-            # Image binning
-            try:
-                self.binning = float(raydata.binning)
-            except AttributeError:
+            if raydata.fullchip:
+                if raydata.fullchip == True:
+                    raise Exception('Raydata object does not contain information on the image orientation used for ray casting.\n Please set the "fullchip" attribute of the raydata object to either "Display" or "Original".')
+                else:
+                    self.image_coords = raydata.fullchip
+                    self.binning = raydata.binning
+                    self.pixel_order = pixel_order
+            else:
+                
+                self.image_coords = None
                 self.binning = None
+                self.pixel_order = None
+                
+            self.grid = copy.copy(grid)
+            '''
+            calcam.PoloidalVolumeGrid : The inversion grid o
+            '''    
+            
+            self.image_geometry = raydata.transform
+
+            self.history = {'los':raydata.history,'grid':grid.history,'matrix':'Created by {:s} on {:s} at {:s}'.format(misc.username,misc.hostname,misc.get_formatted_time())}
             
             # Number of grid cells and sight lines
             n_cells = grid.n_cells()
@@ -547,58 +575,171 @@ class GeometryMatrix:
             # Flatten out the ray start and end coords
             ray_start_coords = raydata.ray_start_coords.reshape(-1,3,order=self.pixel_order)
             ray_end_coords = raydata.ray_end_coords.reshape(-1,3,order=self.pixel_order)
-            
-            # Initialise the geometry matrix.
-            # Start off with a row-based-linked-list representation
-            # because it's quick and easy to construct.
-            self.data = scipy.sparse.lil_matrix((n_los,n_cells))
 
 
-            # Multi-threadedly loop over each sight-line in raydata and calculate its matrix row
-            with multiprocessing.Pool(n_processes) as cpupool:
-                for row_ind , row_data in enumerate( cpupool.imap( self._calc_matrix_row, np.hstack((ray_start_coords,ray_end_coords)) , 10 ) ):          
-                    self.data[row_ind,:] = row_data
+            # Multi-threadedly loop over each sight-line in raydata and calculate its matrix row.
+            # Store the results as coords + data then build the matrix after, because that is much faster.
             
-            # If enabled, remove any grid cells + matrix rows which have no sight-line coverage.
-            if cull_grid:
-                unused_cells = np.where(np.abs(self.data.sum(axis=0)) == 0)[1]
-                self.grid.remove_cells(unused_cells)
-    
-                used_cols = np.where(self.data.sum(axis=0) > 0)[1]
-                self.data = self.data[:,used_cols]
-                
+            if calc_status_callback is not None:
+                calc_status_callback('Calculating geometry matrix elements using {:d} CPUs...'.format(config.n_cpus))
             
-            # Convert to a Compressed Sparse Row Matrix representation,
-            # which should be more convenient to actually use.
-            self.data = self.data.tocsr()
-       
+            last_status_update = 0.
+            
+            # We will do the calculation in a random order,
+            # purely to get better time remaining estimation.
+            inds = list(range(n_los))
+            random.shuffle(inds)
+
+            colinds = []
+            rowinds = []
+            data = []            
+
+            with multiprocessing.Pool( config.n_cpus ) as cpupool:
+                calc_status_callback(0.)
+                for i , row_data in enumerate( cpupool.imap( self._calc_row_volume, np.hstack((ray_start_coords[inds,:],ray_end_coords[inds,:])) , 10 ) ):          
+                    rowinds.append(np.zeros(row_data[0].shape,dtype=np.uint32) + inds[i])                    
+                    colinds.append(row_data[0])
+                    data.append(row_data[1])
+                    
+                    if time.time() - last_status_update > 1. and calc_status_callback is not None:
+                        calc_status_callback(float(i) / n_los)
+                        last_status_update = time.time()
+
+            # Build the matrix!
+            self.data = scipy.sparse.csr_matrix((np.concatenate(data),(np.concatenate(rowinds),np.concatenate(colinds))),shape=(n_los,n_cells))            
+            
+            if calc_status_callback is not None:
+                calc_status_callback(1.)
+            
+            
+            # Remove any grid cells + matrix rows which have no sight-line coverage.
+            unused_cells = np.where(np.abs(self.data.sum(axis=0)) == 0)[1]
+            self.grid.remove_cells(unused_cells)
+
+            used_cols = np.where(self.data.sum(axis=0) > 0)[1]
+            self.data = self.data[:,used_cols]
+
+
+    def get_los_coverage(self):
+        '''
+        Get the number of lines of sight viewing each inversion element.
+        
+        Returns:
+            
+            np.ndarray : Vector with as many elements as there a
+        '''
+        return np.diff(self.data.tocsc().indptr)
+
+
+
+    def get_mean_rcc(self,status_callback=misc.LoopProgPrinter().update):
+        '''
+        Get the mean reflective correlation coefficient of each matrix column 
+        with every other, but with the mean excluding other columns which are
+        not correlated at all.
+        
+        Indicates which grid cells are likely to have correlation & artefact problems
+        in inversions.
+        
+        Note: this is done in a way which maintains the sparse storage structure of the
+        matrix to avoid memory issues, but can be extremely slow to calculate for
+        large matrices.
+        
+        Parameters:
+            
+            status_callback (callable) : Callable which takes a single argument to be called \
+                                         with status updates. The argument will either be a \
+                                         string for textual status updates or a float from 0 to 1 \
+                                         specifying the progress of the calculation. If set to None, \
+                                         no status updates are issued. By default, status updates are \
+                                         printed to stdout.
+                                                                  
+        Returns:
+            
+            np.ndarray : Array with as many elements as there are matrix columns, giving the \
+                         mean(ish) correlation coefficients.
+
+        '''
+        if status_callback is not None:
+            status_callback('Calculating matrix column correlations...'.format(config.n_cpus)) 
+
+        dat_csc = scipy.sparse.csc_matrix(self.data,copy=True)
+        datm = 1./np.sqrt((dat_csc.power(2)).sum(axis=0).A.ravel())
+        dat_csc = dat_csc * scipy.sparse.diags(datm)       
+        
+        rcc_out = np.zeros(self.grid.n_cells())
+        last_status_update = 0    
         
 
+        for col_ind in range(self.grid.n_cells()):
 
+            # Clever fast way to do dot product and 
+            yy = np.squeeze(dat_csc[:,col_ind].toarray())
 
-    def plot_coverage(self,metric='n_los'):
+            rcc = np.add.reduceat(dat_csc.data * yy[dat_csc.indices], dat_csc.indptr[:-1])
+
+            rcc = np.delete(correl,col_ind)
+            rcc_out[col_ind] = correl[correl > 1e-3].mean(axis=0)
+
+            
+            if time.time() - last_status_update > 1. and status_callback is not None:
+                status_callback(float(col_ind) / (self.grid.n_cells()-1))
+                last_status_update = time.time()
+        
+        
+        if status_callback is not None:
+            status_callback(1.)
+        
+        return rcc_out
+    
+
+    def set_binning(self,binning):
         '''
-        Plot various metrics related to the coverage of the inversion grid
-        by the camera sight-lines.
-
+        Set the level of image binning. Can be used to
+        decrease the size of the matrix to reduce memory or
+        computation requirements for inversions.
+        
         Parameters:
-
-            metric (str)    : What metric to plot. Options are: \
-                              'l_tot' - total sight-line length \
-                              intersecting each grid cell. \
-                              'n_los' - number of lines-of-sight \
-                              intersecting each grid cell.
-
+            
+            binning (float) : Desired image binning. Must be larger than the \
+                              binning already 
+                              
         '''
-        if metric == 'l_tot':
+        if binning < self.binning:
+            raise ValueError('Specified binning is lower than existing binning! The binning can only be increased.')
+        elif binning == self.binning:
+            return
+        else:
+            
+            if self.image_coords is not None:
+                if self.image_coords.lower() == 'display':
+                    image_dims = self.image_geometry.get_display_shape()
+                elif self.image_coords.lower() == 'original':
+                    image_dims = self.image_geometry.get_original_shape()
+            else:
+                raise Exception('Nope, no worky.')
+                
+            bin_factor = int(binning / self.binning)
 
-            coverage = self.data.sum(axis=0)
-            self.grid.plot(coverage,cblabel='Total sight-line coverage [m]')
-
-        elif metric == 'n_los':
-            coverage = np.diff(self.data.tocsc().indptr)
-            self.grid.plot(coverage,cblabel='Number of sight-lines seeing grid cell')
-
+            init_shape = (np.array(image_dims) / self.binning).astype(np.uint32)
+            row_inds = np.arange(np.prod(init_shape),dtype=np.uint32)
+            row_inds = np.reshape(row_inds,init_shape,order=self.pixel_order)
+            
+            ind_arrays = []
+            for colshift in range(bin_factor):
+                for rowshift in range(bin_factor):
+                    ind_arrays.append(row_inds[colshift::bin_factor,rowshift::bin_factor].reshape(int(np.prod(init_shape)/bin_factor**2),order=self.pixel_order))
+            
+            new_data = self.data[ind_arrays[0],:]
+            for indarr in ind_arrays[1:]:
+                new_data = new_data + self.data[indarr,:]
+                
+            norm_factor = scipy.sparse.diags(np.ones(self.grid.n_cells())/bin_factor**2,format='csr')
+            
+            self.data = new_data * norm_factor
+                
+            
+        
 
 
 
@@ -626,24 +767,31 @@ class GeometryMatrix:
         elif fmt == 'zip':
             self._save_txt(filename)
         else:
-            raise ValueError('File extension "{:s}" not understood; options are "npz", "mat" or "zip".')
+            raise ValueError('File extension "{:s}" not understood; options are "npz", "mat" or "zip".'.format(fmt))
 
             
             
 
-    def _calc_matrix_row(self,ray_endpoints):
+    def _calc_row_volume(self,ray_endpoints):
         '''
-        Calculate a matrix row given the sight-line start and end in 3D.
+        Calculate a matrix row given the sight-line start and end in 3D,
+        for volume type grids (i.e. quantities constant within grid cell volume).
         
         Parameters:
             
             ray_endpoints (sequence) : 6-element sequence containing the \
                                        ray start and end coordinates: \
-                                       (Xstart, Ystart, Zstart, Xend, Yend, Zend)/
+                                       (Xstart, Ystart, Zstart, Xend, Yend, Zend)
             
         Returns:
             
-            np.ndarray : Calculated geometry matrix row.
+            tuple : Calculated row elements: \
+            
+                    * numpy.ndarray containing row indices of non-zero elements \
+                      in the column.
+
+                    * numpy.ndarray containing the values of the matrix elements at \
+                      those row indices.
 
         '''
         
@@ -654,7 +802,9 @@ class GeometryMatrix:
         ray_length = np.sqrt( np.sum( (ray_end_coords - ray_start_coords)**2 ) )
         
         # Output will be stored in here
-        row_out = np.zeros( (1,self.grid.n_cells()) )       
+        #row_out = scipy.sparse.lil_matrix( (1,self.grid.n_cells()) )
+        col_inds = np.arange(self.grid.n_cells(),dtype=np.uint32)
+        data = np.zeros(self.grid.n_cells())
         
         # Get the ray intersections with the grid cells
         positions,intersected_cells = self.grid.get_cell_intersections(ray_start_coords,ray_end_coords)
@@ -678,17 +828,21 @@ class GeometryMatrix:
                 
                 if len(leaving_cell) == 1:
                     
-                    row_out[0,leaving_cell[0]] = row_out[0,leaving_cell[0]] + (positions[i] - positions[i-1])
-                
+                    #row_out[0,leaving_cell[0]] = row_out[0,leaving_cell[0]] + (positions[i] - positions[i-1])
+                    data[leaving_cell[0]] = data[leaving_cell[0]] + (positions[i] - positions[i-1])
                     in_cell = intersected_cells[i]
                     in_cell.remove(leaving_cell[0])
                 
                 else:
+                    '''
+                    # Make a plot to show where on the grid the error has occured.
                     self.grid.plot()
                     self.grid.get_cell_intersections(ray_start_coords,ray_end_coords,plot=True)
                     problem_point = ray_start_coords + positions[i]*(ray_end_coords - ray_start_coords)/ray_length
                     plt.plot(np.sqrt(problem_point[0]**2 + problem_point[1]**2),problem_point[2],'bo')
+                    plt.title('Error for: {:},{:}'.format(ray_start_coords,ray_end_coords))
                     plt.show()
+                    '''
                     raise Exception('Error generating geometry matrix row: could not identify which grid cell the LoS left.')
         
         
@@ -698,27 +852,32 @@ class GeometryMatrix:
             leaving_cell = list(in_cell)
             
             if len(leaving_cell) == 1:
-                row_out[0,leaving_cell[0]] = row_out[0,leaving_cell[0]] + (ray_length - positions[-1])
+                data[leaving_cell[0]] = data[leaving_cell[0]] + (ray_length - positions[-1])
             else:
                 raise Exception('Error generating geometry matrix row: could not identify which grid cell the LoS left.')
 
-        return row_out
+        return col_inds[data > 0],data[data > 0]
+
 
 
     def _save_npz(self,filename):
         '''
         Save the geometry matrix in compressed NumPy binary format.
         '''
+        coo_data = self.data.tocoo()
+        
         np.savez_compressed( filename,
-                             mat_indices = self.data.indices,
-                             mat_indptr = self.data.indptr,
-                             mat_data = self.data.data,
+                             mat_row_inds = coo_data.row,
+                             mat_col_inds = coo_data.col,
+                             mat_data = coo_data.data,
                              mat_shape = self.data.shape,
                              grid_verts = self.grid.vertices,
                              grid_cells = self.grid.cells,
                              grid_wall = self.grid.wall_contour,
                              binning = self.binning,
                              pixel_order = self.pixel_order,
+                             history = self.history,
+                             grid_type = 'volume',
                             )
 
     def _load_npz(self,filename):
@@ -727,12 +886,13 @@ class GeometryMatrix:
         '''
         f = np.load(filename)
         
-        self.grid = PoloidalPolyGrid(f['grid_verts'],f['grid_cells'],f['grid_wall'])
+        self.grid = PoloidalVolumeGrid(f['grid_verts'],f['grid_cells'],f['grid_wall'])
         
         self.binning = float(f['binning'])
         self.pixel_order = str(f['pixel_order'])
+        self.history = f['history']
         
-        self.data = scipy.sparse.csr_matrix((f['mat_data'],f['mat_indices'],f['mat_indptr']),shape=f['mat_shape'])
+        self.data = scipy.sparse.csr_matrix((f['mat_data'],(f['mat_row_inds'],f['mat_col_inds'])),shape=f['mat_shape'])
 
 
 
@@ -747,6 +907,10 @@ class GeometryMatrix:
                            'grid_wall':self.grid.wall_contour,
                            'binning':self.binning,
                            'pixel_order':self.pixel_order,
+                           'sightline_history':self.history['los'],
+                           'matrix_history':self.history['matrix'],
+                           'grid_history':self.history['grid'],
+                           'grid_type':'volume',
                          }
                         )
         
@@ -757,10 +921,11 @@ class GeometryMatrix:
         '''
         f = scipy.io.loadmat(filename)
         
-        self.grid = PoloidalPolyGrid(f['grid_verts'],f['grid_cells'],f['grid_wall'])
+        self.grid = PoloidalVolumeGrid(f['grid_verts'],f['grid_cells'],f['grid_wall'])
         
         self.binning = float(f['binning'][0,0])
         self.pixel_order = str(f['pixel_order'][0])
+        self.history = {'los':str(f['sightline_history'][0]),'grid':str(f['grid_history'][0]),'matrix':str(f['matrix_history'][0])}
         
         self.data = f['geom_mat'].tocsr()
         
@@ -782,7 +947,7 @@ class GeometryMatrix:
             np.savetxt(os.path.join(dest,'grid_cells.txt'),self.grid.cells,fmt='%d')
             np.savetxt(os.path.join(dest,'grid_wall.txt'),self.grid.wall_contour)
             
-            meta = {'mat_shape':self.data.shape, 'binning':self.binning, 'pixel_order':self.pixel_order}
+            meta = {'mat_shape':self.data.shape, 'binning':self.binning, 'pixel_order':self.pixel_order, 'grid_type':'volume','history':self.history}
             
             with zfile.open_file('metadata.json','w') as metafile:
                 
@@ -796,19 +961,21 @@ class GeometryMatrix:
         with ZipSaveFile(filename,'r') as zfile:
             
             src = zfile.get_temp_path()
-            
-            verts = np.loadtxt(os.path.join(src,'grid_verts.txt'))
-            cells = np.loadtxt(os.path.join(src,'grid_cells.txt'),dtype=np.uint32)
-            wall = np.loadtxt(os.path.join(src,'grid_wall.txt'))
-            
-            self.grid = PoloidalPolyGrid(verts,cells,wall)
+
             
             with zfile.open_file('metadata.json','r') as metafile:
                 
                 meta = json.load(metafile)
+
+            verts = np.loadtxt(os.path.join(src,'grid_verts.txt'))
+            cells = np.loadtxt(os.path.join(src,'grid_cells.txt'),dtype=np.uint32)
+            wall = np.loadtxt(os.path.join(src,'grid_wall.txt'))
+            
+            self.grid = PoloidalVolumeGrid(verts,cells,wall,meta['history']['grid'])
                 
             self.binning = meta['binning']
             self.pixel_order = meta['pixel_order']
+            self.history = meta['history']
             
             row_ind = np.loadtxt(os.path.join(src,'mat_row_ind.txt'),dtype=np.uint32)
             col_ind = np.loadtxt(os.path.join(src,'mat_col_ind.txt'),dtype=np.uint32)
@@ -849,7 +1016,7 @@ class GeometryMatrix:
         elif fmt == 'zip':
             geommat._load_txt(filename)
         else:
-            raise ValueError('File extension "{:s}" not understood; should be an "npz", "mat" or "zip" file.')
+            raise ValueError('File extension "{:s}" not understood; should be an "npz", "mat" or "zip" file.'.format(fmt))
 
         return geommat
         
@@ -872,7 +1039,7 @@ def squaregrid(wall_contour,cell_size,rmin=None,rmax=None,zmin=None,zmax=None):
                                            
     Returns:
         
-        calcam.PoloidalPolyGrid    : Generated grid.
+        calcam.PoloidalVolumeGrid    : Generated grid.
         
     '''
     
@@ -949,7 +1116,7 @@ def squaregrid(wall_contour,cell_size,rmin=None,rmax=None,zmin=None,zmax=None):
             cell_ind += 1
 
     
-    return PoloidalPolyGrid(vertices[:vert_ind,:],cells[:cell_ind,:],wall_contour)
+    return PoloidalVolumeGrid(vertices[:vert_ind,:],cells[:cell_ind,:],wall_contour)
 
 
 
@@ -977,12 +1144,12 @@ def trigrid(wall_contour,max_cell_area,rmin=None,rmax=None,zmin=None,zmax=None,*
                                            
     Returns:
         
-        calcam.PoloidalPolyGrid    : Generated grid.
+        calcam.PoloidalVolumeGrid    : Generated grid.
         
     '''
     # Before trying to generate a triangular grid, check we have the meshpy package available.
     if meshpy_err is not None:
-        raise Exception('Cannot initialise MeshPy based mesh: MeshPy module failed to import with error: {:s}'.format(triangle_err))
+        raise Exception('Cannot initialise MeshPy based mesh: MeshPy module failed to import with error: {:s}'.format(meshpy_err))
 
     # If given a machine name for the wall contour, get the R,Z contour
     if type(wall_contour) is str:
@@ -1076,7 +1243,7 @@ def trigrid(wall_contour,max_cell_area,rmin=None,rmax=None,zmin=None,zmax=None,*
     else:
         raise Exception('Call to meshpy.triangle to generate the grid failed silently. The triangle library can be a bit flaky; maybe try again and/or change settings.')
 
-    return PoloidalPolyGrid(mesh['vertices'],mesh['cells'],wall_contour)
+    return PoloidalVolumeGrid(mesh['vertices'],mesh['cells'],wall_contour)
 
 
 
@@ -1094,9 +1261,9 @@ def _get_ccm_wall(model_name):
         np.ndarray : Nx2 array of (R,Z) coordinates around the wall contour
         
     '''
-    cadmodels = CalcamConfig().get_cadmodels()
+    cadmodels = config.CalcamConfig().get_cadmodels()
     if model_name not in cadmodels.keys():
-        raise ValueError('Unknown name "{:s}" for wall contour; available machine names are: {:s}'.format(model_name,', '.join(calcam_config.get_cadmodels.keys())))
+        raise ValueError('Unknown name "{:s}" for wall contour; available machine names are: {:s}'.format(model_name,', '.join(cadmodels.keys())))
     else:
         with ZipSaveFile(cadmodels[model_name][0],'rs') as deffile:
             # Load the wall contour, if present

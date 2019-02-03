@@ -25,9 +25,10 @@ import copy
 
 from .core import *
 from .vtkinteractorstyles import CalcamInteractorStyle2D, CalcamInteractorStyle3D
-from ..calibration import Calibration, Fitter, _user, _host, _get_formatted_time, ImageUpsideDown
+from ..calibration import Calibration, Fitter, ImageUpsideDown
 from ..pointpairs import PointPairs
 from ..render import render_cam_view,get_image_actor
+from .. import misc
 
 # Main calcam window class for actually creating calibrations.
 class FittingCalib(CalcamGUIWindow):
@@ -1463,7 +1464,7 @@ class FittingCalib(CalcamGUIWindow):
 
         if dialog.results != []:
             self.chessboard_pointpairs = dialog.results
-            im_history = ['Chessboard image from {:s}, loaded by {:s} on {:s} at {:s}.'.format(fname,_user,_host,_get_formatted_time) for fname in dialog.filenames]
+            im_history = ['Chessboard image from {:s}, loaded by {:s} on {:s} at {:s}.'.format(fname,misc.username,misc.hostname,misc.get_formatted_time) for fname in dialog.filenames]
             self.chessboard_history = [im_history, ['Auto-detected based on {:d}x{:d} square chessboard pattern with {:.1f}mm squares.'.format(dialog.chessboard_squares_x.value(),dialog.chessboard_squares_y.value(),dialog.chessboard_square_size.value()),None]  ]
             self.chessboard_checkbox.setChecked(True)
 

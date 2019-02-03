@@ -41,7 +41,7 @@ from ..pointpairs import PointPairs
 from ..coordtransformer import CoordTransformer
 from .vtkinteractorstyles import CalcamInteractorStyle2D
 from . import qt_wrapper as qt
-from ..utils import ColourCycle,DodgyDict
+from ..misc import ColourCycle,DodgyDict
 
 guipath = os.path.split(os.path.abspath(__file__))[0]
 

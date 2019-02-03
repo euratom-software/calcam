@@ -25,36 +25,19 @@ import os
 import json
 import copy
 
-from .io import ZipSaveFile
 from scipy.ndimage.measurements import center_of_mass as CoM
 from scipy.optimize import minimize
+
+from .io import ZipSaveFile
 from .coordtransformer import CoordTransformer
 from .pointpairs import PointPairs
-from . import __version__
-from .utils import rotate_3d
-
+from . import __version__ as calcam_version
+from . import misc
 from .raycast import raycast_sightlines, RayData
 
-import datetime
-import socket
-import getpass
-
-
-# This stuff is used for keeping track of calibration history
-_user = getpass.getuser()
-_host = socket.gethostname()
 
 class ImageUpsideDown(Exception):
     pass
-
-def _get_formatted_time(timestamp=None):
-    
-    if timestamp is None:
-        when = datetime.datetime.now()
-    else:
-        when = datetime.datetime.fromtimestamp(timestamp)
-    
-    return when.strftime('%H:%M on %Y-%m-%d')
 
 
 # Superclass for camera models.
@@ -464,12 +447,12 @@ class Calibration():
             self.history['pointpairs'] = history
 
         elif self.history['pointpairs'][0] is None and src is None:
-            self.history['pointpairs'][0] = 'Created by {:s} on {:s} at {:s}'.format(_user,_host,_get_formatted_time())
+            self.history['pointpairs'][0] = 'Created by {:s} on {:s} at {:s}'.format(_user,misc.hostname,misc.get_formatted_time())
         elif src is not None:
-            self.history['pointpairs'][0] = src + ' by {:s} on {:s} at {:s}'.format(_user,_host,_get_formatted_time())
+            self.history['pointpairs'][0] = src + ' by {:s} on {:s} at {:s}'.format(_user,misc.hostname,misc.get_formatted_time())
             self.history['pointpairs'][1] = None
         else:
-            self.history['pointpairs'][1] = 'Last modified by {:s} on {:s} at {:s}'.format(_user,_host,_get_formatted_time())
+            self.history['pointpairs'][1] = 'Last modified by {:s} on {:s} at {:s}'.format(_user,misc.hostname,misc.get_formatted_time())
 
 
 
@@ -618,15 +601,15 @@ class Calibration():
 
                 for event in old_history:
                     if 'Image' in event[3]:
-                        self.history['image'] = event[3] + ' by {:s} on {:s} at {:s}'.format(event[1],event[2],_get_formatted_time(event[0]))
+                        self.history['image'] = event[3] + ' by {:s} on {:s} at {:s}'.format(event[1],event[2],misc.get_formatted_time(event[0]))
                     elif 'Point pairs' in event[3]:
                         if self.history['pointpairs'][0] is None:
-                            self.history['pointpairs'][0] = event[3] + ' by {:s} on {:s} at {:s}'.format(event[1],event[2],_get_formatted_time(event[0]))
+                            self.history['pointpairs'][0] = event[3] + ' by {:s} on {:s} at {:s}'.format(event[1],event[2],misc.get_formatted_time(event[0]))
                         else:
-                            self.history['pointpairs'][1] = self.history['pointpairs'][1] = 'Last modified by {:s} on {:s} at {:s}'.format(event[1],event[2],_get_formatted_time(event[0]))
+                            self.history['pointpairs'][1] = self.history['pointpairs'][1] = 'Last modified by {:s} on {:s} at {:s}'.format(event[1],event[2],misc.get_formatted_time(event[0]))
                     elif 'Fit' in event[3]:
                         subview_ind = self.subview_names.index(event[3].split('for ')[1])
-                        self.history['fit'][subview_ind] = 'Modified by {:s} on {:s} at {:s}'.format(event[1],event[2],_get_formatted_time(event[0]))
+                        self.history['fit'][subview_ind] = 'Modified by {:s} on {:s} at {:s}'.format(event[1],event[2],misc.get_formatted_time(event[0]))
 
             self.readonly = save_file.is_readonly()
 
@@ -706,7 +689,7 @@ class Calibration():
         if 'by' in src and 'on' in src and 'at' in src:
             self.history['image'] = src
         else:
-            self.history['image'] = src + ' by {:s} on {:s} at {:s}'.format(_user,_host,_get_formatted_time())
+            self.history['image'] = src + ' by {:s} on {:s} at {:s}'.format(_user,misc.hostname,misc.get_formatted_time())
 
 
 
@@ -839,7 +822,7 @@ class Calibration():
                     'image_transform_actions':self.geometry.transform_actions,
                     'subview_names':self.subview_names,
                     'calib_type':self._type,
-                    'calcam_version':__version__
+                    'calcam_version':calcam_version
             }
 
             if self._type != 'fit':
@@ -893,7 +876,7 @@ class Calibration():
             view_model (calcam.calibration.ViewModel) : The fitted camera view model.
         '''
         self.view_models[subview] = view_model
-        self.history['fit'][subview] = 'Modified by {:s} on {:s} at {:s}'.format(_user,_host,_get_formatted_time())
+        self.history['fit'][subview] = 'Modified by {:s} on {:s} at {:s}'.format(_user,misc.hostname,misc.get_formatted_time())
 
 
     def subview_lookup(self,x,y,coords='Display'):
@@ -1474,13 +1457,13 @@ class Calibration():
             self.intrinsics_constraints.append((intrinsics_calib.get_image(coords='Display'),intrinsics_calib.pointpairs))
             self.intrinsics_constraints = self.intrinsics_constraints + intrinsics_calib.intrinsics_constraints
             self.intrinsics_type = 'calibration'
-            self.history['intrinsics'] = (intrinsics_calib.history,'Loaded from calibration "{:s}" by {:s} on {:s} at {:s}'.format(intrinsics_calib.name,_user,_host,_get_formatted_time()))
+            self.history['intrinsics'] = (intrinsics_calib.history,'Loaded from calibration "{:s}" by {:s} on {:s} at {:s}'.format(intrinsics_calib.name,_user,misc.hostname,misc.get_formatted_time()))
 
         else:
             self.intrinsics_type = intrinsics_calib.intrinsics_type
             self.intrinsics_constraints = intrinsics_calib.intrinsics_constraints
             if update_hist_recursion:
-                self.history['intrinsics'] = (intrinsics_calib.history['intrinsics'],'Loaded from calibration "{:s}" by {:s} on {:s} at {:s}'.format(intrinsics_calib.name,_user,_host,_get_formatted_time()))
+                self.history['intrinsics'] = (intrinsics_calib.history['intrinsics'],'Loaded from calibration "{:s}" by {:s} on {:s} at {:s}'.format(intrinsics_calib.name,_user,misc.hostname,misc.get_formatted_time()))
             else:
                 self.history['intrinsics'] = intrinsics_calib.history['intrinsics']
 
@@ -1517,7 +1500,7 @@ class Calibration():
         if 'by' in src and 'on' in src and 'at' in src:
             self.history['intrinsics'] = src
         else:
-            self.history['intrinsics'] = src + ' by {:s} on {:s} at {:s}'.format(_user,_host,_get_formatted_time())
+            self.history['intrinsics'] = src + ' by {:s} on {:s} at {:s}'.format(_user,misc.hostname,misc.get_formatted_time())
 
 
     def set_pinhole_intrinsics(self,fx,fy,cx=None,cy=None,nx=None,ny=None):
@@ -1564,7 +1547,7 @@ class Calibration():
 
         self.intrinsics_type = 'pinhole'
 
-        self.history['intrinsics'] = 'Set by {:s} on {:s} at {:s}'.format(_user,_host,_get_formatted_time())
+        self.history['intrinsics'] = 'Set by {:s} on {:s} at {:s}'.format(_user,misc.hostname,misc.get_formatted_time())
 
 
     def set_extrinsics(self,campos,upvec=None,camtar=None,view_dir=None,cam_roll=None,src=None):
@@ -1609,7 +1592,7 @@ class Calibration():
             v = upvec
         elif cam_roll is not None:
             z_projection = np.array([ -w[0]*w[2], -w[1]*w[2],1-w[2]**2 ])
-            v = np.squeeze( rotate_3d(z_projection,w,cam_roll)	)
+            v = np.squeeze( misc.rotate_3d(z_projection,w,cam_roll)	)
         else:
             raise ValueError('Either upvec or camera roll must be given!')
 
@@ -1634,7 +1617,7 @@ class Calibration():
         self.view_models[0].rvec = np.array(-cv2.Rodrigues(Rmatrix)[0])
 
         if src is None:
-            self.history['extrinsics'] = 'Set by {:s} on {:s} at {:s}'.format(_user,_host,_get_formatted_time())
+            self.history['extrinsics'] = 'Set by {:s} on {:s} at {:s}'.format(_user,misc.hostname,misc.get_formatted_time())
         else:
             self.history['extrinsics'] = src
 

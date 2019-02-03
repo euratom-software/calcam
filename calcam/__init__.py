@@ -25,7 +25,7 @@ CalCam package.
 """
 
 # Calcam version
-__version__ = '2.2.0.a1'
+__version__ = '2.2.dev'
 
 # Some stuff will only work if we have VTK.
 try:
@@ -37,11 +37,13 @@ except ImportError:
 # else to make sure the Calcam GUI and Matplotlib are
 # using the same version of Qt and will therefore work well
 # together.
+
+
 if vtk:
     from . import gui
+    from .gui import start_gui
     from .cadmodel import CADModel
     from .raycast import raycast_sightlines
-    from .gui import start_gui
     from .render import render_cam_view
 
 
@@ -50,10 +52,8 @@ from .calibration import Calibration
 from .raycast import RayData
 from .pointpairs import PointPairs
 
+from . import config
 from . import gm
-from .gm import GeometryMatrix, PoloidalPolyGrid
+from .gm import GeometryMatrix, PoloidalVolumeGrid
 
 from . import geometry_matrix
-
-
-

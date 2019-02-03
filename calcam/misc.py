@@ -21,11 +21,32 @@
 
 
 '''
-A place to collect miscellaneous useful functions which can
+A place to collect miscellaneous useful things which can
 be used elsewhere in Calcam.
 '''
 
+import time
+import datetime
+import getpass
+import datetime
+import socket
+
 import numpy as np
+
+# Current username and hostname
+username = getpass.getuser()
+hostname = socket.gethostname()
+
+
+def get_formatted_time(timestamp=None):
+    
+    if timestamp is None:
+        when = datetime.datetime.now()
+    else:
+        when = datetime.datetime.fromtimestamp(timestamp)
+    
+    return when.strftime('%H:%M on %Y-%m-%d')
+    
 
 def rotate_3d(vect,axis,angle):
     '''
@@ -74,7 +95,10 @@ def rotate_3d(vect,axis,angle):
 
 
 class ColourCycle():
-
+    '''
+    A class to represent a colour cycle,
+    used for when plotting / displaying multiple things.
+    '''
     def __init__(self):
 
         self.colours = [(0.121,0.466,0.705),
@@ -113,12 +137,14 @@ class ColourCycle():
 
 
 
-# Custom dictionary-like storage class.
-# Behaves more-or-less like a dictionary but without the requirement
-# that the keys are hashable. Needed so I can do things like use
-# QTreeWidgetItems as keys.
-class DodgyDict():
 
+class DodgyDict():
+    '''
+    Custom dictionary-like storage class.
+    Behaves more-or-less like a dictionary but without the requirement
+    that the keys are hashable. Needed so I can do things like use
+    QTreeWidgetItems as keys.
+    '''
     def __init__(self):
 
         self.keylist = []
@@ -155,3 +181,76 @@ class DodgyDict():
 
     def keys(self):
         return self.keylist
+        
+        
+        
+class LoopProgPrinter:
+    '''
+    A little object for telling the user how a long,
+    loopy calculation is progressing, using stdout.
+    
+    Includes simple time to completion prediction.
+    '''
+    def __init__(self):
+        
+        self.starttime = None
+        self.startdatetime = None
+        self.frac_done = 0.
+        
+        # Config parameters
+        self.wait_time = 5
+        self.min_remaining_length = 5
+        self.start_printed = False
+        self.end_printed = False
+        
+        
+    def update(self,status):
+        
+        if status is None:
+            return
+            
+        try:
+            float(status)
+            self.frac_done = status
+            if self.starttime is None:
+                self.starttime = time.time()
+                self.startdatetime = datetime.datetime.now()
+        except (TypeError, ValueError):
+            print(status)
+            return
+            
+
+        elapsed_time = time.time() - self.starttime
+
+        if elapsed_time > self.wait_time and not self.start_printed and self.frac_done > 0:
+
+                est_time = (elapsed_time / self.frac_done)
+                
+                if est_time - elapsed_time > self.min_remaining_length:
+                    est_time_string = ''
+                    if est_time > 3600:
+                        est_time_string = est_time_string + '{:.0f} hr '.format(np.floor(est_time/3600))
+                    if est_time > 600:
+                        est_time_string = est_time_string + '{:.0f} min.'.format((est_time - 3600*np.floor(est_time/3600))/60)
+                    elif est_time > 59:
+                        est_time_string = est_time_string + '{:.0f} min {:.0f} sec.'.format(np.floor(est_time/60),est_time % 60)
+                    else:
+                        est_time_string ='{:.0f} sec.'.format(est_time)
+                    print(self.startdatetime.strftime('Started on:         %Y-%m-%d at %H:%M:%S'))
+                    print('Estimated duration: {:s}'.format(est_time_string))
+                    
+                    self.start_printed = True
+                    
+        elif self.frac_done == 1. and not self.end_printed:
+             
+            tot_time = time.time() - self.starttime
+            time_string = ''
+            if tot_time > 3600:
+                time_string = time_string + '{:.0f} hr '.format(np.floor(tot_time / 3600))
+            if tot_time >= 59:
+                time_string = time_string + '{:.0f} min '.format(np.floor( (tot_time - 3600*np.floor(tot_time / 3600))  / 60))
+            time_string = time_string + '{:.0f} sec. '.format( tot_time - 60*np.floor(tot_time / 60) )
+            print('Completed in:       {:s}'.format(time_string))
+            
+            
+            self.end_printed = True
