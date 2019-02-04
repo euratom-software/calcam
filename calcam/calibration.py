@@ -432,7 +432,7 @@ class Calibration():
             if self._type == 'fit':
                 self.history['pointpairs'] = [None,None]
                 self.history['intrinsics_constraints'] = []
-
+                self.history['fit'] = [None]
             if self._type != 'fit':
                 self.intrisnics_type = None
 
