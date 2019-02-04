@@ -413,6 +413,7 @@ class Calibration():
                 self.history['extrinsics'] = None
                 self.history['intrinsics'] = None
             if self._type == 'fit':
+                self.history['fit'] = [None]
                 self.history['pointpairs'] = [None,None]
                 self.history['intrinsics_constraints'] = []
 
@@ -447,12 +448,12 @@ class Calibration():
             self.history['pointpairs'] = history
 
         elif self.history['pointpairs'][0] is None and src is None:
-            self.history['pointpairs'][0] = 'Created by {:s} on {:s} at {:s}'.format(_user,misc.hostname,misc.get_formatted_time())
+            self.history['pointpairs'][0] = 'Created by {:s} on {:s} at {:s}'.format(misc.username,misc.hostname,misc.get_formatted_time())
         elif src is not None:
-            self.history['pointpairs'][0] = src + ' by {:s} on {:s} at {:s}'.format(_user,misc.hostname,misc.get_formatted_time())
+            self.history['pointpairs'][0] = src + ' by {:s} on {:s} at {:s}'.format(misc.username,misc.hostname,misc.get_formatted_time())
             self.history['pointpairs'][1] = None
         else:
-            self.history['pointpairs'][1] = 'Last modified by {:s} on {:s} at {:s}'.format(_user,misc.hostname,misc.get_formatted_time())
+            self.history['pointpairs'][1] = 'Last modified by {:s} on {:s} at {:s}'.format(misc.username,misc.hostname,misc.get_formatted_time())
 
 
 
@@ -689,7 +690,7 @@ class Calibration():
         if 'by' in src and 'on' in src and 'at' in src:
             self.history['image'] = src
         else:
-            self.history['image'] = src + ' by {:s} on {:s} at {:s}'.format(_user,misc.hostname,misc.get_formatted_time())
+            self.history['image'] = src + ' by {:s} on {:s} at {:s}'.format(misc.username,misc.hostname,misc.get_formatted_time())
 
 
 
@@ -876,7 +877,7 @@ class Calibration():
             view_model (calcam.calibration.ViewModel) : The fitted camera view model.
         '''
         self.view_models[subview] = view_model
-        self.history['fit'][subview] = 'Modified by {:s} on {:s} at {:s}'.format(_user,misc.hostname,misc.get_formatted_time())
+        self.history['fit'][subview] = 'Modified by {:s} on {:s} at {:s}'.format(misc.username,misc.hostname,misc.get_formatted_time())
 
 
     def subview_lookup(self,x,y,coords='Display'):
@@ -1457,13 +1458,13 @@ class Calibration():
             self.intrinsics_constraints.append((intrinsics_calib.get_image(coords='Display'),intrinsics_calib.pointpairs))
             self.intrinsics_constraints = self.intrinsics_constraints + intrinsics_calib.intrinsics_constraints
             self.intrinsics_type = 'calibration'
-            self.history['intrinsics'] = (intrinsics_calib.history,'Loaded from calibration "{:s}" by {:s} on {:s} at {:s}'.format(intrinsics_calib.name,_user,misc.hostname,misc.get_formatted_time()))
+            self.history['intrinsics'] = (intrinsics_calib.history,'Loaded from calibration "{:s}" by {:s} on {:s} at {:s}'.format(intrinsics_calib.name,misc.username,misc.hostname,misc.get_formatted_time()))
 
         else:
             self.intrinsics_type = intrinsics_calib.intrinsics_type
             self.intrinsics_constraints = intrinsics_calib.intrinsics_constraints
             if update_hist_recursion:
-                self.history['intrinsics'] = (intrinsics_calib.history['intrinsics'],'Loaded from calibration "{:s}" by {:s} on {:s} at {:s}'.format(intrinsics_calib.name,_user,misc.hostname,misc.get_formatted_time()))
+                self.history['intrinsics'] = (intrinsics_calib.history['intrinsics'],'Loaded from calibration "{:s}" by {:s} on {:s} at {:s}'.format(intrinsics_calib.name,misc.username,misc.hostname,misc.get_formatted_time()))
             else:
                 self.history['intrinsics'] = intrinsics_calib.history['intrinsics']
 
@@ -1500,7 +1501,7 @@ class Calibration():
         if 'by' in src and 'on' in src and 'at' in src:
             self.history['intrinsics'] = src
         else:
-            self.history['intrinsics'] = src + ' by {:s} on {:s} at {:s}'.format(_user,misc.hostname,misc.get_formatted_time())
+            self.history['intrinsics'] = src + ' by {:s} on {:s} at {:s}'.format(misc.username,misc.hostname,misc.get_formatted_time())
 
 
     def set_pinhole_intrinsics(self,fx,fy,cx=None,cy=None,nx=None,ny=None):
@@ -1547,7 +1548,7 @@ class Calibration():
 
         self.intrinsics_type = 'pinhole'
 
-        self.history['intrinsics'] = 'Set by {:s} on {:s} at {:s}'.format(_user,misc.hostname,misc.get_formatted_time())
+        self.history['intrinsics'] = 'Set by {:s} on {:s} at {:s}'.format(misc.username,misc.hostname,misc.get_formatted_time())
 
 
     def set_extrinsics(self,campos,upvec=None,camtar=None,view_dir=None,cam_roll=None,src=None):
@@ -1617,7 +1618,7 @@ class Calibration():
         self.view_models[0].rvec = np.array(-cv2.Rodrigues(Rmatrix)[0])
 
         if src is None:
-            self.history['extrinsics'] = 'Set by {:s} on {:s} at {:s}'.format(_user,misc.hostname,misc.get_formatted_time())
+            self.history['extrinsics'] = 'Set by {:s} on {:s} at {:s}'.format(misc.username,misc.hostname,misc.get_formatted_time())
         else:
             self.history['extrinsics'] = src
 

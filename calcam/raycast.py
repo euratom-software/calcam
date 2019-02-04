@@ -399,7 +399,7 @@ class RayData:
                 self.binning = None
                 self.fullchip = False
             else:
-                if len(self.transform.transform_actions) == 0:
+                if len(self.transform.transform_actions) == 0 and self.transform.pixel_aspectratio == 1:
                     self.fullchip = 'Original'
                 else:                
                     self.fullchip = True

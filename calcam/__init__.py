@@ -48,12 +48,11 @@ if vtk:
 
 
 # Import the top level "public facing" classes & functions
+# which do not rely on VTK.
 from .calibration import Calibration
 from .raycast import RayData
 from .pointpairs import PointPairs
+from .gm import GeometryMatrix
 
 from . import config
 from . import gm
-from .gm import GeometryMatrix, PoloidalVolumeGrid
-
-from . import geometry_matrix

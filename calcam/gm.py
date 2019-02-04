@@ -53,6 +53,7 @@ except Exception as e:
 
 from . import config
 from . import misc
+from .coordtransformer import CoordTransformer
 from .io import ZipSaveFile
 
 
@@ -70,25 +71,25 @@ class PoloidalVolumeGrid:
 
     Parameters:
         
-        vertices (np.ndarray)    : (N_verts x 2) array of floats containing the \
+        vertices (numpy.ndarray)    : (N_verts x 2) array of floats containing the \
                                    (R,Z) coordinates of the grid cell vertices.
                                 
-        cells (np.ndarray)       : (N_cells x N_verts_per_cell) array of integers \
+        cells (numpy.ndarray)       : (N_cells x N_verts_per_cell) array of integers \
                                    specifying which vertices (indexes in to the vertices \
                                    array) define each grid cell. For each cell (array row), \
                                    the vertices must be listed in order around the \
                                    cell perimeter (in either direction).
                                 
-        wall_contour (np.ndaray) : Nx2 array containing the R,Z wall contour of the machine. \
+        wall_contour (numpy.ndaray) : Nx2 array containing the R,Z wall contour of the machine. \
                                    If provided, this is used for plotting purposes.
                                    
-        src (str)                 : Human readable string describing where the grid came from.
+        src (str)                : Human readable string describing where the grid came from, \
+                                   for data provenance purposes.
                                    
     '''
     
     def __init__(self,vertices,cells,wall_contour=None,src=None):
 
-        
         self.vertices = vertices.copy()
         self.cells = cells.copy()
         self.wall_contour = wall_contour.copy()
@@ -103,65 +104,6 @@ class PoloidalVolumeGrid:
         self._validate_grid()
         self._build_edge_list()
         self._cull_unused_verts()
-
-
-    def _validate_grid(self):
-        # Some code here to check the generation worked OK.
-        pass
-
-
-
-    def _cull_unused_verts(self):
-        '''
-        Remove any un-used vertices from the mesh definition.
-        '''
-        # Check what members of the set of all vertices
-        # appear in the list of vertices used by cells
-        used_vert_inds = set(self.cells.flatten())
-        all_vert_inds = set(range(self.vertices.shape[0]))
-        used_verts = np.array( sorted(list(all_vert_inds & used_vert_inds)),dtype=np.uint32)
-
-        # Remove the unused vertices and keep track of vertex indexing
-        ind_translation = np.zeros(self.vertices.shape[0],dtype=np.uint32)
-        ind_translation[used_verts] = np.arange(used_verts.size,dtype=np.uint32)
-
-        self.vertices = self.vertices[used_verts,:]
-        self.cells = ind_translation[self.cells]
-        self.segments = ind_translation[self.segments]
-
-
-    def _build_edge_list(self):
-        '''
-        Build the list of line segments in the grid
-        and which line segments border which grid cells.
-        '''
-        # Make the list of line segments and which line segments are
-        # associated with each cell.
-        self.segments = np.zeros((np.prod(self.cells.shape),2),dtype=np.uint32)
-        self.cell_sides = np.zeros(self.cells.shape,dtype=np.uint32)
-
-        segment_index = 0
-        verts_per_cell = self.verts_per_cell()
-
-        # For each grid cell
-        for cell_index in range(self.n_cells()):
-
-            # For each side of the triangle
-            for seg_index in range(verts_per_cell):
-
-                seg = sorted( [self.cells[cell_index][seg_index],self.cells[cell_index][(seg_index + 1) % verts_per_cell]] )
-
-                # Store the index if this line segment is already in the segment list,
-                # otherwise add it to the segment list and then store its index.
-                try:
-                    self.cell_sides[cell_index][seg_index] = np.where( (self.segments[:,0] == seg[0]) & (self.segments[:,1] == seg[1]) )[0][0]
-                except IndexError:
-                    self.segments[segment_index,:] = seg
-                    self.cell_sides[cell_index][seg_index] = segment_index
-                    segment_index += 1
-
-
-        self.segments = self.segments[:segment_index,:]
 
 
 
@@ -211,6 +153,8 @@ class PoloidalVolumeGrid:
         return self.vertices.shape[0]
 
 
+
+
     def get_extent(self):
         '''
         Get the R,Z extent of the grid.
@@ -258,6 +202,7 @@ class PoloidalVolumeGrid:
                         in  each intersection. Each intersection will be associated with 1 or more grid cells.
 
         '''
+
         # Turn off some NumPy warnings because we will inevitably
         # have some dividing by zero and such in here, but it's harmless.
         with np.errstate(divide='ignore',invalid='ignore'):
@@ -396,14 +341,14 @@ class PoloidalVolumeGrid:
             cell_linewidth (float)          : Line width to use to show the grid cell boundaries. If set to 0, the grid \
                                               cell boundaries will not be drawn.
 
-            cblabel (str)                   : Label for the data colour bar
+            cblabel (str)                   : Label for the data colour bar, if plotting data.
 
             axes (matplotlib.pyplot.Axes)   : Matplotlib axes on which to plot. If not given, a new figure will be created.
 
 
         Returns:
             
-            tuple : MatPlotLib objects for the plot:
+            tuple : MatPlotLib objects comprising the plot:
                     
                     * matplotlib.axes.Axes                    : The matplotlib axes containing the plot.
             
@@ -414,6 +359,7 @@ class PoloidalVolumeGrid:
                     * list of matplotlib.lines.Line2D         : List of matpltolib line objects making up the wall contour.
 
         '''
+
         # If we have some data to plot, validate that we have 1 value per grid cell
         if data is not None:
 
@@ -438,7 +384,7 @@ class PoloidalVolumeGrid:
 
 
         # Create a matplotlib patch collection to show the grid cells,
-        # with the data associated with it if necessary
+        # with the data associated with it if we have data.
         patches = []
         verts_per_cell = self.cells.shape[1]
 
@@ -476,9 +422,9 @@ class PoloidalVolumeGrid:
 
         # Add a colour bar if we have data
         if data is not None:
-            plt.colorbar(pcoll,label=cblabel)
+            plt.colorbar(pcoll,label=cblabel if cblabel is not None else '')
 
-        # Prettification
+        # Prettification - set appropriate zoom for the grid extent.
         rmin,rmax,zmin,zmax = self.get_extent()
         headroom = 0.1
         axes.set_xlim([rmin - headroom,rmax + headroom])
@@ -508,6 +454,61 @@ class PoloidalVolumeGrid:
         self._cull_unused_verts()
 
 
+    def _validate_grid(self):
+        # Some code here to check the generation worked OK.
+        pass
+
+
+
+    def _cull_unused_verts(self):
+        '''
+        Remove any un-used vertices from the mesh definition.
+        '''
+        used_vert_inds = set(self.cells.flatten())
+        all_vert_inds = set(range(self.vertices.shape[0]))
+        used_verts = np.array( sorted( list(all_vert_inds & used_vert_inds) ),dtype=np.uint32)
+
+        # Remove the unused vertices and keep track of vertex indexing
+        ind_translation = np.zeros(self.vertices.shape[0],dtype=np.uint32)
+        ind_translation[used_verts] = np.arange(used_verts.size,dtype=np.uint32)
+
+        self.vertices = self.vertices[used_verts,:]
+        self.cells = ind_translation[self.cells]
+        self.segments = ind_translation[self.segments]
+
+
+    def _build_edge_list(self):
+        '''
+        Build the list of line segments in the grid
+        and which line segments border which grid cells.
+        '''
+        self.segments = np.zeros((np.prod(self.cells.shape),2),dtype=np.uint32)
+        self.cell_sides = np.zeros(self.cells.shape,dtype=np.uint32)
+
+        segment_index = 0
+        verts_per_cell = self.verts_per_cell()
+
+        # For each grid cell
+        for cell_index in range(self.n_cells()):
+
+            # For each side of the cell
+            for seg_index in range(verts_per_cell):
+
+                seg = sorted( [self.cells[cell_index][seg_index],self.cells[cell_index][(seg_index + 1) % verts_per_cell]] )
+
+                # Store the index if this line segment is already in the segment list,
+                # otherwise add it to the segment list and then store its index.
+                try:
+                    self.cell_sides[cell_index][seg_index] = np.where( (self.segments[:,0] == seg[0]) & (self.segments[:,1] == seg[1]) )[0][0]
+                except IndexError:
+                    self.segments[segment_index,:] = seg
+                    self.cell_sides[cell_index][seg_index] = segment_index
+                    segment_index += 1
+
+
+        self.segments = self.segments[:segment_index,:]
+
+
 
 
 class GeometryMatrix:
@@ -526,22 +527,19 @@ class GeometryMatrix:
         grid (calcam.PoloidalVolumeGrid)  : Reconstruction grid to use
 
         raydata (calcam.RayData)          : Ray data for the camera to be inverted
-        
-        coords (str)                      : Either 'Original' (default) or 'Display'; whether the image \
-                                            being inverted will be in original or display orientation.
 
         pixel_order (str)                 : What pixel order to use when flattening \
                                             the 2D image array in to the 1D data vector. \
                                             Default 'F' goes verticallytop-to-bottom, column-by-column, \
                                             alternatively 'C' goes horizontally left-to-right,  row-by-row.
         
-        calc_status_callback (callable)   : Callable which takes a single argument to be called with status updates. \
-                                            The argument will either be a string for textual status updates or a float \
-                                            from 0 to 1 specifying the progress of the calculation. If set to None, no \
-                                            status updates are issued.
+        calc_status_callback (callable)   : Callable which takes a single argument, which will be called with \
+                                            status updates about the calculation. It will be called with either \
+                                            a string for textual status updates or a float from 0 to 1 specifying \
+                                            the progress of the calculation. By default, status updates are printed \
+                                            to stdout.  If set to None, no status updates are issued.
 
     '''
-
     def __init__(self,grid,raydata,pixel_order='F',calc_status_callback = misc.LoopProgPrinter().update):
 
         if grid is not None and raydata is not None:
@@ -553,15 +551,21 @@ class GeometryMatrix:
                     self.image_coords = raydata.fullchip
                     self.binning = raydata.binning
                     self.pixel_order = pixel_order
+                    if self.image_coords.lower() == 'original':
+                        imdims = raydata.transform.get_original_shape()[::-1]
+                    elif self.image_coords.lower() == 'display':
+                        imdims = raydata.transform.get_display_shape()[::-1]
+                    self.pixel_mask = np.ones(imdims,dtype=bool)
             else:
                 
                 self.image_coords = None
                 self.binning = None
                 self.pixel_order = None
-                
+                self.pixel_mask = None
+
             self.grid = copy.copy(grid)
             '''
-            calcam.PoloidalVolumeGrid : The inversion grid o
+            calcam.PoloidalVolumeGrid : The inversion grid associated with the geometry matrix.
             '''    
             
             self.image_geometry = raydata.transform
@@ -579,7 +583,6 @@ class GeometryMatrix:
 
             # Multi-threadedly loop over each sight-line in raydata and calculate its matrix row.
             # Store the results as coords + data then build the matrix after, because that is much faster.
-            
             if calc_status_callback is not None:
                 calc_status_callback('Calculating geometry matrix elements using {:d} CPUs...'.format(config.n_cpus))
             
@@ -607,7 +610,10 @@ class GeometryMatrix:
 
             # Build the matrix!
             self.data = scipy.sparse.csr_matrix((np.concatenate(data),(np.concatenate(rowinds),np.concatenate(colinds))),shape=(n_los,n_cells))            
-            
+            '''
+            scipy.sparse.csr_matrix : The geometry matrix itself.
+            '''
+
             if calc_status_callback is not None:
                 calc_status_callback(1.)
             
@@ -626,7 +632,7 @@ class GeometryMatrix:
         
         Returns:
             
-            np.ndarray : Vector with as many elements as there a
+            numpy.ndarray : Vector with as many elements as there a
         '''
         return np.diff(self.data.tocsc().indptr)
 
@@ -656,8 +662,8 @@ class GeometryMatrix:
                                                                   
         Returns:
             
-            np.ndarray : Array with as many elements as there are matrix columns, giving the \
-                         mean(ish) correlation coefficients.
+            numpy.ndarray : Array with as many elements as there are matrix columns, giving the \
+                            mean(ish) correlation coefficients.
 
         '''
         if status_callback is not None:
@@ -678,8 +684,8 @@ class GeometryMatrix:
 
             rcc = np.add.reduceat(dat_csc.data * yy[dat_csc.indices], dat_csc.indptr[:-1])
 
-            rcc = np.delete(correl,col_ind)
-            rcc_out[col_ind] = correl[correl > 1e-3].mean(axis=0)
+            rcc = np.delete(rcc,col_ind)
+            rcc_out[col_ind] = rcc[rcc > 1e-3].mean(axis=0)
 
             
             if time.time() - last_status_update > 1. and status_callback is not None:
@@ -702,7 +708,7 @@ class GeometryMatrix:
         Parameters:
             
             binning (float) : Desired image binning. Must be larger than the \
-                              binning already 
+                              existing binning value.
                               
         '''
         if binning < self.binning:
@@ -737,9 +743,97 @@ class GeometryMatrix:
             norm_factor = scipy.sparse.diags(np.ones(self.grid.n_cells())/bin_factor**2,format='csr')
             
             self.data = new_data * norm_factor
-                
             
+            self.pixel_mask = _bin_image(self.pixel_mask,bin_factor,bin_func=np.min).astype(bool)
+            
+            self.binning = binning
         
+
+    def set_included_pixels(self,pixel_mask,coords=None):
+        '''
+        Set which image pixels should be included, or not. Can be 
+        used to exclude image pixels which are known to have bad data or 
+        otherwise do not conform to the assumptions of the inversion.
+
+        Note: excluding pixels is a non-reversible process since their 
+        matrix rows will be removed. It is therefore recommended to keep a
+        master copy of the matrix with all pixels included and then
+        use this function on a transient copy of the matrix.
+
+        Parameters:
+
+            pixel_mask (numpy.ndarray) : Boolean array the same shape as the un-binned \
+                                         camera image, where True or 1 indicates a \
+                                         pixel to be included and False or 0 represents \
+                                         a pixel to be excluded.
+
+            coords (str)               : Either 'Display' or 'Original', \
+                                         specifies what orientation the input \
+                                         pixel mask is in. If not givwn, it will be \
+                                         auto-detected if possible.
+        '''
+        if self.pixel_mask is None:
+            raise Exception('Cannot set pixel mask for a geometry matrix which does not include full sensor.')
+        
+        if coords is None:
+
+            # If there are no transform actions, we have no problem.
+            if len(self.image_geometry.transform_actions) == 0 and self.image_geometry.pixel_aspectratio == 1:
+                coords = self.image_coords
+
+            elif self.image_geometry.get_display_shape() != self.image_geometry.get_original_shape():
+
+                if pixel_mask.shape == self.image_geometry.get_display_shape()[::-1]:
+                    coords = 'Display'
+                elif pixel_mask.shape == self.image_geometry.get_original_shape()[::-1]:
+                    coords = 'Original'
+                else:
+                    raise ValueError('Input pixel mask has an unexpected shape! Got {:d}x{:d}; expected {:d}x{:d} or {:d}x{:d}'.format(image.shape[1],image.shape[0],self.image_geometry.get_display_shape[1],self.image_geometry.get_display_shape[0],self.image_geometry.get_original_shape[1],self.image_geometry.get_original_shape[0]))
+            else:
+                raise Exception('Cannot determine mask orientation automatically; please provide the "coords" input argument.')
+        
+        if coords.lower() == 'display' and self.image_coords.lower() == 'original':
+
+            pixel_mask = self.image_geometry.display_to_original_image(pixel_mask,interpolation='nearest')
+
+        elif coords.lower() == 'original' and self.image_coords.lower() == 'display':
+
+            pixel_mask = self.image_geometry.original_to_display_image(pixel_mask,interpolation='nearest')
+
+
+        if self.binning > 1:
+
+            pixel_mask = _bin_image(pixel_mask,self.binning,bin_func=np.min)
+
+
+        mask_delta = self.pixel_mask.astype(int) - pixel_mask.astype(int)
+
+        if mask_delta.min() == -1:
+            raise ValueError('Provided pixel mask includes previously excluded pixels; pixels can only be disabled, not re-enabled using this function.')
+
+        old_px_mask = self.pixel_mask.reshape(self.pixel_mask.size,order=self.pixel_order)
+        mask_delta = mask_delta.reshape(mask_delta.size,order=self.pixel_order)
+
+        mask_delta = mask_delta[old_px_mask == True]
+
+        self.data = self.data[mask_delta == 0,:]
+
+        self.pixel_mask = pixel_mask.astype(bool)
+
+
+
+    def get_included_pixels(self):
+        '''
+        Get a mask showing which image pixels are included in the
+        matrix.
+
+        Returns:
+
+            numpy.ndarray : Boolean array the same shape as the camera image \
+                            where True indicates the corresponding pixel is included \
+                            and False indicates the pixel is excluded.
+        '''
+        return self.pixel_mask
 
 
 
@@ -754,6 +848,10 @@ class GeometryMatrix:
                              '.npz' for compressed NumPy binary format, \
                              '.mat' for MATLAB format or 
                              '.zip' for Zipped collection of ASCII files.
+
+        Note: .npz is the recommended format; .mat is provided if compatibility
+        with MATLAB is required but produces larger file sizes, and .zip is provided
+        to make maximally compatible data files but is extremely slow to save and load.
         '''
         try:
             fmt = filename.split('.')[1:][-1]
@@ -769,8 +867,70 @@ class GeometryMatrix:
         else:
             raise ValueError('File extension "{:s}" not understood; options are "npz", "mat" or "zip".'.format(fmt))
 
-            
-            
+
+
+    def format_image(self,image,coords=None):
+        '''
+        Format a given 2D camera image in to a 1D data vector
+        appropriate for use with this geometry matrix. This will 
+        bin the image, remove any excluded pixels and reshape it 
+        to a 1D vector.
+
+        Parameters: 
+
+            image (numpy.ndarray) : Input image.
+
+            coords (str)          : Either 'Display' or 'Original', \
+                                    specifies what orientation the input \
+                                    image is in. If not givwn, it will be \
+                                    auto-detected if possible.
+
+        Returns:
+
+            numpy.matrix : Nx1 image data vector.
+
+        '''
+        if coords is None:
+
+            # If there are no transform actions, we have no problem.
+            if len(self.image_geometry.transform_actions) == 0 and self.image_geometry.pixel_aspectratio == 1:
+                coords = self.image_coords
+
+            elif self.image_geometry.get_display_shape() != self.image_geometry.get_original_shape():
+
+                if image.shape == self.image_geometry.get_display_shape()[::-1]:
+                    coords = 'Display'
+                elif image.shape == self.image_geometry.get_original_shape()[::-1]:
+                    coords = 'Original'
+                else:
+                    raise ValueError('Input image has an unexpected shape! Got {:d}x{:d}; expected {:d}x{:d} or {:d}x{:d}'.format(image.shape[1],image.shape[0],self.image_geometry.get_display_shape[1],self.image_geometry.get_display_shape[0],self.image_geometry.get_original_shape[1],self.image_geometry.get_original_shape[0]))
+            else:
+                raise Exception('Cannot determine image orientation automatically; please provide the "coords" input argument.')
+        
+        if coords.lower() == 'display' and self.image_coords.lower() == 'original':
+
+            im_out = self.image_geometry.display_to_original_image(image)
+
+        elif coords.lower() == 'original' and self.image_coords.lower() == 'display':
+
+            im_out = self.image_geometry.original_to_display_image(image)
+
+        else:
+
+            im_out = image.copy()
+
+
+        if self.binning > 1:
+            im_out = _bin_image(im_out,self.binning,bin_func=np.mean)
+
+        elif self.binning < 1:
+            raise Exception('This matrix has binning < 1 which is not really meaningful. Set binning =>1 before trying to use this matrix.')
+
+        im_out = im_out.reshape(im_out.size,order=self.pixel_order)
+
+        return im_out[ self.pixel_mask.reshape(self.pixel_mask.size,order=self.pixel_order) == True]
+
+
 
     def _calc_row_volume(self,ray_endpoints):
         '''
@@ -794,7 +954,6 @@ class GeometryMatrix:
                       those row indices.
 
         '''
-        
         ray_start_coords = np.array(ray_endpoints[:3])
         ray_end_coords = np.array(ray_endpoints[3:])
         
@@ -876,8 +1035,13 @@ class GeometryMatrix:
                              grid_wall = self.grid.wall_contour,
                              binning = self.binning,
                              pixel_order = self.pixel_order,
+                             pixel_mask = self.pixel_mask,
                              history = self.history,
                              grid_type = 'volume',
+                             im_transforms = self.image_geometry.transform_actions,
+                             im_px_aspect = self.image_geometry.pixel_aspectratio,
+                             im_shape = self.pixel_mask.shape[::-1],
+                             im_coords = self.image_coords
                             )
 
     def _load_npz(self,filename):
@@ -890,7 +1054,13 @@ class GeometryMatrix:
         
         self.binning = float(f['binning'])
         self.pixel_order = str(f['pixel_order'])
-        self.history = f['history']
+        self.history = f['history'].item()
+        self.pixel_mask = f['pixel_mask']
+        self.image_coords = str(f['im_coords'])
+        self.image_geometry = CoordTransformer()
+        self.image_geometry.set_transform_actions(f['im_transforms'])
+        self.image_geometry.set_pixel_aspect(f['im_px_aspect'],relative_to='Original')
+        self.image_geometry.set_image_shape(*self.binning*np.array(self.pixel_mask.shape[::-1]),coords=self.image_coords)
         
         self.data = scipy.sparse.csr_matrix((f['mat_data'],(f['mat_row_inds'],f['mat_col_inds'])),shape=f['mat_shape'])
 
@@ -910,7 +1080,11 @@ class GeometryMatrix:
                            'sightline_history':self.history['los'],
                            'matrix_history':self.history['matrix'],
                            'grid_history':self.history['grid'],
+                           'pixel_mask':self.pixel_mask,
                            'grid_type':'volume',
+                           'im_transforms': np.array(self.image_geometry.transform_actions,dtype=np.object),
+                           'im_px_aspect':self.image_geometry.pixel_aspectratio,
+                           'im_coords':self.image_coords
                          }
                         )
         
@@ -925,11 +1099,16 @@ class GeometryMatrix:
         
         self.binning = float(f['binning'][0,0])
         self.pixel_order = str(f['pixel_order'][0])
+        self.pixel_mask = f['pixel_mask']
         self.history = {'los':str(f['sightline_history'][0]),'grid':str(f['grid_history'][0]),'matrix':str(f['matrix_history'][0])}
         
         self.data = f['geom_mat'].tocsr()
         
-         
+        self.image_geometry = CoordTransformer()
+        self.image_geometry.set_transform_actions(f['im_transforms'])
+        self.image_geometry.set_pixel_aspect(f['im_px_aspect'],relative_to='Original')
+        self.image_geometry.set_image_shape(*self.binning*np.array(self.pixel_mask.shape[::-1]),coords=self.image_coords)
+
 
     def _save_txt(self,filename):
         '''
@@ -946,8 +1125,9 @@ class GeometryMatrix:
             np.savetxt(os.path.join(dest,'grid_verts.txt'),self.grid.vertices,fmt='%.5e')
             np.savetxt(os.path.join(dest,'grid_cells.txt'),self.grid.cells,fmt='%d')
             np.savetxt(os.path.join(dest,'grid_wall.txt'),self.grid.wall_contour)
+            np.savetxt(os.path.join(dest,'pixel_mask.txt'),self.pixel_mask,fmt='%d')
             
-            meta = {'mat_shape':self.data.shape, 'binning':self.binning, 'pixel_order':self.pixel_order, 'grid_type':'volume','history':self.history}
+            meta = {'mat_shape':self.data.shape, 'binning':self.binning, 'pixel_order':self.pixel_order, 'grid_type':'volume','history':self.history,'im_transform_actions':self.image_geometry.transform_actions,'im_px_aspect':self.image_geometry.pixel_aspectratio,'im_coords':self.image_coords}
             
             with zfile.open_file('metadata.json','w') as metafile:
                 
@@ -970,6 +1150,10 @@ class GeometryMatrix:
             verts = np.loadtxt(os.path.join(src,'grid_verts.txt'))
             cells = np.loadtxt(os.path.join(src,'grid_cells.txt'),dtype=np.uint32)
             wall = np.loadtxt(os.path.join(src,'grid_wall.txt'))
+
+            self.image_coords = meta['im_coords']
+
+            self.pixel_mask = np.loadtxt(os.path.join(src,'pixel_mask.txt')).astype(bool)
             
             self.grid = PoloidalVolumeGrid(verts,cells,wall,meta['history']['grid'])
                 
@@ -982,8 +1166,37 @@ class GeometryMatrix:
             data = np.loadtxt(os.path.join(src,'mat_data.txt'))
             
             self.data = scipy.sparse.csr_matrix((data,(row_ind,col_ind)),shape=meta['mat_shape'])
-                
-        
+
+            self.image_geometry = CoordTransformer()
+            self.image_geometry.set_transform_actions(meta['im_transforms'])
+            self.image_geometry.set_pixel_aspect(meta['im_px_aspect'],relative_to='Original')
+            self.image_geometry.set_image_shape(*self.binning*np.array(self.pixel_mask.shape[::-1]),coords=self.image_coords)
+
+
+    def __str__(self):
+        '''
+        Get a pretty string describing the matrix in great detail.
+        '''
+        msg = 'Calcam Geometry Matrix\n======================\n\n'
+
+        msg = msg + self.history['matrix'] + '\n'
+        msg = msg + 'Matrix Dimensions: {:d} x {:d}\n'.format(*self.data.shape)
+        msg = msg + 'Density:           {:.1f}%\n\n'.format(100*float(self.data.getnnz(None)/np.prod(self.data.shape)))
+
+        msg = msg + '--------------\nLines of Sight\n--------------\n'
+        msg = msg + self.history['los'] + '\n'
+        msg = msg + 'Image binning:     {:.1f} x {:.1f}\n'.format(self.binning,self.binning)
+        msg = msg + 'Image orientation: {:s}\n\n'.format(self.image_coords)
+
+        msg = msg + '-------------------\nReconstruction Grid\n-------------------\n\n'
+        msg = msg + self.history['grid'] + '\n'
+        extent = self.grid.get_extent()
+        msg = msg + 'R coverage:             {:.3f}m - {:.3f}m\n'.format(extent[0],extent[1])
+        msg = msg + 'Z coverage:             {:.3f}m - {:.3f}m\n'.format(extent[2],extent[3])
+        msg = msg + 'Vertices per grid cell: {:d}\n'.format(self.grid.verts_per_cell())
+        msg = msg + 'Total line segments:    {:d}\n'.format(self.grid.n_segments())
+
+        return msg
 
     @classmethod
     def load(cls,filename):
@@ -1027,15 +1240,15 @@ def squaregrid(wall_contour,cell_size,rmin=None,rmax=None,zmin=None,zmax=None):
     
     Parameters:
         
-        wall_contour (str or np.ndarray) : Either the name of a Calcam CAD model \
-                                           from which to use the wall contour, or an \
-                                           N x 2 array of R,Z points defining the machine wall.
+        wall_contour (str or numpy.ndarray) : Either the name of a Calcam CAD model \
+                                              from which to use the wall contour, or an \
+                                              N x 2 array of R,Z points defining the machine wall.
                                            
-        cell_size (float)                : Side length of each grid cell in metres.
+        cell_size (float)                   : Side length of each grid cell in metres.
         
-        rmin, rmax, zmin, zmax  (float)  : Optional limits of the grid extent in the R, Z plane. \
-                                           Any combination of these may or may not be given; if none \
-                                           are given the entire wall contour interior is gridded.
+        rmin, rmax, zmin, zmax  (float)     : Optional limits of the grid extent in the R, Z plane. \
+                                              Any combination of these may or may not be given; if none \
+                                              are given the entire wall contour interior is gridded.
                                            
     Returns:
         
@@ -1121,22 +1334,23 @@ def squaregrid(wall_contour,cell_size,rmin=None,rmax=None,zmin=None,zmax=None):
 
 
 
-def trigrid(wall_contour,max_cell_area,rmin=None,rmax=None,zmin=None,zmax=None,**kwargs):
+def trigrid(wall_contour,max_cell_scale,rmin=None,rmax=None,zmin=None,zmax=None,**kwargs):
     '''
     Create a reconstruction grid with triangular grid cells conforming to the 
     wall contour. Generated using J. Shewchuk's "triangle" via the MeshPy module.
     
     Parameters:
         
-        wall_contour (str or np.ndarray) : Either the name of a Calcam CAD model \
-                                           from which to use the wall contour, or an \
-                                           N x 2 array of R,Z points defining the machine wall.
+        wall_contour (str or numpy.ndarray) : Either the name of a Calcam CAD model \
+                                              from which to use the wall contour, or an \
+                                              N x 2 array of R,Z points defining the machine wall.
                                            
-        max_cell_area (float)            : Maximum area of a grid cell area in square metres.
+        max_cell_scale (float)               : Approximate maximum allowed length scale for a grid \
+                                               dell, in metres.
         
-        rmin, rmax, zmin, zmax  (float)  : Optional limits of the grid extent in the R, Z plane. \
-                                           Any combination of these may or may not be given; if none \
-                                           are given the entire wall contour interior is gridded.
+        rmin, rmax, zmin, zmax  (float)     : Optional limits of the grid extent in the R, Z plane. \
+                                              Any combination of these may or may not be given; if none \
+                                              are given the entire wall contour interior is gridded.
                                            
     Any additional keyword arguments will be passed directly to the triangle mesher, meshpy.triangle.build().
     This can be used to further control the meshing; see the MeshPy documentation for available arguments.
@@ -1171,6 +1385,7 @@ def trigrid(wall_contour,max_cell_area,rmin=None,rmax=None,zmin=None,zmax=None,*
     segments[:,1] = np.arange(1,verts.shape[0]+1)
     segments[-1][-1] = 0
 
+    max_cell_area = (max_cell_scale**2) / 2.
 
     if not all( [limit is None for limit in [rmin,rmax,zmin,zmax] ] ):
 
@@ -1258,7 +1473,7 @@ def _get_ccm_wall(model_name):
         
     Returns:
         
-        np.ndarray : Nx2 array of (R,Z) coordinates around the wall contour
+        numpy.ndarray : Nx2 array of (R,Z) coordinates around the wall contour
         
     '''
     cadmodels = config.CalcamConfig().get_cadmodels()
@@ -1274,6 +1489,7 @@ def _get_ccm_wall(model_name):
                 raise Exception('CAD model "{:s}" does not define a wall contour!'.format(model_name))
 
     return wall_contour
+
 
 
 def _run_triangle_python(geometry,queue,**kwargs):
@@ -1318,6 +1534,8 @@ def _run_triangle_python(geometry,queue,**kwargs):
 
 
 
+def _bin_image(image,bin_factor,bin_func=np.mean):
 
+    newshape = ( image.shape[0] // bin_factor, bin_factor, image.shape[1] // bin_factor, bin_factor )
 
-
+    return bin_func( bin_func( image.reshape(newshape),axis=3 ) ,axis=1 )
