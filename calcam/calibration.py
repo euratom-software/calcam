@@ -2190,7 +2190,7 @@ class Fitter:
 
         # Do the fit!
         if self.model == 'perspective':
-            if int(cv2.__version__[0]) == 3:
+            if int(cv2.__version__[0]) > 2:
                 fit_output = cv2.calibrateCamera(obj_points,img_points,self.image_display_shape,copy.copy(self.initial_matrix),None,flags=self.get_fitflags())
             else:
                 fit_output = cv2.calibrateCamera(obj_points,img_points,self.image_display_shape,copy.copy(self.initial_matrix),flags=self.get_fitflags())

@@ -1,6 +1,23 @@
 Project Changelog
 =================
 
+
+Bug fix release 2.1.2 (5th Feb 2019)
+------------------------------------
+
+Hot on the heels of yesterday's serious bug...another!
+
+Fixes:
+* Change explicit check for OpenCV major version == 3 to major version > 2, for compatbility with OpenCV 4.
+
+
+Bug fix release 2.1.1 (4th Feb 2019)
+------------------------------------
+
+Fixes:
+* Performing a fit in a newly created calibration raises an exception
+
+
 Minor Release 2.1.0 (18 Jan 2019)
 ---------------------------------
 
