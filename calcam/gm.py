@@ -25,7 +25,6 @@ Geometry matrix module for Calcam.
 
 Written by Scott Silburn & James Harrison.
 '''
-
 import multiprocessing
 import copy
 import time
@@ -72,19 +71,19 @@ class PoloidalVolumeGrid:
     Parameters:
         
         vertices (numpy.ndarray)    : (N_verts x 2) array of floats containing the \
-                                   (R,Z) coordinates of the grid cell vertices.
+                                      (R,Z) coordinates of the grid cell vertices.
                                 
         cells (numpy.ndarray)       : (N_cells x N_verts_per_cell) array of integers \
-                                   specifying which vertices (indexes in to the vertices \
-                                   array) define each grid cell. For each cell (array row), \
-                                   the vertices must be listed in order around the \
-                                   cell perimeter (in either direction).
+                                      specifying which vertices (indexes in to the vertices \
+                                      array) define each grid cell. For each cell (array row), \
+                                      the vertices must be listed in order around the \
+                                      cell perimeter (in either direction).
                                 
         wall_contour (numpy.ndaray) : Nx2 array containing the R,Z wall contour of the machine. \
-                                   If provided, this is used for plotting purposes.
+                                      If provided, this is used for plotting purposes.
                                    
-        src (str)                : Human readable string describing where the grid came from, \
-                                   for data provenance purposes.
+        src (str)                   : Human readable string describing where the grid came from, \
+                                      for data provenance purposes.
                                    
     '''
     
@@ -455,7 +454,7 @@ class PoloidalVolumeGrid:
 
 
     def _validate_grid(self):
-        # Some code here to check the generation worked OK.
+        # Some code here to check the generation worked OK should go here.
         pass
 
 
@@ -595,7 +594,7 @@ class GeometryMatrix:
 
             colinds = []
             rowinds = []
-            data = []            
+            data = []
 
             with multiprocessing.Pool( config.n_cpus ) as cpupool:
                 calc_status_callback(0.)
@@ -730,12 +729,21 @@ class GeometryMatrix:
             init_shape = (np.array(image_dims) / self.binning).astype(np.uint32)
             row_inds = np.arange(np.prod(init_shape),dtype=np.uint32)
             row_inds = np.reshape(row_inds,init_shape,order=self.pixel_order)
-            
+
+            px_mask = self.pixel_mask.reshape(self.pixel_mask.size,order=self.pixel_order)
+            index_map = np.zeros(np.prod(image_dims),dtype=np.uint32)
+            index_map[px_mask == True] = np.arange(np.count_nonzero(px_mask),dtype=np.uint32)
+
+            self.pixel_mask = _bin_image(self.pixel_mask,bin_factor,bin_func=np.min).astype(bool)
+
+            px_mask = self.pixel_mask.reshape(self.pixel_mask.size,order=self.pixel_order)
+
             ind_arrays = []
             for colshift in range(bin_factor):
                 for rowshift in range(bin_factor):
                     ind_arrays.append(row_inds[colshift::bin_factor,rowshift::bin_factor].reshape(int(np.prod(init_shape)/bin_factor**2),order=self.pixel_order))
-            
+                    ind_arrays[-1] = index_map[ind_arrays[-1]][px_mask == True]
+
             new_data = self.data[ind_arrays[0],:]
             for indarr in ind_arrays[1:]:
                 new_data = new_data + self.data[indarr,:]
@@ -743,8 +751,6 @@ class GeometryMatrix:
             norm_factor = scipy.sparse.diags(np.ones(self.grid.n_cells())/bin_factor**2,format='csr')
             
             self.data = new_data * norm_factor
-            
-            self.pixel_mask = _bin_image(self.pixel_mask,bin_factor,bin_func=np.min).astype(bool)
             
             self.binning = binning
         
@@ -829,7 +835,7 @@ class GeometryMatrix:
 
         Returns:
 
-            numpy.ndarray : Boolean array the same shape as the camera image \
+            numpy.ndarray : Boolean array the same shape as the camera image after binning, \
                             where True indicates the corresponding pixel is included \
                             and False indicates the pixel is excluded.
         '''
@@ -887,7 +893,10 @@ class GeometryMatrix:
 
         Returns:
 
-            numpy.matrix : Nx1 image data vector.
+            scipy.sparse.csr_matrix : 1xN image data vector. Note that this is \
+                                      returned as a sparse matrix object despite its \
+                                      density being 100%; this is for consistency with the \
+                                      matrix itself.
 
         '''
         if coords is None:
@@ -928,7 +937,7 @@ class GeometryMatrix:
 
         im_out = im_out.reshape(im_out.size,order=self.pixel_order)
 
-        return im_out[ self.pixel_mask.reshape(self.pixel_mask.size,order=self.pixel_order) == True]
+        return scipy.sparse.csr_matrix(im_out[ self.pixel_mask.reshape(self.pixel_mask.size,order=self.pixel_order) == True])
 
 
 
@@ -1177,7 +1186,7 @@ class GeometryMatrix:
         '''
         Get a pretty string describing the matrix in great detail.
         '''
-        msg = 'Calcam Geometry Matrix\n======================\n\n'
+        msg = '======================\nCalcam Geometry Matrix\n======================\n\n'
 
         msg = msg + self.history['matrix'] + '\n'
         msg = msg + 'Matrix Dimensions: {:d} x {:d}\n'.format(*self.data.shape)
@@ -1188,7 +1197,7 @@ class GeometryMatrix:
         msg = msg + 'Image binning:     {:.1f} x {:.1f}\n'.format(self.binning,self.binning)
         msg = msg + 'Image orientation: {:s}\n\n'.format(self.image_coords)
 
-        msg = msg + '-------------------\nReconstruction Grid\n-------------------\n\n'
+        msg = msg + '-------------------\nReconstruction Grid\n-------------------\n'
         msg = msg + self.history['grid'] + '\n'
         extent = self.grid.get_extent()
         msg = msg + 'R coverage:             {:.3f}m - {:.3f}m\n'.format(extent[0],extent[1])
@@ -1214,7 +1223,6 @@ class GeometryMatrix:
             calcam.GeometryMatrix : Loaded geometry matrix.
             
         '''
-        # Create an empty geometry matrix object
         geommat = cls(None,None)
         
         try:
@@ -1363,7 +1371,7 @@ def trigrid(wall_contour,max_cell_scale,rmin=None,rmax=None,zmin=None,zmax=None,
     '''
     # Before trying to generate a triangular grid, check we have the meshpy package available.
     if meshpy_err is not None:
-        raise Exception('Cannot initialise MeshPy based mesh: MeshPy module failed to import with error: {:s}'.format(meshpy_err))
+        raise Exception('Cannot create MeshPy based mesh: MeshPy module failed to import with error: {:s}'.format(meshpy_err))
 
     # If given a machine name for the wall contour, get the R,Z contour
     if type(wall_contour) is str:
@@ -1462,6 +1470,7 @@ def trigrid(wall_contour,max_cell_scale,rmin=None,rmax=None,zmin=None,zmax=None,
 
 
 
+
 def _get_ccm_wall(model_name):
     '''
     Get the wall contour points for a named machine, if Calcam has a 
@@ -1531,6 +1540,7 @@ def _run_triangle_python(geometry,queue,**kwargs):
         queue.put( {'vertices':np.array(mesh.points), 'cells':np.array(mesh.elements)}  )
     except Exception as e:
         queue.put(e)
+
 
 
 
