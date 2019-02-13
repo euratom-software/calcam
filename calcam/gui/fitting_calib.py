@@ -1464,7 +1464,7 @@ class FittingCalib(CalcamGUIWindow):
 
         if dialog.results != []:
             self.chessboard_pointpairs = dialog.results
-            im_history = ['Chessboard image from {:s}, loaded by {:s} on {:s} at {:s}.'.format(fname,misc.username,misc.hostname,misc.get_formatted_time) for fname in dialog.filenames]
+            im_history = ['Chessboard image from {:s}, loaded by {:s} on {:s} at {:s}.'.format(fname,misc.username,misc.hostname,misc.get_formatted_time()) for fname in dialog.filenames]
             self.chessboard_history = [im_history, ['Auto-detected based on {:d}x{:d} square chessboard pattern with {:.1f}mm squares.'.format(dialog.chessboard_squares_x.value(),dialog.chessboard_squares_y.value(),dialog.chessboard_square_size.value()),None]  ]
             self.chessboard_checkbox.setChecked(True)
 

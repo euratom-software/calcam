@@ -1521,7 +1521,8 @@ class ChessboardDialog(qt.QDialog):
                 self.results[-1][0] = self.image_transformer.original_to_display_image(self.results[-1][0])
                 self.results[-1][1] = self.image_transformer.original_to_display_pointpairs(self.results[-1][1])
 
-        self.filenames = self.filenames[self.chessboard_status == True]
+
+        self.filenames = [self.filenames[i] for i in range(len(self.filenames)) if self.chessboard_status[i]]
 
         self.chessboard_source = '{:d} chessboard images loaded from "{:s}"'.format(len(self.filenames),self.src_dir.replace('/',os.sep))
 
