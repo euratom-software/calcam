@@ -1,6 +1,17 @@
 Project Changelog
 =================
 
+Minor Release 2.2.0 (?? 2019)
+---------------------------------
+
+New & Enhancements:
+* Replace undocumented geometry matrix functionality in calcam.geometry_matrix with new calcam.gm module and add corresponding documentation.
+
+Fixes:
+* Fix bug where loading chessboard images in the fitting calibration tool would cause an exception.
+* Fix bug where calcam.gui and matplotlib could try to use different PyQt versions leading to exceptions.
+* Fix bugs in VirtualCalib.__init__ and AlignmentCalib.__init__ which caused segfaults when launching virtual and alignment calibration GUIs on some platforms.
+
 
 Bug fix release 2.1.2 (5th Feb 2019)
 ------------------------------------
