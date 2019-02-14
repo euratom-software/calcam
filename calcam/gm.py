@@ -1464,7 +1464,7 @@ def trigrid(wall_contour,max_cell_scale,rmin=None,rmax=None,zmin=None,zmax=None,
     segments[:,1] = np.arange(1,verts.shape[0]+1)
     segments[-1][-1] = 0
 
-    max_cell_area = (max_cell_scale**2) / 2.
+    max_cell_area = (max_cell_scale**2) * np.sqrt(2)
 
     if not all( [limit is None for limit in [rmin,rmax,zmin,zmax] ] ):
 

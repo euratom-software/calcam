@@ -25,7 +25,7 @@ CalCam package.
 """
 
 # Calcam version
-__version__ = '2.2.dev'
+__version__ = '2.2.rc0'
 
 # Some stuff will only work if we have VTK.
 try:
