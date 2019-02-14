@@ -35,7 +35,7 @@ Written by Scott Silburn
 import vtk
 import numpy as np
 from ..render import get_image_actor
-from ..utils import rotate_3d
+from ..misc import rotate_3d
 
 import time
 

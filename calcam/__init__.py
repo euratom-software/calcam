@@ -25,12 +25,7 @@ CalCam package.
 """
 
 # Calcam version
-__version__ = '2.1.2'
-
-# Import the top level "public facing" classes & functions
-from .calibration import Calibration
-from .raycast import RayData
-from .pointpairs import PointPairs
+__version__ = '2.2.rc0'
 
 # Some stuff will only work if we have VTK.
 try:
@@ -38,10 +33,25 @@ try:
 except ImportError:
     vtk = None
 
+# Note: We have to import the GUI module before anything
+# else to make sure the Calcam GUI and Matplotlib are
+# using the same version of Qt and will therefore work well
+# together.
+
+
 if vtk:
     from . import gui
+    from .gui import start_gui
     from .cadmodel import CADModel
     from .raycast import raycast_sightlines
-    from .geometry_matrix import RectangularGeometryMatrix
-    from .gui import start_gui
     from .render import render_cam_view
+
+
+# Import the top level "public facing" classes & functions
+# which do not rely on VTK.
+from .calibration import Calibration
+from .raycast import RayData
+from .pointpairs import PointPairs
+
+from . import config
+from . import gm

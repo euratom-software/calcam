@@ -181,6 +181,12 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="api_cadmodel.html">CAD Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_geom_matrix.html">Tomography Geometry Matrices</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api_geom_matrix.html#background">Background</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_geom_matrix.html#the-geometry-matrix-class">The Geometry Matrix class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_geom_matrix.html#reconstruction-grids">Reconstruction grids</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="api_examples.html">Examples</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="api_examples.html#mapping-a-magnetic-field-line-on-to-an-image">Mapping a magnetic field line on to an image</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api_examples.html#rendering-camera-view-wireframe">Rendering: camera view wireframe</a></li>
@@ -269,13 +275,19 @@
 
 <div class="genindex-jumpbox">
  <a href="#C"><strong>C</strong></a>
+ | <a href="#D"><strong>D</strong></a>
  | <a href="#E"><strong>E</strong></a>
  | <a href="#F"><strong>F</strong></a>
  | <a href="#G"><strong>G</strong></a>
+ | <a href="#I"><strong>I</strong></a>
+ | <a href="#L"><strong>L</strong></a>
+ | <a href="#N"><strong>N</strong></a>
  | <a href="#P"><strong>P</strong></a>
  | <a href="#R"><strong>R</strong></a>
  | <a href="#S"><strong>S</strong></a>
+ | <a href="#T"><strong>T</strong></a>
  | <a href="#U"><strong>U</strong></a>
+ | <a href="#V"><strong>V</strong></a>
  
 </div>
 <h2 id="C">C</h2>
@@ -286,6 +298,14 @@
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_analysis.html#calcam.Calibration">Calibration (class in calcam)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="D">D</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_geom_matrix.html#calcam.gm.GeometryMatrix.data">data (calcam.gm.GeometryMatrix attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -304,23 +324,35 @@
       <li><a href="api_cadmodel.html#calcam.CADModel.format_coord">format_coord() (calcam.CADModel method)</a>
 </li>
   </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_geom_matrix.html#calcam.gm.GeometryMatrix.format_image">format_image() (calcam.gm.GeometryMatrix method)</a>
+</li>
+  </ul></td>
 </tr></table>
 
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_geom_matrix.html#calcam.gm.GeometryMatrix">GeometryMatrix (class in calcam.gm)</a>
+</li>
       <li><a href="api_analysis.html#calcam.Calibration.get_cam_matrix">get_cam_matrix() (calcam.Calibration method)</a>
 </li>
       <li><a href="api_analysis.html#calcam.Calibration.get_cam_roll">get_cam_roll() (calcam.Calibration method)</a>
 </li>
       <li><a href="api_analysis.html#calcam.Calibration.get_cam_to_lab_rotation">get_cam_to_lab_rotation() (calcam.Calibration method)</a>
 </li>
+      <li><a href="api_geom_matrix.html#calcam.gm.PoloidalVolumeGrid.get_cell_intersections">get_cell_intersections() (calcam.gm.PoloidalVolumeGrid method)</a>
+</li>
       <li><a href="api_cadmodel.html#calcam.CADModel.get_colour">get_colour() (calcam.CADModel method)</a>
 </li>
       <li><a href="api_cadmodel.html#calcam.CADModel.get_enabled_features">get_enabled_features() (calcam.CADModel method)</a>
 </li>
       <li><a href="api_cadmodel.html#calcam.CADModel.get_extent">get_extent() (calcam.CADModel method)</a>
+
+      <ul>
+        <li><a href="api_geom_matrix.html#calcam.gm.PoloidalVolumeGrid.get_extent">(calcam.gm.PoloidalVolumeGrid method)</a>
 </li>
+      </ul></li>
       <li><a href="api_cadmodel.html#calcam.CADModel.get_feature_list">get_feature_list() (calcam.CADModel method)</a>
 </li>
       <li><a href="api_analysis.html#calcam.Calibration.get_fov">get_fov() (calcam.Calibration method)</a>
@@ -331,9 +363,15 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_analysis.html#calcam.Calibration.get_image">get_image() (calcam.Calibration method)</a>
 </li>
+      <li><a href="api_geom_matrix.html#calcam.gm.GeometryMatrix.get_included_pixels">get_included_pixels() (calcam.gm.GeometryMatrix method)</a>
+</li>
       <li><a href="api_cadmodel.html#calcam.CADModel.get_linewidth">get_linewidth() (calcam.CADModel method)</a>
 </li>
+      <li><a href="api_geom_matrix.html#calcam.gm.GeometryMatrix.get_los_coverage">get_los_coverage() (calcam.gm.GeometryMatrix method)</a>
+</li>
       <li><a href="api_analysis.html#calcam.Calibration.get_los_direction">get_los_direction() (calcam.Calibration method)</a>
+</li>
+      <li><a href="api_geom_matrix.html#calcam.gm.GeometryMatrix.get_mean_rcc">get_mean_rcc() (calcam.gm.GeometryMatrix method)</a>
 </li>
       <li><a href="api_analysis.html#calcam.Calibration.get_pupilpos">get_pupilpos() (calcam.Calibration method)</a>
 </li>
@@ -347,12 +385,50 @@
 </li>
       <li><a href="api_analysis.html#calcam.Calibration.get_undistort_coeffs">get_undistort_coeffs() (calcam.Calibration method)</a>
 </li>
+      <li><a href="api_geom_matrix.html#calcam.gm.GeometryMatrix.grid">grid (calcam.gm.GeometryMatrix attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="I">I</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_geom_matrix.html#calcam.gm.PoloidalVolumeGrid.interpolate">interpolate() (calcam.gm.PoloidalVolumeGrid method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="L">L</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_geom_matrix.html#calcam.gm.GeometryMatrix.load">load() (calcam.gm.GeometryMatrix class method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="N">N</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_geom_matrix.html#calcam.gm.PoloidalVolumeGrid.n_cells">n_cells() (calcam.gm.PoloidalVolumeGrid method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_geom_matrix.html#calcam.gm.PoloidalVolumeGrid.n_segments">n_segments() (calcam.gm.PoloidalVolumeGrid method)</a>
+</li>
+      <li><a href="api_geom_matrix.html#calcam.gm.PoloidalVolumeGrid.n_vertices">n_vertices() (calcam.gm.PoloidalVolumeGrid method)</a>
+</li>
   </ul></td>
 </tr></table>
 
 <h2 id="P">P</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_geom_matrix.html#calcam.gm.PoloidalVolumeGrid.plot">plot() (calcam.gm.PoloidalVolumeGrid method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_geom_matrix.html#calcam.gm.PoloidalVolumeGrid">PoloidalVolumeGrid (class in calcam.gm)</a>
+</li>
       <li><a href="api_analysis.html#calcam.Calibration.project_points">project_points() (calcam.Calibration method)</a>
 </li>
   </ul></td>
@@ -371,6 +447,8 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_analysis.html#calcam.RayData">RayData (class in calcam)</a>
 </li>
+      <li><a href="api_geom_matrix.html#calcam.gm.PoloidalVolumeGrid.remove_cells">remove_cells() (calcam.gm.PoloidalVolumeGrid method)</a>
+</li>
       <li><a href="api_analysis.html#calcam.render_cam_view">render_cam_view() (in module calcam)</a>
 </li>
       <li><a href="api_cadmodel.html#calcam.CADModel.reset_colour">reset_colour() (calcam.CADModel method)</a>
@@ -381,7 +459,13 @@
 <h2 id="S">S</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api_analysis.html#calcam.RayData.save">save() (calcam.RayData method)</a>
+      <li><a href="api_geom_matrix.html#calcam.gm.GeometryMatrix.save">save() (calcam.gm.GeometryMatrix method)</a>
+
+      <ul>
+        <li><a href="api_analysis.html#calcam.RayData.save">(calcam.RayData method)</a>
+</li>
+      </ul></li>
+      <li><a href="api_geom_matrix.html#calcam.gm.GeometryMatrix.set_binning">set_binning() (calcam.gm.GeometryMatrix method)</a>
 </li>
       <li><a href="api_cadmodel.html#calcam.CADModel.set_colour">set_colour() (calcam.CADModel method)</a>
 </li>
@@ -393,11 +477,23 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_cadmodel.html#calcam.CADModel.set_flat_shading">set_flat_shading() (calcam.CADModel method)</a>
 </li>
+      <li><a href="api_geom_matrix.html#calcam.gm.GeometryMatrix.set_included_pixels">set_included_pixels() (calcam.gm.GeometryMatrix method)</a>
+</li>
       <li><a href="api_cadmodel.html#calcam.CADModel.set_linewidth">set_linewidth() (calcam.CADModel method)</a>
 </li>
       <li><a href="api_cadmodel.html#calcam.CADModel.set_status_callback">set_status_callback() (calcam.CADModel method)</a>
 </li>
       <li><a href="api_cadmodel.html#calcam.CADModel.set_wireframe">set_wireframe() (calcam.CADModel method)</a>
+</li>
+      <li><a href="api_geom_matrix.html#calcam.gm.squaregrid">squaregrid() (in module calcam.gm)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="T">T</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_geom_matrix.html#calcam.gm.trigrid">trigrid() (in module calcam.gm)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -410,6 +506,14 @@
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_cadmodel.html#calcam.CADModel.unload">unload() (calcam.CADModel method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="V">V</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_geom_matrix.html#calcam.gm.PoloidalVolumeGrid.verts_per_cell">verts_per_cell() (calcam.gm.PoloidalVolumeGrid method)</a>
 </li>
   </ul></td>
 </tr></table>

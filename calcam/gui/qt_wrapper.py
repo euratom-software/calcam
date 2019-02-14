@@ -23,11 +23,16 @@
 """
 This module provides a little wrapping of PyQT,
 to enable the GUI module to work easily with either
-PyQt 4 or 5.
+PyQt 4 or 5. Also makes sure matplotlib is using the
+correct backend.
 """
 
+# Import our local version of QVTKRenderWindowInteracor.
+# This avoids a problem with the version shipped with Enthought
+# Canopy + PyQt5.
 from .qvtkrenderwindowinteractor import QVTKRenderWindowInteractor
 
+# Import all the Qt bits and pieces from the relevant module
 try:
     from PyQt5.QtCore import *
     from PyQt5.QtGui import *
@@ -42,11 +47,21 @@ except:
     from PyQt4 import uic
     qt_ver = 4
 
+# If we're on Python 3, there is no QString class because PyQt uses 
+# python 3's native string class. But for compatibility with the rest 
+# of the code we always want there to be a string class called QString
 try:
     QString
 except:
     QString = str
 
+# Make sure Matplotlib is using the right backend for
+# whichever version of Qt we managed to load.
+import matplotlib
+try:
+    matplotlib.use('Qt{:d}Agg'.format(qt_ver),warn=False,force=True)
+except:
+    print('WARNING: Error forcing Matplotlib to use Qt{:d} backend; there may be GUI issues!'.format(qt_ver))
 
 # Here's a little custom constructor for QTreeWidgetItems, which will
 # work in either PyQt4 or 5. For PyQt4 we have to make string list

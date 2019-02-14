@@ -19,14 +19,16 @@
   permissions and limitations under the Licence.
 '''
 import subprocess
-
+import multiprocessing
 import sys
 import os
+import json
+import time
 try:
   import urllib.request as request
 except:
   import urllib2 as request
-import json
+  
 
 from .. import __version__
 from .core import qt, guipath
@@ -40,7 +42,7 @@ def launch(args):
 # if the latest release of calcam has a higher version number than the current one.
 # Because this isn't an important feature, if anything goes wrong in this function we
 # just act as if there is no update available.
-def update_prompt_string():
+def update_prompt_string(queue):
 
   try:
 
@@ -65,11 +67,11 @@ def update_prompt_string():
           pass
 
     if latest_ver > current_ver:
-        return '<b>A newer version of Calcam ({:s}) is available; see the <a href=https://github.com/euratom-software/calcam/releases>releases page</a> for details.</b>'.format(latest_release_string)
+        queue.put('<b>A newer version of Calcam ({:s}) is available; see the <a href=https://github.com/euratom-software/calcam/releases>releases page</a> for details.</b>'.format(latest_release_string))
     else:
-        return None
+        queue.put(None)
   except:
-      return None
+      queue.put(None)
 
 
 # Class for the window
@@ -100,7 +102,20 @@ class Launcher(qt.QDialog):
         self.settings_button.clicked.connect(lambda : launch(['--settings']))
 
         # Check if there is a newer Calcam release than the current one.
-        update_string = update_prompt_string()
+        # Annoyingly, urllib2 can cause Python to segfault when using SSL under some
+        # quite specific circumstances, so to be robust against that I resort 
+        # to the ridiculous over-complication doing this in a separate process. Grumble.
+        q = multiprocessing.Queue()
+        checkprocess = multiprocessing.Process(target=update_prompt_string,args=(q,))
+        checkprocess.start()
+        while checkprocess.is_alive() and q.empty():
+            time.sleep(0.05)
+        
+        if not q.empty():
+            update_string = q.get()
+        else:
+            update_string = None
+
         if update_string is None:
           self.update_label.hide()
         else:

@@ -107,9 +107,9 @@ class VirtualCalib(CalcamGUIWindow):
         self.show()
 
         self.interactor3d.init()
-        self.update_intrinsics()
         self.qvtkwidget_3d.GetRenderWindow().GetInteractor().Initialize()
-
+        self.update_intrinsics()
+        
 
 
     def update_viewport_info(self,keep_selection=False):

@@ -26,44 +26,57 @@ Written by Scott Silburn
 2015-05-17
 """
 
+import time
+import sys
+import os
+import random
+
 try:
     import vtk
 except:
     vtk = None
 
 import numpy as np
-import datetime
-import time
-import sys
-import os
-from . import coordtransformer
 from scipy.io.netcdf import netcdf_file
-import random
+
+from . import coordtransformer
+from . import misc
+from . import __version__ as calcam_version
 
 
-
-
-def raycast_sightlines(calibration,cadmodel,x=None,y=None,binning=1,coords='Display',verbose=True,force_subview=None):
+def raycast_sightlines(calibration,cadmodel,x=None,y=None,binning=1,coords='Display',verbose=True,force_subview=None,status_callback=None):
     '''
     Ray cast camera sight-lines to determine where they intersect the given CAD model.
 
     Parameters:
 
         calibration (calcam.Calibration) : Calibration whose sight-lines to raycast.
+        
         cadmodel (calcam.CADModel)       : CAD model to check intersection with.
+        
         x, y (array-like)                : x and y image pixel coordinates for which to cast sight-lines. \
                                            If not specified, one ray is cast at the centre of every detector pixel.\
                                            x and y must be the same shape.
+                                           
         binning (int)                    : If not explicitly providing x and y image coordinates, pixel binning for ray casting.\
                                            This specifies NxN binning, i.e. for a value of 2, one ray is cast at the centre of \
                                            every 2x2 cluster of pixels.
+                                           
         coords (str)                     : Either ``Display`` or ``Original``. If specifying x and y coordinates,\
                                            specifies whether the input x and y are in original or display coords. \
                                            Otherwise, specifies the orientation of the returned data.
-        verbose (bool)                   : Whether to print status updates during ray casting.
+        
         force_subview (int)              : If specified, forces use of the camera model from this index of sub-view \
                                            in the calibration. Otherwise, sub-views are chosen according to the \
                                            sub-view mask in the calibration.
+                                           
+        verbose (bool)                   : Whether to print status updates during ray casting (depreciated in favour of status_callback)
+
+        status_callback (callable)       : Callable which takes a single argument to be called with status updates. The argument will \
+                                           either be a string for textual status updates or a float from 0 to 1 specifying the progress \
+                                           of the calculation. If set to None, no status updates are issued. For backwards compatibility, \
+                                           if set to None but verbose is set to True, status_callback will be set such that status updates \
+                                           go to stdout.
 
     Returns:
 
@@ -74,9 +87,13 @@ def raycast_sightlines(calibration,cadmodel,x=None,y=None,binning=1,coords='Disp
     if vtk is None:
         raise Exception('VTK is not available, and this Calcam feature requires VTK!')
 
-    if not verbose:
+    if status_callback is None:
+        if verbose:
+            status_callback = misc.LoopProgPrinter().update
+            
+    if status_callback is not None:
         original_callback = cadmodel.get_status_callback()
-        cadmodel.set_status_callback(None)
+        cadmodel.set_status_callback(status_callback)
 
 
     # Work out how big the model is. This is to make sure the rays we cast aren't too short.
@@ -84,14 +101,11 @@ def raycast_sightlines(calibration,cadmodel,x=None,y=None,binning=1,coords='Disp
     model_size = model_extent[1::2] - model_extent[::2]
     max_ray_length = model_size.max() * 4
     
-    if verbose:
-        sys.stdout.write('Getting CAD model octree...')
+    if status_callback is not None:
+        status_callback('Getting CAD model octree...')
 
     # Get the CAD model's octree
     cell_locator = cadmodel.get_cell_locator()
-
-    if verbose:
-        sys.stdout.write('Done.\n')
 
 
     # If no pixels are specified, do the whole chip at the specified binning level.
@@ -131,12 +145,22 @@ def raycast_sightlines(calibration,cadmodel,x=None,y=None,binning=1,coords='Disp
             x,y = calibration.geometry.original_to_display_coords(x,y)
 
     results = RayData()
-    results.fullchip = fullchip
+    
+    if fullchip:
+        results.fullchip = coords
+    else:
+        results.fullchip = False
+        
     results.x = np.copy(x).astype('float')
     results.x[valid_mask == 0] = 0
     results.y = np.copy(y).astype('float')
     results.y[valid_mask == 0] = 0
     results.transform = calibration.geometry
+    if calibration.filename is not None:
+        splitname = os.path.split(calibration.filename)
+        results.history = 'Ray cast of calibration "{:s}" [from: {:s}] by {:s} on {:s} at {:s}'.format(splitname[1].replace('.ccc',''),splitname[0],misc.username,misc.hostname,misc.get_formatted_time())
+    else:
+        results.history = 'Ray cast by {:s} on {:s} at {:s}'.format(misc.username,misc.hostname,misc.get_formatted_time())
 
     orig_shape = np.shape(results.x)
     results.x = np.reshape(results.x,np.size(results.x),order='F')
@@ -148,8 +172,10 @@ def raycast_sightlines(calibration,cadmodel,x=None,y=None,binning=1,coords='Disp
     # New results object to store results
     if fullchip:
         results.binning = binning
+        results.coords = coords
     else:
         results.binning = None
+        results.coords = None
 
 
     results.ray_end_coords = np.ndarray([np.size(x),3])
@@ -161,11 +187,9 @@ def raycast_sightlines(calibration,cadmodel,x=None,y=None,binning=1,coords='Disp
     results.ray_start_coords = calibration.get_pupilpos(results.x,results.y,coords='Display',subview=force_subview)
 
     
-    if verbose:
-        now = datetime.datetime.now()
+    if status_callback is not None:
         oom = np.floor( np.log(np.size(x)) / np.log(10) / 3. )
-        raystring = ['{:.0f} rays','{:.1f}k rays','{:.2f}M rays'][int(oom)].format(np.size(x)/10**(3*oom))
-        print(datetime.datetime.now().strftime('Started casting {:s} at %Y-%m-%d %H:%M:%S'.format(raystring)))
+        status_callback('Casting {:s} rays...'.format( ['{:.0f}','{:.1f}k','{:.2f}M'][int(oom)].format(np.size(x)/10**(3*oom)) ) )
 
 
     # Some variables to give to VTK becasue of its annoying C-like interface
@@ -174,8 +198,7 @@ def raycast_sightlines(calibration,cadmodel,x=None,y=None,binning=1,coords='Disp
     coords_ = np.zeros(3)
     subid = vtk.mutable(0)
 
-    starttime = time.time()
-    etime_printed = False
+    last_status_update = 0.
     n_done = 0
     
     # We will do the ray casting in a random order,
@@ -200,34 +223,13 @@ def raycast_sightlines(calibration,cadmodel,x=None,y=None,binning=1,coords='Disp
             results.ray_end_coords[ind,:] = rayend
 
         n_done = n_done + 1
-        # Progress printing stuff
-        if verbose and not etime_printed:
-            if time.time() - starttime > 10:
-                est_time = (time.time() - starttime) / n_done * np.size(x)
-                if est_time > 15:
-                    est_time_string = ''
-                    if est_time > 3600:
-                        est_time_string = est_time_string + '{:.0f} hr '.format(np.floor(est_time/3600))
-                    if est_time > 600:
-                        est_time_string = est_time_string + '{:.0f} min.'.format((est_time - 3600*np.floor(est_time/3600))/60)
-                    elif est_time > 60:
-                        est_time_string = est_time_string + '{:.0f} min {:.0f} sec.'.format(np.floor(est_time/60),est_time % 60)
-                    else:
-                        est_time_string ='{:.0f} sec.'.format(est_time)
+        
+        if time.time() - last_status_update > 1 and status_callback is not None:
+            status_callback(n_done / len(inds))
+            last_status_update = time.time()
 
-                    print('Estimated calculation time: ' + est_time_string)
-                etime_printed = True
-
-    if verbose:
-        tot_time = time.time() - starttime
-        time_string = ''
-        if tot_time > 3600:
-            time_string = time_string + '{0:.0f} hr '.format(np.floor(tot_time / 3600))
-        if tot_time > 60:
-            time_string = time_string + '{0:.0f} min '.format(np.floor( (tot_time - 3600*np.floor(tot_time / 3600))  / 60))
-        time_string = time_string + '{0:.0f} sec. '.format( tot_time - 60*np.floor(tot_time / 60) )
-
-        print('Finished casting {:d} rays in '.format(np.size(x)) + time_string)
+    if status_callback is not None:
+        status_callback(1.)
 
     results.x[valid_mask == 0] = np.nan
     results.y[valid_mask == 0] = np.nan
@@ -286,6 +288,8 @@ class RayData:
         self.fullchip = None
         self.x = None
         self.y = None
+        self.filename = None
+        self.history = None
         if filename is not None:
             self._load(filename)
 
@@ -303,8 +307,10 @@ class RayData:
             filename = filename + '.nc'
 			
         f = netcdf_file(filename,'w')
-        setattr(f,'history','CalCam_py output file')
-        setattr(f,'image_transform_actions',"['" + "','".join(self.transform.transform_actions) + "']")
+        f.title = 'Calcam v{:s} RayData (ray cast results) file.'.format(calcam_version)
+        f.history = self.history
+        f.image_transform_actions = "['" + "','".join(self.transform.transform_actions) + "']"
+        f.fullchip = self.fullchip
 
         pointdim = f.createDimension('pointdim',3)
 
@@ -368,23 +374,38 @@ class RayData:
             filename (str) : File name to load from.
         '''
         f = netcdf_file(filename, 'r',mmap=False)
+        self.filename = filename
+               
         self.ray_end_coords = f.variables['RayEndCoords'].data
         self.ray_start_coords = f.variables['RayStartCoords'].data
         self.binning = f.variables['Binning'].data[()]
-        if self.binning == 0:
-            self.binning = None
-            self.fullchip = False
-        else:
-            self.fullchip = True
-
-        self.x = f.variables['PixelXLocation'].data
-        self.y = f.variables['PixelYLocation'].data
 
         self.transform = coordtransformer.CoordTransformer()
         self.transform.set_transform_actions(eval(f.image_transform_actions))
         self.transform.x_pixels = f.variables['image_original_shape'][0]
         self.transform.y_pixels = f.variables['image_original_shape'][1]
         self.transform.pixel_aspectratio = f.variables['image_original_pixel_aspect'].data[()]
+
+        try:
+            self.history = f.history.decode('utf-8')
+            self.fullchip = f.fullchip
+            if not self.fullchip:
+                self.binning = None
+            elif self.fullchip != True:
+                self.fullchip = self.fullchip.decode('utf-8')
+        except AttributeError:
+            self.history = 'Loaded from legacy raydata file "{:s} by {:s} on {:s} at {:s}'.format(os.path.split(filename)[-1],misc.username,misc.hostname,misc.get_formatted_time())
+            if self.binning == 0:
+                self.binning = None
+                self.fullchip = False
+            else:
+                if len(self.transform.transform_actions) == 0 and self.transform.pixel_aspectratio == 1:
+                    self.fullchip = 'Original'
+                else:                
+                    self.fullchip = True
+
+        self.x = f.variables['PixelXLocation'].data
+        self.y = f.variables['PixelYLocation'].data
 
         f.close()
 

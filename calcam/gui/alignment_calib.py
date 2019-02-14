@@ -159,8 +159,9 @@ class AlignmentCalib(CalcamGUIWindow):
         self.show()
 
         self.interactor3d.init()
-        self.reset()
         self.qvtkwidget_3d.GetRenderWindow().GetInteractor().Initialize()
+        self.reset()
+        
 
 
     def _load_model(self):

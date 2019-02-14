@@ -25,7 +25,8 @@ import cv2
 import webbrowser
 
 from .. import __version__, vtk
-from .core import guipath, DodgyDict
+from .core import guipath
+from ..misc import DodgyDict
 from ..config import CalcamConfig
 from . import qt_wrapper as qt
 from .launcher import launch

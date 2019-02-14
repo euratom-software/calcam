@@ -26,13 +26,28 @@ import sys
 import glob
 import traceback
 import imp
+import multiprocessing
 
 from .io import ZipSaveFile
 
+
+# Number of CPUs to use for multiprocessing enabled
+# calculations. Always initialised to (n_cpus - 1)
+# and any changes by the user only apply to that session.
+n_cpus = max(1,multiprocessing.cpu_count()-1)
+
+# Path where the "built in" image source code lives; this is always in the calcam source directory.
 builtin_imsource_path = os.path.join(os.path.split(os.path.abspath(__file__))[0],'builtin_image_sources')
 
-class CalcamConfig():
 
+class CalcamConfig():
+    '''
+    Class to represent the persistent calcam settings.
+    
+    It is convenient to use a class for this because whenever this is
+    instantiated somewhere in Calcam, we always get the most recent configuration
+    from disk. It also makes saving 
+    '''
     def __init__(self,cfg_file= os.path.expanduser('~/.calcam_config'),allow_create=True):
 
         self.filename = cfg_file

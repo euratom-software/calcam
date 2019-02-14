@@ -141,7 +141,7 @@ if 'install' in sys.argv or 'develop' in sys.argv:
 # Actually do the install
 setup(
       name='Calcam',
-      version='2.1.2',
+      version='2.2.rc0',
       url='https://euratom-software.github.io/calcam/',
       license='European Union Public License 1.1',
       author='Scott Silburn et.al.',
