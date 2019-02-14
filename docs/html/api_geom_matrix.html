@@ -275,10 +275,10 @@
 <h1>Tomography Geometry Matrices<a class="headerlink" href="#tomography-geometry-matrices" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="background">
 <h2>Background<a class="headerlink" href="#background" title="Permalink to this headline">¶</a></h2>
-<p>It is common to want to recover the distribution of plasma emissivity in the poloidal plane, assuming toroidal symmetry, from cameras viewing approximately tangentially. Such tomographic inversion is usually done by constructing a grid in the poloidal plane, on which we want to reconstruct the emission. Then, the relationship between the brightness of emission from each grid cell and the signal at each camera pixel is a large system of linear equations, where the brightness of a pixel is given by a weighted sum of the brightness of each grid cell along that line of sight. This is most compactly expressed by a matrix multiplication <span class="math">\(\mathbf{Ax = b}\)</span> where <span class="math">\(\mathbf{A}\)</span> is the geometry matrix, <span class="math">\(\mathbf{x}\)</span> is a vector of the brightnesses of each grid element (which we want to recover), and <span class="math">\(\mathbf{b}\)</span> is the image pixel data re-formatted in to a vector. The :module:calcam.gm module provides tools for generating the matrix <span class="math">\(\mathbf{A}\)</span>.</p>
+<p>It is common to want to recover the distribution of light emission from the plasma in the poloidal plane, assuming toroidal symmetry, from cameras viewing approximately tangentially. The emission is reconstructed on a grid defined the poloidal <span class="math">\((R,Z)\)</span> plane. The relationship between the brightness of emission from each grid element and the signal at each camera pixel is then a large system of linear equations, where the brightness of a pixel is given by a weighted sum of the brightness of each grid element along that pixel&#8217;s line of sight. This is most compactly expressed by a matrix multiplication <span class="math">\(\mathbf{Ax = b}\)</span> where <span class="math">\(\mathbf{A}\)</span> is the <em>geometry matrix</em>, <span class="math">\(\mathbf{x}\)</span> is a vector of the brightnesses of each grid element (which we want to find), and <span class="math">\(\mathbf{b}\)</span> is a vector of the pixel brightnesses. The calcam.gm module provides tools for generating the geometry matrix <span class="math">\(\mathbf{A}\)</span>.</p>
 <div class="section" id="model-assumptions-and-limitations">
 <h3>Model assumptions and limitations<a class="headerlink" href="#model-assumptions-and-limitations" title="Permalink to this headline">¶</a></h3>
-<p>In calculation of the geometry matrices, camera sight-lines are assumed to be infinitely thin pencil beams. The values of matrix element <span class="math">\(i,j\)</span> is given by the length, in metres, of the <span class="math">\(i^{th}\)</span> sight line which passes through the <span class="math">\(j^{th}\)</span> grid cell.</p>
+<p>In calculation of the geometry matrices, camera sight-lines are assumed to be infinitely thin pencil beams, i.e. finite etendue and depth-of-field effects are not included. If ray casting with binning = 1, each image pixel is characterised by a single pencil beam sight-line at the image centre, i.e. the finite size of the pixels is not accounted for. The values of matrix element <span class="math">\(i,j\)</span> is given by the length, in metres, of the <span class="math">\(i^{th}\)</span> sight line which passes through the <span class="math">\(j^{th}\)</span> grid cell.</p>
 </div>
 </div>
 <div class="section" id="the-geometry-matrix-class">
@@ -297,7 +297,7 @@ stored as a sparse matrix using the scipy.sprase.csr_matrix class.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>grid</strong> (<em>calcam.PoloidalVolumeGrid</em>) &#8211; Reconstruction grid to use</li>
+<li><strong>grid</strong> (<a class="reference internal" href="#calcam.gm.PoloidalVolumeGrid" title="calcam.gm.PoloidalVolumeGrid"><em>calcam.gm.PoloidalVolumeGrid</em></a>) &#8211; Reconstruction grid to use</li>
 <li><strong>raydata</strong> (<a class="reference internal" href="api_analysis.html#calcam.RayData" title="calcam.RayData"><em>calcam.RayData</em></a>) &#8211; Ray data for the camera to be inverted</li>
 <li><strong>pixel_order</strong> (<em>str</em>) &#8211; What pixel order to use when flattening                                             the 2D image array in to the 1D data vector.                                             Default &#8216;F&#8217; goes verticallytop-to-bottom, column-by-column,                                             alternatively &#8216;C&#8217; goes horizontally left-to-right,  row-by-row.</li>
 <li><strong>calc_status_callback</strong> (<em>callable</em>) &#8211; Callable which takes a single argument, which will be called with                                             status updates about the calculation. It will be called with either                                             a string for textual status updates or a float from 0 to 1 specifying                                             the progress of the calculation. By default, status updates are printed                                             to stdout.  If set to None, no status updates are issued.</li>
@@ -309,16 +309,16 @@ stored as a sparse matrix using the scipy.sprase.csr_matrix class.</p>
 <dl class="attribute">
 <dt id="calcam.gm.GeometryMatrix.data">
 <code class="descname">data</code><em class="property"> = None</em><a class="headerlink" href="#calcam.gm.GeometryMatrix.data" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>scipy.sparse.csr_matrix</em> &#8211; The geometry matrix itself.</p>
+<dd><p><em>scipy.sparse.csr_matrix</em> &#8211; The geometry matrix data itself.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="calcam.gm.GeometryMatrix.format_image">
 <code class="descname">format_image</code><span class="sig-paren">(</span><em>image</em>, <em>coords=None</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.GeometryMatrix.format_image" title="Permalink to this definition">¶</a></dt>
 <dd><p>Format a given 2D camera image in to a 1D data vector
-appropriate for use with this geometry matrix. This will
-bin the image, remove any excluded pixels and reshape it
-to a 1D vector.</p>
+(i.e. <span class="math">\(b\)</span> in <span class="math">\(Ax = b\)</span>) appropriate for use with this
+geometry matrix. This will bin the image, remove any excluded
+pixels and reshape it to a 1D vector.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -329,7 +329,7 @@ to a 1D vector.</p>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">1xN image data vector. Note that this is                                       returned as a sparse matrix object despite its                                       density being 100%; this is for consistency with the                                       matrix itself.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">1xN_pixels image data vector. Note that this is                                       returned as a sparse matrix object despite its                                       density being 100%; this is for consistency with the                                       matrix itself.</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">scipy.sparse.csr_matrix</p>
@@ -343,7 +343,7 @@ to a 1D vector.</p>
 <dt id="calcam.gm.GeometryMatrix.get_included_pixels">
 <code class="descname">get_included_pixels</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.GeometryMatrix.get_included_pixels" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get a mask showing which image pixels are included in the
-matrix.</p>
+geometry matrix.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -359,12 +359,12 @@ matrix.</p>
 <dl class="method">
 <dt id="calcam.gm.GeometryMatrix.get_los_coverage">
 <code class="descname">get_los_coverage</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.GeometryMatrix.get_los_coverage" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the number of lines of sight viewing each inversion element.</p>
+<dd><p>Get the number of lines of sight viewing each grid element.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Vector with as many elements as there a</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Vector with as many elements as there grid cells,                             with values being how many sight-lines interact with                             that grid element.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">numpy.ndarray</td>
 </tr>
@@ -378,16 +378,17 @@ matrix.</p>
 <dd><p>Get the mean reflective correlation coefficient of each matrix column
 with every other, but with the mean excluding other columns which are
 not correlated at all.</p>
-<p>Indicates which grid cells are likely to have correlation &amp; artefact problems
-in inversions.</p>
-<p>Note: this is done in a way which maintains the sparse storage structure of the
-matrix to avoid memory issues, but can be extremely slow to calculate for
-large matrices.</p>
+<p>Indicates which grid cells are likely to be highly correlated with
+others in the inversion problem and therefore will be artefact prone.</p>
+<p>Note: this calculation is done in a way which maintains the sparse storage
+structure of the matrix to avoid memory issues, but can be extremely slow
+to calculate for large matrices. It may be a good idea to increase the binning
+using set_binning() and then run this.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>status_callback</strong> (<em>callable</em>) &#8211; Callable which takes a single argument to be called                                          with status updates. The argument will either be a                                          string for textual status updates or a float from 0 to 1                                          specifying the progress of the calculation. If set to None,                                          no status updates are issued. By default, status updates are                                          printed to stdout.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>status_callback</strong> (<em>callable</em>) &#8211; Callable which takes a single argument to be called                                          with calculation status updates. The argument will either be a                                          string for textual status updates or a float from 0 to 1                                          specifying the progress of the calculation. If set to None,                                          no status updates are issued. By default, status updates are                                          printed to stdout.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Array with as many elements as there are matrix columns, giving the                             mean(ish) correlation coefficients.</td>
 </tr>
@@ -400,7 +401,7 @@ large matrices.</p>
 <dl class="attribute">
 <dt id="calcam.gm.GeometryMatrix.grid">
 <code class="descname">grid</code><em class="property"> = None</em><a class="headerlink" href="#calcam.gm.GeometryMatrix.grid" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>calcam.PoloidalVolumeGrid</em> &#8211; The inversion grid associated with the geometry matrix.</p>
+<dd><p><em>calcam.gm.PoloidalVolumeGrid</em> &#8211; The inversion grid associated with the geometry matrix.</p>
 </dd></dl>
 
 <dl class="classmethod">
@@ -493,8 +494,8 @@ uniform within the volume of each grid cell. Grid cells can be arbitrary
 polygons but all cells in the grid must all have the same number of
 sides.</p>
 <p>Grids can be constructed by directly instantiating this class with the
-following parameters, or alternatively  a number of convenience
-functions are provided for easily creating various types of grid.</p>
+following parameters, or alternatively convenience functions such as
+calcam.gm.squaregrid are provided for easily creating various types of grid.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -553,6 +554,38 @@ in 3D space, with the grid cell boundaries.</p>
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">4-element tuple of floats containing the                     grid extent Rmin,Rmax,Zmin,Zmax</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">tuple</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="calcam.gm.PoloidalVolumeGrid.interpolate">
+<code class="descname">interpolate</code><span class="sig-paren">(</span><em>data</em>, <em>r_new</em>, <em>z_new</em>, <em>fill_value=nan</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.PoloidalVolumeGrid.interpolate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a vector of data on the grid, return the data values at
+positions (r_new,z_new). Since quantities are assumed uniform
+within each grid cell, this is a &#8220;nearest neighbour&#8221; type
+interpolation where the value returned at new each point is
+the value of the grid cell that point lies within.</p>
+<p>Note: this is not particularly optimised for speed, but at least
+provides the functionality for now.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>data</strong> (<em>np.ndarray</em>) &#8211; 1D array containing the data defined on the grid;                                  must have the same number of elements as there are                                  grid cells.</li>
+<li><strong>r_new</strong> (<em>np.ndarray</em>) &#8211; Arry of new R positions; must be the same shape as z_new</li>
+<li><strong>z_new</strong> (<em>np.ndarray</em>) &#8211; Array of new Z positions, must be the same shape as r_new</li>
+<li><strong>fill_value</strong> (<em>float</em>) &#8211; What value to return for (r_new,z_new) points which lie                                  outside the grid. Default is np.nan.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Array the same shape as r_new and z_new containing the data                         values at positions (r_new,z_new).</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">np.ndarray</p>
+</td>
 </tr>
 </tbody>
 </table>
@@ -715,7 +748,7 @@ wall contour. Generated using J. Shewchuk&#8217;s &#8220;triangle&#8221; via the
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>wall_contour</strong> (<em>str</em><em> or </em><em>numpy.ndarray</em>) &#8211; Either the name of a Calcam CAD model                                               from which to use the wall contour, or an                                               N x 2 array of R,Z points defining the machine wall.</li>
-<li><strong>max_cell_scale</strong> (<em>float</em>) &#8211; Approximate maximum allowed length scale for a grid                                                dell, in metres.</li>
+<li><strong>max_cell_scale</strong> (<em>float</em>) &#8211; Approximate maximum allowed length scale for a grid                                               cell, in metres.</li>
 <li><strong>rmax</strong><strong>, </strong><strong>zmin</strong><strong>, </strong><strong>zmax</strong> (<em>rmin</em><em>,</em><em></em>) &#8211; Optional limits of the grid extent in the R, Z plane.                                               Any combination of these may or may not be given; if none                                               are given the entire wall contour interior is gridded.</li>
 </ul>
 </td>

@@ -35,7 +35,6 @@ import random
 import numpy as np
 import scipy.sparse
 import scipy.io
-import scipy.stats
 
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
@@ -45,7 +44,6 @@ import matplotlib.path as mplpath
 
 try:
     import meshpy.triangle
-    import meshpy.tet
     meshpy_err = None
 except Exception as e:
     meshpy_err = '{:}'.format(e)
@@ -65,8 +63,8 @@ class PoloidalVolumeGrid:
     sides.
     
     Grids can be constructed by directly instantiating this class with the 
-    following parameters, or alternatively  a number of convenience 
-    functions are provided for easily creating various types of grid.
+    following parameters, or alternatively convenience functions such as 
+    calcam.gm.squaregrid are provided for easily creating various types of grid.
 
     Parameters:
         
@@ -435,6 +433,76 @@ class PoloidalVolumeGrid:
         return axes,pcoll,wall_lines
 
 
+    def interpolate(self,data,r_new,z_new,fill_value=np.nan):
+        '''
+        Given a vector of data on the grid, return the data values at
+        positions (r_new,z_new). Since quantities are assumed uniform 
+        within each grid cell, this is a "nearest neighbour" type 
+        interpolation where the value returned at new each point is 
+        the value of the grid cell that point lies within.
+
+        Note: this is not particularly optimised for speed, but at least 
+        provides the functionality for now.
+
+        Parameters:
+
+            data (np.ndarray)  : 1D array containing the data defined on the grid; \
+                                 must have the same number of elements as there are \
+                                 grid cells.
+
+            r_new (np.ndarray) : Arry of new R positions; must be the same shape as z_new
+
+            z_new (np.ndarray) : Array of new Z positions, must be the same shape as r_new
+
+            fill_value (float) : What value to return for (r_new,z_new) points which lie \
+                                 outside the grid. Default is np.nan.
+
+        Returns:
+
+            np.ndarray : Array the same shape as r_new and z_new containing the data \
+                        values at positions (r_new,z_new).
+        '''
+
+        if r_new.shape != z_new.shape:
+            raise ValueError('r_new and z_new must be the same shape!')
+
+        if data.size != self.n_cells():
+            raise ValueError('Data vector has wrong size: data has {:d} values but there are {:d} grid cells!'.format(data.size,self.n_cells()))
+
+        orig_shape = r_new.shape
+
+        r_new = r_new.reshape(r_new.size)
+        z_new = z_new.reshape(z_new.size)
+
+        cell_inds = []
+
+        data_out = []
+
+        for i in range(r_new.size):
+
+            delta = self.vertices.copy()
+            delta[:,0] = delta[:,0] - r_new[i]
+            delta[:,1] = delta[:,1] - z_new[i]
+            theta = np.arctan2(delta[:,1],delta[:,0])
+            theta[theta < 0] = theta[theta < 0] + 2.*3.14159
+
+            theta_delta = np.abs( theta[self.cells] - theta[np.roll(self.cells,shift=-1,axis=1)] )
+            theta_delta[theta_delta > 3.141592] = 2*3.141592 - theta_delta[theta_delta > 3.141592]
+
+            theta_tot = theta_delta.sum(axis=1)
+
+            cell_inds = np.where(theta_tot > 2*3.1415)[0]
+
+            if cell_inds.size > 0:
+                data_out.append(data[cell_inds].mean())
+            else:
+                data_out.append(fill_value)
+
+        data_out = np.reshape(np.array(data_out),orig_shape)
+
+        return data_out
+
+
 
     def remove_cells(self,cell_inds):
         '''
@@ -523,7 +591,7 @@ class GeometryMatrix:
 
     Parameters:
 
-        grid (calcam.PoloidalVolumeGrid)  : Reconstruction grid to use
+        grid (calcam.gm.PoloidalVolumeGrid)  : Reconstruction grid to use
 
         raydata (calcam.RayData)          : Ray data for the camera to be inverted
 
@@ -551,9 +619,9 @@ class GeometryMatrix:
                     self.binning = raydata.binning
                     self.pixel_order = pixel_order
                     if self.image_coords.lower() == 'original':
-                        imdims = raydata.transform.get_original_shape()[::-1]
+                        imdims = (np.array(raydata.transform.get_original_shape()[::-1])/self.binning).astype(int)
                     elif self.image_coords.lower() == 'display':
-                        imdims = raydata.transform.get_display_shape()[::-1]
+                        imdims = (np.array(raydata.transform.get_display_shape()[::-1])/self.binning).astype(int)
                     self.pixel_mask = np.ones(imdims,dtype=bool)
             else:
                 
@@ -564,7 +632,7 @@ class GeometryMatrix:
 
             self.grid = copy.copy(grid)
             '''
-            calcam.PoloidalVolumeGrid : The inversion grid associated with the geometry matrix.
+            calcam.gm.PoloidalVolumeGrid : The inversion grid associated with the geometry matrix.
             '''    
             
             self.image_geometry = raydata.transform
@@ -610,7 +678,7 @@ class GeometryMatrix:
             # Build the matrix!
             self.data = scipy.sparse.csr_matrix((np.concatenate(data),(np.concatenate(rowinds),np.concatenate(colinds))),shape=(n_los,n_cells))            
             '''
-            scipy.sparse.csr_matrix : The geometry matrix itself.
+            scipy.sparse.csr_matrix : The geometry matrix data itself.
             '''
 
             if calc_status_callback is not None:
@@ -627,11 +695,13 @@ class GeometryMatrix:
 
     def get_los_coverage(self):
         '''
-        Get the number of lines of sight viewing each inversion element.
+        Get the number of lines of sight viewing each grid element.
         
         Returns:
             
-            numpy.ndarray : Vector with as many elements as there a
+            numpy.ndarray : Vector with as many elements as there grid cells, \
+                            with values being how many sight-lines interact with \
+                            that grid element.
         '''
         return np.diff(self.data.tocsc().indptr)
 
@@ -643,17 +713,18 @@ class GeometryMatrix:
         with every other, but with the mean excluding other columns which are
         not correlated at all.
         
-        Indicates which grid cells are likely to have correlation & artefact problems
-        in inversions.
+        Indicates which grid cells are likely to be highly correlated with 
+        others in the inversion problem and therefore will be artefact prone.
         
-        Note: this is done in a way which maintains the sparse storage structure of the
-        matrix to avoid memory issues, but can be extremely slow to calculate for
-        large matrices.
+        Note: this calculation is done in a way which maintains the sparse storage 
+        structure of the matrix to avoid memory issues, but can be extremely slow 
+        to calculate for large matrices. It may be a good idea to increase the binning
+        using set_binning() and then run this.
         
         Parameters:
             
             status_callback (callable) : Callable which takes a single argument to be called \
-                                         with status updates. The argument will either be a \
+                                         with calculation status updates. The argument will either be a \
                                          string for textual status updates or a float from 0 to 1 \
                                          specifying the progress of the calculation. If set to None, \
                                          no status updates are issued. By default, status updates are \
@@ -831,7 +902,7 @@ class GeometryMatrix:
     def get_included_pixels(self):
         '''
         Get a mask showing which image pixels are included in the
-        matrix.
+        geometry matrix.
 
         Returns:
 
@@ -877,10 +948,10 @@ class GeometryMatrix:
 
     def format_image(self,image,coords=None):
         '''
-        Format a given 2D camera image in to a 1D data vector
-        appropriate for use with this geometry matrix. This will 
-        bin the image, remove any excluded pixels and reshape it 
-        to a 1D vector.
+        Format a given 2D camera image in to a 1D data vector 
+        (i.e. :math:`b` in :math:`Ax = b`) appropriate for use with this 
+        geometry matrix. This will bin the image, remove any excluded 
+        pixels and reshape it to a 1D vector.
 
         Parameters: 
 
@@ -893,7 +964,7 @@ class GeometryMatrix:
 
         Returns:
 
-            scipy.sparse.csr_matrix : 1xN image data vector. Note that this is \
+            scipy.sparse.csr_matrix : 1xN_pixels image data vector. Note that this is \
                                       returned as a sparse matrix object despite its \
                                       density being 100%; this is for consistency with the \
                                       matrix itself.
@@ -1353,8 +1424,8 @@ def trigrid(wall_contour,max_cell_scale,rmin=None,rmax=None,zmin=None,zmax=None,
                                               from which to use the wall contour, or an \
                                               N x 2 array of R,Z points defining the machine wall.
                                            
-        max_cell_scale (float)               : Approximate maximum allowed length scale for a grid \
-                                               dell, in metres.
+        max_cell_scale (float)              : Approximate maximum allowed length scale for a grid \
+                                              cell, in metres.
         
         rmin, rmax, zmin, zmax  (float)     : Optional limits of the grid extent in the R, Z plane. \
                                               Any combination of these may or may not be given; if none \
