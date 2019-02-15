@@ -11,6 +11,7 @@ Fixes:
 * Fix bug where loading chessboard images in the fitting calibration tool would cause an exception.
 * Fix bug where calcam.gui and matplotlib could try to use different PyQt versions leading to exceptions.
 * Fix bugs in VirtualCalib.__init__ and AlignmentCalib.__init__ which caused segfaults when launching virtual and alignment calibration GUIs on some platforms.
+* Fix broken Fitter.set_fitflags_strings() method.
 
 
 Bug fix release 2.1.2 (5th Feb 2019)

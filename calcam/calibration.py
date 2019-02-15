@@ -2057,8 +2057,6 @@ class Fitter:
 
     def set_fitflags_strings(self,fitflags_strings):
 
-        if len(fitflags_strings) != self.nfields:
-            raise ValueError('Number of fit flag string lists provided is different to number of fields!')
 
         # Start off with resetting everything
         self.fixaspectratio = False
