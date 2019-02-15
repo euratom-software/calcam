@@ -503,7 +503,7 @@ class Calibration():
             filename (str) : Name of the file to load.
         '''
 
-        self.filename = filename
+        self.filename = os.path.abspath(filename)
         self.name = os.path.split(filename)[-1].split('.')[0]
 
         with ZipSaveFile(filename,'r') as save_file:

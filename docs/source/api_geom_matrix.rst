@@ -13,9 +13,12 @@ In calculation of the geometry matrices, camera sight-lines are assumed to be in
 
 The Geometry Matrix class
 -------------------------
-.. autoclass:: calcam.gm.GeometryMatrix
-	:members: grid,data,get_los_coverage,get_mean_rcc,set_binning,set_included_pixels,get_included_pixels,save,format_image,load
-
+.. autoclass:: calcam.gm.GeometryMatrix(grid,raydata,pixel_order='F',calc_status_callback=calcam_status_printer)
+    :members: grid,data,get_los_coverage,set_binning,set_included_pixels,get_included_pixels,save,format_image,load
+    
+    .. automethod:: calcam.gm.GeometryMatrix.get_mean_rcc(status_callback=calcam_status_printer)
+    
+    
 Reconstruction grids
 --------------------
 .. autoclass:: calcam.gm.PoloidalVolumeGrid

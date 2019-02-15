@@ -723,10 +723,10 @@ class GeometryMatrix:
         
         Parameters:
             
-            status_callback (callable) : Callable which takes a single argument to be called \
-                                         with calculation status updates. The argument will either be a \
-                                         string for textual status updates or a float from 0 to 1 \
-                                         specifying the progress of the calculation. If set to None, \
+            status_callback (callable) : Callable which takes a single argument, to be called \
+                                         with calculation status updates. The argument to status_callback \
+                                         will either be a string for textual status updates or a float from \
+                                         0 to 1 specifying the progress of the calculation. If set to None, \
                                          no status updates are issued. By default, status updates are \
                                          printed to stdout.
                                                                   

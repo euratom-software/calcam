@@ -24,27 +24,17 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="genindex.html"/>
-        <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="Calcam  documentation" href="index.html"/>
-        <link rel="next" title="Examples" href="api_examples.html"/>
-        <link rel="prev" title="CAD Models" href="api_cadmodel.html"/> 
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="next" title="Examples" href="api_examples.html" />
+    <link rel="prev" title="CAD Models" href="api_cadmodel.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -61,7 +51,7 @@
 
           
             
-            <img src="_static/logo.png" class="logo" />
+            <img src="_static/logo.png" class="logo" alt="Logo"/>
           
           </a>
 
@@ -69,7 +59,7 @@
             
             
               <div class="version">
-                Version 2.1
+                Version 2.2
               </div>
             
           
@@ -221,7 +211,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">Calcam</a>
@@ -229,9 +219,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -285,7 +276,7 @@
 <h2>The Geometry Matrix class<a class="headerlink" href="#the-geometry-matrix-class" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="calcam.gm.GeometryMatrix">
-<em class="property">class </em><code class="descclassname">calcam.gm.</code><code class="descname">GeometryMatrix</code><span class="sig-paren">(</span><em>grid</em>, <em>raydata</em>, <em>pixel_order='F'</em>, <em>calc_status_callback=&lt;bound method LoopProgPrinter.update of &lt;calcam.misc.LoopProgPrinter object&gt;&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.GeometryMatrix" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">calcam.gm.</code><code class="descname">GeometryMatrix</code><span class="sig-paren">(</span><em>grid</em>, <em>raydata</em>, <em>pixel_order='F'</em>, <em>calc_status_callback=calcam_status_printer</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.GeometryMatrix" title="Permalink to this definition">¶</a></dt>
 <dd><p>Class to represent a scalar geometry matrix and associated metadata.</p>
 <p>A new geometry matrix can be created by instantiating this class
 with the below parameters, or a saved geometry matrix can be loaded
@@ -306,6 +297,32 @@ stored as a sparse matrix using the scipy.sprase.csr_matrix class.</p>
 </tr>
 </tbody>
 </table>
+<dl class="method">
+<dt id="calcam.gm.GeometryMatrix.get_mean_rcc">
+<code class="descname">get_mean_rcc</code><span class="sig-paren">(</span><em>status_callback=calcam_status_printer</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.GeometryMatrix.get_mean_rcc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the mean reflective correlation coefficient of each matrix column
+with every other, but with the mean excluding other columns which are
+not correlated at all.</p>
+<p>Indicates which grid cells are likely to be highly correlated with
+others in the inversion problem and therefore will be artefact prone.</p>
+<p>Note: this calculation is done in a way which maintains the sparse storage
+structure of the matrix to avoid memory issues, but can be extremely slow
+to calculate for large matrices. It may be a good idea to increase the binning
+using set_binning() and then run this.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>status_callback</strong> (<em>callable</em>) &#8211; Callable which takes a single argument, to be called                                          with calculation status updates. The argument to status_callback                                          will either be a string for textual status updates or a float from                                          0 to 1 specifying the progress of the calculation. If set to None,                                          no status updates are issued. By default, status updates are                                          printed to stdout.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Array with as many elements as there are matrix columns, giving the                             mean(ish) correlation coefficients.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">numpy.ndarray</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="calcam.gm.GeometryMatrix.data">
 <code class="descname">data</code><em class="property"> = None</em><a class="headerlink" href="#calcam.gm.GeometryMatrix.data" title="Permalink to this definition">¶</a></dt>
@@ -367,32 +384,6 @@ geometry matrix.</p>
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Vector with as many elements as there grid cells,                             with values being how many sight-lines interact with                             that grid element.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">numpy.ndarray</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="calcam.gm.GeometryMatrix.get_mean_rcc">
-<code class="descname">get_mean_rcc</code><span class="sig-paren">(</span><em>status_callback=&lt;bound method LoopProgPrinter.update of &lt;calcam.misc.LoopProgPrinter object&gt;&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.GeometryMatrix.get_mean_rcc" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the mean reflective correlation coefficient of each matrix column
-with every other, but with the mean excluding other columns which are
-not correlated at all.</p>
-<p>Indicates which grid cells are likely to be highly correlated with
-others in the inversion problem and therefore will be artefact prone.</p>
-<p>Note: this calculation is done in a way which maintains the sparse storage
-structure of the matrix to avoid memory issues, but can be extremely slow
-to calculate for large matrices. It may be a good idea to increase the binning
-using set_binning() and then run this.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>status_callback</strong> (<em>callable</em>) &#8211; Callable which takes a single argument to be called                                          with calculation status updates. The argument will either be a                                          string for textual status updates or a float from 0 to 1                                          specifying the progress of the calculation. If set to None,                                          no status updates are issued. By default, status updates are                                          printed to stdout.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Array with as many elements as there are matrix columns, giving the                             mean(ish) correlation coefficients.</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">numpy.ndarray</td>
 </tr>
 </tbody>
 </table>
@@ -650,9 +641,9 @@ plot the grid itself.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>data</strong> (<em>array</em>) &#8211; Data to plot on the grid. Must be a 1D array with as many elements                                               as there are grid cells. If not given, only the grid structure is plotted.</li>
-<li><strong>clim</strong> (<em>sequence</em><em> or </em><em>None</em>) &#8211; 2 element sequence giving the colourmap limits for the data [min,max].                                               If set to None, the data min and max are used.</li>
-<li><strong>cmap</strong> (<em>str</em><em> or </em><em>None</em>) &#8211; Name of the matplotlib colourmap to use to display the data. If not given,                                               matplotlib&#8217;s default colourmap will be used.</li>
-<li><strong>line_colour</strong> (<em>sequence</em><em> or </em><em>None</em>) &#8211; 3-element sequence of values between 0 and 1 specifying the R,G,B                                               colour with which to draw the wall contour and grid cell boundaries.                                               If set to None, the wall and cell boundaries are not drawn.</li>
+<li><strong>clim</strong> (<em>sequence or None</em>) &#8211; 2 element sequence giving the colourmap limits for the data [min,max].                                               If set to None, the data min and max are used.</li>
+<li><strong>cmap</strong> (<em>str or None</em>) &#8211; Name of the matplotlib colourmap to use to display the data. If not given,                                               matplotlib&#8217;s default colourmap will be used.</li>
+<li><strong>line_colour</strong> (<em>sequence or None</em>) &#8211; 3-element sequence of values between 0 and 1 specifying the R,G,B                                               colour with which to draw the wall contour and grid cell boundaries.                                               If set to None, the wall and cell boundaries are not drawn.</li>
 <li><strong>cell_linewidth</strong> (<em>float</em>) &#8211; Line width to use to show the grid cell boundaries. If set to 0, the grid                                               cell boundaries will not be drawn.</li>
 <li><strong>cblabel</strong> (<em>str</em>) &#8211; Label for the data colour bar, if plotting data.</li>
 <li><strong>axes</strong> (<em>matplotlib.pyplot.Axes</em>) &#8211; Matplotlib axes on which to plot. If not given, a new figure will be created.</li>
@@ -721,9 +712,9 @@ plot the grid itself.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>wall_contour</strong> (<em>str</em><em> or </em><em>numpy.ndarray</em>) &#8211; Either the name of a Calcam CAD model                                               from which to use the wall contour, or an                                               N x 2 array of R,Z points defining the machine wall.</li>
+<li><strong>wall_contour</strong> (<em>str or numpy.ndarray</em>) &#8211; Either the name of a Calcam CAD model                                               from which to use the wall contour, or an                                               N x 2 array of R,Z points defining the machine wall.</li>
 <li><strong>cell_size</strong> (<em>float</em>) &#8211; Side length of each grid cell in metres.</li>
-<li><strong>rmax</strong><strong>, </strong><strong>zmin</strong><strong>, </strong><strong>zmax</strong> (<em>rmin</em><em>,</em><em></em>) &#8211; Optional limits of the grid extent in the R, Z plane.                                               Any combination of these may or may not be given; if none                                               are given the entire wall contour interior is gridded.</li>
+<li><strong>rmax, zmin, zmax</strong> (<em>rmin,</em>) &#8211; Optional limits of the grid extent in the R, Z plane.                                               Any combination of these may or may not be given; if none                                               are given the entire wall contour interior is gridded.</li>
 </ul>
 </td>
 </tr>
@@ -747,9 +738,9 @@ wall contour. Generated using J. Shewchuk&#8217;s &#8220;triangle&#8221; via the
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>wall_contour</strong> (<em>str</em><em> or </em><em>numpy.ndarray</em>) &#8211; Either the name of a Calcam CAD model                                               from which to use the wall contour, or an                                               N x 2 array of R,Z points defining the machine wall.</li>
+<li><strong>wall_contour</strong> (<em>str or numpy.ndarray</em>) &#8211; Either the name of a Calcam CAD model                                               from which to use the wall contour, or an                                               N x 2 array of R,Z points defining the machine wall.</li>
 <li><strong>max_cell_scale</strong> (<em>float</em>) &#8211; Approximate maximum allowed length scale for a grid                                               cell, in metres.</li>
-<li><strong>rmax</strong><strong>, </strong><strong>zmin</strong><strong>, </strong><strong>zmax</strong> (<em>rmin</em><em>,</em><em></em>) &#8211; Optional limits of the grid extent in the R, Z plane.                                               Any combination of these may or may not be given; if none                                               are given the entire wall contour interior is gridded.</li>
+<li><strong>rmax, zmin, zmax</strong> (<em>rmin,</em>) &#8211; Optional limits of the grid extent in the R, Z plane.                                               Any combination of these may or may not be given; if none                                               are given the entire wall contour interior is gridded.</li>
 </ul>
 </td>
 </tr>
@@ -775,9 +766,7 @@ This can be used to further control the meshing; see the MeshPy documentation fo
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -795,11 +784,11 @@ This can be used to further control the meshing; see the MeshPy documentation fo
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015-2018, European Atomic Energy Community (EURATOM).
+        &copy; Copyright 2015-2018, European Atomic Energy Community (EURATOM)
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -814,36 +803,34 @@ This can be used to further control the meshing; see the MeshPy documentation fo
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  false,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'./',
+              VERSION:'',
+              LANGUAGE:'en',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  false,
+              SOURCELINK_SUFFIX: ''
+          };
+      </script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
 
   
 
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>
