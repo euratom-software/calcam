@@ -3,19 +3,21 @@ Installation & Setup
 ====================
 
 
-Download & Installation
------------------------
-Calcam is a Python package, so the first thing to do is get a working Python installation. Calcam works with Python version 2.7 or newer, however it is highly recommended to use Python 3.x.
-
+Getting Calcam
+---------------
 The latest release version of Calcam can be downloaded from the `Relases page <https://github.com/euratom-software/calcam/releases>`_ , which should be the latest stable, fully working version.
 
 Alternatively, the cutting edge version of the code can be cloned from the GitHub repository::
 
 	git clone https://github.com/euratom-software/calcam.git
 
-or downloaded from the `GitHub page <https://github.com/euratom-software/calcam>`_.
+or downloaded using the "Clone or Download" button on the `GitHub page <https://github.com/euratom-software/calcam>`_.
 
-Once you have the calcam repository files on your computer, the package can be installed using the included ``setuptools`` setup script included in the repository::
+Installation
+-------------
+Calcam is a Python package, so the first thing to do is install Python, if you don't have it already. Calcam works with Python version 2.7 or newer, however it is highly recommended to use Python 3.x. You will also need the ``setuptools`` python package (which comes as standard with most python distributions) to take advantage of Calcam's installation script as described below. 
+
+Once you have Python working and the calcam repository files on your computer, the package can be installed from the system command line using the setup script included in the root of the repository::
 
 	python setup.py install
 
@@ -36,8 +38,8 @@ If you want to be able to edit the Calcam source code without having to run the 
 In this case the copy of the code you are installing from remains the "live" version and can be used for development. Again, the ``--user`` switch can be added to install in the current user's library path rather than the system one.
 
 
-CAD Models and Image Sources
-----------------------------
+Initial Configuration
+---------------------
 
 Setting up CAD Model Definitions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
