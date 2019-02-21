@@ -24,17 +24,27 @@
 
   
 
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="next" title="Concepts &amp; Conventions" href="intro_conventions.html" />
-    <link rel="prev" title="Camera Calibration Theory" href="intro_theory.html" /> 
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="Calcam  documentation" href="index.html"/>
+        <link rel="next" title="Camera Calibration Theory" href="intro_theory.html"/>
+        <link rel="prev" title="Genral Introduction to Calcam" href="intro_general.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav">
+<body class="wy-body-for-nav" role="document">
 
    
   <div class="wy-grid-for-nav">
@@ -51,7 +61,7 @@
 
           
             
-            <img src="_static/logo.png" class="logo" alt="Logo"/>
+            <img src="_static/logo.png" class="logo" />
           
           </a>
 
@@ -86,18 +96,17 @@
               <p class="caption"><span class="caption-text">Introduction</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="intro_general.html">Genral Introduction to Calcam</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installation &amp; Setup</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#download-installation">Download &amp; Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cad-models-and-image-sources">CAD Models and Image Sources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#upgrading-from-calcam-1-x">Upgrading from Calcam 1.x</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="intro_theory.html">Camera Calibration Theory</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="intro_theory.html#camera-model">Camera Model</a></li>
 <li class="toctree-l2"><a class="reference internal" href="intro_theory.html#perspective-distortion-model">Perspective Distortion Model</a></li>
 <li class="toctree-l2"><a class="reference internal" href="intro_theory.html#fisheye-distirtion-model">Fisheye Distirtion Model</a></li>
 <li class="toctree-l2"><a class="reference internal" href="intro_theory.html#underlying-opencv-documentation">Underlying OpenCV Documentation</a></li>
-</ul>
-</li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Installation &amp; Setup</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#dependencies">Dependencies</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#download-installation">Download &amp; Installation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#cad-models-and-image-sources">CAD Models and Image Sources</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#upgrading-from-calcam-1-x">Upgrading from Calcam 1.x</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="intro_conventions.html">Concepts &amp; Conventions</a><ul>
@@ -211,7 +220,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" aria-label="top navigation">
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">Calcam</a>
@@ -219,10 +228,9 @@
       </nav>
 
 
+      
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
           
 
 
@@ -264,33 +272,23 @@
             
   <div class="section" id="installation-setup">
 <h1>Installation &amp; Setup<a class="headerlink" href="#installation-setup" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="dependencies">
-<h2>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h2>
-<p>Calcam is known to work under Python versions from 2.7 -  3.6, and probably works with newer versions but has not been explicitly tested. In addition to NumPy and SciPy, it also requires the following less standard Python packages to be installed:</p>
-<blockquote>
-<div><ul class="simple">
-<li>OpenCV (cv2) 2.4+ [Some features only available with 3.0+]</li>
-<li>PyQt4 or PyQt5</li>
-<li>VTK 6.0+ [Tested with versions up to 8.1. Must be built with Qt support enabled]</li>
-</ul>
-</div></blockquote>
-<p>These cannot be reliably installed automatically by the setup script on all platforms / environments, so the setup script will merely check if these are working and will issue an error or warning if not. It is highly recommended to get these libraries installed and working before installing Calcam. The easiest way to install them is usually through your OS&#8217;s package manager, if applicable, or to use a Python distibution such as <a class="reference external" href="https://www.enthought.com/product/canopy/">Enthought Canopy</a> or <a class="reference external" href="https://python-xy.github.io/">Python (x,y)</a>. which can provide these packages. It can be very tricky to build these libraries and their python bindings from source and get everything working properly together.</p>
-<p>Note: If you only need to work with already created calibration results, it is possible to use some parts of Calcam, e.g. the <a class="reference internal" href="api_analysis.html#calcam.Calibration" title="calcam.Calibration"><code class="xref py py-class docutils literal"><span class="pre">calcam.Calibration</span></code></a> class, without having VTK available.</p>
-</div>
 <div class="section" id="download-installation">
 <h2>Download &amp; Installation<a class="headerlink" href="#download-installation" title="Permalink to this headline">¶</a></h2>
-<p>If you have Git available, the very latest version of the code can be cloned from the GitHub repository:</p>
+<p>Calcam is a Python package, so the first thing to do is get a working Python installation. Calcam works with Python version 2.7 or newer, however it is highly recommended to use Python 3.x.</p>
+<p>The latest release version of Calcam can be downloaded from the <a class="reference external" href="https://github.com/euratom-software/calcam/releases">Relases page</a> , which should be the latest stable, fully working version.</p>
+<p>Alternatively, the cutting edge version of the code can be cloned from the GitHub repository:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">euratom</span><span class="o">-</span><span class="n">software</span><span class="o">/</span><span class="n">calcam</span><span class="o">.</span><span class="n">git</span>
 </pre></div>
 </div>
-<p>Alternatively, the latest release version of the code can be downloaded from: <a class="reference external" href="https://github.com/euratom-software/calcam/releases">https://github.com/euratom-software/calcam/releases</a> .</p>
-<p>Once you have the calcam repository files on your computer, the package is installed using the included <code class="docutils literal"><span class="pre">setuptools</span></code> setup script:</p>
+<p>or downloaded from the <a class="reference external" href="https://github.com/euratom-software/calcam">GitHub page</a>.</p>
+<p>Once you have the calcam repository files on your computer, the package can be installed using the included <code class="docutils literal"><span class="pre">setuptools</span></code> setup script included in the repository:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">install</span>
 </pre></div>
 </div>
-<p>This will copy Calcam to the appropriate Python library path and create a launcher script for the Calcam GUI. If installing on a system where you do not have the relevant admin/root permissions to install python packages globally, adding the <code class="docutils literal"><span class="pre">--user</span></code> switch to the above command will install the package under your user account specifically.</p>
-<p>After the setup script is finished you can delete the downloaded calcam files, should you want.</p>
-<p><strong>Note for Windows users:</strong> If installing Calcam on Windows, the setup script will finish by printing the location of the GUI launcher <code class="docutils literal"><span class="pre">calcam.exe</span></code> which is created during the installation. It is recommended to make a shortcut to this in a place of your choosing for easy access to the Calcam GUI.</p>
+<p>In Python 3, this will ensure Calcam&#8217;s dependencies (Scipy, OpenCV, PyQt and VTK) are installed, copy Calcam to the appropriate Python library path and create a launcher script for the Calcam GUI. In Python 2, the PyQt and VTK dependencies cannot typically be installed automatically, and the setup script will instead test if these modules are available and show a warning if they are not. The easiest way to get PyQt and VTK up and running with Python 2 is to use a distribution such as  to use a Python distibution such as <a class="reference external" href="https://www.enthought.com/product/canopy/">Enthought Canopy</a> or <a class="reference external" href="https://python-xy.github.io/">Python (x,y)</a>, but the best solution is to just use Python 3!</p>
+<p>If installing on a system where you do not have the relevant admin/root permissions to install python packages globally (in which case running the above command will produce an error message saying something about permission denied), adding the <code class="docutils literal"><span class="pre">--user</span></code> switch to the above command will install the package under your user account specifically.</p>
+<p>After the setup script is finished you can delete the downloaded calcam files, if you want.</p>
+<p><strong>Note:</strong> At the end of the setup process, the setup script will finish by printing the location of the GUI launcher script or <code class="docutils literal"><span class="pre">exe</span></code> which is created during the installation. If its location is not already in your <code class="docutils literal"><span class="pre">PATH</span></code> environment variable, it is recommended to add this location to your <code class="docutils literal"><span class="pre">PATH</span></code> or create a shortcut to the launcher in a convenient place.</p>
 <div class="section" id="installing-in-development-mode">
 <h3>Installing in Development mode<a class="headerlink" href="#installing-in-development-mode" title="Permalink to this headline">¶</a></h3>
 <p>If you want to be able to edit the Calcam source code without having to run the install again to have your changes go live, you can use the below alternative command to install calcam in development mode:</p>
@@ -343,16 +341,18 @@
 
 
            </div>
-           
+           <div class="articleComments">
+            
+           </div>
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="intro_conventions.html" class="btn btn-neutral float-right" title="Concepts &amp; Conventions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="intro_theory.html" class="btn btn-neutral float-right" title="Camera Calibration Theory" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="intro_theory.html" class="btn btn-neutral" title="Camera Calibration Theory" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="intro_general.html" class="btn btn-neutral" title="Genral Introduction to Calcam" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -361,11 +361,11 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015-2018, European Atomic Energy Community (EURATOM)
+        &copy; Copyright 2015-2018, European Atomic Energy Community (EURATOM).
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -380,34 +380,36 @@
 
   
 
-    
-    
-      <script type="text/javascript">
-          var DOCUMENTATION_OPTIONS = {
-              URL_ROOT:'./',
-              VERSION:'',
-              LANGUAGE:'en',
-              COLLAPSE_INDEX:false,
-              FILE_SUFFIX:'.html',
-              HAS_SOURCE:  false,
-              SOURCELINK_SUFFIX: ''
-          };
-      </script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  false,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 
-  <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
 
+  
+  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.Navigation.enable(true);
+          SphinxRtdTheme.StickyNav.enable();
       });
-  </script> 
+  </script>
+   
 
 </body>
 </html>

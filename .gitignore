@@ -6,3 +6,5 @@
 *.toc
 docs/html/.doctrees
 Calcam.egg-info/*
+build/
+dist/

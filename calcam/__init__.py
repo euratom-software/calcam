@@ -25,26 +25,28 @@ CalCam package.
 """
 
 # Calcam version
-__version__ = '2.2.rc0'
+__version__ = '2.2rc1'
 
-# Some stuff will only work if we have VTK.
-try:
-    import vtk
-except ImportError:
-    vtk = None
 
 # Note: We have to import the GUI module before anything
 # else to make sure the Calcam GUI and Matplotlib are
 # using the same version of Qt and will therefore work well
 # together.
+try:
+    import vtk
 
+    try:
+        from . import gui
+        from .gui import start_gui
+    except Exception as e:
+        print('WARNING: calcam.gui module not available (error: {:})'.format(e))
 
-if vtk:
-    from . import gui
-    from .gui import start_gui
     from .cadmodel import CADModel
     from .raycast import raycast_sightlines
     from .render import render_cam_view
+
+except:
+    print('WARNING: VTK not available; calcam.gui, calcam.raycast, calcam.render and calcam.cadmodel modules will not be available.')
 
 
 # Import the top level "public facing" classes & functions

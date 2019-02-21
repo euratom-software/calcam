@@ -1442,7 +1442,7 @@ def trigrid(wall_contour,max_cell_scale,rmin=None,rmax=None,zmin=None,zmax=None,
     '''
     # Before trying to generate a triangular grid, check we have the meshpy package available.
     if meshpy_err is not None:
-        raise Exception('Cannot create MeshPy based mesh: MeshPy module failed to import with error: {:s}'.format(meshpy_err))
+        raise Exception('This function requires the MeshPy module (https://pypi.org/project/MeshPy), which could not be imported: {:s}'.format(meshpy_err))
 
     # If given a machine name for the wall contour, get the R,Z contour
     if type(wall_contour) is str:

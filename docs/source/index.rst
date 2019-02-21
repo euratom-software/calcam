@@ -16,8 +16,8 @@ Welcome to the Calcam documentation index page. If you want to know what it's al
    :name: maintoc
 
    intro_general
-   intro_theory
    intro_install_setup
+   intro_theory
    intro_conventions
    
 

@@ -2,36 +2,30 @@
 Installation & Setup
 ====================
 
-Dependencies
--------------
-Calcam is known to work under Python versions from 2.7 -  3.6, and probably works with newer versions but has not been explicitly tested. In addition to NumPy and SciPy, it also requires the following less standard Python packages to be installed:
-
-	- OpenCV (cv2) 2.4+ [Some features only available with 3.0+]
-	- PyQt4 or PyQt5
-	- VTK 6.0+ [Tested with versions up to 8.1. Must be built with Qt support enabled]
-	
-These cannot be reliably installed automatically by the setup script on all platforms / environments, so the setup script will merely check if these are working and will issue an error or warning if not. It is highly recommended to get these libraries installed and working before installing Calcam. The easiest way to install them is usually through your OS's package manager, if applicable, or to use a Python distibution such as `Enthought Canopy <https://www.enthought.com/product/canopy/>`_ or `Python (x,y) <https://python-xy.github.io/>`_. which can provide these packages. It can be very tricky to build these libraries and their python bindings from source and get everything working properly together.
-
-Note: If you only need to work with already created calibration results, it is possible to use some parts of Calcam, e.g. the :class:`calcam.Calibration` class, without having VTK available.
-
 
 Download & Installation
 -----------------------
-If you have Git available, the very latest version of the code can be cloned from the GitHub repository::
+Calcam is a Python package, so the first thing to do is get a working Python installation. Calcam works with Python version 2.7 or newer, however it is highly recommended to use Python 3.x.
+
+The latest release version of Calcam can be downloaded from the `Relases page <https://github.com/euratom-software/calcam/releases>`_ , which should be the latest stable, fully working version.
+
+Alternatively, the cutting edge version of the code can be cloned from the GitHub repository::
 
 	git clone https://github.com/euratom-software/calcam.git
 
-Alternatively, the latest release version of the code can be downloaded from: `<https://github.com/euratom-software/calcam/releases>`_ .
+or downloaded from the `GitHub page <https://github.com/euratom-software/calcam>`_.
 
-Once you have the calcam repository files on your computer, the package is installed using the included ``setuptools`` setup script::
+Once you have the calcam repository files on your computer, the package can be installed using the included ``setuptools`` setup script included in the repository::
 
 	python setup.py install
 
-This will copy Calcam to the appropriate Python library path and create a launcher script for the Calcam GUI. If installing on a system where you do not have the relevant admin/root permissions to install python packages globally, adding the ``--user`` switch to the above command will install the package under your user account specifically.
+In Python 3, this will ensure Calcam's dependencies (Scipy, OpenCV, PyQt and VTK) are installed, copy Calcam to the appropriate Python library path and create a launcher script for the Calcam GUI. In Python 2, the PyQt and VTK dependencies cannot typically be installed automatically, and the setup script will instead test if these modules are available and show a warning if they are not. The easiest way to get PyQt and VTK up and running with Python 2 is to use a distribution such as  to use a Python distibution such as `Enthought Canopy <https://www.enthought.com/product/canopy/>`_ or `Python (x,y) <https://python-xy.github.io/>`_, but the best solution is to just use Python 3!
 
-After the setup script is finished you can delete the downloaded calcam files, should you want.
+If installing on a system where you do not have the relevant admin/root permissions to install python packages globally (in which case running the above command will produce an error message saying something about permission denied), adding the ``--user`` switch to the above command will install the package under your user account specifically.
 
-**Note for Windows users:** If installing Calcam on Windows, the setup script will finish by printing the location of the GUI launcher ``calcam.exe`` which is created during the installation. It is recommended to make a shortcut to this in a place of your choosing for easy access to the Calcam GUI.
+After the setup script is finished you can delete the downloaded calcam files, if you want.
+
+**Note:** At the end of the setup process, the setup script will finish by printing the location of the GUI launcher script or ``exe`` which is created during the installation. If its location is not already in your ``PATH`` environment variable, it is recommended to add this location to your ``PATH`` or create a shortcut to the launcher in a convenient place.
 
 Installing in Development mode
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
