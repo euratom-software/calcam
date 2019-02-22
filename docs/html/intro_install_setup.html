@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Installation &amp; Setup &mdash; Calcam  documentation</title>
+  <title>Getting Up &amp; Running &mdash; Calcam  documentation</title>
   
 
   
@@ -24,27 +24,17 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="genindex.html"/>
-        <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="Calcam  documentation" href="index.html"/>
-        <link rel="next" title="Camera Calibration Theory" href="intro_theory.html"/>
-        <link rel="prev" title="Genral Introduction to Calcam" href="intro_general.html"/> 
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="next" title="Camera Calibration Theory" href="intro_theory.html" />
+    <link rel="prev" title="Genral Introduction to Calcam" href="intro_general.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -61,7 +51,7 @@
 
           
             
-            <img src="_static/logo.png" class="logo" />
+            <img src="_static/logo.png" class="logo" alt="Logo"/>
           
           </a>
 
@@ -96,7 +86,7 @@
               <p class="caption"><span class="caption-text">Introduction</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="intro_general.html">Genral Introduction to Calcam</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Installation &amp; Setup</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Getting Up &amp; Running</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#getting-calcam">Getting Calcam</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#initial-configuration">Initial Configuration</a></li>
@@ -221,7 +211,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">Calcam</a>
@@ -229,9 +219,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -254,7 +245,7 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>Installation &amp; Setup</li>
+      <li>Getting Up &amp; Running</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -271,8 +262,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="installation-setup">
-<h1>Installation &amp; Setup<a class="headerlink" href="#installation-setup" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="getting-up-running">
+<h1>Getting Up &amp; Running<a class="headerlink" href="#getting-up-running" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="getting-calcam">
 <h2>Getting Calcam<a class="headerlink" href="#getting-calcam" title="Permalink to this headline">¶</a></h2>
 <p>The latest release version of Calcam can be downloaded from the <a class="reference external" href="https://github.com/euratom-software/calcam/releases">Relases page</a> , which should be the latest stable, fully working version.</p>
@@ -284,15 +275,14 @@
 </div>
 <div class="section" id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
-<p>Calcam is a Python package, so the first thing to do is install Python, if you don&#8217;t have it already. Calcam works with Python version 2.7 or newer, however it is highly recommended to use Python 3.x. You will also need the <code class="docutils literal"><span class="pre">setuptools</span></code> python package (which comes as standard with most python distributions) to take advantage of Calcam&#8217;s installation script as described below.</p>
-<p>Once you have Python working and the calcam repository files on your computer, the package can be installed from the system command line using the setup script included in the root of the repository:</p>
+<p>Calcam is a Python package, so the first thing to do is install Python, if you don&#8217;t have it already. Calcam works with Python version 2.7 or newer, however it is highly recommended to use Python 3.x. You will also need the <code class="docutils literal"><span class="pre">setuptools</span></code> python package (which comes as standard with most python distributions) to take advantage of Calcam&#8217;s setup script as described below.</p>
+<p>Once you have Python working and the Calcam repository files on your computer, the package can be installed from the system command line using the setup script included in the root of the repository:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">install</span>
 </pre></div>
 </div>
-<p>In Python 3, this will ensure Calcam&#8217;s dependencies (Scipy, OpenCV, PyQt and VTK) are installed, copy Calcam to the appropriate Python library path and create a launcher script for the Calcam GUI. In Python 2, the PyQt and VTK dependencies cannot typically be installed automatically, and the setup script will instead test if these modules are available and show a warning if they are not. The easiest way to get PyQt and VTK up and running with Python 2 is to use a distribution such as  to use a Python distibution such as <a class="reference external" href="https://www.enthought.com/product/canopy/">Enthought Canopy</a> or <a class="reference external" href="https://python-xy.github.io/">Python (x,y)</a>, but the best solution is to just use Python 3!</p>
-<p>If installing on a system where you do not have the relevant admin/root permissions to install python packages globally (in which case running the above command will produce an error message saying something about permission denied), adding the <code class="docutils literal"><span class="pre">--user</span></code> switch to the above command will install the package under your user account specifically.</p>
+<p>This will try to install Calcam&#8217;s dependencies (Scipy, OpenCV, PyQt and VTK) if they are not already installed; copy Calcam to the appropriate Python library path; and create a convenient launcher script for the Calcam GUI. On some platforms, the PyQt and VTK libraries may not be installable automatically by the setup script, in which case it will show a message warning that these need to be installed manually if you want to use all the features of Calcam. If you find yourself on a platform where they cannot be installed automatically, the easiest way to get PyQt and VTK is probably to see if your OS has available pre-built packages for them, or to use a python distribution such as <a class="reference external" href="https://www.enthought.com/product/canopy/">Enthought Canopy</a> or <a class="reference external" href="https://python-xy.github.io/">Python (x,y)</a>.</p>
+<p>If installing on a system where you do not have the relevant admin/root permissions to install python packages globally (in which case running the above command will produce an error message saying something about permissions, adding the <code class="docutils literal"><span class="pre">--user</span></code> switch to the above installation command will install the package under your user account specifically.</p>
 <p>After the setup script is finished you can delete the downloaded calcam files, if you want.</p>
-<p><strong>Note:</strong> At the end of the setup process, the setup script will finish by printing the location of the GUI launcher script or <code class="docutils literal"><span class="pre">exe</span></code> which is created during the installation. If its location is not already in your <code class="docutils literal"><span class="pre">PATH</span></code> environment variable, it is recommended to add this location to your <code class="docutils literal"><span class="pre">PATH</span></code> or create a shortcut to the launcher in a convenient place.</p>
 <div class="section" id="installing-in-development-mode">
 <h3>Installing in Development mode<a class="headerlink" href="#installing-in-development-mode" title="Permalink to this headline">¶</a></h3>
 <p>If you want to be able to edit the Calcam source code without having to run the install again to have your changes go live, you can use the below alternative command to install calcam in development mode:</p>
@@ -322,32 +312,30 @@
 </div>
 <div class="section" id="file-formats">
 <h3>File Formats<a class="headerlink" href="#file-formats" title="Permalink to this headline">¶</a></h3>
-<p>Whereas in Calcam 1, imported images, point pairs, calibration and fit results were all stored in separate files, in Calcam 2 all of these elements are stored together as a calibration. This is to maintain better traceability of calcam calibrations and make it easier for users to share data. Except for <cite>.csv</cite> point pair files, Calcam 2 is not backwards compatible with Calcam 1 files, therefore to use existing data from Calcam 1 you must convert your Calcam 1 data to the new Calcam 2 formats. This can be done in bulk using the file converter utility provided in the <code class="docutils literal"><span class="pre">calcam1_file_converter</span></code> directory of the calcam 2 repo. Running <code class="docutils literal"><span class="pre">convert_files.py</span></code> from this directory as a script will open the tool, which is shown below:</p>
+<p>Whereas in Calcam 1, imported images, point pairs, calibration and fit results were all stored in separate files, in Calcam 2 all of these elements are stored together as a calibration. This is to maintain better traceability of calcam calibrations and make it easier for users to share data. Except for <code class="docutils literal"><span class="pre">.csv</span></code> point pair files, Calcam 2 is not backwards compatible with Calcam 1 files, therefore to use existing data from Calcam 1 you must convert your Calcam 1 data to the new Calcam 2 formats. This can be done in bulk using the file converter utility provided in the <code class="docutils literal"><span class="pre">calcam1_file_converter</span></code> directory of the calcam 2 repo. Running <code class="docutils literal"><span class="pre">convert_files.py</span></code> from this directory as a script will open the tool, which is shown below:</p>
 <img alt="Calcam 1.x file converter screenshot" src="_images/file_converter.png" />
-<p>At the top of this window, the &#8220;Source Directory&#8221;, where the tool will look for Calcam 1.x files to convert, is displayed. This is typically detected automatically, but you can also manually set the source directory manually using the <span class="guilabel">Browse...</span> button (this should be the complete Calcam 1.x data directory, i.e. the location of the <cite>FitResults</cite>, <cite>Images</cite>, <cite>PointPairs</cite> etc directories).</p>
+<p>At the top of this window, the &#8220;Source Directory&#8221;, where the tool will look for Calcam 1.x files to convert, is displayed. This is typically detected automatically, but you can also manually set the source directory manually using the <span class="guilabel">Browse...</span> button (this should be the complete Calcam 1.x data directory, i.e. the location of the <code class="docutils literal"><span class="pre">FitResults</span></code>, <code class="docutils literal"><span class="pre">Images</span></code>, <code class="docutils literal"><span class="pre">PointPairs</span></code> etc directories).</p>
 <p>Below this are 2 main sections: the top section for converting existing calibrations, and the bottom section for converting existing CAD model definitions. When the <span class="guilabel">Convert!</span> button is clicked in the relevant section, the large status bar at the bottom of the window will show the current progress during the conversion. The three text boxes containing file paths are used to specify where the output Calcam 2 calibration files should be saved to, since in Calcam 2 this can be wherever you want.</p>
 <p>When converting calibrations, if the <span class="guilabel">Try to match with image files based on name</span> checkbox is ticked, the tool will try to match up calibration results with images by looking for Calcam image save files whose name also appears in the name of the calibration result being converted. If such an image is found, the image will be added to the resulting Calcam 2 save file. To disable this auto-matching, un-tick this checkbox, and Calcam 2 calibration results converted from Calcam 1 files will simply not contain any images.</p>
 <p><strong>Note:</strong> the conversion process does not alter or remove any of the original Calcam 1 data, so if anything goes wrong and you have to, or want to, go back to using Calcam 1.x, the data will still be intact, and it is left to the user to remove the old Calcam 1 data when you feel sufficiently comfortable to do so.</p>
 </div>
-<div class="section" id="api-changes">
-<h3>API Changes<a class="headerlink" href="#api-changes" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="api-changes-summary">
+<h3>API Changes Summary<a class="headerlink" href="#api-changes-summary" title="Permalink to this headline">¶</a></h3>
 <p>The change from Calcam 1 to Calcam 2 includes several compatibility breaking API changes. The main changes to the API are:</p>
 <ul class="simple">
 <li>The old <code class="xref py py-class docutils literal"><span class="pre">calcam.CalibResults</span></code> class has been superceded by the new <a class="reference internal" href="api_analysis.html#calcam.Calibration" title="calcam.Calibration"><code class="xref py py-class docutils literal"><span class="pre">calcam.Calibration</span></code></a> class. This maintains the methods for working with calibration results which existed in <code class="xref py py-class docutils literal"><span class="pre">calcam.CalibResults</span></code>, with the addition that <a class="reference internal" href="api_analysis.html#calcam.Calibration" title="calcam.Calibration"><code class="xref py py-class docutils literal"><span class="pre">calcam.Calibration</span></code></a> now contains data on the entire calibration process: image, point pairs, fit results and metadata.</li>
 <li>The old <code class="xref py py-class docutils literal"><span class="pre">calcam.VirtualCalib</span></code> class has been removed: virtual calibration results are now represented by the new <a class="reference internal" href="api_analysis.html#calcam.Calibration" title="calcam.Calibration"><code class="xref py py-class docutils literal"><span class="pre">calcam.Calibration</span></code></a> class, meaning all types of calibration use the same class in Calcam 2.</li>
 <li>The <code class="xref py py-class docutils literal"><span class="pre">RayCaster</span></code> class has been removed. This is because although more functionality was originally envisaged for this class, that additional functionality is no longer planned for Calcam and therefore only a single method of this class was ever useful. In addition, the important element of this class&#8217; state was already being held by other objects. The functionality of the <code class="xref py py-class docutils literal"><span class="pre">RayCaster</span></code> class has been moved to the function <a class="reference internal" href="api_analysis.html#calcam.raycast_sightlines" title="calcam.raycast_sightlines"><code class="xref py py-func docutils literal"><span class="pre">calcam.raycast_sightlines()</span></code></a></li>
-<li>Naming conventions: throughout the API (except for in the geometry matrix module which will updated in a future point release), argument or function names which previously used capital letters and PascalCase or camelCase have been changed to lowercase with underscores.</li>
+<li>Naming conventions: to be more Pythonic, throughout the API argument or function names which previously used capital letters and <code class="docutils literal"><span class="pre">PascalCase</span></code> or <code class="docutils literal"><span class="pre">camelCase</span></code> have been changed to <code class="docutils literal"><span class="pre">lowercase_with_underscores</span></code>, while class names keep <code class="docutils literal"><span class="pre">PascalCase</span></code>.</li>
 </ul>
-<p>For more information, see the full API documentation in <a class="reference internal" href="api_analysis.html"><span class="doc">Using Calibration Results</span></a> and the <a class="reference internal" href="api_examples.html"><span class="doc">Examples</span></a> .</p>
+<p>For more information, see the API documentation in <a class="reference internal" href="api_analysis.html"><span class="doc">Using Calibration Results</span></a> and the <a class="reference internal" href="api_examples.html"><span class="doc">Examples</span></a> .</p>
 </div>
 </div>
 </div>
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -365,11 +353,11 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015-2018, European Atomic Energy Community (EURATOM).
+        &copy; Copyright 2015-2018, European Atomic Energy Community (EURATOM)
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -384,36 +372,34 @@
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  false,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'./',
+              VERSION:'',
+              LANGUAGE:'en',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  false,
+              SOURCELINK_SUFFIX: ''
+          };
+      </script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
 
   
 
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>

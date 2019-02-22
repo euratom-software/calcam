@@ -23,111 +23,115 @@
 Calcam Setup script.
 '''
 
-from setuptools import setup,find_packages
 import sys
 import os
-import sysconfig
+import subprocess
 
+from setuptools import setup,find_packages, Distribution 
+from setuptools.command.install import install
+from setuptools.command.develop import develop
+
+
+
+def pip_install(pkg_name):
+    '''
+    A small utility function to call pip externally to install a given package.
+    Sadly, this seems to be needed because setuptools.setup cannot be trusted to 
+    locate some dependencies on some platforms even when pip can. I don't know why.
+    '''    
+    try:
+        subprocess.call([sys.executable, '-m', 'pip', 'install','opencv-python'])
+        return True
+    except:
+        return False
 
 
 if 'install' in sys.argv or 'develop' in sys.argv:
 
     # Organise dependencies
+
+    # Dependencies that setuptools can definitely get sorted for us.   
     dependencies = ['scipy','matplotlib']
-
-    if sys.version_info[0] > 2:
-        # Sensible codepath for Python 3
-
-        dependencies.append('vtk','opencv-python')
-
-        # Since we can use PyQt 4 or 5, check if the user already
-        # has one of these. If so, use the one they already have
-        # so as to not unnecesserily clutter their environment.
+    
+    warning_list = []
+    
+    # For the others, use pip for better platform robustness
+    try:
+        import cv2
+    except:
+        if not pip_install('python-opencv'):
+            print('Could not install hard dependency OpenCV (a.k.a opencv-python a.k.a cv2). Please install the OpenCV python module before installing Calcam.')
+            exit()
+    
+    try:
+        import vtk
+        if vtk.vtkVersion.GetVTKMajorVersion() < 6:
+            warning_list.append('VTK 6.0+ (you have {:}'.format(vtk.vtkVersion.GetVTKVersion()))
+    except:
+        if not pip_install('vtk'):
+            warning_list.append('VTK 6.0+')
+            
+    try:
+        from PyQt5 import QtCore
+    except:
         try:
-            from PyQt5 import QtCore
-            dependencies.append('PyQt5')
-        except:
-            try:
-                from PyQt4 import QtCore
-                dependencies.append('PyQt4')
-            except:
-                dependencies.append('PyQt5')
+            from PyQt4 import QtCore
+        except:    
+            if not pip_install('PyQt5'):
+                warning_list.append('PyQt4 or PyQt5')
+   
 
+    if len(warning_list) > 0:
 
-    else:
-        # Still supporting Python 2! (whhhyyyy???)
-        # In this case we can't rely on getting VTK or PyQt from PyPi.
-        # So we just manually check them and warn the user if they're missing.
-        # Also for some reason setuptools doesn't find OpenCV but pip does, so
-        # we launch a pip install subprocess to do OpenCV.
-        try:
-            import cv2
-        except:
-            try:
-                import subprocess
-                subprocess.call([sys.executable, '-m', 'pip', 'install','opencv-python'])
-            except:
-                print('Arrgh!')
-                exit()
-        try:
-            import vtk
-            vtk = True
-        except:
-            vtk = False
+        msg = '\n\nWARNING: One or more important dependencies do not appear to be satisfied.\n' \
+              'Installation will continue and at least some of the Calcam API for working \n' \
+              'with calibration results should work, however the calcam GUI module and some \n' \
+              'API features will not work until you manually install the following python modules:\n\n' \
+              + '\n'.join(warning_list) + '\nPress any key to continue installation...'
 
-        try:
-            from PyQt5 import QtCore
-            pyqt = True
-        except:
-            try:
-                from PyQt4 import QtCore
-                pyqt = True
-            except:
-                pyqt = False
-
-
-        if not pyqt or not vtk or vtk < 6:
-
-            badlist = ''
-            if not pyqt:
-                badlist = badlist + 'PyQt4 or PyQt5\n'
-            if not vtk:
-                badlist = badlist + 'VTK (v6.0+)\n'
-            elif vtk < 6:
-                badlist = badlist + 'VTK v6.0+ : you have v{:s}'.format(vtk.vtkVersion.GetVTKVersion())
-
-            msg = '\n\nWARNING: One or more important dependencies do not appear to be satisfied.\n' \
-                  'Installation will continue and at least some of the Calcam API for working \n' \
-                  'with calibration results should work, however the calcam GUI module and some \n' \
-                  'API features will not work until you manually install the following python modules:\n\n' \
-                  + badlist + '\nPress any key to continue installation...'
-
-            raw_input(msg)
+        raw_input(msg)
 
 
 
 # Actually do the requested setup actions
-setup(
-      name='Calcam',
-      version='2.2rc1',
-      url='https://euratom-software.github.io/calcam/',
-      license='European Union Public License 1.1',
-      author='Scott Silburn et.al.',
-      install_requires=dependencies,
-      packages=find_packages(),
-      package_data={'calcam':['gui/icons/*','gui/qt_designer_files/*.ui','gui/logo.png','builtin_image_sources/*.py']},
-      entry_points={ 'gui_scripts': [ 'calcam = calcam:start_gui'] },
-      zip_safe=False
-      )
+s = setup(
+          name='Calcam',
+          version='2.2rc1',
+          url='https://euratom-software.github.io/calcam/',
+          license='European Union Public License 1.1',
+          author='Scott Silburn et.al.',
+          install_requires=dependencies,
+          packages=find_packages(),
+          package_data={'calcam':['gui/icons/*','gui/qt_designer_files/*.ui','gui/logo.png','builtin_image_sources/*.py']},
+          entry_points={ 'gui_scripts': [ 'calcam = calcam:start_gui'] },
+          zip_safe=False
+         )
 
 
-# Post-install stuff: tell the user where the application executable has been created.
+# Post-install stuff: reassure the user that things went well (assuming they did)
+# and give some useful info.
 if 'install' in sys.argv or 'develop' in sys.argv:
 
-    if sys.platform == 'win32':
-        script_name = 'calcam.exe'
-    else:
-        script_name = 'calcam'
+    if 'install' in sys.argv:
+        script_dir = s.command_obj['install'].install_scripts
+    elif 'develop' in sys.argv:
+        script_dir = s.command_obj['develop'].script_dir
 
-    script_dir = sysconfig.get_path('scripts')
-    print('\n****\nPath to Calcam GUI launcher: \n"{:s}"\n****\n'.format(os.path.join(script_dir,script_name)))
+    try:
+        env_path = os.environ['PATH']
+    except KeyError:
+        env_path = None
+    
+    extra_msg = '\nIt can be imported within python with "import calcam"'
+    if env_path is not None:
+        if script_dir not in env_path:
+            extra_msg = extra_msg + '\n\nNOTE: The path containing the Calcam GUI launch script:\n\n{:s}\n\nis not in your PATH environment variable; consider\nadding it to enable launching the Calcam GUI directly!'.format(script_dir)
+        else:
+            extra_msg = extra_msg + '\nThe Calcam GUI can be started by typing "calcam" at a terminal.'
+     
+    else:
+        extra_msg = extra_msg + '\nLocation of Calcam GUI launcher:\n\n{:s}'.format(script_dir)
+    
+    
+                                      
+    print('\n*****************************\nCalcam installation complete.{:s}\n*****************************\n'.format(extra_msg))

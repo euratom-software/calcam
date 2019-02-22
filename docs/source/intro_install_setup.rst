@@ -1,5 +1,5 @@
 ====================
-Installation & Setup
+Getting Up & Running
 ====================
 
 
@@ -15,19 +15,18 @@ or downloaded using the "Clone or Download" button on the `GitHub page <https://
 
 Installation
 -------------
-Calcam is a Python package, so the first thing to do is install Python, if you don't have it already. Calcam works with Python version 2.7 or newer, however it is highly recommended to use Python 3.x. You will also need the ``setuptools`` python package (which comes as standard with most python distributions) to take advantage of Calcam's installation script as described below. 
+Calcam is a Python package, so the first thing to do is install Python, if you don't have it already. Calcam works with Python version 2.7 or newer, however it is highly recommended to use Python 3.x. You will also need the ``setuptools`` python package (which comes as standard with most python distributions) to take advantage of Calcam's setup script as described below. 
 
-Once you have Python working and the calcam repository files on your computer, the package can be installed from the system command line using the setup script included in the root of the repository::
+Once you have Python working and the Calcam repository files on your computer, the package can be installed from the system command line using the setup script included in the root of the repository::
 
 	python setup.py install
 
-In Python 3, this will ensure Calcam's dependencies (Scipy, OpenCV, PyQt and VTK) are installed, copy Calcam to the appropriate Python library path and create a launcher script for the Calcam GUI. In Python 2, the PyQt and VTK dependencies cannot typically be installed automatically, and the setup script will instead test if these modules are available and show a warning if they are not. The easiest way to get PyQt and VTK up and running with Python 2 is to use a distribution such as  to use a Python distibution such as `Enthought Canopy <https://www.enthought.com/product/canopy/>`_ or `Python (x,y) <https://python-xy.github.io/>`_, but the best solution is to just use Python 3!
+This will try to install Calcam's dependencies (Scipy, OpenCV, PyQt and VTK) if they are not already installed; copy Calcam to the appropriate Python library path; and create a convenient launcher script for the Calcam GUI. On some platforms, the PyQt and VTK libraries may not be installable automatically by the setup script, in which case it will show a message warning that these need to be installed manually if you want to use all the features of Calcam. If you find yourself on a platform where they cannot be installed automatically, the easiest way to get PyQt and VTK is probably to see if your OS has available pre-built packages for them, or to use a python distribution such as `Enthought Canopy <https://www.enthought.com/product/canopy/>`_ or `Python (x,y) <https://python-xy.github.io/>`_.
 
-If installing on a system where you do not have the relevant admin/root permissions to install python packages globally (in which case running the above command will produce an error message saying something about permission denied), adding the ``--user`` switch to the above command will install the package under your user account specifically.
+If installing on a system where you do not have the relevant admin/root permissions to install python packages globally (in which case running the above command will produce an error message saying something about permissions, adding the ``--user`` switch to the above installation command will install the package under your user account specifically.
 
 After the setup script is finished you can delete the downloaded calcam files, if you want.
 
-**Note:** At the end of the setup process, the setup script will finish by printing the location of the GUI launcher script or ``exe`` which is created during the installation. If its location is not already in your ``PATH`` environment variable, it is recommended to add this location to your ``PATH`` or create a shortcut to the launcher in a convenient place.
 
 Installing in Development mode
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -61,12 +60,12 @@ In Calcam 1, CAD model definitions, other user-defined code, calibration input a
 
 File Formats
 ~~~~~~~~~~~~
-Whereas in Calcam 1, imported images, point pairs, calibration and fit results were all stored in separate files, in Calcam 2 all of these elements are stored together as a calibration. This is to maintain better traceability of calcam calibrations and make it easier for users to share data. Except for `.csv` point pair files, Calcam 2 is not backwards compatible with Calcam 1 files, therefore to use existing data from Calcam 1 you must convert your Calcam 1 data to the new Calcam 2 formats. This can be done in bulk using the file converter utility provided in the ``calcam1_file_converter`` directory of the calcam 2 repo. Running ``convert_files.py`` from this directory as a script will open the tool, which is shown below:
+Whereas in Calcam 1, imported images, point pairs, calibration and fit results were all stored in separate files, in Calcam 2 all of these elements are stored together as a calibration. This is to maintain better traceability of calcam calibrations and make it easier for users to share data. Except for ``.csv`` point pair files, Calcam 2 is not backwards compatible with Calcam 1 files, therefore to use existing data from Calcam 1 you must convert your Calcam 1 data to the new Calcam 2 formats. This can be done in bulk using the file converter utility provided in the ``calcam1_file_converter`` directory of the calcam 2 repo. Running ``convert_files.py`` from this directory as a script will open the tool, which is shown below:
 
 .. image:: images/screenshots/file_converter.png
    :alt: Calcam 1.x file converter screenshot
 
-At the top of this window, the "Source Directory", where the tool will look for Calcam 1.x files to convert, is displayed. This is typically detected automatically, but you can also manually set the source directory manually using the :guilabel:`Browse...` button (this should be the complete Calcam 1.x data directory, i.e. the location of the `FitResults`, `Images`, `PointPairs` etc directories). 
+At the top of this window, the "Source Directory", where the tool will look for Calcam 1.x files to convert, is displayed. This is typically detected automatically, but you can also manually set the source directory manually using the :guilabel:`Browse...` button (this should be the complete Calcam 1.x data directory, i.e. the location of the ``FitResults``, ``Images``, ``PointPairs`` etc directories). 
 
 Below this are 2 main sections: the top section for converting existing calibrations, and the bottom section for converting existing CAD model definitions. When the :guilabel:`Convert!` button is clicked in the relevant section, the large status bar at the bottom of the window will show the current progress during the conversion. The three text boxes containing file paths are used to specify where the output Calcam 2 calibration files should be saved to, since in Calcam 2 this can be wherever you want.
 
@@ -75,8 +74,8 @@ When converting calibrations, if the :guilabel:`Try to match with image files ba
 **Note:** the conversion process does not alter or remove any of the original Calcam 1 data, so if anything goes wrong and you have to, or want to, go back to using Calcam 1.x, the data will still be intact, and it is left to the user to remove the old Calcam 1 data when you feel sufficiently comfortable to do so.
 
 
-API Changes
-~~~~~~~~~~~
+API Changes Summary
+~~~~~~~~~~~~~~~~~~~
 The change from Calcam 1 to Calcam 2 includes several compatibility breaking API changes. The main changes to the API are:
 
 * The old :class:`calcam.CalibResults` class has been superceded by the new :class:`calcam.Calibration` class. This maintains the methods for working with calibration results which existed in :class:`calcam.CalibResults`, with the addition that :class:`calcam.Calibration` now contains data on the entire calibration process: image, point pairs, fit results and metadata. 
@@ -85,6 +84,6 @@ The change from Calcam 1 to Calcam 2 includes several compatibility breaking API
 
 * The :class:`RayCaster` class has been removed. This is because although more functionality was originally envisaged for this class, that additional functionality is no longer planned for Calcam and therefore only a single method of this class was ever useful. In addition, the important element of this class' state was already being held by other objects. The functionality of the :class:`RayCaster` class has been moved to the function :func:`calcam.raycast_sightlines()`
 
-* Naming conventions: throughout the API (except for in the geometry matrix module which will updated in a future point release), argument or function names which previously used capital letters and PascalCase or camelCase have been changed to lowercase with underscores.
+* Naming conventions: to be more Pythonic, throughout the API argument or function names which previously used capital letters and ``PascalCase`` or ``camelCase`` have been changed to ``lowercase_with_underscores``, while class names keep ``PascalCase``.
 
-For more information, see the full API documentation in :doc:`api_analysis` and the :doc:`api_examples` .
+For more information, see the API documentation in :doc:`api_analysis` and the :doc:`api_examples` .

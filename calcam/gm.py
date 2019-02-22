@@ -584,7 +584,7 @@ class GeometryMatrix:
     
     A new geometry matrix can be created by instantiating this class 
     with the below parameters, or a saved geometry matrix can be loaded
-    from disk using the GeometryMatrix.load() class method.
+    from disk using the :func:`fromfile()` class method.
     
     The matrix itself can be accessed in the "data" attribute, where it is
     stored as a sparse matrix using the scipy.sprase.csr_matrix class.
@@ -1181,7 +1181,7 @@ class GeometryMatrix:
         self.pixel_order = str(f['pixel_order'][0])
         self.pixel_mask = f['pixel_mask']
         self.history = {'los':str(f['sightline_history'][0]),'grid':str(f['grid_history'][0]),'matrix':str(f['matrix_history'][0])}
-        
+        self.image_coords = str(f['im_coords'][0])
         self.data = f['geom_mat'].tocsr()
         
         self.image_geometry = CoordTransformer()
@@ -1279,7 +1279,7 @@ class GeometryMatrix:
         return msg
 
     @classmethod
-    def load(cls,filename):
+    def fromfile(cls,filename):
         '''
         Load a Calcam saved geometry matrix from disk.
         

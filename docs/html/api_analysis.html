@@ -24,27 +24,17 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="genindex.html"/>
-        <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="Calcam  documentation" href="index.html"/>
-        <link rel="next" title="CAD Models" href="api_cadmodel.html"/>
-        <link rel="prev" title="Calcam Settings" href="gui_settings.html"/> 
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="next" title="CAD Models" href="api_cadmodel.html" />
+    <link rel="prev" title="Calcam Settings" href="gui_settings.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -61,7 +51,7 @@
 
           
             
-            <img src="_static/logo.png" class="logo" />
+            <img src="_static/logo.png" class="logo" alt="Logo"/>
           
           </a>
 
@@ -96,9 +86,10 @@
               <p class="caption"><span class="caption-text">Introduction</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="intro_general.html">Genral Introduction to Calcam</a></li>
-<li class="toctree-l1"><a class="reference internal" href="intro_install_setup.html">Installation &amp; Setup</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="intro_install_setup.html#download-installation">Download &amp; Installation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="intro_install_setup.html#cad-models-and-image-sources">CAD Models and Image Sources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro_install_setup.html">Getting Up &amp; Running</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="intro_install_setup.html#getting-calcam">Getting Calcam</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intro_install_setup.html#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intro_install_setup.html#initial-configuration">Initial Configuration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="intro_install_setup.html#upgrading-from-calcam-1-x">Upgrading from Calcam 1.x</a></li>
 </ul>
 </li>
@@ -220,7 +211,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">Calcam</a>
@@ -228,9 +219,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -409,7 +401,7 @@ empty calibration object of a specified type is created.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>x</strong><strong>,</strong><strong>y</strong> (<em>sequence of floats</em>) &#8211; Image pixel coordinates at which to get the sight-line directions.                                          x and y must be the same shape. If not specified, the line of sight direction                                          at the centre of every detector pixel is returned.</li>
+<li><strong>x,y</strong> (<em>sequence of floats</em>) &#8211; Image pixel coordinates at which to get the sight-line directions.                                          x and y must be the same shape. If not specified, the line of sight direction                                          at the centre of every detector pixel is returned.</li>
 <li><strong>coords</strong> (<em>str</em>) &#8211; Either <code class="docutils literal"><span class="pre">Display</span></code> or <code class="docutils literal"><span class="pre">Original</span></code>, specifies which image orientation the provided x and y                                          inputs and/or shape of the returned array correspond to.</li>
 <li><strong>subview</strong> (<em>int</em>) &#8211; If specified, forces the use of the camera model from the specified sub-view index.                                          If not given, the correct sub-view(s) will be chosen automatically.</li>
 </ul>
@@ -436,7 +428,7 @@ description of the camera&#8217;s sight line geometry.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>x</strong><strong>,</strong><strong>y</strong> (<em>float</em><em> or </em><em>numpy.ndarray</em>) &#8211; For calibrations with more than one subview, get the pupil                                            position(s) corresponding to these given image pixel coordinates.</li>
+<li><strong>x,y</strong> (<em>float or numpy.ndarray</em>) &#8211; For calibrations with more than one subview, get the pupil                                            position(s) corresponding to these given image pixel coordinates.</li>
 <li><strong>coords</strong> (<em>str</em>) &#8211; Only used if x and y are also given. Either <code class="docutils literal"><span class="pre">Display</span></code>                                            or <code class="docutils literal"><span class="pre">Original</span></code>, specifies whether the provided x and y are in                                            display or original coordinates.</li>
 <li><strong>subview</strong> (<em>int</em>) &#8211; Which sub-view to get the pupil position for.                                            Only required for calibrations with more than 1                                            sub-view.</li>
 </ul>
@@ -512,7 +504,7 @@ fit. Note: this function does not work with fisheye calibrations.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>points_3d</strong> &#8211; 3D point coordinates, in metres, to project on to the image. Can be EITHER an Nx3 array, where N is the                                                    number of 3D points and each row gives [X,Y,Z] for a 3D point, or a sequence of 3 element sequences,                                                   where each 3 element array specifies a 3D point.</li>
 <li><strong>coords</strong> (<em>str</em>) &#8211; Either <code class="docutils literal"><span class="pre">Display</span></code> or <code class="docutils literal"><span class="pre">Original</span></code>, specifies which image orientation the returned image coordinates                                                    should correspond to.</li>
-<li><strong>check_occlusion_with</strong> (<a class="reference internal" href="api_cadmodel.html#calcam.CADModel" title="calcam.CADModel"><em>calcam.CADModel</em></a><em> or </em><a class="reference internal" href="#calcam.RayData" title="calcam.RayData"><em>calcam.RayData</em></a>) &#8211; If provided and fill_value is not None, for each 3D point the function will check if the point                                                    is hidden from the camera&#8217;s view by part of the provided CAD model. If a point is hidden its                                                    returned image coordinates are set to fill_value. Note: if using a RayData onject, always use Raydata resulting                                                    from a raycast of the complete detector, or else project_points will be incredibly slow.</li>
+<li><strong>check_occlusion_with</strong> (<em>calcam.CADModel or calcam.RayData</em>) &#8211; If provided and fill_value is not None, for each 3D point the function will check if the point                                                    is hidden from the camera&#8217;s view by part of the provided CAD model. If a point is hidden its                                                    returned image coordinates are set to fill_value. Note: if using a RayData onject, always use Raydata resulting                                                    from a raycast of the complete detector, or else project_points will be incredibly slow.</li>
 <li><strong>fill_value</strong> (<em>float</em>) &#8211; For any 3D points not visible to the camera, the returned image coordinates will be set equal to                                                    this value. If set to <code class="docutils literal"><span class="pre">None</span></code>, image coordinates will be returned for every 3D point even if the                                                    point is outside the camera&#8217;s field of view or hidden from view.</li>
 <li><strong>occlusion_tol</strong> (<em>float</em>) &#8211; Tolerance (in mrtres) to use to check point occlusion. Try increasing this value if having trouble                                                    with points being wrongly detected as occluded.</li>
 </ul>
@@ -630,7 +622,7 @@ where N is the number of colour channels.</li>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>calibration</strong> (<a class="reference internal" href="#calcam.Calibration" title="calcam.Calibration"><em>calcam.Calibration</em></a>) &#8211; Calibration whose sight-lines to raycast.</li>
 <li><strong>cadmodel</strong> (<a class="reference internal" href="api_cadmodel.html#calcam.CADModel" title="calcam.CADModel"><em>calcam.CADModel</em></a>) &#8211; CAD model to check intersection with.</li>
-<li><strong>y</strong> (<em>x</em><em>,</em><em></em>) &#8211; x and y image pixel coordinates for which to cast sight-lines.                                            If not specified, one ray is cast at the centre of every detector pixel.                                           x and y must be the same shape.</li>
+<li><strong>y</strong> (<em>x,</em>) &#8211; x and y image pixel coordinates for which to cast sight-lines.                                            If not specified, one ray is cast at the centre of every detector pixel.                                           x and y must be the same shape.</li>
 <li><strong>binning</strong> (<em>int</em>) &#8211; If not explicitly providing x and y image coordinates, pixel binning for ray casting.                                           This specifies NxN binning, i.e. for a value of 2, one ray is cast at the centre of                                            every 2x2 cluster of pixels.</li>
 <li><strong>coords</strong> (<em>str</em>) &#8211; Either <code class="docutils literal"><span class="pre">Display</span></code> or <code class="docutils literal"><span class="pre">Original</span></code>. If specifying x and y coordinates,                                           specifies whether the input x and y are in original or display coords.                                            Otherwise, specifies the orientation of the returned data.</li>
 <li><strong>force_subview</strong> (<em>int</em>) &#8211; If specified, forces use of the camera model from this index of sub-view                                            in the calibration. Otherwise, sub-views are chosen according to the                                            sub-view mask in the calibration.</li>
@@ -672,7 +664,7 @@ It can also be used to save and load ray cast results to disk.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>x</strong><strong>,</strong><strong>y</strong> (<em>array-like</em>) &#8211; x and y pixel coordinates at which to get the ray directions.                                       If not specified, the ray directions of every sight-line are returned.</li>
+<li><strong>x,y</strong> (<em>array-like</em>) &#8211; x and y pixel coordinates at which to get the ray directions.                                       If not specified, the ray directions of every sight-line are returned.</li>
 <li><strong>im_position_tol</strong> (<em>float</em>) &#8211; If x and y are specified but no sight-line was cast at exactly the                                       input coordinates, the nearest casted sight-line will be returned                                       instead provided the pixel coordinates wre within this many pixels of                                       the requested coordinates.</li>
 <li><strong>coords</strong> (<em>str</em>) &#8211; Either <code class="docutils literal"><span class="pre">Display</span></code> or <code class="docutils literal"><span class="pre">Coords</span></code>, specifies what orientation the input x                                       and y correspond to or orientation of the returned array.</li>
 </ul>
@@ -697,7 +689,7 @@ It can also be used to save and load ray cast results to disk.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>x</strong><strong>,</strong><strong>y</strong> (<em>array-like</em>) &#8211; Image pixel coordinates at which to get the sight-line lengths.                                       If not specified, the lengths of all casted sight lines will be returned.</li>
+<li><strong>x,y</strong> (<em>array-like</em>) &#8211; Image pixel coordinates at which to get the sight-line lengths.                                       If not specified, the lengths of all casted sight lines will be returned.</li>
 <li><strong>im_position_tol</strong> (<em>float</em>) &#8211; If x and y are specified but no sight-line was cast at exactly the                                       input coordinates, the nearest casted sight-line will be returned                                       instead provided the pixel coordinates wre within this many pixels of                                       the requested coordinates.</li>
 <li><strong>coords</strong> (<em>str</em>) &#8211; Either <code class="docutils literal"><span class="pre">Display</span></code> or <code class="docutils literal"><span class="pre">Coords</span></code>, specifies what orientation the input x                                       and y correspond to or orientation of the returned array.</li>
 </ul>
@@ -746,9 +738,7 @@ It can also be used to save and load ray cast results to disk.</p>
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -766,11 +756,11 @@ It can also be used to save and load ray cast results to disk.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015-2018, European Atomic Energy Community (EURATOM).
+        &copy; Copyright 2015-2018, European Atomic Energy Community (EURATOM)
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -785,36 +775,34 @@ It can also be used to save and load ray cast results to disk.</p>
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  false,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'./',
+              VERSION:'',
+              LANGUAGE:'en',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  false,
+              SOURCELINK_SUFFIX: ''
+          };
+      </script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
 
   
 
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>
