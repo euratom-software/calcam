@@ -15,7 +15,7 @@ or downloaded using the "Clone or Download" button on the `GitHub page <https://
 
 Installation
 -------------
-Calcam is a Python package, so the first thing to do is install Python, if you don't have it already. Calcam works with Python version 2.7 or newer, however it is highly recommended to use Python 3.x. You will also need the ``setuptools`` python package (which comes as standard with most python distributions) to take advantage of Calcam's setup script as described below. 
+Calcam is a Python package, so the first thing to do is install Python, if you don't have it already. Calcam works with Python version 2.7 or newer, however it is highly recommended to use Python 3.x. You will also need the ``pip`` python package (which comes as standard with most python distributions) to take advantage of Calcam's setup script as described below. 
 
 Once you have Python working and the Calcam repository files on your computer, the package can be installed from the system command line using the setup script included in the root of the repository::
 

@@ -37,10 +37,10 @@ def pip_install(pkg_name):
     '''
     A small utility function to call pip externally to install a given package.
     Sadly, this seems to be needed because setuptools.setup cannot be trusted to 
-    locate some dependencies on some platforms even when pip can. I don't know why.
+    locate some dependencies, or their correct versions, and pip works more reliably.
     '''    
     try:
-        subprocess.call([sys.executable, '-m', 'pip', 'install','opencv-python'])
+        subprocess.check_call([sys.executable, '-m', 'pip', 'install',pkg_name])
         return True
     except:
         return False
@@ -48,21 +48,20 @@ def pip_install(pkg_name):
 
 if 'install' in sys.argv or 'develop' in sys.argv:
 
-    # Organise dependencies
+    # Organise dependencies, in a sadly manual way (I can't find a suitably
+    # portable way to do it more automatically)
 
-    # Dependencies that setuptools can definitely get sorted for us.   
-    dependencies = ['scipy','matplotlib']
+    # Hard dependencies
+    for prettyname,pkgname,importname in [ ('SciPy','scipy','scipy') ,('MatPlobLib','matplotlib','matplotlib'),('OpenCV (a.k.a opencv-python a.k.a cv2)','opencv-python','cv2')]:
+        try:
+            __import__(importname)
+        except:
+            if not pip_install(pkgname):
+                print('Could not install hard dependency {:s}. Please install it before installing Calcam.'.format(prettyname))
+                exit()
     
+    # Softer dependencies
     warning_list = []
-    
-    # For the others, use pip for better platform robustness
-    try:
-        import cv2
-    except:
-        if not pip_install('python-opencv'):
-            print('Could not install hard dependency OpenCV (a.k.a opencv-python a.k.a cv2). Please install the OpenCV python module before installing Calcam.')
-            exit()
-    
     try:
         import vtk
         if vtk.vtkVersion.GetVTKMajorVersion() < 6:
@@ -87,7 +86,7 @@ if 'install' in sys.argv or 'develop' in sys.argv:
               'Installation will continue and at least some of the Calcam API for working \n' \
               'with calibration results should work, however the calcam GUI module and some \n' \
               'API features will not work until you manually install the following python modules:\n\n' \
-              + '\n'.join(warning_list) + '\nPress any key to continue installation...'
+              + '\n'.join(warning_list) + '\n\nPress any key to continue installation...'
 
         raw_input(msg)
 
@@ -100,7 +99,6 @@ s = setup(
           url='https://euratom-software.github.io/calcam/',
           license='European Union Public License 1.1',
           author='Scott Silburn et.al.',
-          install_requires=dependencies,
           packages=find_packages(),
           package_data={'calcam':['gui/icons/*','gui/qt_designer_files/*.ui','gui/logo.png','builtin_image_sources/*.py']},
           entry_points={ 'gui_scripts': [ 'calcam = calcam:start_gui'] },
