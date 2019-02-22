@@ -707,66 +707,6 @@ class GeometryMatrix:
 
 
 
-    def get_mean_rcc(self,status_callback=misc.LoopProgPrinter().update):
-        '''
-        Get the mean reflective correlation coefficient of each matrix column 
-        with every other, but with the mean excluding other columns which are
-        not correlated at all.
-        
-        Indicates which grid cells are likely to be highly correlated with 
-        others in the inversion problem and therefore will be artefact prone.
-        
-        Note: this calculation is done in a way which maintains the sparse storage 
-        structure of the matrix to avoid memory issues, but can be extremely slow 
-        to calculate for large matrices. It may be a good idea to increase the binning
-        using set_binning() and then run this.
-        
-        Parameters:
-            
-            status_callback (callable) : Callable which takes a single argument, to be called \
-                                         with calculation status updates. The argument to status_callback \
-                                         will either be a string for textual status updates or a float from \
-                                         0 to 1 specifying the progress of the calculation. If set to None, \
-                                         no status updates are issued. By default, status updates are \
-                                         printed to stdout.
-                                                                  
-        Returns:
-            
-            numpy.ndarray : Array with as many elements as there are matrix columns, giving the \
-                            mean(ish) correlation coefficients.
-
-        '''
-        if status_callback is not None:
-            status_callback('Calculating matrix column correlations...'.format(config.n_cpus)) 
-
-        dat_csc = scipy.sparse.csc_matrix(self.data,copy=True)
-        datm = 1./np.sqrt((dat_csc.power(2)).sum(axis=0).A.ravel())
-        dat_csc = dat_csc * scipy.sparse.diags(datm)       
-        
-        rcc_out = np.zeros(self.grid.n_cells())
-        last_status_update = 0    
-        
-
-        for col_ind in range(self.grid.n_cells()):
-
-            # Clever fast way to do dot product and 
-            yy = np.squeeze(dat_csc[:,col_ind].toarray())
-
-            rcc = np.add.reduceat(dat_csc.data * yy[dat_csc.indices], dat_csc.indptr[:-1])
-
-            rcc = np.delete(rcc,col_ind)
-            rcc_out[col_ind] = rcc[rcc > 1e-3].mean(axis=0)
-
-            
-            if time.time() - last_status_update > 1. and status_callback is not None:
-                status_callback(float(col_ind) / (self.grid.n_cells()-1))
-                last_status_update = time.time()
-        
-        
-        if status_callback is not None:
-            status_callback(1.)
-        
-        return rcc_out
     
 
     def set_binning(self,binning):
@@ -802,7 +742,7 @@ class GeometryMatrix:
             row_inds = np.reshape(row_inds,init_shape,order=self.pixel_order)
 
             px_mask = self.pixel_mask.reshape(self.pixel_mask.size,order=self.pixel_order)
-            index_map = np.zeros(np.prod(image_dims),dtype=np.uint32)
+            index_map = np.zeros(np.prod(image_dims)//int(self.binning**2),dtype=np.uint32)
             index_map[px_mask == True] = np.arange(np.count_nonzero(px_mask),dtype=np.uint32)
 
             self.pixel_mask = _bin_image(self.pixel_mask,bin_factor,bin_func=np.min).astype(bool)
@@ -1416,7 +1356,9 @@ def squaregrid(wall_contour,cell_size,rmin=None,rmax=None,zmin=None,zmax=None):
 def trigrid(wall_contour,max_cell_scale,rmin=None,rmax=None,zmin=None,zmax=None,**kwargs):
     '''
     Create a reconstruction grid with triangular grid cells conforming to the 
-    wall contour. Generated using J. Shewchuk's "triangle" via the MeshPy module.
+    wall contour. Requires the MeshPy package (https://pypi.org/project/MeshPy/) 
+    to be installed, since it uses J. Shewchuk's "triangle" via the MeshPy to 
+    generate the grid.
     
     Parameters:
         
