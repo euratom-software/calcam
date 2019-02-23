@@ -21,16 +21,26 @@
 
 '''
 Calcam Setup script.
+Uses setuptools and pip.
 '''
 
 import sys
 import os
 import subprocess
+from setuptools import setup,find_packages
 
-from setuptools import setup,find_packages, Distribution 
-from setuptools.command.install import install
-from setuptools.command.develop import develop
 
+def check_dependency(pkg_name):
+    '''
+    Check if a module is importable, using an external python process.
+    The reason for doing this in a separate process is because otherwise
+    if we install a module in aseparate process then try to import it
+    on a subsequent check in this process,there be segfaults. So to avoid 
+    segfaults, use this.
+    '''
+    test_process = subprocess.Popen([sys.executable,'-c','import {:s}'.format(pkg_name)],stderr=subprocess.PIPE)
+    stderr = test_process.communicate()[1]
+    return len(stderr) == 0
 
 
 def pip_install(pkg_name):
@@ -46,49 +56,64 @@ def pip_install(pkg_name):
         return False
 
 
+
 if 'install' in sys.argv or 'develop' in sys.argv:
+    # Organise dependencies, in a sadly manual way (I can't 
+    # find a suitably portable way to do it more automatically)
 
-    # Organise dependencies, in a sadly manual way (I can't find a suitably
-    # portable way to do it more automatically)
+    # Essential dependencies
+    for prettyname,pkgname,importname in [ ('SciPy','scipy','scipy') ,('MatPlobLib','matplotlib','matplotlib'),('OpenCV','opencv-python','cv2')]:
 
-    # Hard dependencies
-    for prettyname,pkgname,importname in [ ('SciPy','scipy','scipy') ,('MatPlobLib','matplotlib','matplotlib'),('OpenCV (a.k.a opencv-python a.k.a cv2)','opencv-python','cv2')]:
-        try:
-            __import__(importname)
-        except:
+        if check_dependency(importname):
+            print('Dependency {:s}: OK!'.format(prettyname))
+        else:
+            print('Dependency {:s}: trying to install using pip...\n'.format(prettyname))
             if not pip_install(pkgname):
-                print('Could not install hard dependency {:s}. Please install it before installing Calcam.'.format(prettyname))
+                print('Could not install essential dependency {:s}. Please install it before installing Calcam.'.format(prettyname))
                 exit()
-    
-    # Softer dependencies
-    warning_list = []
-    try:
+            else:
+                print('\n{:s} installed OK!'.format(prettyname))
+
+
+    # Slightly less essential dependencies
+    vtk = True
+    if check_dependency('vtk'):
         import vtk
-        if vtk.vtkVersion.GetVTKMajorVersion() < 6:
-            warning_list.append('VTK 6.0+ (you have {:}'.format(vtk.vtkVersion.GetVTKVersion()))
-    except:
-        if not pip_install('vtk'):
-            warning_list.append('VTK 6.0+')
+        if vtk.vtkVersion.GetVTKMajorVersion() >= 6:
+            print('Dependency VTK: OK!')
             
-    try:
-        from PyQt5 import QtCore
-    except:
-        try:
-            from PyQt4 import QtCore
-        except:    
-            if not pip_install('PyQt5'):
-                warning_list.append('PyQt4 or PyQt5')
-   
+        else:
+            print('Dependency VTK: trying to install using pip...\n')
+            if pip_install('vtk>=6'):
+                print('\nVTK installed OK!')
+            else:
+                print('\nFailed to install VTK :(')
+                vtk = False           
+    else:
+        print('Dependency VTK: trying to install using pip...\n')
+        if pip_install('vtk>=6'):
+            print('\nVTK installed OK!')
+        else:
+            print('\nFailed to install VTK :(')
+            vtk = False
+           
 
-    if len(warning_list) > 0:
-
-        msg = '\n\nWARNING: One or more important dependencies do not appear to be satisfied.\n' \
-              'Installation will continue and at least some of the Calcam API for working \n' \
-              'with calibration results should work, however the calcam GUI module and some \n' \
-              'API features will not work until you manually install the following python modules:\n\n' \
-              + '\n'.join(warning_list) + '\n\nPress any key to continue installation...'
-
-        raw_input(msg)
+    pyqt = True
+    if check_dependency('PyQt5'):
+        print('Dependency PyQt: PyQt5 OK!')
+    elif check_dependency('PyQt4'):
+        print('Dependency PyQt: PyQt4 OK!')
+    else:
+        print('Dependency PyQt: trying to install PyQt5 using pip...\n')  
+        if not pip_install('PyQt5'):
+            print('\nDependency PyQt: trying to install PyQt4 using pip...\n')
+            if not pip_install('PyQt4'):
+                print('\nFailed to install PyQt :(')
+                pyqt = False
+            else:
+                print('\nPyQt4 installed OK!')
+        else:
+            print('\nPyQt5 installed OK!')
 
 
 
@@ -106,8 +131,7 @@ s = setup(
          )
 
 
-# Post-install stuff: reassure the user that things went well (assuming they did)
-# and give some useful info.
+# Offer the user some useful and informative statements about what just happened.
 if 'install' in sys.argv or 'develop' in sys.argv:
 
     if 'install' in sys.argv:
@@ -121,15 +145,18 @@ if 'install' in sys.argv or 'develop' in sys.argv:
         env_path = None
     
     extra_msg = '\nIt can be imported within python with "import calcam"'
+    if script_dir in env_path and pyqt and vtk:
+        extra_msg = extra_msg + '\nThe Calcam GUI can be started by typing "calcam" at a terminal.'
+
+    if not vtk:
+        extra_msg = extra_msg + '\n\nNOTE: Dependency VTK (6.0+) is not installed and could\n      not be installed automatically; the Calcam GUI, rendering\n      and ray casting features will not work until this is installed.'
+
+    if not pyqt:
+        extra_msg = extra_msg + '\n\nNOTE: Dependency PyQt (4 or 5) is not installed and\n      could not be installed automatically; the Calcam \n      GUI will not work until this is installed.'
     if env_path is not None:
         if script_dir not in env_path:
-            extra_msg = extra_msg + '\n\nNOTE: The path containing the Calcam GUI launch script:\n\n{:s}\n\nis not in your PATH environment variable; consider\nadding it to enable launching the Calcam GUI directly!'.format(script_dir)
-        else:
-            extra_msg = extra_msg + '\nThe Calcam GUI can be started by typing "calcam" at a terminal.'
-     
+            extra_msg = extra_msg + '\n\nNOTE: The path containing the Calcam GUI launch script:\n\n      {:s}\n\n      is not in your PATH environment variable; consider\n      adding it to enable launching the Calcam GUI directly!'.format(script_dir)
     else:
         extra_msg = extra_msg + '\nLocation of Calcam GUI launcher:\n\n{:s}'.format(script_dir)
-    
-    
-                                      
-    print('\n*****************************\nCalcam installation complete.{:s}\n*****************************\n'.format(extra_msg))
+
+    print('\n***************************************************************\nCalcam installation complete.{:s}\n***************************************************************\n'.format(extra_msg))
