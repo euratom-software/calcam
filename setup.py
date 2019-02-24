@@ -120,7 +120,7 @@ if 'install' in sys.argv or 'develop' in sys.argv:
 # Actually do the requested setup actions
 s = setup(
           name='Calcam',
-          version='2.2rc1',
+          version='2.2.0',
           url='https://euratom-software.github.io/calcam/',
           license='European Union Public License 1.1',
           author='Scott Silburn et.al.',

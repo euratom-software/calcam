@@ -2,6 +2,7 @@
 Examples
 ========
 
+This page has some examples of using the Calcam API. It is not meant to demonstrate all API features exhaustively but gives examples of simple use cases and workflows; for more complete details of what functions are available please refer to the other API documentation pages.
 
 Mapping a magnetic field line on to an image
 ---------------------------------------------
@@ -133,10 +134,11 @@ Imagine we have an IR image from a first wall monitoring camera which shows some
 	# Load the CAD model
 	jet_machine = calcam.CADModel('JET')
 	
-	# The coordinates at the wall are given by the returned RayData object's ray_end_coords attribute.
-	# Note the 0 index for the first axis because we want the coordinates of the first (and only) point
-	# that we ask to be raycast.
-	coords = calcam.raycast_sightlines(cam_calib,jet_machine,x=100,y=250).ray_end_coords[0,:]
+	# Do the ray cast to find the sight-line / CAD model intersection coordinates
+	raydata = calcam.raycast_sightlines(cam_calib,jet_machine,x=100,y=250)
+
+	# The coordinates at the wall are contained in the raydata's ray_end_coords array.
+	coords = raydata.ray_end_coords[0,:]
 
 The 3-element array ``coords`` will then contain the :math:`X,Y,Z` coordinates, in metres, of where the event of interest appened.
 
@@ -144,17 +146,87 @@ Alternatively, we could ray cast every pixel on the detector and then find the c
 
 .. code-block:: python
 
+	# Do the ray cast to find the sight-line / CAD model intersection coordinates
+	raydata = calcam.raycast_sightlines(cam_calib,jet_machine)
+
+	# The coordinates at the wall are contained in the raydata's ray_end_coords array.
+	coords = raydata.ray_end_coords[250,100,:]
+
+If we have ray casted the whole image, we can do some other useful things with the raydata:
+
+.. code-block:: python
+
+	# Get an image showing how far from the camera to the wall at each image position
+	ray_length_image = raydata.get_ray_lengths()
+
+	# Save the raydata for later use.
+	# It is saved as a netCDF file so can be read by other codes
+	raydata.save('my_raydata.nc')
+
+
+Tomography Geometry Matrices
+----------------------------
+For this example, we assume we already have a set of saved raydata relating to a camera we want to tomographically invert. For the purposes of this example we imagine it is a divertor camera on MAST, which can see Z heights up to about -1.6m in its field of view. To make the geometry matrix, we do this:
+
+.. code-block:: python
+
 	import calcam
+	import matplotlib.pyplot as plt
+	import numpy as np
 
-	# Load the calibration
-	cam_calib = calcam.Calibration('my_calibration.ccc')
-	
-	# Load the CAD model
-	jet_machine = calcam.CADModel('JET')
-	
-	# This time get the wall coordinates at every pixel in the image
-	all_coords = calcam.raycast_sightlines(cam_calib,jet_machine).ray_end_coords
+	# Load the raydata (see previous example for how to generate raydata)
+	raydata = calcam.RayData('my_raydata.nc')
 
-	# To get the value at pixel x = 100, y = 250, note we have to index the array the other 
-	# way around because of Python's 2D array indexing convention.
-	coords = all_coords[250,100,:]
+	# Make a grid with 1cm grid cells in the poloidal plane on to which to invert.
+	# This will use the wall contour from the 'MAST' CAD model
+	grid = calcam.gm.squaregrid('MAST',cell_size=1e-2,zmax=-1.6)
+
+	# We can plot the grid to check it looks OK:
+	grid.plot()
+	plt.show()
+
+	# Now we have our grid and raydata, we can make a geometry matrix:
+	geom_mat = calcam.GeometryMatrix(grid,raydata)
+
+	# We probably want to save it, so we can use it to invert any images from this camera.
+	geom_mat.save('my_geom_mat.npz')
+
+	# If we want to use MATLAB to do the inversions instead, we can also save it in MATLAB format:
+	geom_mat.save('my_geom_mat.mat')
+
+	# If we need to make the matrix smaller to make the inversion computation easier, we can
+	# tell it to bin the camera image, e.g. in 4x4 pixel blocks:
+	geom_mat.set_binning(4)
+
+	# We could also inspect the number of sight-lines passing through each grid cell,
+	# to get an idea of the camera's coverage of the reconstruction domain.
+	coverage = geom_mat.get_los_coverage()
+	geom_mat.grid.plot(coverage,cblabel='Number of sight-lines')
+	plt.show()
+
+Now let's imagine we have an image from the camera in a height x width NumPy array called ``image``, which we want to invert. The actual solver for :math:`Ax = b` to do the inversion is beyond the scope of Calcam, so let's assume your sparse matrix solver of choice is a function with call signature ``x = my_solver(A,b)``, where ``x`` will be a 1D vector containing the result, ``A`` is the geometry matrix and ``b`` is the input data vector. We would then do the tomographic inversion like so:
+
+.. code-block:: python
+
+	# Re-format the camera image in to a 1D vector ready for inversion.
+	# Note: if we have binning or pixel exclusion set up in the geometry matrix,
+	# this takes care of all that for us (we just feed it the raw camera image).
+	data_vec = geom_mat.format_image(image)
+
+	# Call our sparse matrix solver of choice
+	x = my_solver(geom_mat.data, data_vec)
+
+We can then visualise the results and / or extract them for further analsys. Note that it is not straightforward to directly get the inversion results at a given :math:`R,Z` position directly from ``x``, since the order of veluaes in ``x`` corresponds to the order of the cell indexing in the grid, which can be arbitrary and depends on how the grid was constructued. We therefore need to use the grid's :func:`interpolate()` method to do this:
+
+.. code-block:: python
+
+	# Have a look at the results!
+	geom_mat.grid.plot(x)
+	plt.show()
+
+	# Now let's say we want to get the inversion results 
+	# along a slice at Z = -1.3m, for R from 0.3 -> 1.2m
+	r_coords = np.linspace(0.3,1.2,90)
+	z_coords = np.zeros(Rslice.shape) - 1.3
+
+	result_along_slice = geom_mat.grid.interpolate(x,r_coords,z_coords)

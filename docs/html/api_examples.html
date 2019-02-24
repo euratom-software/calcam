@@ -24,17 +24,27 @@
 
   
 
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="next" title="Image Sources" href="dev_imsources.html" />
-    <link rel="prev" title="Tomography Geometry Matrices" href="api_geom_matrix.html" /> 
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="Calcam  documentation" href="index.html"/>
+        <link rel="next" title="Image Sources" href="dev_imsources.html"/>
+        <link rel="prev" title="Tomography Geometry Matrices" href="api_geom_matrix.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav">
+<body class="wy-body-for-nav" role="document">
 
    
   <div class="wy-grid-for-nav">
@@ -51,7 +61,7 @@
 
           
             
-            <img src="_static/logo.png" class="logo" alt="Logo"/>
+            <img src="_static/logo.png" class="logo" />
           
           </a>
 
@@ -109,7 +119,7 @@
 </ul>
 <p class="caption"><span class="caption-text">GUI App User Guide</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="gui_intro.html">Calcam GUI tools and launcher</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="gui_intro.html">Introduction &amp; Launcher</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="gui_intro.html#starting-the-launcher">Starting the launcher</a></li>
 </ul>
 </li>
@@ -182,6 +192,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#mapping-a-magnetic-field-line-on-to-an-image">Mapping a magnetic field line on to an image</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#rendering-camera-view-wireframe">Rendering: camera view wireframe</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#ray-casting">Ray casting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#tomography-geometry-matrices">Tomography Geometry Matrices</a></li>
 </ul>
 </li>
 </ul>
@@ -211,7 +222,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" aria-label="top navigation">
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">Calcam</a>
@@ -219,10 +230,9 @@
       </nav>
 
 
+      
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
           
 
 
@@ -264,6 +274,7 @@
             
   <div class="section" id="examples">
 <h1>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h1>
+<p>This page has some examples of using the Calcam API. It is not meant to demonstrate all API features exhaustively but gives examples of simple use cases and workflows; for more complete details of what functions are available please refer to the other API documentation pages.</p>
 <div class="section" id="mapping-a-magnetic-field-line-on-to-an-image">
 <h2>Mapping a magnetic field line on to an image<a class="headerlink" href="#mapping-a-magnetic-field-line-on-to-an-image" title="Permalink to this headline">¶</a></h2>
 <p>We start from an image of a MAST plasma on to which we want to overlay a magnetic field line:</p>
@@ -370,28 +381,91 @@ We also have a Calcam calibration for that image stored in the file <code class=
 <span class="c1"># Load the CAD model</span>
 <span class="n">jet_machine</span> <span class="o">=</span> <span class="n">calcam</span><span class="o">.</span><span class="n">CADModel</span><span class="p">(</span><span class="s1">&#39;JET&#39;</span><span class="p">)</span>
 
-<span class="c1"># The coordinates at the wall are given by the returned RayData object&#39;s ray_end_coords attribute.</span>
-<span class="c1"># Note the 0 index for the first axis because we want the coordinates of the first (and only) point</span>
-<span class="c1"># that we ask to be raycast.</span>
-<span class="n">coords</span> <span class="o">=</span> <span class="n">calcam</span><span class="o">.</span><span class="n">raycast_sightlines</span><span class="p">(</span><span class="n">cam_calib</span><span class="p">,</span><span class="n">jet_machine</span><span class="p">,</span><span class="n">x</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span><span class="n">y</span><span class="o">=</span><span class="mi">250</span><span class="p">)</span><span class="o">.</span><span class="n">ray_end_coords</span><span class="p">[</span><span class="mi">0</span><span class="p">,:]</span>
+<span class="c1"># Do the ray cast to find the sight-line / CAD model intersection coordinates</span>
+<span class="n">raydata</span> <span class="o">=</span> <span class="n">calcam</span><span class="o">.</span><span class="n">raycast_sightlines</span><span class="p">(</span><span class="n">cam_calib</span><span class="p">,</span><span class="n">jet_machine</span><span class="p">,</span><span class="n">x</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span><span class="n">y</span><span class="o">=</span><span class="mi">250</span><span class="p">)</span>
+
+<span class="c1"># The coordinates at the wall are contained in the raydata&#39;s ray_end_coords array.</span>
+<span class="n">coords</span> <span class="o">=</span> <span class="n">raydata</span><span class="o">.</span><span class="n">ray_end_coords</span><span class="p">[</span><span class="mi">0</span><span class="p">,:]</span>
 </pre></div>
 </div>
 <p>The 3-element array <code class="docutils literal"><span class="pre">coords</span></code> will then contain the <span class="math">\(X,Y,Z\)</span> coordinates, in metres, of where the event of interest appened.</p>
 <p>Alternatively, we could ray cast every pixel on the detector and then find the coordinates from whiever one(s) we want afterwards:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="c1"># Do the ray cast to find the sight-line / CAD model intersection coordinates</span>
+<span class="n">raydata</span> <span class="o">=</span> <span class="n">calcam</span><span class="o">.</span><span class="n">raycast_sightlines</span><span class="p">(</span><span class="n">cam_calib</span><span class="p">,</span><span class="n">jet_machine</span><span class="p">)</span>
+
+<span class="c1"># The coordinates at the wall are contained in the raydata&#39;s ray_end_coords array.</span>
+<span class="n">coords</span> <span class="o">=</span> <span class="n">raydata</span><span class="o">.</span><span class="n">ray_end_coords</span><span class="p">[</span><span class="mi">250</span><span class="p">,</span><span class="mi">100</span><span class="p">,:]</span>
+</pre></div>
+</div>
+<p>If we have ray casted the whole image, we can do some other useful things with the raydata:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="c1"># Get an image showing how far from the camera to the wall at each image position</span>
+<span class="n">ray_length_image</span> <span class="o">=</span> <span class="n">raydata</span><span class="o">.</span><span class="n">get_ray_lengths</span><span class="p">()</span>
+
+<span class="c1"># Save the raydata for later use.</span>
+<span class="c1"># It is saved as a netCDF file so can be read by other codes</span>
+<span class="n">raydata</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;my_raydata.nc&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="tomography-geometry-matrices">
+<h2>Tomography Geometry Matrices<a class="headerlink" href="#tomography-geometry-matrices" title="Permalink to this headline">¶</a></h2>
+<p>For this example, we assume we already have a set of saved raydata relating to a camera we want to tomographically invert. For the purposes of this example we imagine it is a divertor camera on MAST, which can see Z heights up to about -1.6m in its field of view. To make the geometry matrix, we do this:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">calcam</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 
-<span class="c1"># Load the calibration</span>
-<span class="n">cam_calib</span> <span class="o">=</span> <span class="n">calcam</span><span class="o">.</span><span class="n">Calibration</span><span class="p">(</span><span class="s1">&#39;my_calibration.ccc&#39;</span><span class="p">)</span>
+<span class="c1"># Load the raydata (see previous example for how to generate raydata)</span>
+<span class="n">raydata</span> <span class="o">=</span> <span class="n">calcam</span><span class="o">.</span><span class="n">RayData</span><span class="p">(</span><span class="s1">&#39;my_raydata.nc&#39;</span><span class="p">)</span>
 
-<span class="c1"># Load the CAD model</span>
-<span class="n">jet_machine</span> <span class="o">=</span> <span class="n">calcam</span><span class="o">.</span><span class="n">CADModel</span><span class="p">(</span><span class="s1">&#39;JET&#39;</span><span class="p">)</span>
+<span class="c1"># Make a grid with 1cm grid cells in the poloidal plane on to which to invert.</span>
+<span class="c1"># This will use the wall contour from the &#39;MAST&#39; CAD model</span>
+<span class="n">grid</span> <span class="o">=</span> <span class="n">calcam</span><span class="o">.</span><span class="n">gm</span><span class="o">.</span><span class="n">squaregrid</span><span class="p">(</span><span class="s1">&#39;MAST&#39;</span><span class="p">,</span><span class="n">cell_size</span><span class="o">=</span><span class="mf">1e-2</span><span class="p">,</span><span class="n">zmax</span><span class="o">=-</span><span class="mf">1.6</span><span class="p">)</span>
 
-<span class="c1"># This time get the wall coordinates at every pixel in the image</span>
-<span class="n">all_coords</span> <span class="o">=</span> <span class="n">calcam</span><span class="o">.</span><span class="n">raycast_sightlines</span><span class="p">(</span><span class="n">cam_calib</span><span class="p">,</span><span class="n">jet_machine</span><span class="p">)</span><span class="o">.</span><span class="n">ray_end_coords</span>
+<span class="c1"># We can plot the grid to check it looks OK:</span>
+<span class="n">grid</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 
-<span class="c1"># To get the value at pixel x = 100, y = 250, note we have to index the array the other</span>
-<span class="c1"># way around because of Python&#39;s 2D array indexing convention.</span>
-<span class="n">coords</span> <span class="o">=</span> <span class="n">all_coords</span><span class="p">[</span><span class="mi">250</span><span class="p">,</span><span class="mi">100</span><span class="p">,:]</span>
+<span class="c1"># Now we have our grid and raydata, we can make a geometry matrix:</span>
+<span class="n">geom_mat</span> <span class="o">=</span> <span class="n">calcam</span><span class="o">.</span><span class="n">GeometryMatrix</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span><span class="n">raydata</span><span class="p">)</span>
+
+<span class="c1"># We probably want to save it, so we can use it to invert any images from this camera.</span>
+<span class="n">geom_mat</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;my_geom_mat.npz&#39;</span><span class="p">)</span>
+
+<span class="c1"># If we want to use MATLAB to do the inversions instead, we can also save it in MATLAB format:</span>
+<span class="n">geom_mat</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;my_geom_mat.mat&#39;</span><span class="p">)</span>
+
+<span class="c1"># If we need to make the matrix smaller to make the inversion computation easier, we can</span>
+<span class="c1"># tell it to bin the camera image, e.g. in 4x4 pixel blocks:</span>
+<span class="n">geom_mat</span><span class="o">.</span><span class="n">set_binning</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+
+<span class="c1"># We could also inspect the number of sight-lines passing through each grid cell,</span>
+<span class="c1"># to get an idea of the camera&#39;s coverage of the reconstruction domain.</span>
+<span class="n">coverage</span> <span class="o">=</span> <span class="n">geom_mat</span><span class="o">.</span><span class="n">get_los_coverage</span><span class="p">()</span>
+<span class="n">geom_mat</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">coverage</span><span class="p">,</span><span class="n">cblabel</span><span class="o">=</span><span class="s1">&#39;Number of sight-lines&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Now let&#8217;s imagine we have an image from the camera in a height x width NumPy array called <code class="docutils literal"><span class="pre">image</span></code>, which we want to invert. The actual solver for <span class="math">\(Ax = b\)</span> to do the inversion is beyond the scope of Calcam, so let&#8217;s assume your sparse matrix solver of choice is a function with call signature <code class="docutils literal"><span class="pre">x</span> <span class="pre">=</span> <span class="pre">my_solver(A,b)</span></code>, where <code class="docutils literal"><span class="pre">x</span></code> will be a 1D vector containing the result, <code class="docutils literal"><span class="pre">A</span></code> is the geometry matrix and <code class="docutils literal"><span class="pre">b</span></code> is the input data vector. We would then do the tomographic inversion like so:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="c1"># Re-format the camera image in to a 1D vector ready for inversion.</span>
+<span class="c1"># Note: if we have binning or pixel exclusion set up in the geometry matrix,</span>
+<span class="c1"># this takes care of all that for us (we just feed it the raw camera image).</span>
+<span class="n">data_vec</span> <span class="o">=</span> <span class="n">geom_mat</span><span class="o">.</span><span class="n">format_image</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+
+<span class="c1"># Call our sparse matrix solver of choice</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">my_solver</span><span class="p">(</span><span class="n">geom_mat</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">data_vec</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We can then visualise the results and / or extract them for further analsys. Note that it is not straightforward to directly get the inversion results at a given <span class="math">\(R,Z\)</span> position directly from <code class="docutils literal"><span class="pre">x</span></code>, since the order of veluaes in <code class="docutils literal"><span class="pre">x</span></code> corresponds to the order of the cell indexing in the grid, which can be arbitrary and depends on how the grid was constructued. We therefore need to use the grid&#8217;s <code class="xref py py-func docutils literal"><span class="pre">interpolate()</span></code> method to do this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="c1"># Have a look at the results!</span>
+<span class="n">geom_mat</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="c1"># Now let&#39;s say we want to get the inversion results</span>
+<span class="c1"># along a slice at Z = -1.3m, for R from 0.3 -&gt; 1.2m</span>
+<span class="n">r_coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.3</span><span class="p">,</span><span class="mf">1.2</span><span class="p">,</span><span class="mi">90</span><span class="p">)</span>
+<span class="n">z_coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">Rslice</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">-</span> <span class="mf">1.3</span>
+
+<span class="n">result_along_slice</span> <span class="o">=</span> <span class="n">geom_mat</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">r_coords</span><span class="p">,</span><span class="n">z_coords</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -399,7 +473,9 @@ We also have a Calcam calibration for that image stored in the file <code class=
 
 
            </div>
-           
+           <div class="articleComments">
+            
+           </div>
           </div>
           <footer>
   
@@ -417,11 +493,11 @@ We also have a Calcam calibration for that image stored in the file <code class=
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015-2018, European Atomic Energy Community (EURATOM)
+        &copy; Copyright 2015-2018, European Atomic Energy Community (EURATOM).
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -436,34 +512,36 @@ We also have a Calcam calibration for that image stored in the file <code class=
 
   
 
-    
-    
-      <script type="text/javascript">
-          var DOCUMENTATION_OPTIONS = {
-              URL_ROOT:'./',
-              VERSION:'',
-              LANGUAGE:'en',
-              COLLAPSE_INDEX:false,
-              FILE_SUFFIX:'.html',
-              HAS_SOURCE:  false,
-              SOURCELINK_SUFFIX: ''
-          };
-      </script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  false,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 
-  <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
 
+  
+  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.Navigation.enable(true);
+          SphinxRtdTheme.StickyNav.enable();
       });
-  </script> 
+  </script>
+   
 
 </body>
 </html>

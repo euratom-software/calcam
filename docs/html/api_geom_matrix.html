@@ -24,17 +24,27 @@
 
   
 
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="next" title="Examples" href="api_examples.html" />
-    <link rel="prev" title="CAD Models" href="api_cadmodel.html" /> 
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="Calcam  documentation" href="index.html"/>
+        <link rel="next" title="Examples" href="api_examples.html"/>
+        <link rel="prev" title="CAD Models" href="api_cadmodel.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav">
+<body class="wy-body-for-nav" role="document">
 
    
   <div class="wy-grid-for-nav">
@@ -51,7 +61,7 @@
 
           
             
-            <img src="_static/logo.png" class="logo" alt="Logo"/>
+            <img src="_static/logo.png" class="logo" />
           
           </a>
 
@@ -182,6 +192,7 @@
 <li class="toctree-l2"><a class="reference internal" href="api_examples.html#mapping-a-magnetic-field-line-on-to-an-image">Mapping a magnetic field line on to an image</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api_examples.html#rendering-camera-view-wireframe">Rendering: camera view wireframe</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api_examples.html#ray-casting">Ray casting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_examples.html#tomography-geometry-matrices">Tomography Geometry Matrices</a></li>
 </ul>
 </li>
 </ul>
@@ -211,7 +222,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" aria-label="top navigation">
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">Calcam</a>
@@ -219,10 +230,9 @@
       </nav>
 
 
+      
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
           
 
 
@@ -267,6 +277,7 @@
 <div class="section" id="background">
 <h2>Background<a class="headerlink" href="#background" title="Permalink to this headline">¶</a></h2>
 <p>It is common to want to recover the distribution of light emission from the plasma in the poloidal plane, assuming toroidal symmetry, from cameras viewing approximately tangentially. The emission is reconstructed on a grid defined the poloidal <span class="math">\((R,Z)\)</span> plane. The relationship between the brightness of emission from each grid element and the signal at each camera pixel is then a large system of linear equations, where the brightness of a pixel is given by a weighted sum of the brightness of each grid element along that pixel&#8217;s line of sight. This is most compactly expressed by a matrix multiplication <span class="math">\(\mathbf{Ax = b}\)</span> where <span class="math">\(\mathbf{A}\)</span> is the <em>geometry matrix</em>, <span class="math">\(\mathbf{x}\)</span> is a vector of the brightnesses of each grid element (which we want to find), and <span class="math">\(\mathbf{b}\)</span> is a vector of the pixel brightnesses. The calcam.gm module provides tools for generating the geometry matrix <span class="math">\(\mathbf{A}\)</span>.</p>
+<p>For examples of using the features documented on this page, see the <a class="reference internal" href="api_examples.html"><span class="doc">Examples</span></a> page.</p>
 <div class="section" id="model-assumptions-and-limitations">
 <h3>Model assumptions and limitations<a class="headerlink" href="#model-assumptions-and-limitations" title="Permalink to this headline">¶</a></h3>
 <p>In calculation of the geometry matrices, camera sight-lines are assumed to be infinitely thin pencil beams, i.e. finite etendue and depth-of-field effects are not included. If ray casting with binning = 1, each image pixel is characterised by a single pencil beam sight-line at the image centre, i.e. the finite size of the pixels is not accounted for. The values of matrix element <span class="math">\(i,j\)</span> is given by the length, in metres, of the <span class="math">\(i^{th}\)</span> sight line which passes through the <span class="math">\(j^{th}\)</span> grid cell.</p>
@@ -297,32 +308,6 @@ stored as a sparse matrix using the scipy.sprase.csr_matrix class.</p>
 </tr>
 </tbody>
 </table>
-<dl class="method">
-<dt id="calcam.gm.GeometryMatrix.get_mean_rcc">
-<code class="descname">get_mean_rcc</code><span class="sig-paren">(</span><em>status_callback=calcam_status_printer</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.GeometryMatrix.get_mean_rcc" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the mean reflective correlation coefficient of each matrix column
-with every other, but with the mean excluding other columns which are
-not correlated at all.</p>
-<p>Indicates which grid cells are likely to be highly correlated with
-others in the inversion problem and therefore will be artefact prone.</p>
-<p>Note: this calculation is done in a way which maintains the sparse storage
-structure of the matrix to avoid memory issues, but can be extremely slow
-to calculate for large matrices. It may be a good idea to increase the binning
-using set_binning() and then run this.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>status_callback</strong> (<em>callable</em>) &#8211; Callable which takes a single argument, to be called                                          with calculation status updates. The argument to status_callback                                          will either be a string for textual status updates or a float from                                          0 to 1 specifying the progress of the calculation. If set to None,                                          no status updates are issued. By default, status updates are                                          printed to stdout.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Array with as many elements as there are matrix columns, giving the                             mean(ish) correlation coefficients.</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">numpy.ndarray</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
 <dl class="attribute">
 <dt id="calcam.gm.GeometryMatrix.data">
 <code class="descname">data</code><em class="property"> = None</em><a class="headerlink" href="#calcam.gm.GeometryMatrix.data" title="Permalink to this definition">¶</a></dt>
@@ -351,6 +336,24 @@ pixels and reshape it to a 1D vector.</p>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">scipy.sparse.csr_matrix</p>
 </td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="calcam.gm.GeometryMatrix.fromfile">
+<em class="property">classmethod </em><code class="descname">fromfile</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.GeometryMatrix.fromfile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load a saved geometry matrix from disk.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>filename</strong> (<em>str</em>) &#8211; File name to load from. Can be a NumPy (.npz), MATLAB (.mat) or                               zipped ASCII (.zip) file.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Loaded geometry matrix.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">calcam.GeometryMatrix</td>
 </tr>
 </tbody>
 </table>
@@ -483,6 +486,12 @@ calcam.gm.squaregrid are provided for easily creating various types of grid.</p>
 </tr>
 </tbody>
 </table>
+<dl class="attribute">
+<dt id="calcam.gm.PoloidalVolumeGrid.extent">
+<code class="descname">extent</code><a class="headerlink" href="#calcam.gm.PoloidalVolumeGrid.extent" title="Permalink to this definition">¶</a></dt>
+<dd><p>A 4-element tuple of floats containing the         R,Z extent of the grid in metres (Rmin,Rmax,Zmin,Zmax)</p>
+</dd></dl>
+
 <dl class="method">
 <dt id="calcam.gm.PoloidalVolumeGrid.get_cell_intersections">
 <code class="descname">get_cell_intersections</code><span class="sig-paren">(</span><em>ray_start</em>, <em>ray_end</em>, <em>plot=False</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.PoloidalVolumeGrid.get_cell_intersections" title="Permalink to this definition">¶</a></dt>
@@ -511,22 +520,6 @@ in 3D space, with the grid cell boundaries.</p>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">tuple</p>
 </td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="calcam.gm.PoloidalVolumeGrid.get_extent">
-<code class="descname">get_extent</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.PoloidalVolumeGrid.get_extent" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the R,Z extent of the grid.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">4-element tuple of floats containing the                     grid extent Rmin,Rmax,Zmin,Zmax</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">tuple</td>
 </tr>
 </tbody>
 </table>
@@ -564,52 +557,22 @@ provides the functionality for now.</p>
 </table>
 </dd></dl>
 
-<dl class="method">
+<dl class="attribute">
 <dt id="calcam.gm.PoloidalVolumeGrid.n_cells">
-<code class="descname">n_cells</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.PoloidalVolumeGrid.n_cells" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the number of grid cells.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Number of grid cells</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">int</td>
-</tr>
-</tbody>
-</table>
+<code class="descname">n_cells</code><a class="headerlink" href="#calcam.gm.PoloidalVolumeGrid.n_cells" title="Permalink to this definition">¶</a></dt>
+<dd><p>The number of cells in the grid.</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="attribute">
 <dt id="calcam.gm.PoloidalVolumeGrid.n_segments">
-<code class="descname">n_segments</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.PoloidalVolumeGrid.n_segments" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the number of line segments in the grid.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Number of grid cells</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">int</td>
-</tr>
-</tbody>
-</table>
+<code class="descname">n_segments</code><a class="headerlink" href="#calcam.gm.PoloidalVolumeGrid.n_segments" title="Permalink to this definition">¶</a></dt>
+<dd><p>The number of line segments (cell sides) in the grid.</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="attribute">
 <dt id="calcam.gm.PoloidalVolumeGrid.n_vertices">
-<code class="descname">n_vertices</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.PoloidalVolumeGrid.n_vertices" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the number of vertices in the grid.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Number of vertices.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">int</td>
-</tr>
-</tbody>
-</table>
+<code class="descname">n_vertices</code><a class="headerlink" href="#calcam.gm.PoloidalVolumeGrid.n_vertices" title="Permalink to this definition">¶</a></dt>
+<dd><p>The number of vertices in the grid.</p>
 </dd></dl>
 
 <dl class="method">
@@ -623,9 +586,9 @@ plot the grid itself.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>data</strong> (<em>array</em>) &#8211; Data to plot on the grid. Must be a 1D array with as many elements                                               as there are grid cells. If not given, only the grid structure is plotted.</li>
-<li><strong>clim</strong> (<em>sequence or None</em>) &#8211; 2 element sequence giving the colourmap limits for the data [min,max].                                               If set to None, the data min and max are used.</li>
-<li><strong>cmap</strong> (<em>str or None</em>) &#8211; Name of the matplotlib colourmap to use to display the data. If not given,                                               matplotlib&#8217;s default colourmap will be used.</li>
-<li><strong>line_colour</strong> (<em>sequence or None</em>) &#8211; 3-element sequence of values between 0 and 1 specifying the R,G,B                                               colour with which to draw the wall contour and grid cell boundaries.                                               If set to None, the wall and cell boundaries are not drawn.</li>
+<li><strong>clim</strong> (<em>sequence</em><em> or </em><em>None</em>) &#8211; 2 element sequence giving the colourmap limits for the data [min,max].                                               If set to None, the data min and max are used.</li>
+<li><strong>cmap</strong> (<em>str</em><em> or </em><em>None</em>) &#8211; Name of the matplotlib colourmap to use to display the data. If not given,                                               matplotlib&#8217;s default colourmap will be used.</li>
+<li><strong>line_colour</strong> (<em>sequence</em><em> or </em><em>None</em>) &#8211; 3-element sequence of values between 0 and 1 specifying the R,G,B                                               colour with which to draw the wall contour and grid cell boundaries.                                               If set to None, the wall and cell boundaries are not drawn.</li>
 <li><strong>cell_linewidth</strong> (<em>float</em>) &#8211; Line width to use to show the grid cell boundaries. If set to 0, the grid                                               cell boundaries will not be drawn.</li>
 <li><strong>cblabel</strong> (<em>str</em>) &#8211; Label for the data colour bar, if plotting data.</li>
 <li><strong>axes</strong> (<em>matplotlib.pyplot.Axes</em>) &#8211; Matplotlib axes on which to plot. If not given, a new figure will be created.</li>
@@ -664,22 +627,6 @@ plot the grid itself.</p>
 </table>
 </dd></dl>
 
-<dl class="method">
-<dt id="calcam.gm.PoloidalVolumeGrid.verts_per_cell">
-<code class="descname">verts_per_cell</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.PoloidalVolumeGrid.verts_per_cell" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the number of vertices per grid cell.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Number of vertices per cell</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">int</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
 </dd></dl>
 
 <div class="section" id="creating-commonly-used-grid-types">
@@ -694,9 +641,9 @@ plot the grid itself.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>wall_contour</strong> (<em>str or numpy.ndarray</em>) &#8211; Either the name of a Calcam CAD model                                               from which to use the wall contour, or an                                               N x 2 array of R,Z points defining the machine wall.</li>
+<li><strong>wall_contour</strong> (<em>str</em><em> or </em><em>numpy.ndarray</em>) &#8211; Either the name of a Calcam CAD model                                               from which to use the wall contour, or an                                               N x 2 array of R,Z points defining the machine wall.</li>
 <li><strong>cell_size</strong> (<em>float</em>) &#8211; Side length of each grid cell in metres.</li>
-<li><strong>rmax, zmin, zmax</strong> (<em>rmin,</em>) &#8211; Optional limits of the grid extent in the R, Z plane.                                               Any combination of these may or may not be given; if none                                               are given the entire wall contour interior is gridded.</li>
+<li><strong>rmax</strong><strong>, </strong><strong>zmin</strong><strong>, </strong><strong>zmax</strong> (<em>rmin</em><em>,</em><em></em>) &#8211; Optional limits of the grid extent in the R, Z plane.                                               Any combination of these may or may not be given; if none                                               are given the entire wall contour interior is gridded.</li>
 </ul>
 </td>
 </tr>
@@ -714,15 +661,17 @@ plot the grid itself.</p>
 <dt id="calcam.gm.trigrid">
 <code class="descclassname">calcam.gm.</code><code class="descname">trigrid</code><span class="sig-paren">(</span><em>wall_contour</em>, <em>max_cell_scale</em>, <em>rmin=None</em>, <em>rmax=None</em>, <em>zmin=None</em>, <em>zmax=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.trigrid" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a reconstruction grid with triangular grid cells conforming to the
-wall contour. Generated using J. Shewchuk&#8217;s &#8220;triangle&#8221; via the MeshPy module.</p>
+wall contour. Requires the MeshPy package (<a class="reference external" href="https://pypi.org/project/MeshPy/">https://pypi.org/project/MeshPy/</a>)
+to be installed, since it uses J. Shewchuk&#8217;s &#8220;triangle&#8221; via the MeshPy to
+generate the grid.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>wall_contour</strong> (<em>str or numpy.ndarray</em>) &#8211; Either the name of a Calcam CAD model                                               from which to use the wall contour, or an                                               N x 2 array of R,Z points defining the machine wall.</li>
+<li><strong>wall_contour</strong> (<em>str</em><em> or </em><em>numpy.ndarray</em>) &#8211; Either the name of a Calcam CAD model                                               from which to use the wall contour, or an                                               N x 2 array of R,Z points defining the machine wall.</li>
 <li><strong>max_cell_scale</strong> (<em>float</em>) &#8211; Approximate maximum allowed length scale for a grid                                               cell, in metres.</li>
-<li><strong>rmax, zmin, zmax</strong> (<em>rmin,</em>) &#8211; Optional limits of the grid extent in the R, Z plane.                                               Any combination of these may or may not be given; if none                                               are given the entire wall contour interior is gridded.</li>
+<li><strong>rmax</strong><strong>, </strong><strong>zmin</strong><strong>, </strong><strong>zmax</strong> (<em>rmin</em><em>,</em><em></em>) &#8211; Optional limits of the grid extent in the R, Z plane.                                               Any combination of these may or may not be given; if none                                               are given the entire wall contour interior is gridded.</li>
 </ul>
 </td>
 </tr>
@@ -748,7 +697,9 @@ This can be used to further control the meshing; see the MeshPy documentation fo
 
 
            </div>
-           
+           <div class="articleComments">
+            
+           </div>
           </div>
           <footer>
   
@@ -766,11 +717,11 @@ This can be used to further control the meshing; see the MeshPy documentation fo
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015-2018, European Atomic Energy Community (EURATOM)
+        &copy; Copyright 2015-2018, European Atomic Energy Community (EURATOM).
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -785,34 +736,36 @@ This can be used to further control the meshing; see the MeshPy documentation fo
 
   
 
-    
-    
-      <script type="text/javascript">
-          var DOCUMENTATION_OPTIONS = {
-              URL_ROOT:'./',
-              VERSION:'',
-              LANGUAGE:'en',
-              COLLAPSE_INDEX:false,
-              FILE_SUFFIX:'.html',
-              HAS_SOURCE:  false,
-              SOURCELINK_SUFFIX: ''
-          };
-      </script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  false,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 
-  <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
 
+  
+  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.Navigation.enable(true);
+          SphinxRtdTheme.StickyNav.enable();
       });
-  </script> 
+  </script>
+   
 
 </body>
 </html>

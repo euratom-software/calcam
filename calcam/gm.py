@@ -94,72 +94,45 @@ class PoloidalVolumeGrid:
         if src is None:
             self.history = 'Created by {:s} on {:s} at {:s}'.format(misc.username,misc.hostname,misc.get_formatted_time())
         elif 'by' in src and 'on' in src and 'at' in src:
-            self.history = history
+            self.history = src
         else:
-            self.history = history + ' by {:s} on {:s} at {:s}'.format(misc.username,misc.hostname,misc.get_formatted_time())
+            self.history = src + ' by {:s} on {:s} at {:s}'.format(misc.username,misc.hostname,misc.get_formatted_time())
 
         self._validate_grid()
         self._build_edge_list()
         self._cull_unused_verts()
 
+        self.gridtype = 'Polyogn Cell Grid'
 
 
+    @property
     def n_cells(self):
         '''
-        Get the number of grid cells.
-
-        Returns:
-
-            int : Number of grid cells
-
+		The number of cells in the grid.
         '''
         return self.cells.shape[0]
 
-
+    @property
     def n_segments(self):
         '''
-        Get the number of line segments in the grid.
-
-        Returns:
-
-            int : Number of grid cells
-
+        The number of line segments (cell sides) in the grid.
         '''
         return self.segments.shape[0]
 
 
-    def verts_per_cell(self):
-        '''
-        Get the number of vertices per grid cell.
-
-        Returns:
-
-            int : Number of vertices per cell
-
-        '''
-        return self.cells.shape[1]
-
+    @property
     def n_vertices(self):
         '''
-        Get the number of vertices in the grid.
-        
-        Returns:
-            
-            int : Number of vertices.
+		The number of vertices in the grid.
         '''
         return self.vertices.shape[0]
 
 
-
-
-    def get_extent(self):
+    @property
+    def extent(self):
         '''
-        Get the R,Z extent of the grid.
-        
-        Returns:
-            
-            tuple : 4-element tuple of floats containing the \
-                    grid extent Rmin,Rmax,Zmin,Zmax
+        A 4-element tuple of floats containing the \
+        R,Z extent of the grid in metres (Rmin,Rmax,Zmin,Zmax)
         '''
         rmin = self.vertices[:,0].min()
         rmax = self.vertices[:,0].max()
@@ -224,11 +197,10 @@ class PoloidalVolumeGrid:
             c = (dlz**2*lar**2 - 2*dlr*dlz*lar*laz + dlr**2*laz**2 - dlz**2*pax**2 - dlz**2*pay**2 + 2*dlr*dlz*lar*paz - 2*dlr**2*laz*paz + dlr**2*paz**2)
             
             # These will be the intersection positions
-            n_lines = self.n_segments()
-            t_ray0 = np.zeros(n_lines) - 1.
-            t_seg0 = np.zeros(n_lines) - 1.
-            t_ray1 = np.zeros(n_lines) - 1.
-            t_seg1 = np.zeros(n_lines) - 1.
+            t_ray0 = np.zeros(self.n_segments) - 1.
+            t_seg0 = np.zeros(self.n_segments) - 1.
+            t_ray1 = np.zeros(self.n_segments) - 1.
+            t_seg1 = np.zeros(self.n_segments) - 1.
     
             # The magic number!
             d = b**2 - 4*a*c
@@ -265,7 +237,7 @@ class PoloidalVolumeGrid:
 
             # Full list of intersection distance and segment index
             t_ray = np.concatenate( (t_ray0[valid_inds0],t_ray1[valid_inds1]) )     
-            seg_inds = np.arange(self.n_segments(),dtype=np.uint32)
+            seg_inds = np.arange(self.n_segments,dtype=np.uint32)
             seg_inds = np.concatenate( (seg_inds[valid_inds0],seg_inds[valid_inds1]) )
     
             
@@ -363,10 +335,10 @@ class PoloidalVolumeGrid:
             data = np.array(data)
 
             if len(np.squeeze(data).shape) > 1:
-                raise ValueError('Data must be a 1D array the same length as the number of grid cells ({:d}).'.format(self.n_cells()))
+                raise ValueError('Data must be a 1D array the same length as the number of grid cells ({:d}).'.format(self.n_cells))
 
-            if data.size != self.n_cells():
-                raise ValueError('Data vector is the wrong length! Data has {:d} values but the grid gas {:d} cells.'.format(data.size,self.n_cells()))
+            if data.size != self.n_cells:
+                raise ValueError('Data vector is the wrong length! Data has {:d} values but the grid gas {:d} cells.'.format(data.size,self.n_cells))
 
             cmap = cm.get_cmap(cmap)
 
@@ -385,7 +357,7 @@ class PoloidalVolumeGrid:
         patches = []
         verts_per_cell = self.cells.shape[1]
 
-        for cell_ind in range(self.n_cells()):
+        for cell_ind in range(self.n_cells):
             xy = np.vstack( [ self.vertices[self.cells[cell_ind,i],:] for i in range(verts_per_cell)] )
             patches.append( PolyPatch( xy, closed=True) )
         pcoll = PatchCollection(patches)
@@ -422,7 +394,7 @@ class PoloidalVolumeGrid:
             plt.colorbar(pcoll,label=cblabel if cblabel is not None else '')
 
         # Prettification - set appropriate zoom for the grid extent.
-        rmin,rmax,zmin,zmax = self.get_extent()
+        rmin,rmax,zmin,zmax = self.extent
         headroom = 0.1
         axes.set_xlim([rmin - headroom,rmax + headroom])
         axes.set_ylim([zmin - headroom, zmax + headroom])
@@ -463,11 +435,14 @@ class PoloidalVolumeGrid:
                         values at positions (r_new,z_new).
         '''
 
+        r_new = np.array(r_new)
+        z_new = np.array(z_new)
+
         if r_new.shape != z_new.shape:
             raise ValueError('r_new and z_new must be the same shape!')
 
-        if data.size != self.n_cells():
-            raise ValueError('Data vector has wrong size: data has {:d} values but there are {:d} grid cells!'.format(data.size,self.n_cells()))
+        if data.size != self.n_cells:
+            raise ValueError('Data vector has wrong size: data has {:d} values but there are {:d} grid cells!'.format(data.size,self.n_cells))
 
         orig_shape = r_new.shape
 
@@ -553,10 +528,10 @@ class PoloidalVolumeGrid:
         self.cell_sides = np.zeros(self.cells.shape,dtype=np.uint32)
 
         segment_index = 0
-        verts_per_cell = self.verts_per_cell()
+        verts_per_cell = self.cells.shape[1]
 
         # For each grid cell
-        for cell_index in range(self.n_cells()):
+        for cell_index in range(self.n_cells):
 
             # For each side of the cell
             for seg_index in range(verts_per_cell):
@@ -640,7 +615,7 @@ class GeometryMatrix:
             self.history = {'los':raydata.history,'grid':grid.history,'matrix':'Created by {:s} on {:s} at {:s}'.format(misc.username,misc.hostname,misc.get_formatted_time())}
             
             # Number of grid cells and sight lines
-            n_cells = grid.n_cells()
+            n_cells = grid.n_cells
             n_los = raydata.x.size
     
             # Flatten out the ray start and end coords
@@ -759,7 +734,7 @@ class GeometryMatrix:
             for indarr in ind_arrays[1:]:
                 new_data = new_data + self.data[indarr,:]
                 
-            norm_factor = scipy.sparse.diags(np.ones(self.grid.n_cells())/bin_factor**2,format='csr')
+            norm_factor = scipy.sparse.diags(np.ones(self.grid.n_cells)/bin_factor**2,format='csr')
             
             self.data = new_data * norm_factor
             
@@ -981,9 +956,9 @@ class GeometryMatrix:
         ray_length = np.sqrt( np.sum( (ray_end_coords - ray_start_coords)**2 ) )
         
         # Output will be stored in here
-        #row_out = scipy.sparse.lil_matrix( (1,self.grid.n_cells()) )
-        col_inds = np.arange(self.grid.n_cells(),dtype=np.uint32)
-        data = np.zeros(self.grid.n_cells())
+        #row_out = scipy.sparse.lil_matrix( (1,self.grid.n_cells) )
+        col_inds = np.arange(self.grid.n_cells,dtype=np.uint32)
+        data = np.zeros(self.grid.n_cells)
         
         # Get the ray intersections with the grid cells
         positions,intersected_cells = self.grid.get_cell_intersections(ray_start_coords,ray_end_coords)
@@ -1057,7 +1032,7 @@ class GeometryMatrix:
                              pixel_order = self.pixel_order,
                              pixel_mask = self.pixel_mask,
                              history = self.history,
-                             grid_type = 'volume',
+                             grid_type = self.grid.__class__.__name__,
                              im_transforms = self.image_geometry.transform_actions,
                              im_px_aspect = self.image_geometry.pixel_aspectratio,
                              im_shape = self.pixel_mask.shape[::-1],
@@ -1070,8 +1045,6 @@ class GeometryMatrix:
         '''
         f = np.load(filename)
         
-        self.grid = PoloidalVolumeGrid(f['grid_verts'],f['grid_cells'],f['grid_wall'])
-        
         self.binning = float(f['binning'])
         self.pixel_order = str(f['pixel_order'])
         self.history = f['history'].item()
@@ -1082,6 +1055,7 @@ class GeometryMatrix:
         self.image_geometry.set_pixel_aspect(f['im_px_aspect'],relative_to='Original')
         self.image_geometry.set_image_shape(*self.binning*np.array(self.pixel_mask.shape[::-1]),coords=self.image_coords)
         
+        self.grid = PoloidalVolumeGrid(f['grid_verts'],f['grid_cells'],f['grid_wall'],src=self.history['grid'])
         self.data = scipy.sparse.csr_matrix((f['mat_data'],(f['mat_row_inds'],f['mat_col_inds'])),shape=f['mat_shape'])
 
 
@@ -1101,7 +1075,7 @@ class GeometryMatrix:
                            'matrix_history':self.history['matrix'],
                            'grid_history':self.history['grid'],
                            'pixel_mask':self.pixel_mask,
-                           'grid_type':'volume',
+                           'grid_type':self.grid.__class__.__name__,
                            'im_transforms': np.array(self.image_geometry.transform_actions,dtype=np.object),
                            'im_px_aspect':self.image_geometry.pixel_aspectratio,
                            'im_coords':self.image_coords
@@ -1115,13 +1089,15 @@ class GeometryMatrix:
         '''
         f = scipy.io.loadmat(filename)
         
-        self.grid = PoloidalVolumeGrid(f['grid_verts'],f['grid_cells'],f['grid_wall'])
+        
         
         self.binning = float(f['binning'][0,0])
         self.pixel_order = str(f['pixel_order'][0])
         self.pixel_mask = f['pixel_mask']
         self.history = {'los':str(f['sightline_history'][0]),'grid':str(f['grid_history'][0]),'matrix':str(f['matrix_history'][0])}
         self.image_coords = str(f['im_coords'][0])
+
+        self.grid = PoloidalVolumeGrid(f['grid_verts'],f['grid_cells'],f['grid_wall'],src=self.history['grid'])
         self.data = f['geom_mat'].tocsr()
         
         self.image_geometry = CoordTransformer()
@@ -1147,7 +1123,7 @@ class GeometryMatrix:
             np.savetxt(os.path.join(dest,'grid_wall.txt'),self.grid.wall_contour)
             np.savetxt(os.path.join(dest,'pixel_mask.txt'),self.pixel_mask,fmt='%d')
             
-            meta = {'mat_shape':self.data.shape, 'binning':self.binning, 'pixel_order':self.pixel_order, 'grid_type':'volume','history':self.history,'im_transform_actions':self.image_geometry.transform_actions,'im_px_aspect':self.image_geometry.pixel_aspectratio,'im_coords':self.image_coords}
+            meta = {'mat_shape':self.data.shape, 'binning':self.binning, 'pixel_order':self.pixel_order, 'grid_type':self.grid.__class__.__name__,'history':self.history,'im_transform_actions':self.image_geometry.transform_actions,'im_px_aspect':self.image_geometry.pixel_aspectratio,'im_coords':self.image_coords}
             
             with zfile.open_file('metadata.json','w') as metafile:
                 
@@ -1175,7 +1151,7 @@ class GeometryMatrix:
 
             self.pixel_mask = np.loadtxt(os.path.join(src,'pixel_mask.txt')).astype(bool)
             
-            self.grid = PoloidalVolumeGrid(verts,cells,wall,meta['history']['grid'])
+            
                 
             self.binning = meta['binning']
             self.pixel_order = meta['pixel_order']
@@ -1184,7 +1160,8 @@ class GeometryMatrix:
             row_ind = np.loadtxt(os.path.join(src,'mat_row_ind.txt'),dtype=np.uint32)
             col_ind = np.loadtxt(os.path.join(src,'mat_col_ind.txt'),dtype=np.uint32)
             data = np.loadtxt(os.path.join(src,'mat_data.txt'))
-            
+
+            self.grid = PoloidalVolumeGrid(verts,cells,wall,meta['history']['grid'],src=self.history['grid'])
             self.data = scipy.sparse.csr_matrix((data,(row_ind,col_ind)),shape=meta['mat_shape'])
 
             self.image_geometry = CoordTransformer()
@@ -1200,33 +1177,40 @@ class GeometryMatrix:
         msg = '======================\nCalcam Geometry Matrix\n======================\n\n'
 
         msg = msg + self.history['matrix'] + '\n'
-        msg = msg + 'Matrix Dimensions: {:d} x {:d}\n'.format(*self.data.shape)
+        msg = msg + 'Matrix Dimensions: {:d} x {:d} [lines-of-sight x grid elements]\n'.format(*self.data.shape)
         msg = msg + 'Density:           {:.1f}%\n\n'.format(100*float(self.data.getnnz(None)/np.prod(self.data.shape)))
 
         msg = msg + '--------------\nLines of Sight\n--------------\n'
         msg = msg + self.history['los'] + '\n'
-        msg = msg + 'Image binning:     {:.1f} x {:.1f}\n'.format(self.binning,self.binning)
-        msg = msg + 'Image orientation: {:s}\n\n'.format(self.image_coords)
+
+        if self.image_coords.lower() == 'original':
+        	im_shape = self.image_geometry.get_original_shape()
+        elif self.image_coords.lower() == 'display':
+        	im_shape = self.image_geometry.get_display_shape()
+
+        msg = msg + 'Image dimensions:  {:d} x {:d} px\n'.format(im_shape[0],im_shape[1])
+        msg = msg + 'Image orientation: {:s}\n'.format(self.image_coords)
+        msg = msg + 'Image binning:     {:.1f} x {:.1f}\n\n'.format(self.binning,self.binning)
+        
 
         msg = msg + '-------------------\nReconstruction Grid\n-------------------\n'
         msg = msg + self.history['grid'] + '\n'
-        extent = self.grid.get_extent()
+        extent = self.grid.extent
+        msg = msg + 'Type:                   {:s}\n'.format(self.grid.gridtype)
         msg = msg + 'R coverage:             {:.3f}m - {:.3f}m\n'.format(extent[0],extent[1])
         msg = msg + 'Z coverage:             {:.3f}m - {:.3f}m\n'.format(extent[2],extent[3])
-        msg = msg + 'Vertices per grid cell: {:d}\n'.format(self.grid.verts_per_cell())
-        msg = msg + 'Total line segments:    {:d}\n'.format(self.grid.n_segments())
 
         return msg
+
 
     @classmethod
     def fromfile(cls,filename):
         '''
-        Load a Calcam saved geometry matrix from disk.
+        Load a saved geometry matrix from disk.
         
         Parameters:
             
-            filename (str)  : File name to load from. Can be a  \
-                              NumPy (.npz), MATLAB (.mat) or \
+            filename (str)  : File name to load from. Can be a NumPy (.npz), MATLAB (.mat) or \
                               zipped ASCII (.zip) file.
                              
         Returns:
@@ -1348,7 +1332,7 @@ def squaregrid(wall_contour,cell_size,rmin=None,rmax=None,zmin=None,zmax=None):
             cell_ind += 1
 
     
-    return PoloidalVolumeGrid(vertices[:vert_ind,:],cells[:cell_ind,:],wall_contour)
+    return PoloidalVolumeGrid(vertices[:vert_ind,:],cells[:cell_ind,:],wall_contour,src='Square grid with {:.1f}cm cells generated using squaregrid()'.format(cell_size*1e2))
 
 
 
@@ -1479,7 +1463,7 @@ def trigrid(wall_contour,max_cell_scale,rmin=None,rmax=None,zmin=None,zmax=None,
     else:
         raise Exception('Call to meshpy.triangle to generate the grid failed silently. The triangle library can be a bit flaky; maybe try again and/or change settings.')
 
-    return PoloidalVolumeGrid(mesh['vertices'],mesh['cells'],wall_contour)
+    return PoloidalVolumeGrid(mesh['vertices'],mesh['cells'],wall_contour,src='Wall-conforming triangular mesh with ~{:.1f}cm cells generated with trigrid()'.format(max_cell_scale*1e2))
 
 
 
@@ -1560,5 +1544,5 @@ def _run_triangle_python(geometry,queue,**kwargs):
 def _bin_image(image,bin_factor,bin_func=np.mean):
 
     newshape = ( image.shape[0] // bin_factor, bin_factor, image.shape[1] // bin_factor, bin_factor )
-
+    newshape = np.array(newshape,dtype=int)
     return bin_func( bin_func( image.reshape(newshape),axis=3 ) ,axis=1 )

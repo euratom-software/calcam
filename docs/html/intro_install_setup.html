@@ -24,17 +24,27 @@
 
   
 
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="next" title="Camera Calibration Theory" href="intro_theory.html" />
-    <link rel="prev" title="Genral Introduction to Calcam" href="intro_general.html" /> 
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="Calcam  documentation" href="index.html"/>
+        <link rel="next" title="Camera Calibration Theory" href="intro_theory.html"/>
+        <link rel="prev" title="Genral Introduction to Calcam" href="intro_general.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav">
+<body class="wy-body-for-nav" role="document">
 
    
   <div class="wy-grid-for-nav">
@@ -51,7 +61,7 @@
 
           
             
-            <img src="_static/logo.png" class="logo" alt="Logo"/>
+            <img src="_static/logo.png" class="logo" />
           
           </a>
 
@@ -109,7 +119,7 @@
 </ul>
 <p class="caption"><span class="caption-text">GUI App User Guide</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="gui_intro.html">Calcam GUI tools and launcher</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="gui_intro.html">Introduction &amp; Launcher</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="gui_intro.html#starting-the-launcher">Starting the launcher</a></li>
 </ul>
 </li>
@@ -182,6 +192,7 @@
 <li class="toctree-l2"><a class="reference internal" href="api_examples.html#mapping-a-magnetic-field-line-on-to-an-image">Mapping a magnetic field line on to an image</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api_examples.html#rendering-camera-view-wireframe">Rendering: camera view wireframe</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api_examples.html#ray-casting">Ray casting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_examples.html#tomography-geometry-matrices">Tomography Geometry Matrices</a></li>
 </ul>
 </li>
 </ul>
@@ -211,7 +222,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" aria-label="top navigation">
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">Calcam</a>
@@ -219,10 +230,9 @@
       </nav>
 
 
+      
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
           
 
 
@@ -275,13 +285,13 @@
 </div>
 <div class="section" id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
-<p>Calcam is a Python package, so the first thing to do is install Python, if you don&#8217;t have it already. Calcam works with Python version 2.7 or newer, however it is highly recommended to use Python 3.x. You will also need the <code class="docutils literal"><span class="pre">setuptools</span></code> python package (which comes as standard with most python distributions) to take advantage of Calcam&#8217;s setup script as described below.</p>
+<p>Calcam is a Python package, so the first thing to do is install Python, if you don&#8217;t have it already. Calcam works with Python version 2.7 or newer, however it is highly recommended to use Python 3.x. You will also need the <code class="docutils literal"><span class="pre">pip</span></code> and <code class="docutils literal"><span class="pre">setuptools</span></code> python packages (which should be redily available in most OSs / python distributions) to take advantage of Calcam&#8217;s setup script as described below.</p>
 <p>Once you have Python working and the Calcam repository files on your computer, the package can be installed from the system command line using the setup script included in the root of the repository:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">install</span>
 </pre></div>
 </div>
-<p>This will try to install Calcam&#8217;s dependencies (Scipy, OpenCV, PyQt and VTK) if they are not already installed; copy Calcam to the appropriate Python library path; and create a convenient launcher script for the Calcam GUI. On some platforms, the PyQt and VTK libraries may not be installable automatically by the setup script, in which case it will show a message warning that these need to be installed manually if you want to use all the features of Calcam. If you find yourself on a platform where they cannot be installed automatically, the easiest way to get PyQt and VTK is probably to see if your OS has available pre-built packages for them, or to use a python distribution such as <a class="reference external" href="https://www.enthought.com/product/canopy/">Enthought Canopy</a> or <a class="reference external" href="https://python-xy.github.io/">Python (x,y)</a>.</p>
-<p>If installing on a system where you do not have the relevant admin/root permissions to install python packages globally (in which case running the above command will produce an error message saying something about permissions, adding the <code class="docutils literal"><span class="pre">--user</span></code> switch to the above installation command will install the package under your user account specifically.</p>
+<p>This will try to install Calcam&#8217;s dependencies (Scipy, MatPlotLib, OpenCV, PyQt and VTK) if they are not already installed; copy Calcam to the appropriate Python library path; and create a convenient launcher script for the Calcam GUI. On some combinations of platforms and python versions, the PyQt and VTK libraries may not be installable automatically by the setup script, in which case it will show a warning detailing what could not be installed automatically. Some features of Calcam will still work without these dependencies, but they must be installed in order to make the full Calcam API and GUI available. If you find yourself on a platform where one or more dependencies cannot be installed automatically, the easiest way to get install them is probably to see if your OS has pre-built packages available for them, or to use a python distribution such as <a class="reference external" href="https://www.enthought.com/product/canopy/">Enthought Canopy</a> or <a class="reference external" href="https://python-xy.github.io/">Python (x,y)</a> which can provide the necessary dependencies via its own package management.</p>
+<p>If installing on a system where you do not have the relevant admin/root permissions to install python packages globally (in which case running the above command will produce an error message saying something about permissions), adding the <code class="docutils literal"><span class="pre">--user</span></code> switch to the above installation command will install the package under your user account specifically.</p>
 <p>After the setup script is finished you can delete the downloaded calcam files, if you want.</p>
 <div class="section" id="installing-in-development-mode">
 <h3>Installing in Development mode<a class="headerlink" href="#installing-in-development-mode" title="Permalink to this headline">¶</a></h3>
@@ -335,7 +345,9 @@
 
 
            </div>
-           
+           <div class="articleComments">
+            
+           </div>
           </div>
           <footer>
   
@@ -353,11 +365,11 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015-2018, European Atomic Energy Community (EURATOM)
+        &copy; Copyright 2015-2018, European Atomic Energy Community (EURATOM).
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -372,34 +384,36 @@
 
   
 
-    
-    
-      <script type="text/javascript">
-          var DOCUMENTATION_OPTIONS = {
-              URL_ROOT:'./',
-              VERSION:'',
-              LANGUAGE:'en',
-              COLLAPSE_INDEX:false,
-              FILE_SUFFIX:'.html',
-              HAS_SOURCE:  false,
-              SOURCELINK_SUFFIX: ''
-          };
-      </script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  false,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 
-  <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
 
+  
+  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.Navigation.enable(true);
+          SphinxRtdTheme.StickyNav.enable();
       });
-  </script> 
+  </script>
+   
 
 </body>
 </html>
