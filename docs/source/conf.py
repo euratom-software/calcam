@@ -52,7 +52,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Calcam'
-copyright = u'2015-2018, European Atomic Energy Community (EURATOM)'
+copyright = u'2015-2019, European Atomic Energy Community (EURATOM)'
 author = u'Scott Silburn et. al.'
 
 # The version info for the project you're documenting, acts as replacement for

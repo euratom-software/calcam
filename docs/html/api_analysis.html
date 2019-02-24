@@ -716,6 +716,12 @@ It can also be used to save and load ray cast results to disk.</p>
 </dd></dl>
 
 <dl class="attribute">
+<dt id="calcam.RayData.history">
+<code class="descname">history</code><em class="property"> = None</em><a class="headerlink" href="#calcam.RayData.history" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>str</em> &#8211; Human readable description of where the raydata came from.</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="calcam.RayData.ray_end_coords">
 <code class="descname">ray_end_coords</code><em class="property"> = None</em><a class="headerlink" href="#calcam.RayData.ray_end_coords" title="Permalink to this definition">¶</a></dt>
 <dd><p><em>np.ndarray</em> &#8211; An array containing the 3D coordinates, in metres, of the points where the sight lines intersect the CAD model. If x and y coordinates were input to raycast_sightlines, the shape of this array is the same as the input x and y arrays with an additional dimension added which contains the [X,Y,Z] 3D coordinates. Otherwise the shape is (h x w x 3) where w and h are the image width and height.</p>
@@ -768,7 +774,7 @@ It can also be used to save and load ray cast results to disk.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015-2018, European Atomic Energy Community (EURATOM).
+        &copy; Copyright 2015-2019, European Atomic Energy Community (EURATOM).
 
     </p>
   </div>

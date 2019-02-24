@@ -70,6 +70,8 @@ class PointPairs():
     # Save point pairs to csv file
     def save(self,savefile):
 
+        print(self.image_points)
+
         # Construct and write the file header and column headings
         fieldheaders = 'World Coordinates [m],,,'
         xyheaders = ''
@@ -166,7 +168,7 @@ class PointPairs():
     def __eq__(self,other_pointpairs):
         
         if self.n_subviews != other_pointpairs.n_subviews:
-            return [False] * max(self.n_subviews,other_pointpairs.subviews)
+            return [False] * max(self.n_subviews,other_pointpairs.n_subviews)
             
         eq = []
         for subview in range(self.n_subviews):

@@ -171,7 +171,7 @@ class FittingCalib(CalcamGUIWindow):
         self.fit_overlay = None
         self.comp_overlay = None
 
-        self.chessboard_history = None
+        self.chessboard_history = []
 
         self.fit_results = []
 
@@ -196,8 +196,12 @@ class FittingCalib(CalcamGUIWindow):
 
     def modify_intrinsics_calib(self):
         loaded_calib = self.object_from_file('calibration')
+
         if loaded_calib is not None:
             self.intrinsics_calib = loaded_calib
+            if self.intrinsics_calib_checkbox.isChecked():
+                self.intrinsics_calib_checkbox.setChecked(False)
+
             self.intrinsics_calib_checkbox.setChecked(True)
             self.unsaved_changes = True
 
@@ -208,7 +212,7 @@ class FittingCalib(CalcamGUIWindow):
             self.modify_intrinsics_calib()
             if self.intrinsics_calib is None:
                 self.intrinsics_calib_checkbox.setChecked(False)
-
+        self.reset_fit()
         self.update_pointpairs()
         self.update_n_points()
         self.unsaved_changes = True
@@ -937,7 +941,7 @@ class FittingCalib(CalcamGUIWindow):
 
         if self.chessboard_checkbox.isChecked():
             for n,chessboard_constraint in enumerate(self.chessboard_pointpairs):
-                self.calibration.add_intrinsics_constraints(image=chessboard_constraint[0],im_history=self.chessboard_history[0][n],pointpairs = chessboard_constraint[1],pp_history=self.chessboard_history[1])
+                self.calibration.add_intrinsics_constraints(image=chessboard_constraint[0],im_history=self.chessboard_history[n][0],pointpairs = chessboard_constraint[1],pp_history=self.chessboard_history[n][1])
                 for subview in range(self.calibration.n_subviews):
                     self.fitters[subview].add_intrinsics_pointpairs(chessboard_constraint[1],subview=subview)
 
@@ -1205,6 +1209,11 @@ class FittingCalib(CalcamGUIWindow):
                     self.n_points[subview][1] = self.n_points[subview][1] + self.intrinsics_calib.pointpairs.get_n_points(subview) - 6
                 intcal_points = intcal_points + self.intrinsics_calib.pointpairs.get_n_points(subview)
 
+                for intrinsics_constraint in self.intrinsics_calib.intrinsics_constraints:
+                    if self.intrinsics_calib_checkbox.isChecked():
+                        self.n_points[subview][1] = self.n_points[subview][1] + intrinsics_constraint[1].get_n_points(subview) - 6                    
+                    intcal_points = intcal_points + intrinsics_constraint[1].get_n_points(subview)
+
         if chessboard_points > 0:
             self.chessboard_checkbox.setText('Chessboard Images ({:d} points)'.format(chessboard_points))
         else:
@@ -1300,6 +1309,15 @@ class FittingCalib(CalcamGUIWindow):
 
         self.interactor2d.set_subview_lookup(self.calibration.n_subviews,self.calibration.subview_lookup)
 
+        self.chessboard_pointpairs = self.calibration.intrinsics_constraints
+        self.chessboard_history = self.calibration.history['intrinsics_constraints']
+
+        if len(self.chessboard_pointpairs) > 0:
+            self.chessboard_checkbox.blockSignals(True)
+            self.chessboard_checkbox.setChecked(True)
+            self.chessboard_checkbox.blockSignals(False)
+
+
         # Load the point pairs
         if opened_calib.pointpairs is not None:
             self.load_pointpairs(pointpairs=opened_calib.pointpairs,history=opened_calib.history['pointpairs'],force_clear=False,clear_fit=False)
@@ -1372,20 +1390,11 @@ class FittingCalib(CalcamGUIWindow):
         else:
             self.action_save.setEnabled(True)
 
-        for constraint in self.calibration.intrinsics_constraints:
-            if constraint.__class__ is Calibration:
-                self.intrinsics_calib = constraint
-                self.intrinsics_calib_checkbox.setChecked(True)
-            else:
-                if len(self.chessboard_pointpairs) == 0:
-                    self.chessboard_pointpairs = []
-                self.chessboard_pointpairs.append(constraint)
-                self.chessboard_checkbox.setChecked(True)
-
         self.update_n_points()
         self.update_fit_results()
         self.app.restoreOverrideCursor()
         self.unsaved_changes = False
+
 
     def toggle_hist_eq(self,check_state):
 
@@ -1464,8 +1473,10 @@ class FittingCalib(CalcamGUIWindow):
 
         if dialog.results != []:
             self.chessboard_pointpairs = dialog.results
-            im_history = ['Chessboard image from {:s}, loaded by {:s} on {:s} at {:s}.'.format(fname,misc.username,misc.hostname,misc.get_formatted_time()) for fname in dialog.filenames]
-            self.chessboard_history = [im_history, ['Auto-detected based on {:d}x{:d} square chessboard pattern with {:.1f}mm squares.'.format(dialog.chessboard_squares_x.value(),dialog.chessboard_squares_y.value(),dialog.chessboard_square_size.value()),None]  ]
+            point_history = ['Auto-detected corners of {:d}x{:d} square chessboard pattern with {:.1f}mm squares.'.format(dialog.chessboard_squares_x.value(),dialog.chessboard_squares_y.value(),dialog.chessboard_square_size.value()),None]
+            self.chessboard_history = [ ('Chessboard image from {:s}, loaded by {:s} on {:s} at {:s}.'.format(fname,misc.username,misc.hostname,misc.get_formatted_time()),point_history) for fname in dialog.filenames]
+            if self.chessboard_checkbox.isChecked():
+                self.chessboard_checkbox.setChecked(False)
             self.chessboard_checkbox.setChecked(True)
 
         del dialog
@@ -1478,6 +1489,7 @@ class FittingCalib(CalcamGUIWindow):
             if len(self.chessboard_pointpairs) == 0:
                 self.chessboard_checkbox.setChecked(False)
 
+        self.reset_fit()
         self.update_pointpairs()
         self.update_n_points()
         self.fit_enable_check()

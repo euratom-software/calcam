@@ -1,17 +1,23 @@
 Project Changelog
 =================
 
-Minor Release 2.2.0 (?? 2019)
+Minor Release 2.2.0 (25th Feb 2019)
 ---------------------------------
 
 New & Enhancements:
-* Replace undocumented geometry matrix functionality in calcam.geometry_matrix with new calcam.gm module and add corresponding documentation.
+* Replaced undocumented geometry matrix functionality in calcam.geometry_matrix with new calcam.gm module and add corresponding documentation.
+* Re-written setup script with better dependency handling (checks presence and tries to use PIP to get them) and better messages. Update docs accordingly.
+* Added provenance tracking capabilities to RayData class.
 
 Fixes:
 * Fix bug where loading chessboard images in the fitting calibration tool would cause an exception.
 * Fix bug where calcam.gui and matplotlib could try to use different PyQt versions leading to exceptions.
 * Fix bugs in VirtualCalib.__init__ and AlignmentCalib.__init__ which caused segfaults when launching virtual and alignment calibration GUIs on some platforms.
 * Fix broken Fitter.set_fitflags_strings() method.
+* Fix loading of calibrations with intrinsics constraints in fitting calib tool (previously intrinsics constraints disappeared)
+* Fix incorrect number of point pairs reported when using another calibration for intrinsics constraints.
+* Various typo fixes and minor tweaks in docs
+* Fix a bug in CoordTransformer which resulted in strange image point types in transformed pointpairs objects, leading to exceptions
 
 
 Bug fix release 2.1.2 (5th Feb 2019)

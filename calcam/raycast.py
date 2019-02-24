@@ -283,13 +283,18 @@ class RayData:
         the image width and height.
         '''
 
+        self.history = None
+        '''
+        str: Human readable description of where the raydata came from.
+        '''
+
         self.binning = None
         self.transform = None
         self.fullchip = None
         self.x = None
         self.y = None
         self.filename = None
-        self.history = None
+        
         if filename is not None:
             self._load(filename)
 

@@ -263,6 +263,10 @@ class CoordTransformer:
                 x_out = yt
                 current_pixels = list(reversed(current_pixels))
 
+        if len(x_out.shape) == 0:
+            x_out = float(x_out)
+            y_out = float(y_out)
+
         return x_out,y_out
 
 
@@ -303,6 +307,10 @@ class CoordTransformer:
                 current_pixels = list(reversed(current_pixels))
 
         y_out = y_out / self.pixel_aspectratio
+
+        if len(x_out.shape) == 0:
+            x_out = float(x_out)
+            y_out = float(y_out)
 
         return x_out,y_out
 
