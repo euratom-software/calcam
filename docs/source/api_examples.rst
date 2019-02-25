@@ -2,15 +2,11 @@
 Examples
 ========
 
-This page has some examples of using the Calcam API. It is not meant to demonstrate all API features exhaustively but gives examples of simple use cases and workflows; for more complete details of what functions are available please refer to the other API documentation pages.
+This page has some examples of using the Calcam API. It is not meant to demonstrate all API features exhaustively, but gives some examples of simple use cases and workflows; for more complete details of the API features please refer to the other API documentation pages.
 
 Mapping a magnetic field line on to an image
 ---------------------------------------------
-We start from an image of a MAST plasma on to which we want to overlay a magnetic field line:
-
-
-which we will assume is saved as ``image.png`` in the current directory.
-We also have a Calcam calibration for that image stored in the file ``mycalib.ccc``, which for convenience we assume is also saved in the current directory. Finally, we have a ``.csv`` file containing a set of 3D coordinates along the magnetic field line we want to show on the image (generated using a field line tracing tool), as a 3 columns containg X,Y,Z coordinates along the field line and one 3D point per line.
+We start with an image of a MAST plasma on to which we want to overlay a magnetic field line, which we will assume is saved as ``image.png`` in the current directory. We also have a Calcam calibration for that image stored in the file ``mycalib.ccc``, which for convenience we assume is also saved in the current directory. Finally, we have a ``.csv`` file containing a set of 3D coordinates of points along a magnetic field line (generated using a field line tracing tool), with each row of the file containg X,Y,Z coordinates of a single point.
 
 We can plot the field line on top of the image with the following code:
 
@@ -45,7 +41,7 @@ This results in the figure below:
 .. image:: images/mast_fieldline_example_1.png
    :alt: MAST field line projection example
 
-Note that the parts of the field line hidden behind the centre stack are still visible, which looks strange. To only show the parts of the field line which are not hidden behind parts of the machine, we can modify the above code to also load the MAST CAD model and check 
+Note that the parts of the field line hidden behind the centre stack are still visible, which looks strange. To only show the parts of the field line which are not hidden behind parts of the machine, we can modify the above code to also load the MAST CAD model and check which points are hidden from the camera by the CAD geometry:
 
 .. code-block:: python
 
@@ -88,7 +84,7 @@ Which results in the following figure:
 
 Rendering: camera view wireframe
 --------------------------------
-For this example, we start with a Calcam calibration for a MAST camera, and we want to render a wireframe version of the MAST CAD model which aligns with the camera image, for example to use as an overlay on a camera image to give better context to the image. We can do this with the following code:
+For this example, we start with a Calcam calibration for a MAST camera, and we want to render a wireframe version of the MAST CAD model which aligns with the camera image. This might be used, for example, to use as an overlay on a plasma image to give context to the image. We can do this with the following code:
 
 .. code-block:: python
 
@@ -117,7 +113,6 @@ This results in the following plot:
    :alt: MAST wireframe example
 
 and also the same image saved to the file `wireframe.png`.
-
 
 
 Ray casting
@@ -152,15 +147,7 @@ Alternatively, we could ray cast every pixel on the detector and then find the c
 	# The coordinates at the wall are contained in the raydata's ray_end_coords array.
 	coords = raydata.ray_end_coords[250,100,:]
 
-If we have ray casted the whole image, we can do some other useful things with the raydata:
-
-.. code-block:: python
-
-	# Get an image showing how far from the camera to the wall at each image position
-	ray_length_image = raydata.get_ray_lengths()
-
-	# Save the raydata for later use.
-	# It is saved as a netCDF file so can be read by other codes
+	# While we're at it, save the raydata in case we need it again later
 	raydata.save('my_raydata.nc')
 
 
@@ -204,7 +191,7 @@ For this example, we assume we already have a set of saved raydata relating to a
 	geom_mat.grid.plot(coverage,cblabel='Number of sight-lines')
 	plt.show()
 
-Now let's imagine we have an image from the camera in a height x width NumPy array called ``image``, which we want to invert. The actual solver for :math:`Ax = b` to do the inversion is beyond the scope of Calcam, so let's assume your sparse matrix solver of choice is a function with call signature ``x = my_solver(A,b)``, where ``x`` will be a 1D vector containing the result, ``A`` is the geometry matrix and ``b`` is the input data vector. We would then do the tomographic inversion like so:
+Now let's imagine we have an image from the camera in a (height x width) NumPy array called ``image``, which we want to invert. The actual solver for :math:`Ax = b` to do the inversion is beyond the scope of Calcam, so let's assume your sparse matrix solver of choice is a function with call signature ``x = my_solver(A,b)``, where ``x`` will be a 1D vector containing the result, ``A`` is the geometry matrix and ``b`` is the input data vector. We would then do the tomographic inversion like so:
 
 .. code-block:: python
 

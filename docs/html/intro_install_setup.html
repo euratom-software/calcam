@@ -97,7 +97,7 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="intro_general.html">Genral Introduction to Calcam</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Getting Up &amp; Running</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#getting-calcam">Getting Calcam</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#downloading">Downloading</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#initial-configuration">Initial Configuration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#upgrading-from-calcam-1-x">Upgrading from Calcam 1.x</a></li>
@@ -274,28 +274,26 @@
             
   <div class="section" id="getting-up-running">
 <h1>Getting Up &amp; Running<a class="headerlink" href="#getting-up-running" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="getting-calcam">
-<h2>Getting Calcam<a class="headerlink" href="#getting-calcam" title="Permalink to this headline">¶</a></h2>
-<p>The latest release version of Calcam can be downloaded from the <a class="reference external" href="https://github.com/euratom-software/calcam/releases">Relases page</a> , which should be the latest stable, fully working version.</p>
-<p>Alternatively, the cutting edge version of the code can be cloned from the GitHub repository:</p>
+<div class="section" id="downloading">
+<h2>Downloading<a class="headerlink" href="#downloading" title="Permalink to this headline">¶</a></h2>
+<p>The latest version of Calcam can be downloaded using the <span class="guilabel">Clone or Download</span> button on the <a class="reference external" href="https://github.com/euratom-software/calcam">GitHub repository page</a>, or, if you want to use Git, can be cloned from the GitHub reporepository with the command:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">euratom</span><span class="o">-</span><span class="n">software</span><span class="o">/</span><span class="n">calcam</span><span class="o">.</span><span class="n">git</span>
 </pre></div>
 </div>
-<p>or downloaded using the &#8220;Clone or Download&#8221; button on the <a class="reference external" href="https://github.com/euratom-software/calcam">GitHub page</a>.</p>
 </div>
 <div class="section" id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
-<p>Calcam is a Python package, so the first thing to do is install Python, if you don&#8217;t have it already. Calcam works with Python version 2.7 or newer, however it is highly recommended to use Python 3.x. You will also need the <code class="docutils literal"><span class="pre">pip</span></code> and <code class="docutils literal"><span class="pre">setuptools</span></code> python packages (which should be redily available in most OSs / python distributions) to take advantage of Calcam&#8217;s setup script as described below.</p>
-<p>Once you have Python working and the Calcam repository files on your computer, the package can be installed from the system command line using the setup script included in the root of the repository:</p>
+<p>Calcam is a Python package, so the first thing to do is install Python, if you don&#8217;t have it already. It is highly recommended to use Pyton 3.x, however Calcam will also work with Python 2.7. You will also need the <code class="docutils literal"><span class="pre">pip</span></code> and <code class="docutils literal"><span class="pre">setuptools</span></code> python packages (which should be redily available, if not installed by default, in most OSs / python distributions) to take advantage of Calcam&#8217;s setup script as described below.</p>
+<p>Once you have Python working and the Calcam repository files on your computer, the package can be installed from the system command line using the setup script included in the root of the Calcam repository with:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">install</span>
 </pre></div>
 </div>
 <p>This will try to install Calcam&#8217;s dependencies (Scipy, MatPlotLib, OpenCV, PyQt and VTK) if they are not already installed; copy Calcam to the appropriate Python library path; and create a convenient launcher script for the Calcam GUI. On some combinations of platforms and python versions, the PyQt and VTK libraries may not be installable automatically by the setup script, in which case it will show a warning detailing what could not be installed automatically. Some features of Calcam will still work without these dependencies, but they must be installed in order to make the full Calcam API and GUI available. If you find yourself on a platform where one or more dependencies cannot be installed automatically, the easiest way to get install them is probably to see if your OS has pre-built packages available for them, or to use a python distribution such as <a class="reference external" href="https://www.enthought.com/product/canopy/">Enthought Canopy</a> or <a class="reference external" href="https://python-xy.github.io/">Python (x,y)</a> which can provide the necessary dependencies via its own package management.</p>
-<p>If installing on a system where you do not have the relevant admin/root permissions to install python packages globally (in which case running the above command will produce an error message saying something about permissions), adding the <code class="docutils literal"><span class="pre">--user</span></code> switch to the above installation command will install the package under your user account specifically.</p>
+<p>If installing on a system where you do not have the relevant admin/root permissions to install python packages globally (in which case running the above command will produce an error message saying something about permissions), adding the <code class="docutils literal"><span class="pre">--user</span></code> switch to the above installation command will install the package for your user account and will not require admin/root permissions.</p>
 <p>After the setup script is finished you can delete the downloaded calcam files, if you want.</p>
 <div class="section" id="installing-in-development-mode">
 <h3>Installing in Development mode<a class="headerlink" href="#installing-in-development-mode" title="Permalink to this headline">¶</a></h3>
-<p>If you want to be able to edit the Calcam source code without having to run the install again to have your changes go live, you can use the below alternative command to install calcam in development mode:</p>
+<p>If you plan to do any development on Calcam, and want to be able to edit the Calcam source code without having to run the setup script again to have your changes go live, you can use the below alternative command to install calcam in development mode:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">develop</span>
 </pre></div>
 </div>

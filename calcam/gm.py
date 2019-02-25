@@ -64,7 +64,7 @@ class PoloidalVolumeGrid:
     
     Grids can be constructed by directly instantiating this class with the 
     following parameters, or alternatively convenience functions such as 
-    calcam.gm.squaregrid are provided for easily creating various types of grid.
+    :func:`calcam.gm.squaregrid` are provided for easily creating various types of grid.
 
     Parameters:
         
@@ -561,7 +561,7 @@ class GeometryMatrix:
     with the below parameters, or a saved geometry matrix can be loaded
     from disk using the :func:`fromfile()` class method.
     
-    The matrix itself can be accessed in the "data" attribute, where it is
+    The matrix itself can be accessed in the `data` attribute, where it is
     stored as a sparse matrix using the scipy.sprase.csr_matrix class.
 
     Parameters:
@@ -1249,7 +1249,7 @@ def squaregrid(wall_contour,cell_size,rmin=None,rmax=None,zmin=None,zmax=None):
                                            
         cell_size (float)                   : Side length of each grid cell in metres.
         
-        rmin, rmax, zmin, zmax  (float)     : Optional limits of the grid extent in the R, Z plane. \
+        floats rmin, rmax, zmin, zmax       : Optional limits of the grid extent in the R, Z plane. \
                                               Any combination of these may or may not be given; if none \
                                               are given the entire wall contour interior is gridded.
                                            
@@ -1353,7 +1353,7 @@ def trigrid(wall_contour,max_cell_scale,rmin=None,rmax=None,zmin=None,zmax=None,
         max_cell_scale (float)              : Approximate maximum allowed length scale for a grid \
                                               cell, in metres.
         
-        rmin, rmax, zmin, zmax  (float)     : Optional limits of the grid extent in the R, Z plane. \
+        floats rmin, rmax, zmin, zmax       : Optional limits of the grid extent in the R, Z plane. \
                                               Any combination of these may or may not be given; if none \
                                               are given the entire wall contour interior is gridded.
                                            

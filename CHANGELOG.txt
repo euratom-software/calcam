@@ -1,6 +1,15 @@
 Project Changelog
 =================
 
+Patch 2.2.1 (25th Feb 2019)
+---------------------------
+
+Fixes:
+* "--user" option to setup script now correctly carries through to pip for dependency installations (Issue #38)
+* Fix exception when prompted to browse for CAD models under python 2.x (Issue #39)
+* Fix various typos and tweaks to docs
+
+
 Minor Release 2.2.0 (25th Feb 2019)
 ---------------------------------
 

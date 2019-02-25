@@ -274,12 +274,10 @@
             
   <div class="section" id="examples">
 <h1>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h1>
-<p>This page has some examples of using the Calcam API. It is not meant to demonstrate all API features exhaustively but gives examples of simple use cases and workflows; for more complete details of what functions are available please refer to the other API documentation pages.</p>
+<p>This page has some examples of using the Calcam API. It is not meant to demonstrate all API features exhaustively, but gives some examples of simple use cases and workflows; for more complete details of the API features please refer to the other API documentation pages.</p>
 <div class="section" id="mapping-a-magnetic-field-line-on-to-an-image">
 <h2>Mapping a magnetic field line on to an image<a class="headerlink" href="#mapping-a-magnetic-field-line-on-to-an-image" title="Permalink to this headline">¶</a></h2>
-<p>We start from an image of a MAST plasma on to which we want to overlay a magnetic field line:</p>
-<p>which we will assume is saved as <code class="docutils literal"><span class="pre">image.png</span></code> in the current directory.
-We also have a Calcam calibration for that image stored in the file <code class="docutils literal"><span class="pre">mycalib.ccc</span></code>, which for convenience we assume is also saved in the current directory. Finally, we have a <code class="docutils literal"><span class="pre">.csv</span></code> file containing a set of 3D coordinates along the magnetic field line we want to show on the image (generated using a field line tracing tool), as a 3 columns containg X,Y,Z coordinates along the field line and one 3D point per line.</p>
+<p>We start with an image of a MAST plasma on to which we want to overlay a magnetic field line, which we will assume is saved as <code class="docutils literal"><span class="pre">image.png</span></code> in the current directory. We also have a Calcam calibration for that image stored in the file <code class="docutils literal"><span class="pre">mycalib.ccc</span></code>, which for convenience we assume is also saved in the current directory. Finally, we have a <code class="docutils literal"><span class="pre">.csv</span></code> file containing a set of 3D coordinates of points along a magnetic field line (generated using a field line tracing tool), with each row of the file containg X,Y,Z coordinates of a single point.</p>
 <p>We can plot the field line on top of the image with the following code:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">calcam</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
@@ -308,7 +306,7 @@ We also have a Calcam calibration for that image stored in the file <code class=
 </div>
 <p>This results in the figure below:</p>
 <img alt="MAST field line projection example" src="_images/mast_fieldline_example_1.png" />
-<p>Note that the parts of the field line hidden behind the centre stack are still visible, which looks strange. To only show the parts of the field line which are not hidden behind parts of the machine, we can modify the above code to also load the MAST CAD model and check</p>
+<p>Note that the parts of the field line hidden behind the centre stack are still visible, which looks strange. To only show the parts of the field line which are not hidden behind parts of the machine, we can modify the above code to also load the MAST CAD model and check which points are hidden from the camera by the CAD geometry:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">calcam</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">cv2</span>
@@ -345,7 +343,7 @@ We also have a Calcam calibration for that image stored in the file <code class=
 </div>
 <div class="section" id="rendering-camera-view-wireframe">
 <h2>Rendering: camera view wireframe<a class="headerlink" href="#rendering-camera-view-wireframe" title="Permalink to this headline">¶</a></h2>
-<p>For this example, we start with a Calcam calibration for a MAST camera, and we want to render a wireframe version of the MAST CAD model which aligns with the camera image, for example to use as an overlay on a camera image to give better context to the image. We can do this with the following code:</p>
+<p>For this example, we start with a Calcam calibration for a MAST camera, and we want to render a wireframe version of the MAST CAD model which aligns with the camera image. This might be used, for example, to use as an overlay on a plasma image to give context to the image. We can do this with the following code:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">calcam</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
 
@@ -395,14 +393,8 @@ We also have a Calcam calibration for that image stored in the file <code class=
 
 <span class="c1"># The coordinates at the wall are contained in the raydata&#39;s ray_end_coords array.</span>
 <span class="n">coords</span> <span class="o">=</span> <span class="n">raydata</span><span class="o">.</span><span class="n">ray_end_coords</span><span class="p">[</span><span class="mi">250</span><span class="p">,</span><span class="mi">100</span><span class="p">,:]</span>
-</pre></div>
-</div>
-<p>If we have ray casted the whole image, we can do some other useful things with the raydata:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="c1"># Get an image showing how far from the camera to the wall at each image position</span>
-<span class="n">ray_length_image</span> <span class="o">=</span> <span class="n">raydata</span><span class="o">.</span><span class="n">get_ray_lengths</span><span class="p">()</span>
 
-<span class="c1"># Save the raydata for later use.</span>
-<span class="c1"># It is saved as a netCDF file so can be read by other codes</span>
+<span class="c1"># While we&#39;re at it, save the raydata in case we need it again later</span>
 <span class="n">raydata</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;my_raydata.nc&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -445,7 +437,7 @@ We also have a Calcam calibration for that image stored in the file <code class=
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>Now let&#8217;s imagine we have an image from the camera in a height x width NumPy array called <code class="docutils literal"><span class="pre">image</span></code>, which we want to invert. The actual solver for <span class="math">\(Ax = b\)</span> to do the inversion is beyond the scope of Calcam, so let&#8217;s assume your sparse matrix solver of choice is a function with call signature <code class="docutils literal"><span class="pre">x</span> <span class="pre">=</span> <span class="pre">my_solver(A,b)</span></code>, where <code class="docutils literal"><span class="pre">x</span></code> will be a 1D vector containing the result, <code class="docutils literal"><span class="pre">A</span></code> is the geometry matrix and <code class="docutils literal"><span class="pre">b</span></code> is the input data vector. We would then do the tomographic inversion like so:</p>
+<p>Now let&#8217;s imagine we have an image from the camera in a (height x width) NumPy array called <code class="docutils literal"><span class="pre">image</span></code>, which we want to invert. The actual solver for <span class="math">\(Ax = b\)</span> to do the inversion is beyond the scope of Calcam, so let&#8217;s assume your sparse matrix solver of choice is a function with call signature <code class="docutils literal"><span class="pre">x</span> <span class="pre">=</span> <span class="pre">my_solver(A,b)</span></code>, where <code class="docutils literal"><span class="pre">x</span></code> will be a 1D vector containing the result, <code class="docutils literal"><span class="pre">A</span></code> is the geometry matrix and <code class="docutils literal"><span class="pre">b</span></code> is the input data vector. We would then do the tomographic inversion like so:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="c1"># Re-format the camera image in to a 1D vector ready for inversion.</span>
 <span class="c1"># Note: if we have binning or pixel exclusion set up in the geometry matrix,</span>
 <span class="c1"># this takes care of all that for us (we just feed it the raw camera image).</span>

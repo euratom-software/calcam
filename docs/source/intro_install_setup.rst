@@ -3,34 +3,32 @@ Getting Up & Running
 ====================
 
 
-Getting Calcam
----------------
-The latest release version of Calcam can be downloaded from the `Relases page <https://github.com/euratom-software/calcam/releases>`_ , which should be the latest stable, fully working version.
-
-Alternatively, the cutting edge version of the code can be cloned from the GitHub repository::
+Downloading
+-----------
+The latest version of Calcam can be downloaded using the :guilabel:`Clone or Download` button on the `GitHub repository page <https://github.com/euratom-software/calcam>`_, or, if you want to use Git, can be cloned from the GitHub reporepository with the command::
 
 	git clone https://github.com/euratom-software/calcam.git
 
-or downloaded using the "Clone or Download" button on the `GitHub page <https://github.com/euratom-software/calcam>`_.
+
 
 Installation
 -------------
-Calcam is a Python package, so the first thing to do is install Python, if you don't have it already. Calcam works with Python version 2.7 or newer, however it is highly recommended to use Python 3.x. You will also need the ``pip`` and ``setuptools`` python packages (which should be redily available in most OSs / python distributions) to take advantage of Calcam's setup script as described below. 
+Calcam is a Python package, so the first thing to do is install Python, if you don't have it already. It is highly recommended to use Pyton 3.x, however Calcam will also work with Python 2.7. You will also need the ``pip`` and ``setuptools`` python packages (which should be redily available, if not installed by default, in most OSs / python distributions) to take advantage of Calcam's setup script as described below. 
 
-Once you have Python working and the Calcam repository files on your computer, the package can be installed from the system command line using the setup script included in the root of the repository::
+Once you have Python working and the Calcam repository files on your computer, the package can be installed from the system command line using the setup script included in the root of the Calcam repository with::
 
 	python setup.py install
 
 This will try to install Calcam's dependencies (Scipy, MatPlotLib, OpenCV, PyQt and VTK) if they are not already installed; copy Calcam to the appropriate Python library path; and create a convenient launcher script for the Calcam GUI. On some combinations of platforms and python versions, the PyQt and VTK libraries may not be installable automatically by the setup script, in which case it will show a warning detailing what could not be installed automatically. Some features of Calcam will still work without these dependencies, but they must be installed in order to make the full Calcam API and GUI available. If you find yourself on a platform where one or more dependencies cannot be installed automatically, the easiest way to get install them is probably to see if your OS has pre-built packages available for them, or to use a python distribution such as `Enthought Canopy <https://www.enthought.com/product/canopy/>`_ or `Python (x,y) <https://python-xy.github.io/>`_ which can provide the necessary dependencies via its own package management.
 
-If installing on a system where you do not have the relevant admin/root permissions to install python packages globally (in which case running the above command will produce an error message saying something about permissions), adding the ``--user`` switch to the above installation command will install the package under your user account specifically.
+If installing on a system where you do not have the relevant admin/root permissions to install python packages globally (in which case running the above command will produce an error message saying something about permissions), adding the ``--user`` switch to the above installation command will install the package for your user account and will not require admin/root permissions.
 
 After the setup script is finished you can delete the downloaded calcam files, if you want.
 
 
 Installing in Development mode
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-If you want to be able to edit the Calcam source code without having to run the install again to have your changes go live, you can use the below alternative command to install calcam in development mode::
+If you plan to do any development on Calcam, and want to be able to edit the Calcam source code without having to run the setup script again to have your changes go live, you can use the below alternative command to install calcam in development mode::
 
 	python setup.py develop
 

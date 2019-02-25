@@ -1066,7 +1066,7 @@ class CalcamGUIWindow(qt.QMainWindow):
                     filedialog.exec_()
 
                     if filedialog.result() == 1:
-                        path = filedialog.selectedFiles()[0]
+                        path = str(filedialog.selectedFiles()[0]).replace('/',os.path.sep)
                         self.config.cad_def_paths.append(path)
 
                         self.model_list = self.config.get_cadmodels()

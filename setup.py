@@ -49,8 +49,13 @@ def pip_install(pkg_name):
     Sadly, this seems to be needed because setuptools.setup cannot be trusted to 
     locate some dependencies, or their correct versions, and pip works more reliably.
     '''    
+    if '--user' in [arg.lower() for arg in sys.argv]:
+        extra_opts = ['--user']
+    else:
+        extra_opts = []
+
     try:
-        subprocess.check_call([sys.executable, '-m', 'pip', 'install',pkg_name])
+        subprocess.check_call([sys.executable, '-m', 'pip', 'install',pkg_name] + extra_opts)
         return True
     except:
         return False

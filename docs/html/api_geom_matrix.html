@@ -292,7 +292,7 @@
 <p>A new geometry matrix can be created by instantiating this class
 with the below parameters, or a saved geometry matrix can be loaded
 from disk using the <code class="xref py py-func docutils literal"><span class="pre">fromfile()</span></code> class method.</p>
-<p>The matrix itself can be accessed in the &#8220;data&#8221; attribute, where it is
+<p>The matrix itself can be accessed in the <cite>data</cite> attribute, where it is
 stored as a sparse matrix using the scipy.sprase.csr_matrix class.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -471,7 +471,7 @@ polygons but all cells in the grid must all have the same number of
 sides.</p>
 <p>Grids can be constructed by directly instantiating this class with the
 following parameters, or alternatively convenience functions such as
-calcam.gm.squaregrid are provided for easily creating various types of grid.</p>
+<a class="reference internal" href="#calcam.gm.squaregrid" title="calcam.gm.squaregrid"><code class="xref py py-func docutils literal"><span class="pre">calcam.gm.squaregrid()</span></code></a> are provided for easily creating various types of grid.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -643,7 +643,7 @@ plot the grid itself.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>wall_contour</strong> (<em>str</em><em> or </em><em>numpy.ndarray</em>) &#8211; Either the name of a Calcam CAD model                                               from which to use the wall contour, or an                                               N x 2 array of R,Z points defining the machine wall.</li>
 <li><strong>cell_size</strong> (<em>float</em>) &#8211; Side length of each grid cell in metres.</li>
-<li><strong>rmax</strong><strong>, </strong><strong>zmin</strong><strong>, </strong><strong>zmax</strong> (<em>rmin</em><em>,</em><em></em>) &#8211; Optional limits of the grid extent in the R, Z plane.                                               Any combination of these may or may not be given; if none                                               are given the entire wall contour interior is gridded.</li>
+<li><strong>rmin</strong><strong>, </strong><strong>rmax</strong><strong>, </strong><strong>zmin</strong><strong>, </strong><strong>zmax</strong> (<em>floats</em>) &#8211; Optional limits of the grid extent in the R, Z plane.                                               Any combination of these may or may not be given; if none                                               are given the entire wall contour interior is gridded.</li>
 </ul>
 </td>
 </tr>
@@ -671,7 +671,7 @@ generate the grid.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>wall_contour</strong> (<em>str</em><em> or </em><em>numpy.ndarray</em>) &#8211; Either the name of a Calcam CAD model                                               from which to use the wall contour, or an                                               N x 2 array of R,Z points defining the machine wall.</li>
 <li><strong>max_cell_scale</strong> (<em>float</em>) &#8211; Approximate maximum allowed length scale for a grid                                               cell, in metres.</li>
-<li><strong>rmax</strong><strong>, </strong><strong>zmin</strong><strong>, </strong><strong>zmax</strong> (<em>rmin</em><em>,</em><em></em>) &#8211; Optional limits of the grid extent in the R, Z plane.                                               Any combination of these may or may not be given; if none                                               are given the entire wall contour interior is gridded.</li>
+<li><strong>rmin</strong><strong>, </strong><strong>rmax</strong><strong>, </strong><strong>zmin</strong><strong>, </strong><strong>zmax</strong> (<em>floats</em>) &#8211; Optional limits of the grid extent in the R, Z plane.                                               Any combination of these may or may not be given; if none                                               are given the entire wall contour interior is gridded.</li>
 </ul>
 </td>
 </tr>
