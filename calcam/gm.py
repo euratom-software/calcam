@@ -786,11 +786,11 @@ class GeometryMatrix:
         
         if coords.lower() == 'display' and self.image_coords.lower() == 'original':
 
-            pixel_mask = self.image_geometry.display_to_original_image(pixel_mask,interpolation='nearest')
+            pixel_mask = self.image_geometry.display_to_original_image(pixel_mask.astype(int),interpolation='nearest')
 
         elif coords.lower() == 'original' and self.image_coords.lower() == 'display':
 
-            pixel_mask = self.image_geometry.original_to_display_image(pixel_mask,interpolation='nearest')
+            pixel_mask = self.image_geometry.original_to_display_image(pixel_mask.astype(int),interpolation='nearest')
 
 
         if self.binning > 1:
