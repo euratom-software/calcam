@@ -38,7 +38,7 @@ def launch(args):
     subprocess.Popen([sys.executable,os.path.join( os.path.split(__file__)[0],'launch_script.py' )] + args,stdin=None, stdout=open(os.devnull,'wb'), stderr=open(os.devnull,'wb'))
 
 
-# Generate a rich text string prompting the user to go to the released webpage
+# Generate a rich text string prompting the user to go to the github page
 # if the latest release of calcam has a higher version number than the current one.
 # Because this isn't an important feature, if anything goes wrong in this function we
 # just act as if there is no update available.
@@ -46,30 +46,16 @@ def update_prompt_string(queue):
 
   try:
 
-    response = request.urlopen('https://api.github.com/repos/euratom-software/calcam/releases',timeout=0.5)
+    response = request.urlopen('https://api.github.com/repos/euratom-software/calcam/tags',timeout=0.5)
     data = json.loads(response.read().decode('utf-8'))
-    latest_release_string = data[0]['tag_name']
+    latest_version = data[0]['name'].replace('v','')
 
-    latest_release_split = latest_release_string.replace('v','').split('.')[::-1]
-    current_release_split = __version__.split('.')[::-1]
+    updatestring = None
+    if __version__ != latest_version:
+        updatestring = '<b>Calcam {:} is now available. Find ut what changed <a href=https://github.com/euratom-software/calcam/blob/master/CHANGELOG.txt>here</a>, and/or download it <a href={:s}>here</a>!</b>'.format(data[0]['name'],data[0]['zipball_url'])
+    
+    queue.put(updatestring)
 
-    current_ver = 0
-    latest_ver = 0
-
-    for i in range(3):
-      try:
-          current_ver = current_ver + int(current_release_split[i]) * 100**i
-      except:
-          pass
-      try:
-          latest_ver = latest_ver + int(latest_release_split[i]) * 100**i
-      except:
-          pass
-
-    if latest_ver > current_ver:
-        queue.put('<b>A newer version of Calcam ({:s}) is available; see the <a href=https://github.com/euratom-software/calcam/releases>releases page</a> for details.</b>'.format(latest_release_string))
-    else:
-        queue.put(None)
   except:
       queue.put(None)
 
