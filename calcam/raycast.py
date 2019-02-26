@@ -239,7 +239,7 @@ def raycast_sightlines(calibration,cadmodel,x=None,y=None,binning=1,coords='Disp
     results.x = np.reshape(results.x,orig_shape,order='F')
     results.y = np.reshape(results.y,orig_shape,order='F')
 
-    if not verbose:
+    if status_callback is not None:
         cadmodel.set_status_callback(original_callback)
 
     return results
