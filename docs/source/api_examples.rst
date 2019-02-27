@@ -153,7 +153,7 @@ Alternatively, we could ray cast every pixel on the detector and then find the c
 
 Tomography Geometry Matrices
 ----------------------------
-For this example, we assume we already have a set of saved raydata relating to a camera we want to tomographically invert. For the purposes of this example we imagine it is a divertor camera on MAST, which can see Z heights up to about -1.6m in its field of view. To make the geometry matrix, we do this:
+For this example, we assume we already have a set of saved raydata relating to a camera we want to tomographically invert. For the purposes of this example we imagine it is a divertor camera on MAST, which can see Z heights up to about -0.6m in its field of view. To make the geometry matrix, we do this:
 
 .. code-block:: python
 
@@ -161,35 +161,40 @@ For this example, we assume we already have a set of saved raydata relating to a
 	import matplotlib.pyplot as plt
 	import numpy as np
 
-	# Load the raydata (see previous example for how to generate raydata)
-	raydata = calcam.RayData('my_raydata.nc')
+	# Note that including "if __name__ == '__main__' is actually important here;
+	# because the geometry matrix calculation uses multiprocessing, this
+	# python file will be imported in each child thread and if we omit this
+	# if statement, lots of bad things will happen.
+	if __name__ == '__main__':
+		# Load the raydata (see previous example for how to generate raydata)
+		raydata = calcam.RayData('my_raydata.nc')
 
-	# Make a grid with 1cm grid cells in the poloidal plane on to which to invert.
-	# This will use the wall contour from the 'MAST' CAD model
-	grid = calcam.gm.squaregrid('MAST',cell_size=1e-2,zmax=-1.6)
+		# Make a grid with 1cm grid cells in the poloidal plane on to which to invert.
+		# This will use the wall contour from the 'MAST' CAD model
+		grid = calcam.gm.squaregrid('MAST',cell_size=1e-2,zmax=-0.6)
 
-	# We can plot the grid to check it looks OK:
-	grid.plot()
-	plt.show()
+		# We can plot the grid to check it looks OK:
+		grid.plot()
+		plt.show()
 
-	# Now we have our grid and raydata, we can make a geometry matrix:
-	geom_mat = calcam.GeometryMatrix(grid,raydata)
+		# Now we have our grid and raydata, we can make a geometry matrix:
+		geom_mat = calcam.gm.GeometryMatrix(grid,raydata)
 
-	# We probably want to save it, so we can use it to invert any images from this camera.
-	geom_mat.save('my_geom_mat.npz')
+		# We probably want to save it, so we can use it to invert any images from this camera.
+		geom_mat.save('my_geom_mat.npz')
 
-	# If we want to use MATLAB to do the inversions instead, we can also save it in MATLAB format:
-	geom_mat.save('my_geom_mat.mat')
+		# If we want to use MATLAB to do the inversions, we can also save it in MATLAB format:
+		geom_mat.save('my_geom_mat.mat')
 
-	# If we need to make the matrix smaller to make the inversion computation easier, we can
-	# tell it to bin the camera image, e.g. in 4x4 pixel blocks:
-	geom_mat.set_binning(4)
+		# If we need to make the matrix smaller to make the inversion computation easier,
+		#  we can tell it to bin the camera image, e.g. in 4x4 pixel blocks:
+		geom_mat.set_binning(4)
 
-	# We could also inspect the number of sight-lines passing through each grid cell,
-	# to get an idea of the camera's coverage of the reconstruction domain.
-	coverage = geom_mat.get_los_coverage()
-	geom_mat.grid.plot(coverage,cblabel='Number of sight-lines')
-	plt.show()
+		# We could also inspect the number of sight-lines passing through each grid cell,
+		# to get an idea of the camera's coverage of the reconstruction domain.
+		coverage = geom_mat.get_los_coverage()
+		geom_mat.grid.plot(coverage,cblabel='Number of sight-lines')
+		plt.show()
 
 Now let's imagine we have an image from the camera in a (height x width) NumPy array called ``image``, which we want to invert. The actual solver for :math:`Ax = b` to do the inversion is beyond the scope of Calcam, so let's assume your sparse matrix solver of choice is a function with call signature ``x = my_solver(A,b)``, where ``x`` will be a 1D vector containing the result, ``A`` is the geometry matrix and ``b`` is the input data vector. We would then do the tomographic inversion like so:
 
