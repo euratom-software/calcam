@@ -1,8 +1,17 @@
 Project Changelog
 =================
 
+Patch 2.2.2 (26th Feb 2019)
+---------------------------
+
+Fixes:
+* Fix bug raising exceptions from raycast_sightlines when using status_callback=None.
+
 Patch 2.2.1 (25th Feb 2019)
 ---------------------------
+
+Changed:
+* Latest version check in launcher GUI now checks GitHub tags instead of releases (and gives download link).
 
 Fixes:
 * "--user" option to setup script now correctly carries through to pip for dependency installations (Issue #38)

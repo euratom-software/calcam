@@ -25,7 +25,7 @@ CalCam package.
 """
 
 # Calcam version
-__version__ = '2.2.1'
+__version__ = '2.2.2'
 
 
 # Note: We have to import the GUI module before anything
