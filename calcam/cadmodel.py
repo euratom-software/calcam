@@ -269,12 +269,12 @@ class CADModel():
 
         Parameters:
 
-            enable (bool)          : Whether to set the relevant features \
-                                     as enabeled (True) or disabled (False).
-            features (list of str) : List of the feature(s) and/or group(s) \
-                                     of features of  to enable or disable. \
-                                     If not specified, applies to all features \
-                                     in the model.
+            enable (bool)                   : Whether to set the relevant features \
+                                              as enabeled (True) or disabled (False).
+            features (str or list of str)   : Name(s) of the feature(s) and/or group(s) \
+                                              of features of  to enable or disable. \
+                                              If not specified, applies to all features \
+                                              in the model.
         '''
         if features is None:
             features = self.features.keys()
@@ -302,8 +302,8 @@ class CADModel():
 
         Parameters:
 
-            features (list of str) : List of names of the feature(s) and/or \
-                                     group(s) to have enabled.
+            features (str or list of str) : Name(s) of the feature(s) and/or \
+                                            group(s) to have enabled.
         '''
         if type(features) is not list:
             features = [features]
@@ -432,7 +432,7 @@ class CADModel():
         Parameters:
 
             features (list of str) : List of features for which to reset the colours. \
-                                      If not given, all features will have their colours reset.
+                                     If not given, all features will have their colours reset.
         '''
         if features is None:
             features = self.get_feature_list()

@@ -82,6 +82,8 @@ The change from Calcam 1 to Calcam 2 includes several compatibility breaking API
 
 * The :class:`RayCaster` class has been removed. This is because although more functionality was originally envisaged for this class, that additional functionality is no longer planned for Calcam and therefore only a single method of this class was ever useful. In addition, the important element of this class' state was already being held by other objects. The functionality of the :class:`RayCaster` class has been moved to the function :func:`calcam.raycast_sightlines()`
 
+* The :class:`machine_geometry` module has been removed. Now instead of every CAD modeling having its own class inside calcam.machine_geometry, the :class:`calcam.CADModel` class is used for all CAD models and is instanciated with string arguments to specify the name of the model you want. Also there have been various changes to method names and call signatures in the CAD model class.
+
 * Naming conventions: to be more Pythonic, throughout the API argument or function names which previously used capital letters and ``PascalCase`` or ``camelCase`` have been changed to ``lowercase_with_underscores``, while class names keep ``PascalCase``.
 
 For more information, see the API documentation in :doc:`api_analysis` and the :doc:`api_examples` .
