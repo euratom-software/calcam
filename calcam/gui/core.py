@@ -791,11 +791,14 @@ class CalcamGUIWindow(qt.QMainWindow):
 
     def populate_model_variants(self):
 
-        model = self.model_list[str(self.model_name.currentText())]
         self.model_variant.clear()
-        self.model_variant.addItems(model[1])
-        self.model_variant.setCurrentIndex(model[1].index(model[2]))
-        self.load_model_button.setEnabled(1)
+        if str(self.model_name.currentText()) != '':
+
+            model = self.model_list[str(self.model_name.currentText())]
+            self.model_variant.addItems(model[1])
+            self.model_variant.setCurrentIndex(model[1].index(model[2]))
+            self.load_model_button.setEnabled(1)
+
 
 
     def update_checked_features(self,item):

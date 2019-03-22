@@ -305,10 +305,6 @@ class VirtualCalib(CalcamGUIWindow):
                 try:
                     name_index = sorted(self.model_list.keys()).index(cconfig['model_name'])
                     self.model_name.setCurrentIndex(name_index)
-                except ValueError:
-                    self.model_name.setCurrentIndex(-1)
-                    load_model=False
-                try:    
                     variant_index = self.model_list[ cconfig['model_name'] ][1].index(cconfig['model_variant'])
                     self.model_variant.setCurrentIndex(variant_index)
                 except ValueError:
