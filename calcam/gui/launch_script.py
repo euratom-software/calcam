@@ -20,9 +20,17 @@
 '''
 
 import sys
-from calcam import gui
+try:
+    from calcam import gui
+except:
+    gui = False
 
 if __name__ == '__main__':
+
+    if not gui:
+        print('Could not start Calcam GUI.')
+        exit()
+        
     try:
         arg = sys.argv[1]
     except:
