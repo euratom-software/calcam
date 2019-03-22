@@ -534,7 +534,9 @@ class Viewer(CalcamGUIWindow):
             if self.contour_actor is not None:
                 extra_actors.append(self.contour_actor)
 
-            im = render.render_cam_view(self.cadmodel,self.render_calib,extra_actors = extra_actors,oversampling=oversampling,aa=aa,transparency=use_transparency,verbose=False)
+            coords = ['Display','Original'][ self.render_coords_combobox.currentIndex()]
+            
+            im = render.render_cam_view(self.cadmodel,self.render_calib,extra_actors = extra_actors,oversampling=oversampling,aa=aa,transparency=use_transparency,verbose=False,coords=coords)
         
 
         # Save the image!
