@@ -328,7 +328,6 @@ class ImageAnalyser(CalcamGUIWindow):
                 if np.all(imshape == opened_calib.geometry.get_original_shape()):
                     self.image = opened_calib.geometry.original_to_display_image(self.image)
                 elif not np.all(imshape == opened_calib.geometry.get_display_shape()):
-                    self.show_msgbox(imshape,opened_calib.geometry.get_display_shape())
                     raise UserWarning('The selected calibration is for a different shape image ({:d}x{:d}) from the loaded image ({:d}x{:d})!'.format(opened_calib.geometry.get_display_shape()[0],opened_calib.geometry.get_display_shape()[1],imshape[0],imshape[1]))
                 
             self.calibration = opened_calib
