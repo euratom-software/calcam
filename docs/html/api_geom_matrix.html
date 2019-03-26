@@ -287,7 +287,7 @@
 <h2>The Geometry Matrix class<a class="headerlink" href="#the-geometry-matrix-class" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="calcam.gm.GeometryMatrix">
-<em class="property">class </em><code class="descclassname">calcam.gm.</code><code class="descname">GeometryMatrix</code><span class="sig-paren">(</span><em>grid</em>, <em>raydata</em>, <em>pixel_order='F'</em>, <em>calc_status_callback=calcam_status_printer</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.GeometryMatrix" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">calcam.gm.</code><code class="descname">GeometryMatrix</code><span class="sig-paren">(</span><em>grid</em>, <em>raydata</em>, <em>pixel_order='C'</em>, <em>calc_status_callback=calcam_status_printer</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.GeometryMatrix" title="Permalink to this definition">¶</a></dt>
 <dd><p>Class to represent a scalar geometry matrix and associated metadata.</p>
 <p>A new geometry matrix can be created by instantiating this class
 with the below parameters, or a saved geometry matrix can be loaded
@@ -301,8 +301,8 @@ stored as a sparse matrix using the scipy.sprase.csr_matrix class.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>grid</strong> (<a class="reference internal" href="#calcam.gm.PoloidalVolumeGrid" title="calcam.gm.PoloidalVolumeGrid"><em>calcam.gm.PoloidalVolumeGrid</em></a>) &#8211; Reconstruction grid to use</li>
 <li><strong>raydata</strong> (<a class="reference internal" href="api_analysis.html#calcam.RayData" title="calcam.RayData"><em>calcam.RayData</em></a>) &#8211; Ray data for the camera to be inverted</li>
-<li><strong>pixel_order</strong> (<em>str</em>) &#8211; What pixel order to use when flattening                                             the 2D image array in to the 1D data vector.                                             Default &#8216;F&#8217; goes verticallytop-to-bottom, column-by-column,                                             alternatively &#8216;C&#8217; goes horizontally left-to-right,  row-by-row.</li>
-<li><strong>calc_status_callback</strong> (<em>callable</em>) &#8211; Callable which takes a single argument, which will be called with                                             status updates about the calculation. It will be called with either                                             a string for textual status updates or a float from 0 to 1 specifying                                             the progress of the calculation. By default, status updates are printed                                             to stdout.  If set to None, no status updates are issued.</li>
+<li><strong>pixel_order</strong> (<em>str</em>) &#8211; What pixel order to use when flattening                                                the 2D image array in to the 1D data vector.                                                Default &#8216;C&#8217; goes left-to-right, then row-by-row (NumPy default),                                                alternatively &#8216;F&#8217; goes top-to-bottom, then column-by-column (MATLAB default).</li>
+<li><strong>calc_status_callback</strong> (<em>callable</em>) &#8211; Callable which takes a single argument, which will be called with                                                status updates about the calculation. It will be called with either                                                a string for textual status updates or a float from 0 to 1 specifying                                                the progress of the calculation. By default, status updates are printed                                                to stdout.  If set to None, no status updates are issued.</li>
 </ul>
 </td>
 </tr>

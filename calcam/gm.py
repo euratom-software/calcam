@@ -568,21 +568,21 @@ class GeometryMatrix:
 
         grid (calcam.gm.PoloidalVolumeGrid)  : Reconstruction grid to use
 
-        raydata (calcam.RayData)          : Ray data for the camera to be inverted
+        raydata (calcam.RayData)             : Ray data for the camera to be inverted
 
-        pixel_order (str)                 : What pixel order to use when flattening \
-                                            the 2D image array in to the 1D data vector. \
-                                            Default 'F' goes verticallytop-to-bottom, column-by-column, \
-                                            alternatively 'C' goes horizontally left-to-right,  row-by-row.
+        pixel_order (str)                    : What pixel order to use when flattening \
+                                               the 2D image array in to the 1D data vector. \
+                                               Default 'C' goes left-to-right, then row-by-row (NumPy default), \
+                                               alternatively 'F' goes top-to-bottom, then column-by-column (MATLAB default).
         
-        calc_status_callback (callable)   : Callable which takes a single argument, which will be called with \
-                                            status updates about the calculation. It will be called with either \
-                                            a string for textual status updates or a float from 0 to 1 specifying \
-                                            the progress of the calculation. By default, status updates are printed \
-                                            to stdout.  If set to None, no status updates are issued.
+        calc_status_callback (callable)      : Callable which takes a single argument, which will be called with \
+                                               status updates about the calculation. It will be called with either \
+                                               a string for textual status updates or a float from 0 to 1 specifying \
+                                               the progress of the calculation. By default, status updates are printed \
+                                               to stdout.  If set to None, no status updates are issued.
 
     '''
-    def __init__(self,grid,raydata,pixel_order='F',calc_status_callback = misc.LoopProgPrinter().update):
+    def __init__(self,grid,raydata,pixel_order='C',calc_status_callback = misc.LoopProgPrinter().update):
 
         if grid is not None and raydata is not None:
 
