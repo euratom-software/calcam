@@ -156,7 +156,7 @@ class DodgyDict():
         for i,ikey in enumerate(self.keylist):
             if key == ikey:
                 return self.itemlist[i]
-        raise IndexError()
+        raise KeyError('No such item "{:s}"'.format(key))
 
     def __setitem__(self,key,value):
 

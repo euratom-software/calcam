@@ -371,6 +371,7 @@ class CADEdit(CalcamGUIWindow):
         selected_features = self.feature_tree.selectedItems()
         if len(selected_features) ==  1 and selected_features[0].checkState(0) == qt.Qt.Checked:
             self.selected_feature = self.cad_tree_items[selected_features[0]]
+            self.selected_treeitem = selected_features[0]
         else:
             self.component_settings.setEnabled(False)
             self.del_feature_button.setEnabled(False)
@@ -558,6 +559,7 @@ class CADEdit(CalcamGUIWindow):
         self.removed_mesh_files = []
 
         self.selected_feature = None
+        self.selected_treeitem = None
         self.tree_root = None
         self.current_group = None
         self.pending_parent_change = []
@@ -916,19 +918,20 @@ class CADEdit(CalcamGUIWindow):
 
             if len(feature_name.split('/')) == 2:
                 self.cadmodel.groups[feature_name.split('/')[0]].remove(feature_name)
-
-            if len(feature_name.split('/')) == 2:
                 feature_name = feature_name.split('/')[1]
 
             if parent is self.tree_root:
                 self.model_features[self.cadmodel.model_variant][feature_name] = fdict
                 self.cadmodel.features[feature_name] = fo
-                self.selected_feature = feature_name
+                if current_feature:
+                    self.selected_feature = feature_name
             else:
                 self.model_features[self.cadmodel.model_variant]['{:s}/{:s}'.format(parent.text(0),feature_name)] = fdict
                 self.cadmodel.features['{:s}/{:s}'.format(parent.text(0),feature_name)] = fo
                 self.cadmodel.groups[parent.text(0)].append('{:s}/{:s}'.format(parent.text(0),feature_name))
-                self.selected_feature = '{:s}/{:s}'.format(parent.text(0),feature_name)
+                if current_feature:
+                    self.selected_feature = '{:s}/{:s}'.format(parent.text(0),feature_name)
+
 
         self.pending_parent_change = []
 
@@ -989,8 +992,10 @@ class CADEdit(CalcamGUIWindow):
         if set_selected is None:
             self.component_settings.setEnabled(False)
             self.selected_feature = None
+            self.selected_treeitem = None
         else:
             set_selected.setSelected(True)
+            self.selected_treeitem = set_selected
         # ---------------------------------------------------------------------------------------
 
 
@@ -1000,9 +1005,9 @@ class CADEdit(CalcamGUIWindow):
     def eventFilter(self,object,event):
 
         if event.type() == qt.QEvent.Drop:
-            selected_items = self.feature_tree.selectedItems()
-            if len(selected_items) == 1 and selected_items[0] not in self.pending_parent_change:
-                self.pending_parent_change.append(selected_items[0])
+
+            if self.selected_treeitem is not None and self.selected_treeitem not in self.pending_parent_change:
+                self.pending_parent_change.append(self.selected_treeitem)
 
             self.unsaved_changes = True
 
@@ -1108,7 +1113,7 @@ class CADEdit(CalcamGUIWindow):
         filedialog.exec_()
 
         if filedialog.result() == 1:
-            mesh_paths = [str(path) for path in filedialog.selectedFiles()]
+            mesh_paths = [str(path).replace(os.sep,'/') for path in filedialog.selectedFiles()]
             if multiple:
                 return mesh_paths
             else:
@@ -1199,7 +1204,12 @@ class CADEdit(CalcamGUIWindow):
         self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
         self.statusbar.showMessage('Saving to file {:s}...'.format(self.cadmodel.def_file.filename))
         
+        self.update_feature_tree()
+
         model_def_dict['features'] = copy.copy(self.model_features)
+
+        for old_mesh in self.removed_mesh_files:
+            self.cadmodel.def_file.remove(old_mesh)
 
         for variant in self.cadmodel.variants:
             if variant not in model_def_dict['mesh_path_roots']:
@@ -1230,9 +1240,6 @@ class CADEdit(CalcamGUIWindow):
                 self.cadmodel.def_file.add_usercode(full_path,replace=True)
         else:
             self.cadmodel.def_file.clear_usercode()
-
-        for old_mesh in self.removed_mesh_files:
-            self.cadmodel.def_file.remove(old_mesh)
 
         self.removed_mesh_files = []
 
