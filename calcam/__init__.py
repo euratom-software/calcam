@@ -1,5 +1,5 @@
 '''
-* Copyright 2015-2018 European Atomic Energy Community (EURATOM)
+* Copyright 2015-2019 European Atomic Energy Community (EURATOM)
 *
 * Licensed under the EUPL, Version 1.1 or - as soon they
   will be approved by the European Commission - subsequent
@@ -25,7 +25,7 @@ CalCam package.
 """
 
 # Calcam version
-__version__ = '2.2.2'
+__version__ = '2.2.3'
 
 
 # Note: We have to import the GUI module before anything

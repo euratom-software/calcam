@@ -1,11 +1,25 @@
-Project Changelog
-=================
+Calcam Changelog
+================
+
+Patch 2.2.3 (2nd Apr 2019)
+--------------------------
+
+Fixes:
+* Replacing a mesh file with one of the same filename in the CAD model editor no longer results in a broken .ccc file.
+* Fix default 2D array flattening order in GeometryMatrix being different from NumPy's default (resulted in transposed images).
+* Fix exceptions raised when opening a calibration with a CAD model not available on your install.
+* Fix image rendering from 3D viewer GUI always rendering in display orientation regardless of selected settings.
+* Fix re-arrangement of model features between groups in the CAD model editor not being saved.
+* Make error message less obnoxious when trying to load the Calcam GUI with the launcher script on a system without the GUI available.
+* Remove redundant debug message box in Image Anslyser.
+
 
 Patch 2.2.2 (26th Feb 2019)
 ---------------------------
 
 Fixes:
 * Fix bug raising exceptions from raycast_sightlines when using status_callback=None.
+
 
 Patch 2.2.1 (25th Feb 2019)
 ---------------------------
