@@ -127,7 +127,7 @@ class CalcamConfig():
                         with f.open_file('model.json','r') as j: 
                                caddef = json.load(j)
                 except:
-                    pass
+                    continue
 
                 if caddef['machine_name'] not in cadmodels:
                     key = caddef['machine_name']
