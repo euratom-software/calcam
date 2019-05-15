@@ -517,7 +517,11 @@ class Calibration():
 
             # Load the field mask and set up geometry object
             subview_mask = cv2.imread(os.path.join(save_file.get_temp_path(),'subview_mask.png'))[:,:,0]
-            self.geometry = CoordTransformer(transform_actions=meta['image_transform_actions'],paspect=meta['orig_paspect'])
+
+            if 'image_offset' not in meta:
+                meta['image_offset'] = (0.,0.)
+
+            self.geometry = CoordTransformer(transform_actions=meta['image_transform_actions'],paspect=meta['orig_paspect'],offset=meta['image_offset'])
             self.geometry.set_image_shape(subview_mask.shape[1],subview_mask.shape[0],coords='Display')
             self.subview_mask = self.geometry.display_to_original_image(subview_mask,interpolation='nearest')
             
@@ -616,7 +620,7 @@ class Calibration():
 
 
 
-    def set_image(self,image,src,coords='Display',transform_actions = [],subview_mask=None,pixel_aspect=1.,subview_names = [],pixel_size=None):
+    def set_image(self,image,src,coords='Display',transform_actions = [],subview_mask=None,pixel_aspect=1.,subview_names = [],pixel_size=None,offset=(0.,0.)):
         '''
         Set the main image associated with the calibration.
 
@@ -677,6 +681,7 @@ class Calibration():
         self.geometry.set_transform_actions(transform_actions)
         self.geometry.set_pixel_aspect(pixel_aspect,relative_to='Original')
         self.geometry.set_image_shape(image.shape[1],image.shape[0],coords=coords)
+        self.geometry.offset = offset
 
         if coords.lower() == 'original':
             self.image = image
@@ -820,6 +825,7 @@ class Calibration():
                     'history':self.history,
                     'pixel_size':self.pixel_size,
                     'orig_paspect':self.geometry.pixel_aspectratio,
+                    'image_offset':self.geometry.offset,
                     'image_transform_actions':self.geometry.transform_actions,
                     'subview_names':self.subview_names,
                     'calib_type':self._type,

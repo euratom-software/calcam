@@ -450,7 +450,7 @@ class AlignmentCalib(CalcamGUIWindow):
         else:
             self.pixel_size_checkbox.setChecked(False)
 
-        self.calibration.set_image( newim['image_data'] , newim['source'],subview_mask = newim['subview_mask'], transform_actions = newim['transform_actions'],coords=newim['coords'],subview_names=newim['subview_names'],pixel_aspect=newim['pixel_aspect'],pixel_size=newim['pixel_size'] )
+        self.calibration.set_image( newim['image_data'] , newim['source'],subview_mask = newim['subview_mask'], transform_actions = newim['transform_actions'],coords=newim['coords'],subview_names=newim['subview_names'],pixel_aspect=newim['pixel_aspect'],pixel_size=newim['pixel_size'],offset=newim['image_offset'] )
 
         imshape = self.calibration.geometry.get_display_shape()
         self.interactor3d.force_aspect = float( imshape[1] ) / float( imshape[0] )

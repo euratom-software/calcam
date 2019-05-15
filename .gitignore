@@ -8,3 +8,4 @@ docs/html/.doctrees
 Calcam.egg-info/*
 build/
 dist/
+.idea/

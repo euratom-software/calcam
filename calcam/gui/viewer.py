@@ -158,6 +158,9 @@ class Viewer(CalcamGUIWindow):
                     try:
                         coords = np.loadtxt(fname,delimiter=delimiter)
                         lines_name = os.path.split(fname)[1].split('.')[0]
+
+                        if len(coords.shape) == 1:
+                            coords = coords[np.newaxis,:]
                     except ValueError:
                         continue
 

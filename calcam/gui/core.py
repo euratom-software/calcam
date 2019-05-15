@@ -432,6 +432,9 @@ class CalcamGUIWindow(qt.QMainWindow):
         if 'pixel_aspect' not in newim:
             newim['pixel_aspect'] = 1.
 
+        if 'image_offset' not in newim:
+            newim['image_offset'] = (0.,0.)
+
         self.on_load_image(newim)
         self.statusbar.clearMessage()
         self.app.restoreOverrideCursor()

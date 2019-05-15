@@ -501,7 +501,7 @@ class FittingCalib(CalcamGUIWindow):
         else:
             self.pixel_size_checkbox.setChecked(False)
 
-        self.calibration.set_image( newim['image_data'] , newim['source'],subview_mask = newim['subview_mask'], transform_actions = newim['transform_actions'],coords=newim['coords'],subview_names=newim['subview_names'],pixel_aspect=newim['pixel_aspect'],pixel_size=newim['pixel_size'] )
+        self.calibration.set_image( newim['image_data'] , newim['source'],subview_mask = newim['subview_mask'], transform_actions = newim['transform_actions'],coords=newim['coords'],subview_names=newim['subview_names'],pixel_aspect=newim['pixel_aspect'],pixel_size=newim['pixel_size'],offset=newim['image_offset'] )
 
         self.interactor2d.set_image(self.calibration.get_image(coords='Display'),n_subviews = self.calibration.n_subviews,subview_lookup = self.calibration.subview_lookup)
 
