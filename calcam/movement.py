@@ -8,7 +8,7 @@ from deepmatching import deepmatching
 from scipy.optimize import curve_fit
 
 from .pointpairs import PointPairs
-from .calibration import Fitter
+from .calibration import Calibration, Fitter
 from . import config
 
 
@@ -47,7 +47,7 @@ def adjust_pointpairs(original_pointpairs,homography):
 
 
 
-def get_homography_deepmatching(ref_image,image,scale_limit=None,angle_limit=None,score_tol=50,mov_limit=50):
+def find_pointpairs_deepmatching(ref_image,image):
     """
     Given two images, return an estimated homography matrix for the transform
     from the new image to the reference image using DeepMatching. NOTE: DeepMatching
@@ -87,31 +87,74 @@ def get_homography_deepmatching(ref_image,image,scale_limit=None,angle_limit=Non
 
 
     # Configure and run DeepMatching.
-    options = '-nt {:d} -ngh_rad 20'.format(config.n_cpus,mov_limit)
-    if scale_limit is not None:
-        options = options + ' -max_scale {:.2f}'.format(scale_limit)
-    if angle_limit is not None:
-        options = options + ' -rot_range -{:.1f} {:.1f}'.format(angle_limit,angle_limit)
+    options = '-nt {:d} -ngh_rad 20'.format(config.n_cpus)
 
-    matches = deepmatching(ref_image,image,options)
+    matches = deepmatching(image,ref_image,options)
 
-    nc = plt.get_cmap('jet',matches.shape[0])
-    for i in range(matches.shape[0]):
-        ax0.plot(matches[i,0],matches[i,1],'o',color=nc(i),markersize=(matches[i,4]-3)*5)
-        ax1.plot(matches[i,2],matches[i,3],'o',color=nc(i),markersize=(matches[i,4]-3)*5)
+    #tilesize_x = int(np.ceil(ref_image.shape[1]/n_tiles[0]))
+    #tilesize_y = int(np.ceil(ref_image.shape[0]/n_tiles[1]))
 
-    plt.show()
+    #inds = []
+    #for x in range(n_tiles[0]):
+    #    in_x_range = np.logical_and( matches[:,0] >= x*tilesize_x, matches[:,0] < (x+1)*tilesize_x)
+    #    for y in range(n_tiles[1]):
+    #        in_y_range = np.logical_and( matches[:,1] >= y*tilesize_y, matches[:,1] < (y+1)*tilesize_y)#
+
+    #        scores = matches[:,4].copy()
+    #       scores[np.invert(np.logical_and(in_x_range, in_y_range))] = 0
+    #        inds.append(np.argmax(scores))
+
+    #print(matches[:,5])
+    #order = np.argsort(matches[:,5])
+    #matches = matches[inds,:]
+
+    #plt.plot(matches[:,4],'o')
+    #plt.show()
+
+    #nc = plt.get_cmap('jet',matches.shape[0])
+    #for i in range(matches.shape[0]):
+    #    ax0.plot(matches[i,0],matches[i,1],'o',color=nc(i),markersize=(matches[i,4]-3)*5)
+    #    ax1.plot(matches[i,2],matches[i,3],'o',color=nc(i),markersize=(matches[i,4]-3)*5)
 
 
-    # Homography based on DeepMatching points
-    homography,mask = cv2.findHomography(matches[:,2:4],matches[:,:2],method=cv2.LMEDS)
+    return filter_points(matches[:,2:4]*2,matches[:,:2]*2)
+
+
+def filter_points(ref_points,new_points,n_points=50,err_limit = 10):
+
+    transform = np.matrix(cv2.estimateRigidTransform(new_points, ref_points, fullAffine=True))
+
+    if transform[0,0] is None:
+        return np.array([])
+
+    err = []
+    for pp in range(ref_points.shape[0]):
+            oldpt = np.matrix(np.concatenate((new_points[pp,:], np.ones(1)))).T
+            fitted_pt = transform * oldpt
+            err.append( (np.sqrt( (ref_points[pp,0] - fitted_pt[0])**2 + (ref_points[pp,1] - fitted_pt[1])**2) )[0,0])
+
+    err = np.array(err)
+
+    order = np.argsort(err)
+
+    ref_points = ref_points[order[:n_points],:]
+    new_points = new_points[order[:n_points],:]
+    err = err[order[:n_points]]
+
+    ref_points = ref_points[err < err_limit]
+    new_points = new_points[err < err_limit]
+
+    return ref_points,new_points
+
+
+def ddscore(ref_image,image,transform,tol=50):
 
     # Calculate DDScore
-    image_adjusted,mask = warp_image(image,homography)
+    image_adjusted,mask = warp_image(image,transform)
     diff_before = np.abs(image[mask].astype(int) - ref_image[mask].astype(int))
     diff_after = np.abs(image_adjusted[mask].astype(int) - ref_image[mask].astype(int))
     diffdiff = diff_before - diff_after
-    diffdiff = diffdiff[np.abs(diffdiff) > score_tol]
+    diffdiff = diffdiff[np.abs(diffdiff) > tol]
 
     if diffdiff.size > 0:
         ddscore = np.count_nonzero(diffdiff > 0) / diffdiff.size
@@ -120,14 +163,10 @@ def get_homography_deepmatching(ref_image,image,scale_limit=None,angle_limit=Non
 
     ddscore = (ddscore - 0.5) * 2
 
-    # Adjust homography matrix to account for image scaling.
-    homography[0,2] = 2 * homography[0,2]
-    homography[1,2] = 2 * homography[1,2]
-
-    return np.matrix(homography),ddscore
+    return ddscore
 
 
-def get_homography_opticalflow(ref_image,image,score_tol=50):
+def find_pointpairs_opticalflow(ref_image,image):
     """
     Given two images, return an estimated homography matrix for the transform
     from the new image to the reference image using DeepMatching. NOTE: DeepMatching
@@ -160,11 +199,11 @@ def get_homography_opticalflow(ref_image,image,score_tol=50):
     ref_image = preprocess_image(ref_image)
     image = preprocess_image(image)
 
-    plt.figure()
-    ax0 = plt.subplot(121)
-    ax0.imshow(ref_image)
-    ax1 = plt.subplot(122)
-    ax1.imshow(image)
+    #plt.figure()
+    #ax0 = plt.subplot(121)
+    #ax0.imshow(ref_image)
+    #ax1 = plt.subplot(122)
+    #ax1.imshow(image)
     #plt.show()
 
     ref_points = cv2.goodFeaturesToTrack(ref_image[:,:,0],maxCorners=100,qualityLevel=0.1,minDistance=50).astype(np.float32)
@@ -173,12 +212,12 @@ def get_homography_opticalflow(ref_image,image,score_tol=50):
 
     new_points,status,err = cv2.calcOpticalFlowPyrLK(ref_image,image,ref_points,np.zeros(ref_points.shape,dtype=ref_points.dtype))
 
-    dists = np.sqrt(np.sum((np.squeeze(new_points) - np.squeeze(ref_points)) ** 2, axis=1))
+    #dists = np.sqrt(np.sum((np.squeeze(new_points) - np.squeeze(ref_points)) ** 2, axis=1))
 
-    status[dists > dists.mean() + 2*dists.std()] = 0
+    #status[dists > dists.mean() + 2*dists.std()] = 0
 
-    ax0.plot(ref_points[status == 0,0],ref_points[status == 0,1],'ro')
-    ax1.plot(new_points[status == 0,0], new_points[status == 0, 1], 'ro')
+    #ax0.plot(ref_points[status == 0,0],ref_points[status == 0,1],'ro')
+    #ax1.plot(new_points[status == 0,0], new_points[status == 0, 1], 'ro')
 
 
 
@@ -188,34 +227,34 @@ def get_homography_opticalflow(ref_image,image,score_tol=50):
 
 
 
-    ax0.plot(ref_points[:,0],ref_points[:,1],'go')
-    ax1.plot(new_points[:,0],new_points[:,1],'go')
+    #ax0.plot(ref_points[:,0],ref_points[:,1],'go')
+    #ax1.plot(new_points[:,0],new_points[:,1],'go')
 
-    plt.show()
+    #plt.show()
 
 
     # Homography based on DeepMatching points
-    homography,mask = cv2.findHomography(new_points,ref_points)
+    #homography,mask = cv2.findHomography(new_points,ref_points)
 
     # Calculate DDScore
-    image_adjusted,mask = warp_image(image,homography)
-    diff_before = np.abs(image[mask].astype(int) - ref_image[mask].astype(int))
-    diff_after = np.abs(image_adjusted[mask].astype(int) - ref_image[mask].astype(int))
-    diffdiff = diff_before - diff_after
-    diffdiff = diffdiff[np.abs(diffdiff) > score_tol]
+    #image_adjusted,mask = warp_image(image,homography)
+    #diff_before = np.abs(image[mask].astype(int) - ref_image[mask].astype(int))
+    #diff_after = np.abs(image_adjusted[mask].astype(int) - ref_image[mask].astype(int))
+    #diffdiff = diff_before - diff_after
+    #diffdiff = diffdiff[np.abs(diffdiff) > score_tol]
 
-    if diffdiff.size > 0:
-        ddscore = np.count_nonzero(diffdiff > 0) / diffdiff.size
-    else:
-        ddscore = 0.5
+    #if diffdiff.size > 0:
+    #    ddscore = np.count_nonzero(diffdiff > 0) / diffdiff.size
+    #else:
+    #    ddscore = 0.5
 
-    ddscore = (ddscore - 0.5) * 2
+    #ddscore = (ddscore - 0.5) * 2
 
     # Adjust homography matrix to account for image scaling.
-    homography[0,2] = 2 * homography[0,2]
-    homography[1,2] = 2 * homography[1,2]
+    #homography[0,2] = 2 * homography[0,2]
+    #homography[1,2] = 2 * homography[1,2]
 
-    return np.matrix(homography),ddscore
+    return filter_points(2*ref_points,2*new_points)
 
 
 def warp_image(original_image,transform):
@@ -270,22 +309,6 @@ def adjust_calibration(calibration,image,coords='Display',on_fail='warn'):
     adjusted_calib.set_fit(0,fitter.do_fit())
 
     return adjusted_calib
-
-
-def adjust_image(calibration,image,coords='Display',on_fail='warn'):
-
-    ref_image = calibration.get_image(coords=coords)
-
-    homography,ddscore = get_homography_opticalflow(ref_image, image)
-
-    if ddscore < 0:
-        if on_fail == 'raise':
-            raise Exception('Image movement detection failed (DDScore = {:.2f})'.format(ddscore))
-        elif on_fail == 'warn':
-            print('WARNING: Image movement detection failed (DDScore = {:.2f}). No correction will be made.'.format(ddscore))
-            return image
-
-    return warp_image(image,homography)
 
 
 
@@ -359,7 +382,13 @@ def tan_shape(x,xscale,yscale,xshift,yshift):
     return -yscale * (np.tan( (x - xshift)*xscale) + yshift)
 
 
-def get_transform(ref_im,new_im):
+
+def get_transform_gui(ref,new_im):
+
+    if isinstance(ref,Calibration):
+        ref_im = ref.get_image(coords='Display')
+    else:
+        ref_im = ref
 
     try:
         from .gui import qt_wrapper as qt
