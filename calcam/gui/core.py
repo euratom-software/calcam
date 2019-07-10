@@ -38,7 +38,6 @@ from ..cadmodel import CADModel
 from ..config import CalcamConfig
 from ..calibration import Calibration,Fitter
 from ..pointpairs import PointPairs
-from ..coordtransformer import CoordTransformer
 from .vtkinteractorstyles import CalcamInteractorStyle2D
 from . import qt_wrapper as qt
 from ..misc import ColourCycle,DodgyDict
