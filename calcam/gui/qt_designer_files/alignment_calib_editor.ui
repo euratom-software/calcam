@@ -463,7 +463,7 @@
            <item row="0" column="2" colspan="2">
             <widget class="QRadioButton" name="edge_detect">
              <property name="text">
-              <string>Edge Detect</string>
+              <string>Edge Detection</string>
              </property>
             </widget>
            </item>
@@ -563,9 +563,9 @@
             </widget>
            </item>
            <item row="0" column="1">
-            <widget class="QRadioButton" name="im_enhance">
+            <widget class="QRadioButton" name="hist_eq">
              <property name="text">
-              <string>Enhance</string>
+              <string>Hist. EQ.</string>
              </property>
             </widget>
            </item>

@@ -1,37 +1,16 @@
-'''
-* Copyright 2015-2019 European Atomic Energy Community (EURATOM)
-*
-* Licensed under the EUPL, Version 1.1 or - as soon they
-  will be approved by the European Commission - subsequent
-  versions of the EUPL (the "Licence");
-* You may not use this work except in compliance with the
-  Licence.
-* You may obtain a copy of the Licence at:
-*
-* https://joinup.ec.europa.eu/software/page/eupl
-*
-* Unless required by applicable law or agreed to in
-  writing, software distributed under the Licence is
-  distributed on an "AS IS" basis,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
-  express or implied.
-* See the Licence for the specific language governing
-  permissions and limitations under the Licence.
-'''
-
 import copy
-import json
+import warnings
 
 import matplotlib.pyplot as plt
 import numpy as np
 import cv2
 from deepmatching import deepmatching
-
+from scipy.optimize import curve_fit
 
 from .pointpairs import PointPairs
 from .calibration import Calibration, Fitter
 from . import config
-from . import image_enhancement
+
 
 def adjust_pointpairs(original_pointpairs,homography):
     """
@@ -97,8 +76,8 @@ def find_pointpairs_deepmatching(ref_image,image):
 
 
     # Enhance the images and ensure they're in the correct format
-    ref_image = image_enhancement.enhance_image(ref_image)
-    image = image_enhancement.enhance_image(image)
+    ref_image = preprocess_image(ref_image)
+    image = preprocess_image(image)
 
     #ax0 = plt.subplot(121)
     #ax0.imshow(ref_image)
@@ -143,10 +122,10 @@ def find_pointpairs_deepmatching(ref_image,image):
 
 def filter_points(ref_points,new_points,n_points=50,err_limit = 10):
 
-    transform = np.matrix(cv2.estimateRigidTransform(new_points, ref_points, fullAffine=False))
+    transform = np.matrix(cv2.estimateRigidTransform(new_points, ref_points, fullAffine=True))
 
     if transform[0,0] is None:
-        return np.array([]),np.array([])
+        return np.array([])
 
     err = []
     for pp in range(ref_points.shape[0]):
@@ -168,9 +147,21 @@ def filter_points(ref_points,new_points,n_points=50,err_limit = 10):
     return ref_points,new_points
 
 
-def ddscore(ref_image,image,correction,tol=50):
+def ddscore(ref_image,image,transform,tol=50):
 
+    # Calculate DDScore
+    image_adjusted,mask = warp_image(image,transform)
+    diff_before = np.abs(image[mask].astype(int) - ref_image[mask].astype(int))
+    diff_after = np.abs(image_adjusted[mask].astype(int) - ref_image[mask].astype(int))
+    diffdiff = diff_before - diff_after
+    diffdiff = diffdiff[np.abs(diffdiff) > tol]
 
+    if diffdiff.size > 0:
+        ddscore = np.count_nonzero(diffdiff > 0) / diffdiff.size
+    else:
+        ddscore = 0.5
+
+    ddscore = (ddscore - 0.5) * 2
 
     return ddscore
 
@@ -205,8 +196,8 @@ def find_pointpairs_opticalflow(ref_image,image):
 
 
     # Enhance the images and ensure they're in the correct format
-    ref_image = image_enhancement.enhance_image(ref_image,downsample = True)
-    image = image_enhancement.enhance_image(image,downsample = True)
+    ref_image = preprocess_image(ref_image)
+    image = preprocess_image(image)
 
     #plt.figure()
     #ax0 = plt.subplot(121)
@@ -215,7 +206,7 @@ def find_pointpairs_opticalflow(ref_image,image):
     #ax1.imshow(image)
     #plt.show()
 
-    ref_points = cv2.goodFeaturesToTrack(ref_image,maxCorners=500,qualityLevel=0.1,minDistance=50).astype(np.float32)
+    ref_points = cv2.goodFeaturesToTrack(ref_image[:,:,0],maxCorners=100,qualityLevel=0.1,minDistance=50).astype(np.float32)
 
     # Run optical flow
 
@@ -266,6 +257,29 @@ def find_pointpairs_opticalflow(ref_image,image):
     return filter_points(2*ref_points,2*new_points)
 
 
+def warp_image(original_image,transform):
+    """
+    Warp an image based on a given matrix.
+    A rather thin OpenCV wrapper.
+
+    Parameters:
+
+        original_image (np.ndarray)
+    """
+
+    if transform.shape[0] == 2:
+        transform_ = np.matrix(np.zeros((3,3)))
+        transform_[:2,:] = transform
+        transform_[2,2] = 1.
+        transform = transform_
+
+    warped_im = cv2.warpPerspective(original_image,transform,dsize=original_image.shape[1::-1])
+
+    mask_im = cv2.warpPerspective(original_image*0,transform,dsize=original_image.shape[1::-1],borderValue=255)
+    mask_im = mask_im == 0
+
+    return warped_im,mask_im
+
 
 def adjust_calibration(calibration,image,coords='Display',on_fail='warn'):
 
@@ -298,11 +312,78 @@ def adjust_calibration(calibration,image,coords='Display',on_fail='warn'):
 
 
 
+def preprocess_image(image,target_msb=25,target_noise=500,tiles=20,maintain_scale=False):
+
+    if len(image.shape) > 2:
+        image = cv2.cvtColor(image[:,:,:3],cv2.COLOR_RGB2LAB)[:,:,0]
+
+    image = cv2.pyrDown(image)
+    image = cv2.medianBlur(image,ksize=3)
+
+    test_clip_lims = [1.,5.,10.]
+    contrast = []
+    for cliplim in test_clip_lims:
+        contrast.append( local_contrast( cv2.createCLAHE(cliplim, (tiles, tiles)).apply(image), tiles) )
+
+    coefs = np.polyfit(contrast,test_clip_lims,2)
+
+    best_cliplim = np.polyval(coefs,target_msb)
+
+    result = cv2.createCLAHE(best_cliplim, (tiles, tiles)).apply(image)
+
+
+    #result = cv2.bilateralFilter(result,d=-1,sigmaColor=25,sigmaSpace=25)
+
+    test_strengths = [1.,10.,20.,30.]
+    nlm_win_size = 5#int(np.mean([image.shape[0]/tiles,image.shape[1]/tiles]))
+    noise = []
+    for strength in test_strengths:
+        noise.append(cv2.Laplacian(cv2.fastNlMeansDenoising(result,h=strength,searchWindowSize=nlm_win_size),cv2.CV_64F).var())
+
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore')
+        tanparams,_ = curve_fit(tan_shape,noise,test_strengths,p0=[1/np.max(noise),20,500,10],bounds=([1e-5,1e-4,-1000,-100],[3.14159/(np.max(noise) - np.min(noise)),100,1000,100]))
+
+    best_strength = tan_shape(target_noise,*tanparams)
+
+    #plt.plot(noise,test_strengths,'o')
+    #nn = np.linspace(5,2000,500)
+    #plt.plot(nn, tan_shape(nn,*tanparams))
+    #plt.show()
+
+    if best_strength > 0:
+        result = cv2.fastNlMeansDenoising(result,h=best_strength,searchWindowSize=nlm_win_size)
+
+    res = np.tile(result[:,:,np.newaxis],(1,1,3))
+
+    if maintain_scale:
+        res = cv2.resize(res,(res.shape[1]*2,res.shape[0]*2),interpolation=cv2.INTER_NEAREST)
+
+    return res
 
 
 
+def local_contrast(image,tilegridsize=20):
 
-def get_transform_gui(ref,new_im,starting_correction=None):
+    tile_height = int(np.ceil(image.shape[0] / tilegridsize))
+    tile_width = int(np.ceil(image.shape[1] / tilegridsize))
+
+    sb = []
+
+    for i in range(tilegridsize):
+        for j in range(tilegridsize):
+            sb.append(image[i*tile_height:(i+1)*tile_height,j*tile_width:(j+1)*tile_width].std())
+
+    return np.mean(sb)
+
+
+def tan_shape(x,xscale,yscale,xshift,yshift):
+
+    return -yscale * (np.tan( (x - xshift)*xscale) + yshift)
+
+
+
+def get_transform_gui(ref,new_im):
 
     if isinstance(ref,Calibration):
         ref_im = ref.get_image(coords='Display')
@@ -316,143 +397,10 @@ def get_transform_gui(ref,new_im,starting_correction=None):
         raise Exception('Calcam GUI module not available. This function requires the GUI!')
 
     app = qt.QApplication([])
-    dialog = ImageAlignDialog(None, ref_im, new_im, app=app,starting_correction=starting_correction)
+    dialog = ImageAlignDialog(None, ref_im, new_im, app=app)
     retcode = dialog.exec_()
 
     if retcode == qt.QDialog.Accepted:
         return dialog.transform
     else:
         return None
-
-
-class MovementCorrection:
-
-    def __init__(self,matrix,im_shape,ref_points,moved_points,src):
-
-        if matrix.shape[0] == 2:
-             mat_ = np.matrix(np.zeros((3, 3)))
-             mat_[:2, :] = matrix
-             mat_[2, 2] = 1.
-             self.matrix = mat_
-        else:
-            self.matrix = matrix
-
-        self.im_shape = im_shape
-        self.ref_points = ref_points
-        self.moved_points = moved_points
-        self.history = src
-
-    @property
-    def translation(self):
-        return self.matrix[0, 2], self.matrix[1, 2]
-
-    @property
-    def rotation(self):
-        return 180 * np.arctan2(self.matrix[1, 0], self.matrix[0, 0]) / 3.14159
-
-    @property
-    def scale(self):
-        return np.sqrt(self.matrix[1, 0] ** 2 + self.matrix[0, 0] ** 2)
-
-    def warp_moved_to_ref(self,image):
-        """
-        Warp a moved image to align with the
-        reference one.
-
-        Parameters:
-
-            image (np.ndarray)
-        """
-
-        scaley = image.shape[0] / self.im_shape[0]
-        scalex = image.shape[1] / self.im_shape[1]
-
-        if np.abs(1 - scalex / scaley) > 0.005:
-            raise Exception('The provided image is the wrong shape!')
-
-        mat = self.matrix.copy()
-        mat[0, 2] = mat[0, 2] * scalex
-        mat[1, 2] = mat[1, 2] * scalex
-
-        warped_im = cv2.warpPerspective(image, mat, dsize=image.shape[1::-1])
-
-        mask_im = cv2.warpPerspective(image * 0, mat, dsize=image.shape[1::-1], borderValue=255)
-        mask_im = mask_im == 0
-
-        return warped_im,mask_im
-
-
-    def warp_ref_to_moved(self,image):
-        """
-        Warp a reference-aligned image to align
-        with the moved one.
-
-        Parameters:
-
-            image (np.ndarray)
-        """
-
-        scaley = image.shape[0] / self.im_shape[0]
-        scalex = image.shape[1] / self.im_shape[1]
-
-        if np.abs(1 - scalex / scaley) > 0.005:
-            raise Exception('The provided image is the wrong shape!')
-
-        mat = self.matrix.copy()
-        mat[0, 2] = mat[0, 2] * scalex
-        mat[1, 2] = mat[1, 2] * scalex
-
-        warped_im = cv2.warpPerspective(image, mat, dsize=image.shape[1::-1],flags=cv2.INTER_LINEAR + cv2.WARP_INVERSE_MAP)
-
-        mask_im = cv2.warpPerspective(image * 0, mat, dsize=image.shape[1::-1], borderValue=255)
-        mask_im = mask_im == 0
-
-        return warped_im,mask_im
-
-
-    def get_ddscore(self,ref_im,moved_im,tol=50):
-        # Calculate DDScore
-        image_adjusted, mask = self.warp_moved_to_ref(moved_im)
-        diff_before = np.abs(moved_im[mask].astype(int) - ref_im[mask].astype(int))
-        diff_after = np.abs(image_adjusted[mask].astype(int) - ref_im[mask].astype(int))
-        diffdiff = diff_before - diff_after
-        diffdiff = diffdiff[np.abs(diffdiff) > tol]
-
-        if diffdiff.size > 0:
-            ddscore = np.count_nonzero(diffdiff > 0) / diffdiff.size
-        else:
-            ddscore = 0.5
-
-        ddscore = (ddscore - 0.5) * 2
-
-        return ddscore
-
-
-    def moved_to_ref_coords(self,x,y):
-
-        x = self.matrix[0,0]*x + self.matrix[0,1]*y + self.matrix[0,2]
-        y = self.matrix[1, 0] * x + self.matrix[1, 1] * y + self.matrix[1, 2]
-
-        return x,y
-
-
-
-    def save(self,filename):
-
-        if not filename.endswith('.cmc'):
-            filename = filename.split('.')[0] + '.cmc'
-
-        with open(filename,'w') as outfile:
-            json.dump({'transform_matrix':self.matrix.tolist(),'im_array_shape':self.im_shape,'ref_points':self.ref_points.tolist(),'moved_points':self.moved_points.tolist(),'history':self.history},outfile)
-
-
-
-
-    @classmethod
-    def fromfile(cls,filename):
-
-        with open(filename,'r') as readfile:
-            loaded_dict = json.load(readfile)
-
-        return cls(np.matrix(loaded_dict['transform_matrix']),loaded_dict['im_array_shape'],np.array(loaded_dict['ref_points']),np.array(loaded_dict['moved_points']),loaded_dict['history'])
-

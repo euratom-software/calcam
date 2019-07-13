@@ -462,7 +462,14 @@
             </widget>
            </item>
            <item>
-            <widget class="QCheckBox" name="im_enhance_checkbox">
+            <widget class="QLabel" name="label_15">
+             <property name="text">
+              <string>Filters:</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="hist_eq_checkbox">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                <horstretch>0</horstretch>
@@ -470,7 +477,7 @@
               </sizepolicy>
              </property>
              <property name="text">
-              <string>Apply Image Enhancement</string>
+              <string>Histgram Equalise</string>
              </property>
             </widget>
            </item>
