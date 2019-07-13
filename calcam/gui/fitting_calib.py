@@ -29,6 +29,7 @@ from ..calibration import Calibration, Fitter, ImageUpsideDown
 from ..pointpairs import PointPairs
 from ..render import render_cam_view,get_image_actor
 from .. import misc
+from ..image_enhancement import enhance_image
 
 # Main calcam window class for actually creating calibrations.
 class FittingCalib(CalcamGUIWindow):
@@ -100,7 +101,7 @@ class FittingCalib(CalcamGUIWindow):
         self.overlay_checkbox.toggled.connect(self.toggle_overlay)
         #self.save_fit_button.clicked.connect(self.save_fit)
         #self.save_points_button.clicked.connect(self.save_points)
-        self.hist_eq_checkbox.stateChanged.connect(self.toggle_hist_eq)
+        self.im_enhance_checkbox.stateChanged.connect(self.toggle_im_enhance)
         self.im_define_splitFOV.clicked.connect(self.edit_split_field)
         #self.pointpairs_load_name.currentIndexChanged.connect(self.update_load_pp_button_status)
         self.pixel_size_checkbox.toggled.connect(self.update_pixel_size)
@@ -506,9 +507,9 @@ class FittingCalib(CalcamGUIWindow):
         self.interactor2d.set_image(self.calibration.get_image(coords='Display'),n_subviews = self.calibration.n_subviews,subview_lookup = self.calibration.subview_lookup)
 
         self.image_settings.show()
-        if self.hist_eq_checkbox.isChecked():
-            self.hist_eq_checkbox.setChecked(False)
-            self.hist_eq_checkbox.setChecked(True)
+        if self.im_enhance_checkbox.isChecked():
+            self.im_enhance_checkbox.setChecked(False)
+            self.im_enhance_checkbox.setChecked(True)
         
         if self.overlay_checkbox.isChecked():
             self.overlay_checkbox.setChecked(False)
@@ -760,9 +761,9 @@ class FittingCalib(CalcamGUIWindow):
             self.chessboard_pointpairs[i][0] = self.calibration.geometry.original_to_display_image(self.chessboard_pointpairs[i][0])
             self.chessboard_pointpairs[i][1] = self.calibration.geometry.original_to_display_pointpairs(self.chessboard_pointpairs[i][1])
 
-        if self.hist_eq_checkbox.isChecked():
-            self.hist_eq_checkbox.setChecked(False)
-            self.hist_eq_checkbox.setChecked(True)
+        if self.im_enhance_checkbox.isChecked():
+            self.im_enhance_checkbox.setChecked(False)
+            self.im_enhance_checkbox.setChecked(True)
  
 
         self.update_image_info_string(self.calibration.get_image(),self.calibration.geometry)
@@ -1392,13 +1393,13 @@ class FittingCalib(CalcamGUIWindow):
         self.unsaved_changes = False
 
 
-    def toggle_hist_eq(self,check_state):
+    def toggle_im_enhance(self,check_state):
 
         image = self.calibration.get_image(coords='display')
         
         # Enable / disable adaptive histogram equalisation
         if check_state == qt.Qt.Checked:
-            image = hist_eq(image)
+            image = enhance_image(image)
         
         self.interactor2d.set_image(image,n_subviews = self.calibration.n_subviews,subview_lookup=self.calibration.subview_lookup,hold_position=True)
 
