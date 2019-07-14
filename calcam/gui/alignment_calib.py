@@ -19,9 +19,6 @@
   permissions and limitations under the Licence.
 '''
 
-import cv2
-import copy
-
 from .core import *
 from .vtkinteractorstyles import CalcamInteractorStyle3D
 from ..calibration import Calibration

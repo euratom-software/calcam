@@ -48,6 +48,7 @@ class ImageAlignDialog(qt.QDialog):
 
         qt.QDialog.__init__(self, parent,qt.Qt.WindowTitleHint | qt.Qt.WindowCloseButtonHint)
         qt.uic.loadUi(os.path.join(guipath,'qt_designer_files','image_alignment_dialog.ui'), self)
+        self.setWindowIcon(qt.QIcon(os.path.join(guipath, 'icons', 'calcam.png')))
 
         self.qvtkwidget_ref = qt.QVTKRenderWindowInteractor(self.ref_frame)
         self.ref_frame.layout().addWidget(self.qvtkwidget_ref)

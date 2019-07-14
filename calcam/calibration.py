@@ -620,7 +620,7 @@ class Calibration():
 
 
 
-    def set_image(self,image,src,coords='Display',transform_actions = [],subview_mask=None,pixel_aspect=1.,subview_names = [],pixel_size=None,offset=(0.,0.)):
+    def set_image(self,image,src,coords='Display',transform_actions = [],subview_mask=None,pixel_aspect=1.,subview_names = None,pixel_size=None,offset=(0.,0.)):
         '''
         Set the main image associated with the calibration.
 
@@ -663,21 +663,7 @@ class Calibration():
 
                 image = np.uint8(255.*(image - image.min())/(image.max() - image.min()))
 
-        if subview_mask is None:
-            self.n_subviews = 1
-            subview_mask = np.zeros(image.shape[:2],dtype='uint8')
-            self.subview_names = ['Image']
-        else:
-            self.n_subviews = subview_mask.max() + 1
-            if len(subview_names) == self.n_subviews:
-                self.subview_names = subview_names
-            else:
-                self.subview_names = []
-                for n in range(self.n_subviews):
-                    self.subview_names.append('View {:d}'.format(n+1))
-
         self.geometry = CoordTransformer()
-
         self.geometry.set_transform_actions(transform_actions)
         self.geometry.set_pixel_aspect(pixel_aspect,relative_to='Original')
         self.geometry.set_image_shape(image.shape[1],image.shape[0],coords=coords)
@@ -685,10 +671,13 @@ class Calibration():
 
         if coords.lower() == 'original':
             self.image = image
-            self.subview_mask = subview_mask
         else:
             self.image = self.geometry.display_to_original_image(image)
-            self.subview_mask = self.geometry.display_to_original_image(subview_mask)
+
+        if subview_mask is None:
+            subview_mask = np.zeros(image.shape[:2],dtype='uint8')
+
+        self.set_subview_mask(subview_mask,subview_names,coords)
 
         self.pixel_size = pixel_size
 
@@ -712,13 +701,12 @@ class Calibration():
         '''        
         n_subviews = mask.max() + 1
 
-        if subview_names is None:
-
+        if subview_names is None or subview_names == []:
             if n_subviews == 1:
                 subview_names = ['Image']
 
             else:
-                subview_names = ['Sub-view #{:d}'.format(i + 1) for i in range(n_subviews)]
+                subview_names = ['Sub-view {:d}'.format(i + 1) for i in range(n_subviews)]
         else:
             if len(subview_names) != n_subviews:
                 raise ValueError('The subview mask appears to show {:d} sub-views, but {:d} names were provided!'.format(n_subviews,len(subview_names)))
@@ -731,9 +719,12 @@ class Calibration():
             self.subview_mask = self.geometry.display_to_original_image(mask)
             
         self.subview_names = subview_names
+
+        if self.n_subviews != n_subviews:
+            self.view_models = [None] * n_subviews
+            self.history['fit'] = [None] * n_subviews
+
         self.n_subviews = n_subviews
-        
-        self.view_models = [None] * self.n_subviews
 
 
     def get_image(self,coords='Display'):
@@ -1498,8 +1489,9 @@ class Calibration():
 
         self.view_models = [ViewModel.from_dict(coeffs_dict)]
 
-        self.subview_mask = np.zeros(images_and_points[0][0].shape[:2],dtype=np.uint8)
-        self.geometry = CoordTransformer(orig_x=self.subview_mask.shape[1],orig_y = self.subview_mask.shape[0])
+        if self.geometry.get_display_shape() != images_and_points[0][0].shape[:2][::-1]:
+            self.subview_mask = np.zeros(images_and_points[0][0].shape[:2],dtype=np.uint8)
+            self.geometry = CoordTransformer(orig_x=self.subview_mask.shape[1],orig_y = self.subview_mask.shape[0])
 
         self.intrinsics_constraints = images_and_points
         self.intrinsics_type = 'chessboard'

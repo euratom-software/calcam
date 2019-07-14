@@ -11,13 +11,13 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Image Alignment</string>
+   <string>Calcam - Camera movement correction</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="6" column="0" colspan="2">
     <widget class="QFrame" name="frame_2">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
+      <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
@@ -41,40 +41,10 @@
       <property name="bottomMargin">
        <number>0</number>
       </property>
-      <item row="2" column="0">
-       <widget class="QLabel" name="transform_param_names">
-        <property name="text">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Translation: &lt;br/&gt;Rotation: &lt;br/&gt;Scale:&lt;br/&gt;DDScore:&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-        <property name="margin">
-         <number>5</number>
-        </property>
-       </widget>
-      </item>
       <item row="1" column="0" colspan="2">
        <widget class="QLabel" name="label_4">
         <property name="text">
          <string>(2) Estimate image transform based on given points:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="0" colspan="5">
-       <widget class="QCheckBox" name="fitted_points_checkbox">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="text">
-         <string>Show adjusted points in blue</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
-       <widget class="QLabel" name="transform_params">
-        <property name="text">
-         <string>TextLabel</string>
-        </property>
-        <property name="margin">
-         <number>5</number>
         </property>
        </widget>
       </item>
@@ -88,18 +58,35 @@
         </property>
        </widget>
       </item>
-      <item row="6" column="1">
-       <spacer name="verticalSpacer">
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
+      <item row="2" column="0">
+       <widget class="QLabel" name="transform_param_names">
+        <property name="text">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Translation: &lt;br/&gt;Rotation: &lt;br/&gt;Scale:&lt;br/&gt;DDScore:&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>20</width>
-          <height>40</height>
-         </size>
+        <property name="margin">
+         <number>5</number>
         </property>
-       </spacer>
+       </widget>
+      </item>
+      <item row="5" column="0" colspan="2">
+       <widget class="QPushButton" name="overlay_button">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="text">
+         <string>Overlay transformed image on both</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QLabel" name="transform_params">
+        <property name="text">
+         <string>TextLabel</string>
+        </property>
+        <property name="margin">
+         <number>5</number>
+        </property>
+       </widget>
       </item>
       <item row="1" column="3" colspan="3">
        <spacer name="horizontalSpacer_3">
@@ -114,13 +101,13 @@
         </property>
        </spacer>
       </item>
-      <item row="5" column="0" colspan="2">
-       <widget class="QPushButton" name="overlay_button">
+      <item row="4" column="0" colspan="5">
+       <widget class="QCheckBox" name="fitted_points_checkbox">
         <property name="enabled">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
         <property name="text">
-         <string>Overlay transformed image on both</string>
+         <string>Show adjusted points in blue</string>
         </property>
        </widget>
       </item>
@@ -280,7 +267,7 @@
          </sizepolicy>
         </property>
         <property name="text">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Image to align&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Moved Image&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
        </widget>
       </item>

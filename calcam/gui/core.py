@@ -223,8 +223,13 @@ class CalcamGUIWindow(qt.QMainWindow):
     def show_calib_info(self):
 
         if self.manual_exc:
-            self.update_extrinsics()
-        dialog = CalibInfoDialog(self,self.calibration)
+            if self.calibration.view_models[0] is not None:
+                self.update_extrinsics()
+                CalibInfoDialog(self, self.calibration)
+            else:
+                self.show_msgbox('No calibration information to show.')
+        else:
+            CalibInfoDialog(self,self.calibration)
 
     def update_vtk_size(self,vtksize):
 
@@ -1608,6 +1613,8 @@ class SplitFieldDialog(qt.QDialog):
         self.mask_options.hide()
         self.mask_image = None
         self.points = []
+
+        self.interactor.cursor_size = 0.05
 
         self.update_mask_alpha(self.mask_alpha_slider.value())
             
