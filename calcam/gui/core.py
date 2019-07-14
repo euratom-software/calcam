@@ -341,7 +341,8 @@ class CalcamGUIWindow(qt.QMainWindow):
                 button.setMaximumWidth(80)
                 layout.addWidget(button,row+1,1)
                 fname = qt.QLineEdit()
-                button.clicked.connect(lambda : self.browse_for_file(option['filter'],fname))                
+                fname_filter = option['filter']
+                button.clicked.connect(lambda : self.browse_for_file(fname_filter,fname))
                 if 'default' in option:
                     fname.setText(option['default'])
                 layout.addWidget(fname,row,1)
