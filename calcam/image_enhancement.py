@@ -1,3 +1,30 @@
+'''
+* Copyright 2015-2019 European Atomic Energy Community (EURATOM)
+*
+* Licensed under the EUPL, Version 1.1 or - as soon they
+will be approved by the European Commission - subsequent
+versions of the EUPL (the "Licence");
+* You may not use this work except in compliance with the
+Licence.
+* You may obtain a copy of the Licence at:
+*
+* https://joinup.ec.europa.eu/software/page/eupl
+*
+* Unless required by applicable law or agreed to in
+writing, software distributed under the Licence is
+distributed on an "AS IS" basis,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+express or implied.
+* See the Licence for the specific language governing
+permissions and limitations under the Licence.
+'''
+
+"""
+Module for image enhancement to make identifiable / trackable features in an image clearer.
+Much of this is based on the ideas and algorithms developed by:
+Sam Van Stroud, Jamie McGowan, Augustin Marignier, Emily Nurse & Christian Gutschow
+in a collaboration between UKAEA and University College London.
+"""
 import warnings
 
 import cv2
@@ -5,9 +32,28 @@ import numpy as np
 from scipy.optimize import curve_fit
 
 def enhance_image(image,target_msb=25,target_noise=500,tiles=20,downsample=False):
-    '''
-    Pre-process a given image to make it suitable for auto point detection.
-    '''
+    """
+    Enhance details in a given image. Used both for visual enhancement
+    in the Calcam GUIs and as a pre-processing step for automatic camera
+    movement detection.
+
+    Parameters:
+        image (np.ndarray)   : Image to enhance
+        target_msb (float)   : Controls contrast enhancement. Higher numbers \
+                               give more contrast enhancement.
+        target_noise (float) : Controls level of de-noising. Lower values \
+                               give more agressive de-noising.
+        tiles (int)          : Number of tiles in horizontal and vertical directions \
+                               for local histogram equilisation.
+        downsample (bool)    : Whether or not to downsample the image by a factor 2 \
+                               using cv2.pyrDown(). Using this greatly increases the \
+                               success of automatic point detection, but makes the images \
+                               look worse by eye due to the lower resolution.
+
+    Returns:
+
+        np.ndarray : The processed image.
+    """
 
     # OpenCV will require that the image is an unsigned int dtype.
     if image.dtype not in [np.uint8, np.uint16]:
@@ -83,9 +129,19 @@ def enhance_image(image,target_msb=25,target_noise=500,tiles=20,downsample=False
 
 
 def local_contrast(image,tilegridsize=20):
-    '''
+    """
     Return a measure of the local contrast in a givem image
-    '''
+
+    Parameters:
+        image (np.ndarray) : Image to process
+        tilegridsize (int) : Number of tiles in horizontal and \
+                             vertical directions to split the image in to \
+                             for local contrast measurements.
+
+    Returns:
+
+        float: Local contrast parameter
+    """
     tile_height = int(np.ceil(image.shape[0] / tilegridsize))
     tile_width = int(np.ceil(image.shape[1] / tilegridsize))
 
@@ -99,7 +155,18 @@ def local_contrast(image,tilegridsize=20):
 
 
 def tan_shape(x,xscale,yscale,xshift,yshift):
-    '''
-    Tan fit function for use in image preprocessing
-    '''
+    """
+    Tan fit function for use in image enhancement.
+
+    Parameters:
+
+        x (float or array) : Independent variable
+        xscale (float)     : Horizontal scaling factor for tan function
+        yscale (float)     : Vertical scaling factor for tan function
+        xshift (float)     : Horizontal shift distance
+        yshift (float)     : Vertical shift distance
+
+    Returns:
+        float : -yscale * (np.tan( (x - xshift)*xscale) + yshift)
+    """
     return -yscale * (np.tan( (x - xshift)*xscale) + yshift)

@@ -1,3 +1,30 @@
+'''
+* Copyright 2015-2019 European Atomic Energy Community (EURATOM)
+*
+* Licensed under the EUPL, Version 1.1 or - as soon they
+will be approved by the European Commission - subsequent
+versions of the EUPL (the "Licence");
+* You may not use this work except in compliance with the
+Licence.
+* You may obtain a copy of the Licence at:
+*
+* https://joinup.ec.europa.eu/software/page/eupl
+*
+* Unless required by applicable law or agreed to in
+writing, software distributed under the Licence is
+distributed on an "AS IS" basis,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+express or implied.
+* See the Licence for the specific language governing
+permissions and limitations under the Licence.
+'''
+
+"""
+Module for camera movement detection and compensation.
+Much of this is based on the ideas and algorithms developed by:
+Sam Van Stroud, Jamie McGowan, Augustin Marignier, Emily Nurse & Christian Gutschow
+in a collaboration between UKAEA and University College London.
+"""
 import copy
 import json
 
@@ -94,7 +121,7 @@ def filter_points(ref_points, new_points, n_points=50, err_limit=10):
 
 
 
-def find_pointpairs_opticalflow(ref_image,image):
+def find_pointpairs(ref_image,image):
     """
     Auto-detect matching points in a pair of images using Optical Flow.
 
@@ -127,7 +154,8 @@ def find_pointpairs_opticalflow(ref_image,image):
 def detect_movement(ref,moved):
     '''
     Attempt to auto-detect image movement between two images and return a
-    MovementCorrection object representing the movement.
+    MovementCorrection object representing the movement. If the movement cannot
+    be successfully determined, raises calcam.movement.DetectionFailedError
 
     Paremeters:
 
@@ -159,7 +187,7 @@ def detect_movement(ref,moved):
     if ref_im.shape[:2] != moved_im.shape[:2]:
         raise ValueError('Moved image has different dimensions ({:d}x{:d}) to reference image ({:d}x{:d})! The two images must have the same dimensions.'.format(moved_im.shape[1],moved_im.shape[0],ref_im.shape[1],ref_im.shape[0]))
 
-    ref_points, new_points = find_pointpairs_opticalflow(ref_im, moved_im)
+    ref_points, new_points = find_pointpairs(ref_im, moved_im)
 
     if ref_points.shape[0] == 0:
         raise DetectionFailedError('Could not auto-detect a good set of matching points in these two images. Consider using manual movement correction instead.')
@@ -180,8 +208,8 @@ def detect_movement(ref,moved):
 
 def manual_movement(ref,moved,correction=None):
     '''
-    Create a movement correction manually using a GUI tool.
-    See the online documentation for the GUI user guide.
+    Determine camera movement (semi-)manually using a GUI tool.
+    See the :doc:`gui_movement` GUI doc page for the GUI user guide.
 
     Paremeters:
 
@@ -197,7 +225,9 @@ def manual_movement(ref,moved,correction=None):
 
     Returns:
 
-        MovementCorrection : Movement correction object representing the movement correction.
+        MovementCorrection or NoneType : If the :guilabel:`OK` button is clicked in the GUI, returns a movement correction \
+                             object representing the movement correction. If the GUI is closed by clicking \
+                             :guilabel:`Cancel`, returns ``None``.
 
     '''
 
@@ -353,11 +383,10 @@ class MovementCorrection:
         Parameters:
             image (np.ndarray) : Moved image to warp
             interp (string)    : Interpolation method to use, can be 'linear' or 'nearest'
-        Returns:
 
-            np.ndarray : Warped image
-            np.ndarray : Boolean mask the same shape as the image, indicating which pixels contain
-                         valid image data (True) and which do not (False)
+        Returns:
+            np.ndarray : Two ndarrays: the warped image, and a boolean mask the same shape \
+            as the image indicating which pixels contain valid image data (True) and which do not (False).
         '''
 
         scaley = image.shape[0] / self.im_shape[0]
@@ -399,9 +428,8 @@ class MovementCorrection:
 
         Returns:
 
-            np.ndarray : Warped image
-            np.ndarray : Boolean mask the same shape as the image, indicating which pixels contain
-                         valid image data (True) and which do not (False)
+            np.ndarray : Two ndarrays: the warped image, and a boolean mask the same shape \
+            as the image indicating which pixels contain valid image data (True) and which do not (False).
         '''
 
         scaley = image.shape[0] / self.im_shape[0]

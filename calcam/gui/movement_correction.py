@@ -167,7 +167,7 @@ class ImageAlignDialog(qt.QDialog):
         self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
         self.remove_all_points()
 
-        ref_points,new_points = movement.find_pointpairs_opticalflow(self.ref_image,self.new_image)
+        ref_points,new_points = movement.find_pointpairs(self.ref_image,self.new_image)
 
         if ref_points.shape[0] > 0:
 

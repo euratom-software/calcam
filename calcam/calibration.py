@@ -638,6 +638,9 @@ class Calibration():
                                            sub-view each pixel belongs to.
             subview_names (list)         : List of strings specifying the names of the sub-views.
             pixel_size (float)           : Physical size of the detector pixels in metres.
+            offset (sequence)            : 2-element sequence specifying the (x,y) pixel coordinates of \
+                                           the top-left corner of the image (for CMOS detectors with \
+                                           a reduced readout area)
         '''
         image = image.copy()
 

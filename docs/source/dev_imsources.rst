@@ -52,6 +52,11 @@ coords              String             | Either Display or Original: whether the
 ------------------- ------------------ ------------------------------------------------------------
 pixel_aspect        float              | For cameras with non-square pixels, the pixel 
                                        | aspect ratio defined as pixel height/pixel width.
+------------------- ------------------ ------------------------------------------------------------
+image_offset        tuple              | For cameras where only a sub-region of the full detector
+                                       | is read out or recorded, this specifies the (x,y) pixel
+                                       | coordinates of the top-left pixel of the image, relative to
+                                       | the full detector.
 =================== ================== ============================================================
 
 

@@ -1,6 +1,26 @@
 Calcam Changelog
 ================
 
+
+Point Release 2.3.0 (XX Jul 2019)
+--------------------------
+
+New & Enhancements:
+* Added calcam.movement module for camera movement correction
+* New GUI tool for manual camera movement correction
+* Add prompt to automatically detect image movement when loading a new image in the fitting calibration tool
+* Improved image enhancement in GUI tools
+* Added support for detector sub-windowing via "offset" parameter
+
+Fixes:
+* Fixed bug where clicking "Browse" when using an image source which had a filename as not the final input raised an exception.
+* Fixed byg where Loading chessboard images for intrinsics calibration in the alignment calibration tool reset the image orientation after clicking "apply".
+* Fixed exception when loading a multi sub-view image and then running a fit in the fitting calibration tool.
+* Fixed bug when loading R,Z,phi data from a file to plot in the 3D viewer which caused the data to be displayed incorrectly
+* Fixed issue where config.get_cadmodels() raised an exception if one (or more) CAD model file(s) is not readable.
+* Fixed a bug in the CAD model editor where browsing for a mesh file to add, then clicking cancel on the browse window, raised an exception.
+
+
 Patch 2.2.3 (2nd Apr 2019)
 --------------------------
 

@@ -222,3 +222,38 @@ We can then visualise the results and / or extract them for further analsys. Not
 	z_coords = np.zeros(Rslice.shape) - 1.3
 
 	result_along_slice = geom_mat.grid.interpolate(x,r_coords,z_coords)
+
+
+Camera Movement Correction
+--------------------------
+
+Let's say we have a good calibration, and we have a :class:`calcam.Calibration` object for it in ``my_calib``. We also have an image from the same camera some time later when the camera has moved, stored in a Numpy array called ``moved_im``. We can then try to determine the correction to align the moved image with the calibration by:
+
+.. code-block:: python
+
+    mov = calcam.movement.detect_movement(my_calib, moved_im)
+
+Alternatively, we can determine the camera movement manually using the GUI by:
+
+.. code-block:: python
+
+    mov = calcam.movement.manual_movement(my_calib, moved_im)
+
+Now we have a movement correction object, we can use it to warp the new image so it aligns with the calibration:
+
+.. code-block:: python
+
+    corrected_image = mov.warp_moved_to_ref(moved_im)
+
+Alternatively, we could create an updated calibration object accounting for the camera movement:
+
+.. code-block:: python
+
+    updated_calib = calcam.movement.update_calibration(my_calib,moved_im,mov)
+
+We can also save the movement correction for use again later, and load it back from a file:
+
+.. code-block:: python
+
+    mov.save('my movement correction.cmc')
+    mov_loaded = calcam.movement.MovementCorrection.load('my movement correction.cmc')

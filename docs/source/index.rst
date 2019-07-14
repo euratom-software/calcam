@@ -33,6 +33,7 @@ Welcome to the Calcam documentation index page. If you want to know what it's al
    gui_image_analyser
    gui_viewer
    gui_settings
+   gui_movement
 
 .. toctree::
    :caption: API User Guide
@@ -42,6 +43,7 @@ Welcome to the Calcam documentation index page. If you want to know what it's al
    api_analysis
    api_cadmodel
    api_geom_matrix
+   api_movement
    api_examples
 
 

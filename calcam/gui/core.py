@@ -19,17 +19,16 @@
   permissions and limitations under the Licence.
 '''
 
-# External imports
+# Standard library imports
 import sys
 import os
-import numpy as np
 import traceback
-import inspect
+import webbrowser
+
+# External module imports
+import numpy as np
 import vtk
 import cv2
-import time
-import copy
-import webbrowser
 
 # Calcam imports
 from .. import __path__ as calcampath
@@ -43,8 +42,6 @@ from . import qt_wrapper as qt
 from ..misc import ColourCycle,DodgyDict
 
 guipath = os.path.split(os.path.abspath(__file__))[0]
-
-
 
 class CalcamGUIWindow(qt.QMainWindow):
 
