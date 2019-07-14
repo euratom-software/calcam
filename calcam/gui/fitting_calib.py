@@ -19,16 +19,16 @@ express or implied.
 permissions and limitations under the Licence.
 '''
 
-import cv2
 from scipy.ndimage.measurements import center_of_mass as CoM
-import copy
 
 from .core import *
 from .vtkinteractorstyles import CalcamInteractorStyle2D, CalcamInteractorStyle3D
 from ..calibration import Calibration, Fitter, ImageUpsideDown
 from ..pointpairs import PointPairs
-from ..render import render_cam_view,get_image_actor
+from ..render import render_cam_view
 from .. import misc
+from ..image_enhancement import enhance_image
+from ..movement import detect_movement, DetectionFailedError
 
 # Main calcam window class for actually creating calibrations.
 class FittingCalib(CalcamGUIWindow):
@@ -100,7 +100,7 @@ class FittingCalib(CalcamGUIWindow):
         self.overlay_checkbox.toggled.connect(self.toggle_overlay)
         #self.save_fit_button.clicked.connect(self.save_fit)
         #self.save_points_button.clicked.connect(self.save_points)
-        self.hist_eq_checkbox.stateChanged.connect(self.toggle_hist_eq)
+        self.enhance_checkbox.stateChanged.connect(self.toggle_enhancement)
         self.im_define_splitFOV.clicked.connect(self.edit_split_field)
         #self.pointpairs_load_name.currentIndexChanged.connect(self.update_load_pp_button_status)
         self.pixel_size_checkbox.toggled.connect(self.update_pixel_size)
@@ -491,8 +491,11 @@ class FittingCalib(CalcamGUIWindow):
                 elif reply == qt.QMessageBox.Yes:
                     self.reset()
 
+            old_image = self.calibration.get_image(coords='Display')
+
         # A TypeError signifies no image in the existing calibration
         except TypeError:
+            old_image = None
             pass
 
         if newim['pixel_size'] is not None:
@@ -506,9 +509,9 @@ class FittingCalib(CalcamGUIWindow):
         self.interactor2d.set_image(self.calibration.get_image(coords='Display'),n_subviews = self.calibration.n_subviews,subview_lookup = self.calibration.subview_lookup)
 
         self.image_settings.show()
-        if self.hist_eq_checkbox.isChecked():
-            self.hist_eq_checkbox.setChecked(False)
-            self.hist_eq_checkbox.setChecked(True)
+        if self.enhance_checkbox.isChecked():
+            self.enhance_checkbox.setChecked(False)
+            self.enhance_checkbox.setChecked(True)
         
         if self.overlay_checkbox.isChecked():
             self.overlay_checkbox.setChecked(False)
@@ -524,6 +527,37 @@ class FittingCalib(CalcamGUIWindow):
 
         self.update_image_info_string(newim['image_data'],self.calibration.geometry)
 
+        if old_image is not None and len(self.point_pairings) > 0:
+            self.app.restoreOverrideCursor()
+            dialog = qt.QMessageBox(self)
+            dialog.setStandardButtons(qt.QMessageBox.Yes | qt.QMessageBox.No)
+            dialog.setWindowTitle('Auto-Adjust Point Positions?')
+            dialog.setTextFormat(qt.Qt.RichText)
+            dialog.setText('Would you like Calcam to try to automatically adjust the image point positions for the new image?')
+            dialog.setIcon(qt.QMessageBox.Question)
+            retcode = dialog.exec_()
+
+            if retcode == dialog.Yes:
+                self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
+                try:
+                    movement = detect_movement(old_image,self.calibration.get_image(coords='Display'))
+                    for _,cid in self.point_pairings:
+                        orig_coords = self.interactor2d.get_cursor_coords(cid)
+                        for subview in range(len(orig_coords)):
+                            self.interactor2d.set_cursor_coords(cid,movement.ref_to_moved_coords(*orig_coords[subview]),subview=subview)
+
+                    self.init_fitting()
+
+                except DetectionFailedError:
+                    self.app.restoreOverrideCursor()
+                    dialog = qt.QMessageBox(self)
+                    dialog.setStandardButtons(qt.QMessageBox.Ok)
+                    dialog.setWindowTitle('Auto-Adjust Failed')
+                    dialog.setTextFormat(qt.Qt.RichText)
+                    dialog.setText('Could not auto-detect image point movement for the new image.')
+                    dialog.setInformativeText('No changes to the current points have been made.')
+                    dialog.setIcon(qt.QMessageBox.Information)
+                    dialog.exec_()
 
 
     def change_fit_params(self,fun,state):
@@ -760,9 +794,9 @@ class FittingCalib(CalcamGUIWindow):
             self.chessboard_pointpairs[i][0] = self.calibration.geometry.original_to_display_image(self.chessboard_pointpairs[i][0])
             self.chessboard_pointpairs[i][1] = self.calibration.geometry.original_to_display_pointpairs(self.chessboard_pointpairs[i][1])
 
-        if self.hist_eq_checkbox.isChecked():
-            self.hist_eq_checkbox.setChecked(False)
-            self.hist_eq_checkbox.setChecked(True)
+        if self.enhance_checkbox.isChecked():
+            self.enhance_checkbox.setChecked(False)
+            self.enhance_checkbox.setChecked(True)
  
 
         self.update_image_info_string(self.calibration.get_image(),self.calibration.geometry)
@@ -1392,13 +1426,13 @@ class FittingCalib(CalcamGUIWindow):
         self.unsaved_changes = False
 
 
-    def toggle_hist_eq(self,check_state):
+    def toggle_enhancement(self,check_state):
 
         image = self.calibration.get_image(coords='display')
         
         # Enable / disable adaptive histogram equalisation
         if check_state == qt.Qt.Checked:
-            image = hist_eq(image)
+            image = enhance_image(image)
         
         self.interactor2d.set_image(image,n_subviews = self.calibration.n_subviews,subview_lookup=self.calibration.subview_lookup,hold_position=True)
 

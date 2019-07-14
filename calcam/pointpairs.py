@@ -29,7 +29,6 @@ Written by Scott Silburn (scott.silburn@ukaea.uk)
  
 
 import numpy as np
-import copy
 
 # Simple class for storing results.
 class PointPairs():
@@ -69,8 +68,6 @@ class PointPairs():
 
     # Save point pairs to csv file
     def save(self,savefile):
-
-        print(self.image_points)
 
         # Construct and write the file header and column headings
         fieldheaders = 'World Coordinates [m],,,'

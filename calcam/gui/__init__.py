@@ -27,6 +27,7 @@ from .alignment_calib import AlignmentCalib
 from .image_analysis import ImageAnalyser
 from .settings import Settings
 from .cad_edit import CADEdit
+from .movement_correction import ImageAlignDialog
 
 from . import qt_wrapper as qt
 
@@ -34,9 +35,9 @@ def open_window(window_class,*args):
     app = qt.QApplication([])
     win = window_class(app,None,*args)
     if qt.QDialog in window_class.__bases__:
-        return win.exec_()
+        return win.exec_(),win
     else:
-        return app.exec_()
+        return app.exec_(),win
 
 def start_gui():
     open_window(Launcher)

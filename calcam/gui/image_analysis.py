@@ -24,10 +24,10 @@ import copy
 
 from .core import *
 from .vtkinteractorstyles import CalcamInteractorStyle2D, CalcamInteractorStyle3D
-from ..calibration import Calibration
 from ..render import render_cam_view
 from ..coordtransformer import CoordTransformer
 from ..raycast import raycast_sightlines
+from ..image_enhancement import enhance_image
 
 type_description = {'alignment': 'Manual Alignment', 'fit':'Point pair fitting','virtual':'Virtual'}
 
@@ -104,7 +104,7 @@ class ImageAnalyser(CalcamGUIWindow):
 
         self.overlay_checkbox.toggled.connect(self.toggle_overlay)
 
-        self.hist_eq_checkbox.stateChanged.connect(self.toggle_hist_eq)
+        self.enhance_checkbox.stateChanged.connect(self.toggle_enhancement)
 
         self.image = None
         self.viewport_calibs = DodgyDict()
@@ -513,9 +513,9 @@ class ImageAnalyser(CalcamGUIWindow):
 
         self.image_settings.show()
             
-        if self.hist_eq_checkbox.isChecked():
-            self.hist_eq_checkbox.setChecked(False)
-            self.hist_eq_checkbox.setChecked(True)
+        if self.enhance_checkbox.isChecked():
+            self.enhance_checkbox.setChecked(False)
+            self.enhance_checkbox.setChecked(True)
 
         
         self.update_image_info_string(self.image,self.image_geometry)
@@ -586,11 +586,11 @@ class ImageAnalyser(CalcamGUIWindow):
 
 
 
-    def toggle_hist_eq(self,check_state):
+    def toggle_enhancement(self,check_state):
 
         # Enable / disable adaptive histogram equalisation
         if check_state == qt.Qt.Checked:
-            image = hist_eq(self.image)
+            image = enhance_image(self.image)
         else:
             image = self.image
 

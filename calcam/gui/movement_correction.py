@@ -26,14 +26,15 @@ import numpy as np
 
 from .vtkinteractorstyles import CalcamInteractorStyle2D
 from . import qt_wrapper as qt
-from .. import movement
+from .. import movement, misc
+from ..image_enhancement import enhance_image
 
 guipath = os.path.split(os.path.abspath(__file__))[0]
 
 
 class ImageAlignDialog(qt.QDialog):
 
-    def __init__(self, parent,ref_image,new_image,app=None):
+    def __init__(self,app,parent,ref_image,new_image,correction=None):
 
         # GUI initialisation
 
@@ -113,6 +114,8 @@ class ImageAlignDialog(qt.QDialog):
 
         self.show()
 
+        if correction is not None:
+            self.set_correction(correction,include_points=True)
 
 
     def refresh(self):
@@ -165,13 +168,28 @@ class ImageAlignDialog(qt.QDialog):
 
         ref_points,new_points = movement.find_pointpairs_opticalflow(self.ref_image,self.new_image)
 
-        for npair in range(ref_points.shape[0]):
-            self.new_point('ref',ref_points[npair,:])
-            self.new_point('new',new_points[npair,:])
+        if ref_points.shape[0] > 0:
 
-        self.app.restoreOverrideCursor()
-        self.get_transform()
+            for npair in range(ref_points.shape[0]):
+                self.new_point('ref',ref_points[npair,:])
+                self.new_point('new',new_points[npair,:])
 
+            self.app.restoreOverrideCursor()
+            self.get_transform()
+
+            if self.transform.get_ddscore(self.ref_image,self.new_image) < 0:
+                self.remove_all_points()
+
+        if self.transform is None:
+            self.app.restoreOverrideCursor()
+            dialog = qt.QMessageBox(self)
+            dialog.setStandardButtons(dialog.Ok)
+            dialog.setTextFormat(qt.Qt.RichText)
+            dialog.setWindowTitle('Could not auto-detect points')
+            dialog.setText('Could not auto-detect a good set of matching points in these two images.')
+            dialog.setInformativeText('You will have to identify points manually')
+            dialog.setIcon(qt.QMessageBox.Warning)
+            dialog.exec_()
 
     def remove_current_point(self):
 
@@ -224,8 +242,8 @@ class ImageAlignDialog(qt.QDialog):
         if onoff:
             if self.ref_image_enhanced is None:
                 self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
-                self.ref_image_enhanced = movement.preprocess_image(self.ref_image,maintain_scale=True)
-                self.new_image_enhanced = movement.preprocess_image(self.new_image, maintain_scale=True)
+                self.ref_image_enhanced = enhance_image(self.ref_image)
+                self.new_image_enhanced = enhance_image(self.new_image)
                 self.app.restoreOverrideCursor()
 
             self.interactor_new.set_image(self.new_image_enhanced,hold_position=True)
@@ -248,9 +266,9 @@ class ImageAlignDialog(qt.QDialog):
                 ref_points[i,:] = self.interactor_ref.get_cursor_coords(pp[0])[0]
                 new_points[i,:] = self.interactor_new.get_cursor_coords(pp[1])[0]
 
-        self.transform = np.matrix(cv2.estimateRigidTransform(new_points, ref_points, fullAffine=True))
+        m = np.matrix(cv2.cv2.estimateAffinePartial2D(new_points, ref_points)[0])
 
-        if self.transform[0,0] is None:
+        if m[0,0] is None:
             self.transform = None
             self.fitted_points_checkbox.setEnabled(False)
             self.buttonbox.button(qt.QDialogButtonBox.Ok).setEnabled(False)
@@ -263,14 +281,27 @@ class ImageAlignDialog(qt.QDialog):
             dialog.setIcon(qt.QMessageBox.Warning)
             dialog.exec_()
             return
+        else:
+            correction = movement.MovementCorrection(m,self.ref_image.shape[:2],ref_points,new_points,'Created using GUI tool by {:s} on {:s} at {:s}'.format(misc.username,misc.hostname,misc.get_formatted_time()))
+            self.set_correction(correction)
 
 
 
-        ddscore = movement.ddscore(self.ref_image,self.new_image,self.transform)
+    def set_correction(self,correction,include_points=False):
 
-        desc = ' ( {:.1f} , {:.1f} ) pixels<br>'.format(self.transform[0, 2], self.transform[1, 2])
-        desc = desc + ' {:.2f} degrees<br>'.format(180 * np.arctan2(self.transform[1, 0], self.transform[0, 0]) / 3.14159)
-        desc = desc + ' {:.2f}<br>'.format(np.sqrt(self.transform[1, 0] ** 2 + self.transform[0, 0] ** 2))
+        if include_points:
+            self.remove_all_points()
+            for i in range(correction.ref_points.shape[0]):
+                self.new_point('ref',correction.ref_points[i,:])
+                self.new_point('new',correction.moved_points[i, :])
+
+        self.transform = correction
+
+        ddscore = self.transform.get_ddscore(self.ref_image,self.new_image)
+
+        desc = ' ( {:.1f} , {:.1f} ) pixels<br>'.format(*self.transform.translation)
+        desc = desc + ' {:.2f} degrees<br>'.format(self.transform.rotation)
+        desc = desc + ' {:.2f}<br>'.format(self.transform.scale)
         if ddscore >= 0:
             desc = desc + ' {:.2f}'.format(ddscore)
         else:
@@ -282,7 +313,6 @@ class ImageAlignDialog(qt.QDialog):
         self.fitted_points_checkbox.setEnabled(True)
         self.buttonbox.button(qt.QDialogButtonBox.Ok).setEnabled(True)
         self.fitted_points_checkbox.setChecked(True)
-
 
 
     def count_pointpairs(self):
@@ -304,9 +334,9 @@ class ImageAlignDialog(qt.QDialog):
         if onoff:
             for pp in self.point_pairings:
                 if pp[1] is not None:
-                    oldpt = np.matrix(np.concatenate((self.interactor_new.get_cursor_coords(pp[1])[0],np.ones(1)))).T
-                    fitted_pt = self.transform * oldpt
-                    self.overlay_cursors[0].append( self.interactor_ref.add_passive_cursor([fitted_pt[0],fitted_pt[1]]) )
+                    oldpt = self.interactor_new.get_cursor_coords(pp[1])[0]
+                    fitted_pt = self.transform.moved_to_ref_coords(oldpt[0],oldpt[1])
+                    self.overlay_cursors[0].append(self.interactor_ref.add_passive_cursor([fitted_pt[0],fitted_pt[1]]))
                     self.overlay_cursors[1].append(self.interactor_new.add_passive_cursor([fitted_pt[0], fitted_pt[1]]))
 
 
@@ -320,7 +350,7 @@ class ImageAlignDialog(qt.QDialog):
 
             if self.transform is not None:
 
-                overlay_image = movement.warp_image(orig_im, self.transform)[0]
+                overlay_image =self.transform.warp_moved_to_ref(orig_im)[0]
 
             else:
 

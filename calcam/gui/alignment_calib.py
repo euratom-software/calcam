@@ -25,7 +25,7 @@ import copy
 from .core import *
 from .vtkinteractorstyles import CalcamInteractorStyle3D
 from ..calibration import Calibration
-from ..render import get_image_actor
+from ..image_enhancement import enhance_image
 
 # View designer window.
 # This allows creation of FitResults objects for a 'virtual' camera.
@@ -95,7 +95,7 @@ class AlignmentCalib(CalcamGUIWindow):
         self.cad_colour_reset_button.clicked.connect(self.set_cad_colour)
         self.cad_colour_choose_button.clicked.connect(self.set_cad_colour)
         self.im_opacity_slider.valueChanged.connect(self.update_overlay)
-        self.hist_eq.clicked.connect(self.update_overlay)
+        self.enhance.clicked.connect(self.update_overlay)
         self.edge_detect.clicked.connect(self.update_overlay)
         self.no_effect.clicked.connect(self.update_overlay)
         self.im_edge_colour_button.clicked.connect(self.update_edge_colour)
@@ -488,8 +488,8 @@ class AlignmentCalib(CalcamGUIWindow):
 
         self.overlay_image = self.calibration.undistort_image( self.calibration.get_image(coords='display') )
 
-        if self.hist_eq.isChecked() or self.edge_detect.isChecked():
-            self.overlay_image = hist_eq(self.overlay_image)
+        if self.enhance.isChecked() or self.edge_detect.isChecked():
+            self.overlay_image = enhance_image(self.overlay_image)
 
         if self.edge_detect.isChecked():
 
