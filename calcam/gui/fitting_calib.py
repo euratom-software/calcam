@@ -468,17 +468,25 @@ class FittingCalib(CalcamGUIWindow):
         try:
             # If the new image is the same size, assume all its metadata are the same as the existing image.
             if imshape == tuple(self.calibration.geometry.get_display_shape()):
-                newim['coords'] = 'display'
-                newim['subview_mask'] == self.calibration.get_subview_mask(coords='Display')
+                if 'coords' not in newim:
+                    newim['coords'] = 'display'
+                if 'subview_mask' not in newim:
+                    newim['subview_mask'] == self.calibration.get_subview_mask(coords='Display')
+                if 'subview_names' not in newim:
+                    newim['subview_names'] = self.calibration.subview_names
+
                 newim['transform_actions'] = self.calibration.geometry.transform_actions
-                newim['subview_names'] = self.calibration.subview_names
                 newim['pixel_aspect'] = self.calibration.geometry.pixel_aspectratio
                 newim['pixel_size'] = self.calibration.pixel_size
             elif imshape == tuple(self.calibration.geometry.get_original_shape()):
-                newim['coords'] = 'original'
-                newim['subview_mask'] == self.calibration.get_subview_mask(coords='Original')
+                if 'coords' not in newim:
+                    newim['coords'] = 'original'
+                if 'subview_mask' not in newim:
+                    newim['subview_mask'] == self.calibration.get_subview_mask(coords='Original')
+                if 'subview_names' not in newim:
+                    newim['subview_names'] = self.calibration.subview_names
+
                 newim['transform_actions'] = self.calibration.geometry.transform_actions
-                newim['subview_names'] = self.calibration.subview_names
                 newim['pixel_aspect'] = self.calibration.geometry.pixel_aspectratio
                 newim['pixel_size'] = self.calibration.pixel_size
             else:
@@ -539,12 +547,29 @@ class FittingCalib(CalcamGUIWindow):
 
             if retcode == dialog.Yes:
                 self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
+                pos_lim = np.array(self.calibration.geometry.get_display_shape()) - 0.5
+                pp_to_remove = []
                 try:
                     movement = detect_movement(old_image,self.calibration.get_image(coords='Display'))
                     for _,cid in self.point_pairings:
                         orig_coords = self.interactor2d.get_cursor_coords(cid)
+                        new_coords = [None] * len(orig_coords)
                         for subview in range(len(orig_coords)):
-                            self.interactor2d.set_cursor_coords(cid,movement.ref_to_moved_coords(*orig_coords[subview]),subview=subview)
+                            if orig_coords[subview] is not None:
+                                new_coords[subview] = movement.ref_to_moved_coords(*orig_coords[subview])
+                                if np.all( np.array(new_coords[subview]) >= 0) and np.all( np.array(new_coords[subview]) < pos_lim):
+                                    self.interactor2d.set_cursor_coords(cid,new_coords[subview],subview=subview)
+                                else:
+                                    new_coords[subview] = None
+                        if all(p is None for p in new_coords):
+                            pp_to_remove.append(cid)
+
+                    for i in reversed(range(len(self.point_pairings))):
+                        if self.point_pairings[i][1] in pp_to_remove:
+                            self.interactor2d.remove_active_cursor(self.point_pairings[i][1])
+                            if self.point_pairings[i][0] is not None:
+                                self.interactor3d.remove_active_cursor(self.point_pairings[i][0])
+                            self.point_pairings.remove(self.point_pairings[i])
 
                     self.init_fitting()
 

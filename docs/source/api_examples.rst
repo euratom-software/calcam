@@ -243,7 +243,9 @@ Now we have a movement correction object, we can use it to warp the new image so
 
 .. code-block:: python
 
-    corrected_image = mov.warp_moved_to_ref(moved_im)
+    corrected_image, mask = mov.warp_moved_to_ref(moved_im)
+
+The array ``corrected_image`` then contains the image warped to align with the calibration, while ``mask`` is an array the same size as the image containing ``True`` where a pixel in the warped image contains real image data, and ``False`` if the corresponding pixel is outside the border of the actual data.
 
 Alternatively, we could create an updated calibration object accounting for the camera movement:
 

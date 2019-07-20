@@ -31,7 +31,7 @@ import cv2
 import numpy as np
 from scipy.optimize import curve_fit
 
-def enhance_image(image,target_msb=25,target_noise=500,tiles=20,downsample=False):
+def enhance_image(image,target_msb=25,target_noise=500,tiles=(20,20),downsample=False):
     """
     Enhance details in a given image. Used both for visual enhancement
     in the Calcam GUIs and as a pre-processing step for automatic camera
@@ -43,7 +43,7 @@ def enhance_image(image,target_msb=25,target_noise=500,tiles=20,downsample=False
                                give more contrast enhancement.
         target_noise (float) : Controls level of de-noising. Lower values \
                                give more agressive de-noising.
-        tiles (int)          : Number of tiles in horizontal and vertical directions \
+        tiles (tuple of int) : Number of tiles in horizontal and vertical directions \
                                for local histogram equilisation.
         downsample (bool)    : Whether or not to downsample the image by a factor 2 \
                                using cv2.pyrDown(). Using this greatly increases the \
@@ -55,15 +55,10 @@ def enhance_image(image,target_msb=25,target_noise=500,tiles=20,downsample=False
         np.ndarray : The processed image.
     """
 
-    # OpenCV will require that the image is an unsigned int dtype.
-    if image.dtype not in [np.uint8, np.uint16]:
-        if image.max() > 255:
-            image = image.astype('uint16')
-        elif image.max() > 1:
-            image = image.astype('uint8')
-        else:
-            image = (2**16 - 1) * image / image.max()
-            image =  image.astype('uint16')
+    # Make sure we have an 8-bit unisnged int image.
+    if image.dtype != np.uint8:
+            image = 255 * image / image.max()
+            image = image.astype(np.uint8)
 
 
     if len(image.shape) > 2:
@@ -86,13 +81,14 @@ def enhance_image(image,target_msb=25,target_noise=500,tiles=20,downsample=False
     test_clip_lims = [1.,5.,10.]
     contrast = []
     for cliplim in test_clip_lims:
-        contrast.append( local_contrast( cv2.createCLAHE(cliplim, (tiles, tiles)).apply(image), tiles) )
+        contrast.append( local_contrast( cv2.createCLAHE(cliplim, tiles).apply(image), tiles) )
 
-    coefs = np.polyfit(contrast,test_clip_lims,2)
-
-    best_cliplim = np.polyval(coefs,target_msb)
-
-    result = cv2.createCLAHE(best_cliplim, (tiles, tiles)).apply(image)
+    if max(contrast) - min(contrast) > 0:
+        coefs = np.polyfit(contrast,test_clip_lims,2)
+        best_cliplim = np.polyval(coefs,target_msb)
+        result = cv2.createCLAHE(best_cliplim, tiles).apply(image)
+    else:
+        result = image.copy()
 
     #result = cv2.bilateralFilter(result,d=-1,sigmaColor=25,sigmaSpace=25)
     starting_noise = cv2.Laplacian(image,cv2.CV_64F).var()
@@ -123,35 +119,34 @@ def enhance_image(image,target_msb=25,target_noise=500,tiles=20,downsample=False
     else:
         image_lab[:,:,0] = result
         result = cv2.cvtColor(image_lab,cv2.COLOR_LAB2RGB)
-
+    print(result.dtype)
     return result
 
 
 
-def local_contrast(image,tilegridsize=20):
+def local_contrast(image,tilegridsize=(20,20)):
     """
-    Return a measure of the local contrast in a givem image
+    Return a measure of the local contrast in a given image
 
     Parameters:
-        image (np.ndarray) : Image to process
-        tilegridsize (int) : Number of tiles in horizontal and \
-                             vertical directions to split the image in to \
-                             for local contrast measurements.
+        image (np.ndarray)          : Image to process
+        tilegridsize (tuple of int) : Number of tiles in horizontal and \
+                                      vertical directions to split the image in to \
+                                      for local contrast measurements.
 
     Returns:
 
         float: Local contrast parameter
     """
-    tile_height = int(np.ceil(image.shape[0] / tilegridsize))
-    tile_width = int(np.ceil(image.shape[1] / tilegridsize))
-
+    tile_height = int(np.ceil(image.shape[0] / tilegridsize[1]))
+    tile_width = int(np.ceil(image.shape[1] / tilegridsize[0]))
     sb = []
 
-    for i in range(tilegridsize):
-        for j in range(tilegridsize):
+    for i in range(tilegridsize[1]):
+        for j in range(tilegridsize[0]):
             sb.append(image[i*tile_height:(i+1)*tile_height,j*tile_width:(j+1)*tile_width].std())
 
-    return np.mean(sb)
+    return np.nanmean(sb)
 
 
 def tan_shape(x,xscale,yscale,xshift,yshift):

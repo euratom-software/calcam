@@ -30,10 +30,6 @@ import json
 
 import numpy as np
 import cv2
-try:
-    from deepmatching import deepmatching
-except:
-    deepmatching = None
 
 from .pointpairs import PointPairs
 from .calibration import Calibration, Fitter
@@ -41,42 +37,6 @@ from . import config, misc
 from .image_enhancement import enhance_image
 
 
-
-def find_pointpairs_deepmatching(ref_image,image):
-    """
-    Given two images, return an estimated homography matrix for the transform
-    from the new image to the reference image using DeepMatching. NOTE: DeepMatching
-    can segfault if it runs out memory.
-
-    Parameters:
-
-        ref_image (np.ndarray) : Array containing the reference image.
-        image (np.ndarray)     : Array containing the new image
-        scale_limit (float)    : Limit to apply to DeepMatching's scale
-        angle_limit (float)    : Angle limit in degrees for DeepMatching
-        score_tol (int)        : Tolerance for DDScore calculation.
-
-    Returns:
-
-        3x3 ndarray      : Homography matrix.
-        float            : DDScore which indicates how well the homography appears \
-                           to improve the image alignment. 0 = No change; > 0 = improvement, \
-                           < 0 = it makes things even worse.
-    """
-
-    if deepmatching is None:
-        raise Exception('DeepMatching python interface not available!')
-
-    # Enhance the images and ensure they're in the correct format
-    ref_image = enhance_image(ref_image,downsample=True)
-    image = enhance_image(image,downsample=True)
-
-    # Configure and run DeepMatching.
-    options = '-nt {:d} -ngh_rad 20'.format(config.n_cpus)
-
-    matches = deepmatching(image,ref_image,options)
-
-    return filter_points(matches[:,2:4]*2,matches[:,:2]*2)
 
 
 def filter_points(ref_points, new_points, n_points=50, err_limit=10):
@@ -98,7 +58,7 @@ def filter_points(ref_points, new_points, n_points=50, err_limit=10):
     transform = np.matrix(cv2.cv2.estimateAffinePartial2D(new_points, ref_points)[0])
 
     if transform[0,0] is None:
-        return np.array([])
+        return np.array([]),np.array([])
 
     err = []
     for pp in range(ref_points.shape[0]):
@@ -123,7 +83,7 @@ def filter_points(ref_points, new_points, n_points=50, err_limit=10):
 
 def find_pointpairs(ref_image,image):
     """
-    Auto-detect matching points in a pair of images using Optical Flow.
+    Auto-detect matching points in a pair of images using sparse Optical Flow.
 
     Parameters:
 
@@ -140,7 +100,11 @@ def find_pointpairs(ref_image,image):
     ref_image = enhance_image(ref_image,downsample=True)
     image = enhance_image(image,downsample=True)
 
-    ref_points = cv2.goodFeaturesToTrack(ref_image[:,:,0],maxCorners=100,qualityLevel=0.1,minDistance=50).astype(np.float32)
+    # Does this work in all cases?
+    ref_image = ref_image.astype(np.uint8)
+    image = image.astype(np.uint8)
+
+    ref_points = cv2.goodFeaturesToTrack(ref_image[:,:,0].astype(np.float32),maxCorners=100,qualityLevel=0.1,minDistance=50).astype(np.float32)
 
     # Run optical flow
     new_points,status,err = cv2.calcOpticalFlowPyrLK(ref_image,image,ref_points,np.zeros(ref_points.shape,dtype=ref_points.dtype))
@@ -148,7 +112,13 @@ def find_pointpairs(ref_image,image):
     new_points = new_points[status == 1,:]
     ref_points = ref_points[status == 1,:]
 
-    return filter_points(2*ref_points,2*new_points)
+    if np.count_nonzero(status) > 3:
+
+        return filter_points(2*ref_points,2*new_points)
+
+    else:
+
+        return np.array([]),np.array([])
 
 
 def detect_movement(ref,moved):
@@ -260,9 +230,10 @@ def manual_movement(ref,moved,correction=None):
         return None
 
 
-def update_calibration(calibration, moved_image, mov_correction, image_src=None):
+def update_calibration(calibration, moved_image, mov_correction, image_src=None, coords='Display'):
     """
-    Update a given calibration to account for image movement.
+    Update a given calibration to account for image movement. This currently only supports
+    point pair fitting calibrations, not manual alignment calibrations.
 
     Parameters:
 
@@ -270,7 +241,11 @@ def update_calibration(calibration, moved_image, mov_correction, image_src=None)
         moved_image (np.ndarray)            : Moved image
         mov_correction (MovementCorrection) : Movement correction object representing the movement between \
                                               the original calibrated image and the moved image.
-        image_src (string)                  : Human-readable description of where the moved image comes from
+        image_src (string)                  : Human-readable description of where the moved image comes from, \
+                                              for data provenance tracking.
+        coords (string)                     : 'Display' or 'Original', whether the movement correction  and moved image \
+                                              are in the calibration's display or original image orientation.
+
 
     Returns:
 
@@ -278,7 +253,16 @@ def update_calibration(calibration, moved_image, mov_correction, image_src=None)
 
     """
 
-    calib_shape = tuple(calibration.geometry.get_display_shape()[::-1])
+    if calibration._type != 'fit':
+        raise ValueError('This function only supports point fitting calibrations at the moment!')
+
+    if coords.lower() == 'display':
+        calib_shape = tuple(calibration.geometry.get_display_shape()[::-1])
+    elif coords.lower() == 'original':
+        calib_shape = tuple(calibration.geometry.get_original_shape()[::-1])
+    else:
+        raise ValueError('"coords" argument must be either "Display" or "Original"!')
+
     movement_shape = tuple(mov_correction.im_shape)
     im_shape = tuple(moved_image.shape[:2])
 
@@ -300,15 +284,29 @@ def update_calibration(calibration, moved_image, mov_correction, image_src=None)
     old_pp = calibration.pointpairs
     new_pp = PointPairs()
 
+    pos_lim = np.array(calibration.geometry.get_display_shape()) - 0.5
     for i in range(old_pp.get_n_pointpairs()):
         pp = []
         for subview in range(calibration.n_subviews):
             if old_pp.image_points[i][subview] is not None:
-                pp.append(mov_correction.ref_to_moved_coords(*old_pp.image_points[i][subview]))
+                if coords.lower() == 'display':
+                    new_coords = mov_correction.ref_to_moved_coords(*old_pp.image_points[i][subview])
+                elif coords.lower() == 'original':
+                    orig_coords = calibration.geometry.display_to_original_coords(*old_pp.image_points[i][subview])
+                    new_coords = mov_correction.ref_to_moved_coords(*orig_coords)
+                    new_coords = calibration.geometry.original_to_display_coords(*new_coords)
+
+                if np.all( np.array(new_coords) >= 0) and np.all(np.array(new_coords) < pos_lim):
+                    pp.append(new_coords)
+                else:
+                    pp.append(None)
             else:
                 pp.append(None)
 
-        new_pp.add_pointpair(old_pp.object_points[i], pp)
+        if all(p is None for p in pp):
+            continue
+        else:
+            new_pp.add_pointpair(old_pp.object_points[i], pp)
 
     new_calib.set_pointpairs(new_pp, history=[calibration.history['pointpairs'][0], 'Updated based on movement correction by {:s} on {:s} at {:s}'.format(misc.username,misc.hostname,misc.get_formatted_time())])
 
@@ -358,31 +356,38 @@ class MovementCorrection:
     @property
     def translation(self):
         '''
-        x, y image translation in pixels.
+        x, y translation in pixels to go from the moved to reference image.
         '''
         return self.matrix[0, 2], self.matrix[1, 2]
 
     @property
     def rotation(self):
         '''
-        Image rotation in degrees.
+        Image rotation to go from the moved to reference image in degrees clockwise.
         '''
         return 180 * np.arctan2(self.matrix[1, 0], self.matrix[0, 0]) / 3.14159
 
     @property
     def scale(self):
         '''
-        Image scaling.
+        Scale factor to go from moved to reference image.
         '''
         return np.sqrt(self.matrix[1, 0] ** 2 + self.matrix[0, 0] ** 2)
 
     def warp_moved_to_ref(self, image, interp='linear', fill_edges=False):
         '''
-        Warp a moved image to align with the reference one.
+        Warp a moved image to align with the reference one. Note: this can also be used
+        on binned or englarged images, with respect to the one used for the original movement
+        correction determination, provided they are scaled proportionally i.e. have the same
+        aspect ratio as the originals.
 
         Parameters:
             image (np.ndarray) : Moved image to warp
             interp (string)    : Interpolation method to use, can be 'linear' or 'nearest'
+            fill_edges (bool)  : Whether to fill the warped image edges with a repetition \
+                                 of the edge pixels from the image (if True), or leave un-filled \
+                                 images edges as 0 value (if False; this is the default).
+
 
         Returns:
             np.ndarray : Two ndarrays: the warped image, and a boolean mask the same shape \
@@ -420,7 +425,10 @@ class MovementCorrection:
 
     def warp_ref_to_moved(self, image, interp='linear',fill_edges=False):
         '''
-        Warp a reference-aligned image to align with the moved one.
+        Warp a reference-aligned image to align with the moved one. Note: this can also be used
+        on binned or englarged images, with respect to the one used for the original movement
+        correction determination, provided they are scaled proportionally i.e. have the same
+        aspect ratio as the originals.
 
         Parameters:
             image (np.ndarray) : Image to warp

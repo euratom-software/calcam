@@ -44,7 +44,7 @@
       <item row="1" column="0" colspan="2">
        <widget class="QLabel" name="label_4">
         <property name="text">
-         <string>(2) Estimate image transform based on given points:</string>
+         <string>(2) Estimate movement correction based on given points:</string>
         </property>
        </widget>
       </item>
@@ -130,16 +130,7 @@
       <enum>QFrame::Plain</enum>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
-      <property name="leftMargin">
-       <number>0</number>
-      </property>
-      <property name="topMargin">
-       <number>0</number>
-      </property>
-      <property name="rightMargin">
-       <number>0</number>
-      </property>
-      <property name="bottomMargin">
+      <property name="margin">
        <number>0</number>
       </property>
       <item row="0" column="3">

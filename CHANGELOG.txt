@@ -19,6 +19,7 @@ Fixes:
 * Fixed bug when loading R,Z,phi data from a file to plot in the 3D viewer which caused the data to be displayed incorrectly
 * Fixed issue where config.get_cadmodels() raised an exception if one (or more) CAD model file(s) is not readable.
 * Fixed a bug in the CAD model editor where browsing for a mesh file to add, then clicking cancel on the browse window, raised an exception.
+* Fixed a bug where an image could be loaded in the wrong orientation when loading a new image in to the fitting calibration tool.
 
 
 Patch 2.2.3 (2nd Apr 2019)

@@ -24,27 +24,17 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="genindex.html"/>
-        <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="Calcam  documentation" href="index.html"/>
-        <link rel="next" title="Examples" href="api_examples.html"/>
-        <link rel="prev" title="Tomography Geometry Matrices" href="api_geom_matrix.html"/> 
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="next" title="Examples" href="api_examples.html" />
+    <link rel="prev" title="Tomography Geometry Matrices" href="api_geom_matrix.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -61,7 +51,7 @@
 
           
             
-            <img src="_static/logo.png" class="logo" />
+            <img src="_static/logo.png" class="logo" alt="Logo"/>
           
           </a>
 
@@ -207,6 +197,7 @@
 <li class="toctree-l2"><a class="reference internal" href="api_examples.html#rendering-camera-view-wireframe">Rendering: camera view wireframe</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api_examples.html#ray-casting">Ray casting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api_examples.html#tomography-geometry-matrices">Tomography Geometry Matrices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_examples.html#camera-movement-correction">Camera Movement Correction</a></li>
 </ul>
 </li>
 </ul>
@@ -236,7 +227,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">Calcam</a>
@@ -244,9 +235,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -341,7 +333,7 @@ See the <a class="reference internal" href="gui_movement.html"><span class="doc"
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">If the <span class="guilabel">OK</span> button is clicked in the GUI, returns a movement correction                              object representing the movement correction. If the GUI is closed by clicking                              <span class="guilabel">Cancel</span>, returns <code class="docutils literal"><span class="pre">None</span></code>.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="#calcam.movement.MovementCorrection" title="calcam.movement.MovementCorrection">MovementCorrection</a> or NoneType</td>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">MovementCorrection or NoneType</td>
 </tr>
 </tbody>
 </table>
@@ -470,7 +462,7 @@ np.ndarray : Array of y (vertical) pixel coordinates in the moved image</p>
 <dl class="attribute">
 <dt id="calcam.movement.MovementCorrection.rotation">
 <code class="descname">rotation</code><a class="headerlink" href="#calcam.movement.MovementCorrection.rotation" title="Permalink to this definition">¶</a></dt>
-<dd><p>Image rotation in degrees.</p>
+<dd><p>Image rotation to go from the moved to reference image in degrees clockwise.</p>
 </dd></dl>
 
 <dl class="method">
@@ -485,19 +477,22 @@ np.ndarray : Array of y (vertical) pixel coordinates in the moved image</p>
 <dl class="attribute">
 <dt id="calcam.movement.MovementCorrection.scale">
 <code class="descname">scale</code><a class="headerlink" href="#calcam.movement.MovementCorrection.scale" title="Permalink to this definition">¶</a></dt>
-<dd><p>Image scaling.</p>
+<dd><p>Scale factor to go from moved to reference image.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="calcam.movement.MovementCorrection.translation">
 <code class="descname">translation</code><a class="headerlink" href="#calcam.movement.MovementCorrection.translation" title="Permalink to this definition">¶</a></dt>
-<dd><p>x, y image translation in pixels.</p>
+<dd><p>x, y translation in pixels to go from the moved to reference image.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="calcam.movement.MovementCorrection.warp_moved_to_ref">
 <code class="descname">warp_moved_to_ref</code><span class="sig-paren">(</span><em>image</em>, <em>interp='linear'</em>, <em>fill_edges=False</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.movement.MovementCorrection.warp_moved_to_ref" title="Permalink to this definition">¶</a></dt>
-<dd><p>Warp a moved image to align with the reference one.</p>
+<dd><p>Warp a moved image to align with the reference one. Note: this can also be used
+on binned or englarged images, with respect to the one used for the original movement
+correction determination, provided they are scaled proportionally i.e. have the same
+aspect ratio as the originals.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -505,6 +500,7 @@ np.ndarray : Array of y (vertical) pixel coordinates in the moved image</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>image</strong> (<em>np.ndarray</em>) &#8211; Moved image to warp</li>
 <li><strong>interp</strong> (<em>string</em>) &#8211; Interpolation method to use, can be &#8216;linear&#8217; or &#8216;nearest&#8217;</li>
+<li><strong>fill_edges</strong> (<em>bool</em>) &#8211; Whether to fill the warped image edges with a repetition                                  of the edge pixels from the image (if True), or leave un-filled                                  images edges as 0 value (if False; this is the default).</li>
 </ul>
 </td>
 </tr>
@@ -521,7 +517,10 @@ np.ndarray : Array of y (vertical) pixel coordinates in the moved image</p>
 <dl class="method">
 <dt id="calcam.movement.MovementCorrection.warp_ref_to_moved">
 <code class="descname">warp_ref_to_moved</code><span class="sig-paren">(</span><em>image</em>, <em>interp='linear'</em>, <em>fill_edges=False</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.movement.MovementCorrection.warp_ref_to_moved" title="Permalink to this definition">¶</a></dt>
-<dd><p>Warp a reference-aligned image to align with the moved one.</p>
+<dd><p>Warp a reference-aligned image to align with the moved one. Note: this can also be used
+on binned or englarged images, with respect to the one used for the original movement
+correction determination, provided they are scaled proportionally i.e. have the same
+aspect ratio as the originals.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -550,8 +549,9 @@ np.ndarray : Array of y (vertical) pixel coordinates in the moved image</p>
 <p>Having obtained a movement correction object describing the movement, you can update an exicting calcam calibration to apply to the new image:</p>
 <dl class="function">
 <dt id="calcam.movement.update_calibration">
-<code class="descclassname">calcam.movement.</code><code class="descname">update_calibration</code><span class="sig-paren">(</span><em>calibration</em>, <em>moved_image</em>, <em>mov_correction</em>, <em>image_src=None</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.movement.update_calibration" title="Permalink to this definition">¶</a></dt>
-<dd><p>Update a given calibration to account for image movement.</p>
+<code class="descclassname">calcam.movement.</code><code class="descname">update_calibration</code><span class="sig-paren">(</span><em>calibration</em>, <em>moved_image</em>, <em>mov_correction</em>, <em>image_src=None</em>, <em>coords='Display'</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.movement.update_calibration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update a given calibration to account for image movement. This currently only supports
+point pair fitting calibrations, not manual alignment calibrations.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -560,7 +560,8 @@ np.ndarray : Array of y (vertical) pixel coordinates in the moved image</p>
 <li><strong>calibration</strong> (<a class="reference internal" href="api_analysis.html#calcam.Calibration" title="calcam.Calibration"><em>calcam.Calibration</em></a>) &#8211; Calibration to update.</li>
 <li><strong>moved_image</strong> (<em>np.ndarray</em>) &#8211; Moved image</li>
 <li><strong>mov_correction</strong> (<a class="reference internal" href="#calcam.movement.MovementCorrection" title="calcam.movement.MovementCorrection"><em>MovementCorrection</em></a>) &#8211; Movement correction object representing the movement between                                               the original calibrated image and the moved image.</li>
-<li><strong>image_src</strong> (<em>string</em>) &#8211; Human-readable description of where the moved image comes from</li>
+<li><strong>image_src</strong> (<em>string</em>) &#8211; Human-readable description of where the moved image comes from,                                               for data provenance tracking.</li>
+<li><strong>coords</strong> (<em>string</em>) &#8211; &#8216;Display&#8217; or &#8216;Original&#8217;, whether the movement correction  and moved image                                               are in the calibration&#8217;s display or original image orientation.</li>
 </ul>
 </td>
 </tr>
@@ -579,9 +580,7 @@ np.ndarray : Array of y (vertical) pixel coordinates in the moved image</p>
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -599,11 +598,11 @@ np.ndarray : Array of y (vertical) pixel coordinates in the moved image</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015-2019, European Atomic Energy Community (EURATOM).
+        &copy; Copyright 2015-2019, European Atomic Energy Community (EURATOM)
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -618,36 +617,34 @@ np.ndarray : Array of y (vertical) pixel coordinates in the moved image</p>
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  false,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'./',
+              VERSION:'',
+              LANGUAGE:'en',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  false,
+              SOURCELINK_SUFFIX: ''
+          };
+      </script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
 
   
 
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>

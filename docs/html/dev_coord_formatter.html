@@ -24,26 +24,16 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="genindex.html"/>
-        <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="Calcam  documentation" href="index.html"/>
-        <link rel="prev" title="Image Sources" href="dev_imsources.html"/> 
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="prev" title="Image Sources" href="dev_imsources.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -60,7 +50,7 @@
 
           
             
-            <img src="_static/logo.png" class="logo" />
+            <img src="_static/logo.png" class="logo" alt="Logo"/>
           
           </a>
 
@@ -171,8 +161,11 @@
 <li class="toctree-l2"><a class="reference internal" href="gui_settings.html#environment-information">Environment Information</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="gui_movement.html">Movement Correction</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="gui_movement.html#launching-the-gui">Launching the GUI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui_movement.html">Camera Movement Determination</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gui_movement.html#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_movement.html#identifying-points">Identifying Points</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_movement.html#calculating-and-checking-the-movement-correction">Calculating and checking the movement correction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_movement.html#finishing">Finishing</a></li>
 </ul>
 </li>
 </ul>
@@ -194,7 +187,7 @@
 <li class="toctree-l1"><a class="reference internal" href="api_movement.html">Camera Movement Correction</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="api_movement.html#background">Background</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api_movement.html#determining-camera-movement">Determining Camera Movement</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_movement.html#movement-correction-objects">Movement correction objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_movement.html#the-movementcorrection-class">The MovementCorrection class</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api_movement.html#adjusting-calibrations-for-image-movement">Adjusting calibrations for image movement</a></li>
 </ul>
 </li>
@@ -203,6 +196,7 @@
 <li class="toctree-l2"><a class="reference internal" href="api_examples.html#rendering-camera-view-wireframe">Rendering: camera view wireframe</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api_examples.html#ray-casting">Ray casting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api_examples.html#tomography-geometry-matrices">Tomography Geometry Matrices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_examples.html#camera-movement-correction">Camera Movement Correction</a></li>
 </ul>
 </li>
 </ul>
@@ -232,7 +226,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">Calcam</a>
@@ -240,9 +234,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -305,7 +300,7 @@
     <span class="c1"># Build the output string</span>
     <span class="n">formatted_coord</span> <span class="o">=</span> <span class="s1">&#39;X,Y,Z: ( {:.3f} m , {:.3f} m , {:.3f} m )&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">coords</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
 
-    <span class="n">formatted_coord</span> <span class="o">=</span> <span class="n">formatted_coord</span> <span class="o">+</span> <span class="sa">u</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">R,Z,</span><span class="se">\u03d5</span><span class="s1">: ( {:.3f} m , {:.3f}m , {:.1f}</span><span class="se">\xb0</span><span class="s1"> )&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">),</span><span class="n">coords</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span><span class="n">phi</span><span class="p">)</span>
+    <span class="n">formatted_coord</span> <span class="o">=</span> <span class="n">formatted_coord</span> <span class="o">+</span> <span class="s1">u&#39;</span><span class="se">\n</span><span class="s1">R,Z,</span><span class="se">\u03d5</span><span class="s1">: ( {:.3f} m , {:.3f}m , {:.1f}</span><span class="se">\xb0</span><span class="s1"> )&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">),</span><span class="n">coords</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span><span class="n">phi</span><span class="p">)</span>
 
     <span class="n">formatted_coord</span> <span class="o">=</span> <span class="n">formatted_coord</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Sector {:.0f}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sector</span><span class="p">)</span>
 
@@ -332,9 +327,7 @@
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -350,11 +343,11 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015-2019, European Atomic Energy Community (EURATOM).
+        &copy; Copyright 2015-2019, European Atomic Energy Community (EURATOM)
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -369,36 +362,34 @@
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  false,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'./',
+              VERSION:'',
+              LANGUAGE:'en',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  false,
+              SOURCELINK_SUFFIX: ''
+          };
+      </script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
 
   
 
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>
