@@ -24,27 +24,17 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="genindex.html"/>
-        <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="Calcam  documentation" href="index.html"/>
-        <link rel="next" title="Image Sources" href="dev_imsources.html"/>
-        <link rel="prev" title="Tomography Geometry Matrices" href="api_geom_matrix.html"/> 
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="next" title="Image Sources" href="dev_imsources.html" />
+    <link rel="prev" title="Camera Movement Correction" href="api_movement.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -61,7 +51,7 @@
 
           
             
-            <img src="_static/logo.png" class="logo" />
+            <img src="_static/logo.png" class="logo" alt="Logo"/>
           
           </a>
 
@@ -69,7 +59,7 @@
             
             
               <div class="version">
-                Version 2.2
+                Version 2.3
               </div>
             
           
@@ -172,6 +162,13 @@
 <li class="toctree-l2"><a class="reference internal" href="gui_settings.html#environment-information">Environment Information</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="gui_movement.html">Camera Movement Determination</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gui_movement.html#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_movement.html#identifying-points">Identifying Points</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_movement.html#calculating-and-checking-the-movement-correction">Calculating and checking the movement correction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_movement.html#finishing">Finishing</a></li>
+</ul>
+</li>
 </ul>
 <p class="caption"><span class="caption-text">API User Guide</span></p>
 <ul class="current">
@@ -188,11 +185,19 @@
 <li class="toctree-l2"><a class="reference internal" href="api_geom_matrix.html#reconstruction-grids">Reconstruction grids</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="api_movement.html">Camera Movement Correction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api_movement.html#background">Background</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_movement.html#determining-camera-movement">Determining Camera Movement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_movement.html#the-movementcorrection-class">The MovementCorrection class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_movement.html#adjusting-calibrations-for-image-movement">Adjusting calibrations for image movement</a></li>
+</ul>
+</li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Examples</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#mapping-a-magnetic-field-line-on-to-an-image">Mapping a magnetic field line on to an image</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#rendering-camera-view-wireframe">Rendering: camera view wireframe</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#ray-casting">Ray casting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#tomography-geometry-matrices">Tomography Geometry Matrices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#camera-movement-correction">Camera Movement Correction</a></li>
 </ul>
 </li>
 </ul>
@@ -222,7 +227,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">Calcam</a>
@@ -230,9 +235,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -410,7 +416,7 @@
 <span class="c1"># because the geometry matrix calculation uses multiprocessing, this</span>
 <span class="c1"># python file will be imported in each child thread and if we omit this</span>
 <span class="c1"># if statement, lots of bad things will happen.</span>
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
         <span class="c1"># Load the raydata (see previous example for how to generate raydata)</span>
         <span class="n">raydata</span> <span class="o">=</span> <span class="n">calcam</span><span class="o">.</span><span class="n">RayData</span><span class="p">(</span><span class="s1">&#39;my_raydata.nc&#39;</span><span class="p">)</span>
 
@@ -466,13 +472,36 @@
 </pre></div>
 </div>
 </div>
+<div class="section" id="camera-movement-correction">
+<h2>Camera Movement Correction<a class="headerlink" href="#camera-movement-correction" title="Permalink to this headline">¶</a></h2>
+<p>Let&#8217;s say we have a good calibration, and we have a <a class="reference internal" href="api_analysis.html#calcam.Calibration" title="calcam.Calibration"><code class="xref py py-class docutils literal"><span class="pre">calcam.Calibration</span></code></a> object for it in <code class="docutils literal"><span class="pre">my_calib</span></code>. We also have an image from the same camera some time later when the camera has moved, stored in a Numpy array called <code class="docutils literal"><span class="pre">moved_im</span></code>. We can then try to determine the correction to align the moved image with the calibration by:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">mov</span> <span class="o">=</span> <span class="n">calcam</span><span class="o">.</span><span class="n">movement</span><span class="o">.</span><span class="n">detect_movement</span><span class="p">(</span><span class="n">my_calib</span><span class="p">,</span> <span class="n">moved_im</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Alternatively, we can determine the camera movement manually using the GUI by:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">mov</span> <span class="o">=</span> <span class="n">calcam</span><span class="o">.</span><span class="n">movement</span><span class="o">.</span><span class="n">manual_movement</span><span class="p">(</span><span class="n">my_calib</span><span class="p">,</span> <span class="n">moved_im</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now we have a movement correction object, we can use it to warp the new image so it aligns with the calibration:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">corrected_image</span><span class="p">,</span> <span class="n">mask</span> <span class="o">=</span> <span class="n">mov</span><span class="o">.</span><span class="n">warp_moved_to_ref</span><span class="p">(</span><span class="n">moved_im</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The array <code class="docutils literal"><span class="pre">corrected_image</span></code> then contains the image warped to align with the calibration, while <code class="docutils literal"><span class="pre">mask</span></code> is an array the same size as the image containing <code class="docutils literal"><span class="pre">True</span></code> where a pixel in the warped image contains real image data, and <code class="docutils literal"><span class="pre">False</span></code> if the corresponding pixel is outside the border of the actual data.</p>
+<p>Alternatively, we could create an updated calibration object accounting for the camera movement:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">updated_calib</span> <span class="o">=</span> <span class="n">calcam</span><span class="o">.</span><span class="n">movement</span><span class="o">.</span><span class="n">update_calibration</span><span class="p">(</span><span class="n">my_calib</span><span class="p">,</span><span class="n">moved_im</span><span class="p">,</span><span class="n">mov</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We can also save the movement correction for use again later, and load it back from a file:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">mov</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;my movement correction.cmc&#39;</span><span class="p">)</span>
+<span class="n">mov_loaded</span> <span class="o">=</span> <span class="n">calcam</span><span class="o">.</span><span class="n">movement</span><span class="o">.</span><span class="n">MovementCorrection</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;my movement correction.cmc&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
 </div>
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -481,7 +510,7 @@
         <a href="dev_imsources.html" class="btn btn-neutral float-right" title="Image Sources" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="api_geom_matrix.html" class="btn btn-neutral" title="Tomography Geometry Matrices" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="api_movement.html" class="btn btn-neutral" title="Camera Movement Correction" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -490,11 +519,11 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015-2019, European Atomic Energy Community (EURATOM).
+        &copy; Copyright 2015-2019, European Atomic Energy Community (EURATOM)
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -509,36 +538,34 @@
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  false,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'./',
+              VERSION:'',
+              LANGUAGE:'en',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  false,
+              SOURCELINK_SUFFIX: ''
+          };
+      </script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
 
   
 
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>

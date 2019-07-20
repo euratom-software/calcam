@@ -1,6 +1,5 @@
 
 
-
 <!DOCTYPE html>
 <!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
@@ -9,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Index &mdash; Calcam  documentation</title>
+  <title>Camera Movement Determination &mdash; Calcam  documentation</title>
   
 
   
@@ -26,7 +25,9 @@
   
 
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" /> 
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="next" title="Using Calibration Results" href="api_analysis.html" />
+    <link rel="prev" title="Calcam Settings" href="gui_settings.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -107,7 +108,7 @@
 </li>
 </ul>
 <p class="caption"><span class="caption-text">GUI App User Guide</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="gui_intro.html">Introduction &amp; Launcher</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="gui_intro.html#starting-the-launcher">Starting the launcher</a></li>
 </ul>
@@ -161,11 +162,11 @@
 <li class="toctree-l2"><a class="reference internal" href="gui_settings.html#environment-information">Environment Information</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="gui_movement.html">Camera Movement Determination</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="gui_movement.html#introduction">Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_movement.html#identifying-points">Identifying Points</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_movement.html#calculating-and-checking-the-movement-correction">Calculating and checking the movement correction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_movement.html#finishing">Finishing</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Camera Movement Determination</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#identifying-points">Identifying Points</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#calculating-and-checking-the-movement-correction">Calculating and checking the movement correction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#finishing">Finishing</a></li>
 </ul>
 </li>
 </ul>
@@ -260,10 +261,12 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li></li>
+      <li>Camera Movement Determination</li>
     
     
       <li class="wy-breadcrumbs-aside">
+        
+            
         
       </li>
     
@@ -275,458 +278,66 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-
-<h1 id="index">Index</h1>
-
-<div class="genindex-jumpbox">
- <a href="#C"><strong>C</strong></a>
- | <a href="#D"><strong>D</strong></a>
- | <a href="#E"><strong>E</strong></a>
- | <a href="#F"><strong>F</strong></a>
- | <a href="#G"><strong>G</strong></a>
- | <a href="#H"><strong>H</strong></a>
- | <a href="#I"><strong>I</strong></a>
- | <a href="#L"><strong>L</strong></a>
- | <a href="#M"><strong>M</strong></a>
- | <a href="#N"><strong>N</strong></a>
- | <a href="#P"><strong>P</strong></a>
- | <a href="#R"><strong>R</strong></a>
- | <a href="#S"><strong>S</strong></a>
- | <a href="#T"><strong>T</strong></a>
- | <a href="#U"><strong>U</strong></a>
- | <a href="#W"><strong>W</strong></a>
- 
+  <div class="section" id="camera-movement-determination">
+<h1>Camera Movement Determination<a class="headerlink" href="#camera-movement-determination" title="Permalink to this headline">¶</a></h1>
+<p>A common issue to deal with is that after a camera has been spatially calibrated, the camera then moves and needs to be re-calibrated. The calcam movement correction GUI provides a tool for aligning a &#8220;moved image&#8221; to a reference image, resulting in a correction which can be applied to images or calibrations to account for image movement.</p>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>Unlike the main GUI tools in calcam, the movement correction GUI cannot be opened from the launcher, but is launched using the <a class="reference internal" href="api_movement.html#calcam.movement.manual_movement" title="calcam.movement.manual_movement"><code class="xref py py-func docutils literal"><span class="pre">calcam.movement.manual_movement()</span></code></a> function.</p>
+<p>Once opened, the GUI is shown below:</p>
+<img alt="Movement correction dialog box screenshot" class="align-left" src="_images/manual_movement_dialog.png" />
+<p>The tool is based on identifying a set of corresponding points between the reference and moved images. A minimum of 3 points are required to define the movement between two images.</p>
+<p>The GUI shows the two images side-by-side, with the reference image on the left and moved image on the right. If an existing <a class="reference internal" href="api_movement.html#calcam.movement.MovementCorrection" title="calcam.movement.MovementCorrection"><code class="xref py py-class docutils literal"><span class="pre">calcam.movement.MovementCorrection</span></code></a> object is provided to the launcher function, the GUI will start showing the provided movement correction. This can be used, for example, for checking if one movement correction object is suitable for a different moved image. The images can be navigated using the mouse:</p>
+<ul class="simple">
+<li><code class="kbd docutils literal"><span class="pre">Scroll</span> <span class="pre">Wheel</span></code> - Zoom in or out, centred at the current mouse position.</li>
+<li><code class="kbd docutils literal"><span class="pre">Middle</span> <span class="pre">Click</span> <span class="pre">+</span> <span class="pre">Drag</span></code> - Drag the image around.</li>
+</ul>
+<p>The reference and moved images will move together if the mouse controls are used on either image.</p>
+<p>To make features easier to identify, image enhancement can be applied to the displayed images using the <span class="guilabel">Enhance Images</span> checkbox just above the images.</p>
 </div>
-<h2 id="C">C</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_cadmodel.html#calcam.CADModel">CADModel (class in calcam)</a>
-  </dt>
-
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_analysis.html#calcam.Calibration">Calibration (class in calcam)</a>
-  </dt>
-
-  </dl></td>
-</tr></table>
-
-<h2 id="D">D</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_geom_matrix.html#calcam.gm.GeometryMatrix.data">data (calcam.gm.GeometryMatrix attribute)</a>
-  </dt>
-
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_movement.html#calcam.movement.detect_movement">detect_movement() (in module calcam.movement)</a>
-  </dt>
-
-  </dl></td>
-</tr></table>
-
-<h2 id="E">E</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_cadmodel.html#calcam.CADModel.enable_only">enable_only() (calcam.CADModel method)</a>
-  </dt>
-
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_geom_matrix.html#calcam.gm.PoloidalVolumeGrid.extent">extent (calcam.gm.PoloidalVolumeGrid attribute)</a>
-  </dt>
-
-  </dl></td>
-</tr></table>
-
-<h2 id="F">F</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_cadmodel.html#calcam.CADModel.format_coord">format_coord() (calcam.CADModel method)</a>
-  </dt>
-
-      
-  <dt><a href="api_geom_matrix.html#calcam.gm.GeometryMatrix.format_image">format_image() (calcam.gm.GeometryMatrix method)</a>
-  </dt>
-
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_geom_matrix.html#calcam.gm.GeometryMatrix.fromfile">fromfile() (calcam.gm.GeometryMatrix class method)</a>
-  </dt>
-
-  </dl></td>
-</tr></table>
-
-<h2 id="G">G</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_geom_matrix.html#calcam.gm.GeometryMatrix">GeometryMatrix (class in calcam.gm)</a>
-  </dt>
-
-      
-  <dt><a href="api_analysis.html#calcam.Calibration.get_cam_matrix">get_cam_matrix() (calcam.Calibration method)</a>
-  </dt>
-
-      
-  <dt><a href="api_analysis.html#calcam.Calibration.get_cam_roll">get_cam_roll() (calcam.Calibration method)</a>
-  </dt>
-
-      
-  <dt><a href="api_analysis.html#calcam.Calibration.get_cam_to_lab_rotation">get_cam_to_lab_rotation() (calcam.Calibration method)</a>
-  </dt>
-
-      
-  <dt><a href="api_geom_matrix.html#calcam.gm.PoloidalVolumeGrid.get_cell_intersections">get_cell_intersections() (calcam.gm.PoloidalVolumeGrid method)</a>
-  </dt>
-
-      
-  <dt><a href="api_cadmodel.html#calcam.CADModel.get_colour">get_colour() (calcam.CADModel method)</a>
-  </dt>
-
-      
-  <dt><a href="api_movement.html#calcam.movement.MovementCorrection.get_ddscore">get_ddscore() (calcam.movement.MovementCorrection method)</a>
-  </dt>
-
-      
-  <dt><a href="api_cadmodel.html#calcam.CADModel.get_enabled_features">get_enabled_features() (calcam.CADModel method)</a>
-  </dt>
-
-      
-  <dt><a href="api_cadmodel.html#calcam.CADModel.get_extent">get_extent() (calcam.CADModel method)</a>
-  </dt>
-
-      
-  <dt><a href="api_cadmodel.html#calcam.CADModel.get_feature_list">get_feature_list() (calcam.CADModel method)</a>
-  </dt>
-
-      
-  <dt><a href="api_analysis.html#calcam.Calibration.get_fov">get_fov() (calcam.Calibration method)</a>
-  </dt>
-
-      
-  <dt><a href="api_cadmodel.html#calcam.CADModel.get_group_enable_state">get_group_enable_state() (calcam.CADModel method)</a>
-  </dt>
-
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_analysis.html#calcam.Calibration.get_image">get_image() (calcam.Calibration method)</a>
-  </dt>
-
-      
-  <dt><a href="api_geom_matrix.html#calcam.gm.GeometryMatrix.get_included_pixels">get_included_pixels() (calcam.gm.GeometryMatrix method)</a>
-  </dt>
-
-      
-  <dt><a href="api_cadmodel.html#calcam.CADModel.get_linewidth">get_linewidth() (calcam.CADModel method)</a>
-  </dt>
-
-      
-  <dt><a href="api_geom_matrix.html#calcam.gm.GeometryMatrix.get_los_coverage">get_los_coverage() (calcam.gm.GeometryMatrix method)</a>
-  </dt>
-
-      
-  <dt><a href="api_analysis.html#calcam.Calibration.get_los_direction">get_los_direction() (calcam.Calibration method)</a>
-  </dt>
-
-      
-  <dt><a href="api_analysis.html#calcam.Calibration.get_pupilpos">get_pupilpos() (calcam.Calibration method)</a>
-  </dt>
-
-      
-  <dt><a href="api_analysis.html#calcam.RayData.get_ray_directions">get_ray_directions() (calcam.RayData method)</a>
-  </dt>
-
-      
-  <dt><a href="api_analysis.html#calcam.RayData.get_ray_lengths">get_ray_lengths() (calcam.RayData method)</a>
-  </dt>
-
-      
-  <dt><a href="api_analysis.html#calcam.Calibration.get_raysect_camera">get_raysect_camera() (calcam.Calibration method)</a>
-  </dt>
-
-      
-  <dt><a href="api_cadmodel.html#calcam.CADModel.get_status_callback">get_status_callback() (calcam.CADModel method)</a>
-  </dt>
-
-      
-  <dt><a href="api_analysis.html#calcam.Calibration.get_undistort_coeffs">get_undistort_coeffs() (calcam.Calibration method)</a>
-  </dt>
-
-      
-  <dt><a href="api_geom_matrix.html#calcam.gm.GeometryMatrix.grid">grid (calcam.gm.GeometryMatrix attribute)</a>
-  </dt>
-
-  </dl></td>
-</tr></table>
-
-<h2 id="H">H</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_analysis.html#calcam.RayData.history">history (calcam.RayData attribute)</a>
-  </dt>
-
-  </dl></td>
-</tr></table>
-
-<h2 id="I">I</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_geom_matrix.html#calcam.gm.PoloidalVolumeGrid.interpolate">interpolate() (calcam.gm.PoloidalVolumeGrid method)</a>
-  </dt>
-
-  </dl></td>
-</tr></table>
-
-<h2 id="L">L</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_movement.html#calcam.movement.MovementCorrection.load">load() (calcam.movement.MovementCorrection class method)</a>
-  </dt>
-
-  </dl></td>
-</tr></table>
-
-<h2 id="M">M</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_movement.html#calcam.movement.manual_movement">manual_movement() (in module calcam.movement)</a>
-  </dt>
-
-      
-  <dt><a href="api_movement.html#calcam.movement.MovementCorrection.moved_to_ref_coords">moved_to_ref_coords() (calcam.movement.MovementCorrection method)</a>
-  </dt>
-
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_movement.html#calcam.movement.MovementCorrection">MovementCorrection (class in calcam.movement)</a>
-  </dt>
-
-  </dl></td>
-</tr></table>
-
-<h2 id="N">N</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_geom_matrix.html#calcam.gm.PoloidalVolumeGrid.n_cells">n_cells (calcam.gm.PoloidalVolumeGrid attribute)</a>
-  </dt>
-
-      
-  <dt><a href="api_geom_matrix.html#calcam.gm.PoloidalVolumeGrid.n_segments">n_segments (calcam.gm.PoloidalVolumeGrid attribute)</a>
-  </dt>
-
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_geom_matrix.html#calcam.gm.PoloidalVolumeGrid.n_vertices">n_vertices (calcam.gm.PoloidalVolumeGrid attribute)</a>
-  </dt>
-
-  </dl></td>
-</tr></table>
-
-<h2 id="P">P</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_geom_matrix.html#calcam.gm.PoloidalVolumeGrid.plot">plot() (calcam.gm.PoloidalVolumeGrid method)</a>
-  </dt>
-
-      
-  <dt><a href="api_geom_matrix.html#calcam.gm.PoloidalVolumeGrid">PoloidalVolumeGrid (class in calcam.gm)</a>
-  </dt>
-
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_analysis.html#calcam.Calibration.project_points">project_points() (calcam.Calibration method)</a>
-  </dt>
-
-  </dl></td>
-</tr></table>
-
-<h2 id="R">R</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_analysis.html#calcam.RayData.ray_end_coords">ray_end_coords (calcam.RayData attribute)</a>
-  </dt>
-
-      
-  <dt><a href="api_analysis.html#calcam.RayData.ray_start_coords">ray_start_coords (calcam.RayData attribute)</a>
-  </dt>
-
-      
-  <dt><a href="api_analysis.html#calcam.raycast_sightlines">raycast_sightlines() (in module calcam)</a>
-  </dt>
-
-      
-  <dt><a href="api_analysis.html#calcam.RayData">RayData (class in calcam)</a>
-  </dt>
-
-      
-  <dt><a href="api_movement.html#calcam.movement.MovementCorrection.ref_to_moved_coords">ref_to_moved_coords() (calcam.movement.MovementCorrection method)</a>
-  </dt>
-
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_geom_matrix.html#calcam.gm.PoloidalVolumeGrid.remove_cells">remove_cells() (calcam.gm.PoloidalVolumeGrid method)</a>
-  </dt>
-
-      
-  <dt><a href="api_analysis.html#calcam.render_cam_view">render_cam_view() (in module calcam)</a>
-  </dt>
-
-      
-  <dt><a href="api_cadmodel.html#calcam.CADModel.reset_colour">reset_colour() (calcam.CADModel method)</a>
-  </dt>
-
-      
-  <dt><a href="api_movement.html#calcam.movement.MovementCorrection.rotation">rotation (calcam.movement.MovementCorrection attribute)</a>
-  </dt>
-
-  </dl></td>
-</tr></table>
-
-<h2 id="S">S</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_geom_matrix.html#calcam.gm.GeometryMatrix.save">save() (calcam.gm.GeometryMatrix method)</a>
-  </dt>
-
-      <dd><dl>
-        
-  <dt><a href="api_analysis.html#calcam.RayData.save">(calcam.RayData method)</a>
-  </dt>
-
-        
-  <dt><a href="api_movement.html#calcam.movement.MovementCorrection.save">(calcam.movement.MovementCorrection method)</a>
-  </dt>
-
-      </dl></dd>
-      
-  <dt><a href="api_movement.html#calcam.movement.MovementCorrection.scale">scale (calcam.movement.MovementCorrection attribute)</a>
-  </dt>
-
-      
-  <dt><a href="api_geom_matrix.html#calcam.gm.GeometryMatrix.set_binning">set_binning() (calcam.gm.GeometryMatrix method)</a>
-  </dt>
-
-      
-  <dt><a href="api_cadmodel.html#calcam.CADModel.set_colour">set_colour() (calcam.CADModel method)</a>
-  </dt>
-
-      
-  <dt><a href="api_analysis.html#calcam.Calibration.set_extrinsics">set_extrinsics() (calcam.Calibration method)</a>
-  </dt>
-
-      
-  <dt><a href="api_cadmodel.html#calcam.CADModel.set_features_enabled">set_features_enabled() (calcam.CADModel method)</a>
-  </dt>
-
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_cadmodel.html#calcam.CADModel.set_flat_shading">set_flat_shading() (calcam.CADModel method)</a>
-  </dt>
-
-      
-  <dt><a href="api_geom_matrix.html#calcam.gm.GeometryMatrix.set_included_pixels">set_included_pixels() (calcam.gm.GeometryMatrix method)</a>
-  </dt>
-
-      
-  <dt><a href="api_cadmodel.html#calcam.CADModel.set_linewidth">set_linewidth() (calcam.CADModel method)</a>
-  </dt>
-
-      
-  <dt><a href="api_cadmodel.html#calcam.CADModel.set_status_callback">set_status_callback() (calcam.CADModel method)</a>
-  </dt>
-
-      
-  <dt><a href="api_cadmodel.html#calcam.CADModel.set_wireframe">set_wireframe() (calcam.CADModel method)</a>
-  </dt>
-
-      
-  <dt><a href="api_geom_matrix.html#calcam.gm.squaregrid">squaregrid() (in module calcam.gm)</a>
-  </dt>
-
-  </dl></td>
-</tr></table>
-
-<h2 id="T">T</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_movement.html#calcam.movement.MovementCorrection.translation">translation (calcam.movement.MovementCorrection attribute)</a>
-  </dt>
-
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_geom_matrix.html#calcam.gm.trigrid">trigrid() (in module calcam.gm)</a>
-  </dt>
-
-  </dl></td>
-</tr></table>
-
-<h2 id="U">U</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_analysis.html#calcam.Calibration.undistort_image">undistort_image() (calcam.Calibration method)</a>
-  </dt>
-
-      
-  <dt><a href="api_cadmodel.html#calcam.CADModel.unload">unload() (calcam.CADModel method)</a>
-  </dt>
-
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_movement.html#calcam.movement.update_calibration">update_calibration() (in module calcam.movement)</a>
-  </dt>
-
-  </dl></td>
-</tr></table>
-
-<h2 id="W">W</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_movement.html#calcam.movement.MovementCorrection.warp_moved_to_ref">warp_moved_to_ref() (calcam.movement.MovementCorrection method)</a>
-  </dt>
-
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_movement.html#calcam.movement.MovementCorrection.warp_ref_to_moved">warp_ref_to_moved() (calcam.movement.MovementCorrection method)</a>
-  </dt>
-
-  </dl></td>
-</tr></table>
-
+<div class="section" id="identifying-points">
+<h2>Identifying Points<a class="headerlink" href="#identifying-points" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="auto-detecting-matching-points">
+<h3>Auto-detecting matching points<a class="headerlink" href="#auto-detecting-matching-points" title="Permalink to this headline">¶</a></h3>
+<p>The tool includes the option to try to automatically detect a set of corresponding points between the images. This uses the same algorithm as <a class="reference internal" href="api_movement.html#calcam.movement.detect_movement" title="calcam.movement.detect_movement"><code class="xref py py-func docutils literal"><span class="pre">calcam.movement.detect_movement()</span></code></a>, but allows manual checking of the results using the GUI. To auto-detect a set of points, click the <span class="guilabel">Auto-detect</span> button near the top of the window. This will remove any existing points on the images, add the auto-detected points to the display and estimate the image movement from the points. If a good set of points cannot be auto-detected, a dialog box will be shown informing you of this.</p>
+</div>
+<div class="section" id="manually-adding-points">
+<h3>Manually adding points<a class="headerlink" href="#manually-adding-points" title="Permalink to this headline">¶</a></h3>
+<p>If automatic detection does not provide a high enough accuracy result, pairs of matching points can be added to the images manually. This works very similarly to the pointpair based calibration tool. Point positions are displayed on the images views as red <strong>+</strong> cursors at the point locations. At any given time, one point pair can be selected for editing. The selected point pair will be indicated with larger green <strong>+</strong> cursors.</p>
+<p>Once you have identified a common feature on the two images, <code class="kbd docutils literal"><span class="pre">Ctrl</span> <span class="pre">+</span> <span class="pre">Click</span></code>  on the location on either image to create a new point pair. A point will be placed at the mouse location. Then click, without holding <code class="kbd docutils literal"><span class="pre">Ctrl</span></code>, the corresponding point on the other image to finish creating the point pair. You should now see green cursors on both images. Clicking either image again will move the green cursor representing the current point to the clicked location. To start another point pair, <code class="kbd docutils literal"><span class="pre">Ctrl</span> <span class="pre">+</span> <span class="pre">Click</span></code> again and repeat the process. The cursors showing the existing points will turn red, indicating they are no longer selected. In general, left clicking on either image will move the currently selected point to the clicked location. Clicking an existing cursor will select that point pair for editing, and holding <code class="kbd docutils literal"><span class="pre">Ctrl</span></code> while clicking will start a new point pair. The currently selected point pair can be deleted by pressing the <code class="kbd docutils literal"><span class="pre">Del</span></code> key on the keyboard. All points can be removed at once by clicking the <span class="guilabel">Clear</span> button at the top of the window.</p>
+</div>
+</div>
+<div class="section" id="calculating-and-checking-the-movement-correction">
+<h2>Calculating and checking the movement correction<a class="headerlink" href="#calculating-and-checking-the-movement-correction" title="Permalink to this headline">¶</a></h2>
+<p>Once you have at least 3 pairs of points on the images, click the <span class="guilabel">Go!</span> button to calculate the movement correction. If the sets of points are not sufficiently consistent, the movement will not be estimated and a dialog box stating this will be displayed.</p>
+<p>When a movement correction is successfully determined, some information about the correction is displayed below the <span class="guilabel">Go!</span> button:</p>
+<ul class="simple">
+<li>The translation, rotation and scale to go from the moved image to the reference image.</li>
+<li>The DDScore: this is a calculated score estimating how much improved the alignment of the two images is by the determined movement correction. This is a number in the range -1 to 1, where negative values indicate the alignment got worse, 0 is no change and positive numbers indicate an improvement i.e. successful movement correction.</li>
+</ul>
+<p>In addition, positions of the corrected points are shown on both images as blue <strong>+</strong> cursors. For a successful movement correction, on the reference (left-hand) images the blue points should align well with the user-clicked red and green cursors. On the right-hand image, the difference between the red and blue cursors shows how much each point has moved. The blue points can be turned on or off with the <span class="guilabel">Show adjusted points in blue</span> checkbox.</p>
+<p>The most direct way to visually assess the movement correction quality is to use the <span class="guilabel">Overlay transformed image on both</span> button. While this button is held down, the moved image is adjusted to align with the reference image and overlaid on both image displayes. For a successful movement correction, the overlaid image should align well on the reference image (left hand side), and the difference on the right-hand side shows how much the image has moved. Clicking, holding down then releasing this button allows quick back-and-forth comparison of the image alignment to assess the movement correction quality.</p>
+</div>
+<div class="section" id="finishing">
+<h2>Finishing<a class="headerlink" href="#finishing" title="Permalink to this headline">¶</a></h2>
+<p>If a good movement correction is obtained, clicking <span class="guilabel">OK</span> at the bottom of the window will close the dialog box, and the launcher function will return a <a class="reference internal" href="api_movement.html#calcam.movement.MovementCorrection" title="calcam.movement.MovementCorrection"><code class="xref py py-class docutils literal"><span class="pre">calcam.movement.MovementCorrection</span></code></a> object representing the determined movement correction. If <span class="guilabel">Cancel</span> is clicked instead, the launching function will return <code class="docutils literal"><span class="pre">None</span></code>.</p>
+</div>
+</div>
 
 
            </div>
            
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="api_analysis.html" class="btn btn-neutral float-right" title="Using Calibration Results" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="gui_settings.html" class="btn btn-neutral" title="Calcam Settings" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>

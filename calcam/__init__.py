@@ -25,7 +25,7 @@ CalCam package.
 """
 
 # Calcam version
-__version__ = '2.2.3'
+__version__ = '2.3.0'
 
 
 # Note: We have to import the GUI module before anything
@@ -57,3 +57,4 @@ from .pointpairs import PointPairs
 
 from . import config
 from . import gm
+from . import movement

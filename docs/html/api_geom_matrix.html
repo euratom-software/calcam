@@ -24,27 +24,17 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="genindex.html"/>
-        <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="Calcam  documentation" href="index.html"/>
-        <link rel="next" title="Examples" href="api_examples.html"/>
-        <link rel="prev" title="CAD Models" href="api_cadmodel.html"/> 
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="next" title="Camera Movement Correction" href="api_movement.html" />
+    <link rel="prev" title="CAD Models" href="api_cadmodel.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -61,7 +51,7 @@
 
           
             
-            <img src="_static/logo.png" class="logo" />
+            <img src="_static/logo.png" class="logo" alt="Logo"/>
           
           </a>
 
@@ -69,7 +59,7 @@
             
             
               <div class="version">
-                Version 2.2
+                Version 2.3
               </div>
             
           
@@ -172,6 +162,13 @@
 <li class="toctree-l2"><a class="reference internal" href="gui_settings.html#environment-information">Environment Information</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="gui_movement.html">Camera Movement Determination</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gui_movement.html#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_movement.html#identifying-points">Identifying Points</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_movement.html#calculating-and-checking-the-movement-correction">Calculating and checking the movement correction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui_movement.html#finishing">Finishing</a></li>
+</ul>
+</li>
 </ul>
 <p class="caption"><span class="caption-text">API User Guide</span></p>
 <ul class="current">
@@ -188,11 +185,19 @@
 <li class="toctree-l2"><a class="reference internal" href="#reconstruction-grids">Reconstruction grids</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="api_movement.html">Camera Movement Correction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api_movement.html#background">Background</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_movement.html#determining-camera-movement">Determining Camera Movement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_movement.html#the-movementcorrection-class">The MovementCorrection class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_movement.html#adjusting-calibrations-for-image-movement">Adjusting calibrations for image movement</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="api_examples.html">Examples</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="api_examples.html#mapping-a-magnetic-field-line-on-to-an-image">Mapping a magnetic field line on to an image</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api_examples.html#rendering-camera-view-wireframe">Rendering: camera view wireframe</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api_examples.html#ray-casting">Ray casting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api_examples.html#tomography-geometry-matrices">Tomography Geometry Matrices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_examples.html#camera-movement-correction">Camera Movement Correction</a></li>
 </ul>
 </li>
 </ul>
@@ -222,7 +227,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">Calcam</a>
@@ -230,9 +235,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -586,9 +592,9 @@ plot the grid itself.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>data</strong> (<em>array</em>) &#8211; Data to plot on the grid. Must be a 1D array with as many elements                                               as there are grid cells. If not given, only the grid structure is plotted.</li>
-<li><strong>clim</strong> (<em>sequence</em><em> or </em><em>None</em>) &#8211; 2 element sequence giving the colourmap limits for the data [min,max].                                               If set to None, the data min and max are used.</li>
-<li><strong>cmap</strong> (<em>str</em><em> or </em><em>None</em>) &#8211; Name of the matplotlib colourmap to use to display the data. If not given,                                               matplotlib&#8217;s default colourmap will be used.</li>
-<li><strong>line_colour</strong> (<em>sequence</em><em> or </em><em>None</em>) &#8211; 3-element sequence of values between 0 and 1 specifying the R,G,B                                               colour with which to draw the wall contour and grid cell boundaries.                                               If set to None, the wall and cell boundaries are not drawn.</li>
+<li><strong>clim</strong> (<em>sequence or None</em>) &#8211; 2 element sequence giving the colourmap limits for the data [min,max].                                               If set to None, the data min and max are used.</li>
+<li><strong>cmap</strong> (<em>str or None</em>) &#8211; Name of the matplotlib colourmap to use to display the data. If not given,                                               matplotlib&#8217;s default colourmap will be used.</li>
+<li><strong>line_colour</strong> (<em>sequence or None</em>) &#8211; 3-element sequence of values between 0 and 1 specifying the R,G,B                                               colour with which to draw the wall contour and grid cell boundaries.                                               If set to None, the wall and cell boundaries are not drawn.</li>
 <li><strong>cell_linewidth</strong> (<em>float</em>) &#8211; Line width to use to show the grid cell boundaries. If set to 0, the grid                                               cell boundaries will not be drawn.</li>
 <li><strong>cblabel</strong> (<em>str</em>) &#8211; Label for the data colour bar, if plotting data.</li>
 <li><strong>axes</strong> (<em>matplotlib.pyplot.Axes</em>) &#8211; Matplotlib axes on which to plot. If not given, a new figure will be created.</li>
@@ -641,9 +647,9 @@ plot the grid itself.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>wall_contour</strong> (<em>str</em><em> or </em><em>numpy.ndarray</em>) &#8211; Either the name of a Calcam CAD model                                               from which to use the wall contour, or an                                               N x 2 array of R,Z points defining the machine wall.</li>
+<li><strong>wall_contour</strong> (<em>str or numpy.ndarray</em>) &#8211; Either the name of a Calcam CAD model                                               from which to use the wall contour, or an                                               N x 2 array of R,Z points defining the machine wall.</li>
 <li><strong>cell_size</strong> (<em>float</em>) &#8211; Side length of each grid cell in metres.</li>
-<li><strong>rmin</strong><strong>, </strong><strong>rmax</strong><strong>, </strong><strong>zmin</strong><strong>, </strong><strong>zmax</strong> (<em>floats</em>) &#8211; Optional limits of the grid extent in the R, Z plane.                                               Any combination of these may or may not be given; if none                                               are given the entire wall contour interior is gridded.</li>
+<li><strong>rmin, rmax, zmin, zmax</strong> (<em>floats</em>) &#8211; Optional limits of the grid extent in the R, Z plane.                                               Any combination of these may or may not be given; if none                                               are given the entire wall contour interior is gridded.</li>
 </ul>
 </td>
 </tr>
@@ -669,9 +675,9 @@ generate the grid.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>wall_contour</strong> (<em>str</em><em> or </em><em>numpy.ndarray</em>) &#8211; Either the name of a Calcam CAD model                                               from which to use the wall contour, or an                                               N x 2 array of R,Z points defining the machine wall.</li>
+<li><strong>wall_contour</strong> (<em>str or numpy.ndarray</em>) &#8211; Either the name of a Calcam CAD model                                               from which to use the wall contour, or an                                               N x 2 array of R,Z points defining the machine wall.</li>
 <li><strong>max_cell_scale</strong> (<em>float</em>) &#8211; Approximate maximum allowed length scale for a grid                                               cell, in metres.</li>
-<li><strong>rmin</strong><strong>, </strong><strong>rmax</strong><strong>, </strong><strong>zmin</strong><strong>, </strong><strong>zmax</strong> (<em>floats</em>) &#8211; Optional limits of the grid extent in the R, Z plane.                                               Any combination of these may or may not be given; if none                                               are given the entire wall contour interior is gridded.</li>
+<li><strong>rmin, rmax, zmin, zmax</strong> (<em>floats</em>) &#8211; Optional limits of the grid extent in the R, Z plane.                                               Any combination of these may or may not be given; if none                                               are given the entire wall contour interior is gridded.</li>
 </ul>
 </td>
 </tr>
@@ -697,15 +703,13 @@ This can be used to further control the meshing; see the MeshPy documentation fo
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="api_examples.html" class="btn btn-neutral float-right" title="Examples" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="api_movement.html" class="btn btn-neutral float-right" title="Camera Movement Correction" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="api_cadmodel.html" class="btn btn-neutral" title="CAD Models" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
@@ -717,11 +721,11 @@ This can be used to further control the meshing; see the MeshPy documentation fo
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015-2019, European Atomic Energy Community (EURATOM).
+        &copy; Copyright 2015-2019, European Atomic Energy Community (EURATOM)
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -736,36 +740,34 @@ This can be used to further control the meshing; see the MeshPy documentation fo
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  false,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'./',
+              VERSION:'',
+              LANGUAGE:'en',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  false,
+              SOURCELINK_SUFFIX: ''
+          };
+      </script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
 
   
 
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>

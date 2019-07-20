@@ -39,12 +39,13 @@ import copy
 
 class CoordTransformer:
     
-    def __init__(self,transform_actions=[],orig_x=None,orig_y=None,paspect=1.):
+    def __init__(self,transform_actions=[],orig_x=None,orig_y=None,paspect=1.,offset=(0,0)):
 
 
         self.set_transform_actions(transform_actions)
         self.x_pixels = orig_x
         self.y_pixels = orig_y
+        self.offset = offset
 
         self.pixel_aspectratio = paspect
 
@@ -81,7 +82,10 @@ class CoordTransformer:
         self.x_pixels = int(shape[0])
         self.y_pixels = int(shape[1])
             
-            
+
+    def set_offset(self,x_offset,y_offset):
+
+        self.offset = (x_offset,y_offset)
 
 
     def add_transform_action(self,transform_action):
@@ -231,10 +235,9 @@ class CoordTransformer:
     #           coordinates in the 'display' format image.
     def original_to_display_coords(self,x,y):
 
-
         # Let's not overwrite the input arrays, just in case
-        x_out = np.array(x)
-        y_out = np.array(y) * self.pixel_aspectratio
+        x_out = np.array(x) - self.offset[0]
+        y_out = (np.array(y) - self.offset[1]) * self.pixel_aspectratio
 
         current_pixels = [self.x_pixels,int(self.y_pixels*self.pixel_aspectratio)]
 
@@ -312,7 +315,7 @@ class CoordTransformer:
             x_out = float(x_out)
             y_out = float(y_out)
 
-        return x_out,y_out
+        return x_out + self.offset[0],y_out + self.offset[1]
 
 
     # Return the shape of the 'display' format image.

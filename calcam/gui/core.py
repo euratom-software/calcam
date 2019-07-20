@@ -19,17 +19,16 @@
   permissions and limitations under the Licence.
 '''
 
-# External imports
+# Standard library imports
 import sys
 import os
-import numpy as np
 import traceback
-import inspect
+import webbrowser
+
+# External module imports
+import numpy as np
 import vtk
 import cv2
-import time
-import copy
-import webbrowser
 
 # Calcam imports
 from .. import __path__ as calcampath
@@ -38,14 +37,11 @@ from ..cadmodel import CADModel
 from ..config import CalcamConfig
 from ..calibration import Calibration,Fitter
 from ..pointpairs import PointPairs
-from ..coordtransformer import CoordTransformer
 from .vtkinteractorstyles import CalcamInteractorStyle2D
 from . import qt_wrapper as qt
 from ..misc import ColourCycle,DodgyDict
 
 guipath = os.path.split(os.path.abspath(__file__))[0]
-
-
 
 class CalcamGUIWindow(qt.QMainWindow):
 
@@ -224,8 +220,13 @@ class CalcamGUIWindow(qt.QMainWindow):
     def show_calib_info(self):
 
         if self.manual_exc:
-            self.update_extrinsics()
-        dialog = CalibInfoDialog(self,self.calibration)
+            if self.calibration.view_models[0] is not None:
+                self.update_extrinsics()
+                CalibInfoDialog(self, self.calibration)
+            else:
+                self.show_msgbox('No calibration information to show.')
+        else:
+            CalibInfoDialog(self,self.calibration)
 
     def update_vtk_size(self,vtksize):
 
@@ -337,7 +338,8 @@ class CalcamGUIWindow(qt.QMainWindow):
                 button.setMaximumWidth(80)
                 layout.addWidget(button,row+1,1)
                 fname = qt.QLineEdit()
-                button.clicked.connect(lambda : self.browse_for_file(option['filter'],fname))                
+                fname_filter = option['filter']
+                button.clicked.connect(lambda : self.browse_for_file(fname_filter,fname))
                 if 'default' in option:
                     fname.setText(option['default'])
                 layout.addWidget(fname,row,1)
@@ -431,6 +433,9 @@ class CalcamGUIWindow(qt.QMainWindow):
             
         if 'pixel_aspect' not in newim:
             newim['pixel_aspect'] = 1.
+
+        if 'image_offset' not in newim:
+            newim['image_offset'] = (0.,0.)
 
         self.on_load_image(newim)
         self.statusbar.clearMessage()
@@ -1606,6 +1611,8 @@ class SplitFieldDialog(qt.QDialog):
         self.mask_options.hide()
         self.mask_image = None
         self.points = []
+
+        self.interactor.cursor_size = 0.05
 
         self.update_mask_alpha(self.mask_alpha_slider.value())
             

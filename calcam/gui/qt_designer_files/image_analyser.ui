@@ -30,7 +30,16 @@
        <enum>QFrame::Raised</enum>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_5">
-       <property name="margin">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
         <number>0</number>
        </property>
       </layout>
@@ -127,7 +136,16 @@
               </size>
              </property>
              <layout class="QGridLayout" name="gridLayout_6">
-              <property name="margin">
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
                <number>0</number>
               </property>
              </layout>
@@ -274,21 +292,23 @@
            <item>
             <widget class="QWidget" name="widget_4" native="true">
              <layout class="QGridLayout" name="gridLayout_7">
-              <property name="margin">
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
                <number>0</number>
               </property>
              </layout>
             </widget>
            </item>
            <item>
-            <widget class="QLabel" name="label_15">
-             <property name="text">
-              <string>Filters:</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QCheckBox" name="hist_eq_checkbox">
+            <widget class="QCheckBox" name="enhance_checkbox">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                <horstretch>0</horstretch>
@@ -296,7 +316,7 @@
               </sizepolicy>
              </property>
              <property name="text">
-              <string>Histgram Equalise</string>
+              <string>Apply Image Enhancement</string>
              </property>
             </widget>
            </item>

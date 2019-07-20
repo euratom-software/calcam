@@ -848,6 +848,10 @@ class CADEdit(CalcamGUIWindow):
             old_extent = self.cadmodel.get_extent()
             
         mesh_paths = self.browse_for_mesh(multiple=True)
+
+        if len(mesh_paths) == 0:
+            return
+
         self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
         for mesh_path in mesh_paths:
             init_name = os.path.split(mesh_path)[-1][:-4]

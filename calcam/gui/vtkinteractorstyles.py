@@ -685,6 +685,8 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
         self.focus_changed_callback = focus_changed_callback
         self.refresh_callback = refresh_callback
         self.allow_focus_change = True
+        self.linked_interactors = []
+        self.cursor_size = 0.03
 
     # Do various initial setup things, most of which can't be done at the time of __init__
     def init(self):
@@ -722,6 +724,25 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
         self.image_actor = None
         self.overlay_actor = None
 
+
+    def link_with(self,interactor):
+        self.linked_interactors.append(interactor)
+
+    def unlink_view(self):
+        self.linked_interactors = []
+
+    def sync_view(self):
+
+        scale = self.camera.GetParallelScale()
+        pos = self.camera.GetPosition()
+        focalpoint = self.camera.GetFocalPoint()
+
+        for interactor in self.linked_interactors:
+            interactor.camera.SetParallelScale(scale)
+            interactor.camera.SetPosition(pos)
+            interactor.camera.SetFocalPoint(focalpoint)
+            interactor.zoom_level = self.zoom_level
+            interactor.update_cursor_style()
 
     # Use this image object
     def set_image(self,image,n_subviews=1,subview_lookup=lambda x,y: 0,hold_position=False):
@@ -931,6 +952,9 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
         self.camera.SetParallelScale(self.zoom_ref_scale / self.zoom_level)
         self.update_cursor_style()
 
+        # Update any linked interactors
+        self.sync_view()
+
 
 
 
@@ -954,6 +978,8 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
             self.zoom_level = self.zoom_level - 0.2
             self.camera.SetParallelScale(self.zoom_ref_scale / self.zoom_level)
             self.update_cursor_style()
+
+            self.sync_view()
 
 
 
@@ -987,11 +1013,11 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
                     if self.focus_cursor == cid:
                         colour = (0,0.8,0)
                         linewidth = 3
-                        size = 0.03 * camscale
+                        size = self.cursor_size * camscale
                     else:
                         colour = (0.8,0,0)
                         linewidth = 2
-                        size = size = 0.015 * camscale
+                        size = 0.5*self.cursor_size* camscale
 
                     icursor.SetModelBounds(pos[0]-size,pos[0]+size,pos[1]-size,pos[1]+size,0.0,0.0)
                     cursor['actors'][i].GetProperty().SetColor(colour)
@@ -1033,6 +1059,8 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
 
 
             self.camera.SetParallelScale(self.zoom_ref_scale / self.zoom_level)
+
+            self.sync_view()
         
 
 
@@ -1282,6 +1310,8 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
             # Move image camera
             self.camera.SetPosition((newX, newY,1.))
             self.camera.SetFocalPoint((newX,newY,0.))
+
+            self.sync_view()
 
             if self.refresh_callback is not None:
                 self.refresh_callback()

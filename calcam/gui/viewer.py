@@ -158,6 +158,9 @@ class Viewer(CalcamGUIWindow):
                     try:
                         coords = np.loadtxt(fname,delimiter=delimiter)
                         lines_name = os.path.split(fname)[1].split('.')[0]
+
+                        if len(coords.shape) == 1:
+                            coords = coords[np.newaxis,:]
                     except ValueError:
                         continue
 
@@ -169,18 +172,18 @@ class Viewer(CalcamGUIWindow):
                     coords_dialog = CoordsDialog(self,coords.shape)
                     coords_dialog.exec_()
                     if coords_dialog.result() == 1:
-
+                        
+                        # If the coordinates are in R,Z,phi, convert them to cartesian.
                         if coords_dialog.line_coords_combobox.currentIndex() == 1:
-
                             x = coords[:,0] * np.cos(coords[:,2])
-                            y = coords[:,0] * np.cos(coords[:,2])
+                            y = coords[:,0] * np.sin(coords[:,2])
                             coords[:,2] = coords[:,1]
                             coords[:,0] = x
                             coords[:,1] = y
 
                             if coords.shape[1] == 6:
                                 x = coords[:,3] * np.cos(coords[:,5])
-                                y = coords[:,3] * np.cos(coords[:,5])
+                                y = coords[:,3] * np.sin(coords[:,5])
                                 coords[:,5] = coords[:,4]
                                 coords[:,3] = x
                                 coords[:,4] = y
