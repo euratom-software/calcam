@@ -1495,6 +1495,7 @@ class Calibration():
         if self.geometry.get_display_shape() != images_and_points[0][0].shape[:2][::-1]:
             self.subview_mask = np.zeros(images_and_points[0][0].shape[:2],dtype=np.uint8)
             self.geometry = CoordTransformer(orig_x=self.subview_mask.shape[1],orig_y = self.subview_mask.shape[0])
+            self.pixel_size = None
 
         self.intrinsics_constraints = images_and_points
         self.intrinsics_type = 'chessboard'
@@ -1731,7 +1732,7 @@ class Calibration():
         '''
         # Header
         if self._type == 'fit':
-            msg =  'Calcam Point Pair Fiting Calibration'
+            msg =  'Calcam Point Pair Fitting Calibration'
         elif self._type == 'alignment':
             msg =  'Calcam Manual Alignment Calibration'
         elif self._type == 'virtual':

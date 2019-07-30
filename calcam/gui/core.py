@@ -96,8 +96,8 @@ class CalcamGUIWindow(qt.QMainWindow):
 
 
         # Auto type views
-        item = qt.QTreeWidgetItem(self.views_root_auto,['Vertical cross-section'])
-        item = qt.QTreeWidgetItem(self.views_root_auto,['Horizontal cross-section'])
+        qt.QTreeWidgetItem(self.views_root_auto,['Vertical cross-section'])
+        qt.QTreeWidgetItem(self.views_root_auto,['Horizontal cross-section'])
 
         self.viewlist.addTopLevelItem(self.views_root_model)
         self.viewlist.addTopLevelItem(self.views_root_auto)
@@ -234,9 +234,14 @@ class CalcamGUIWindow(qt.QMainWindow):
 
 
 
-    def update_chessboard_intrinsics(self):
+    def update_chessboard_intrinsics(self,pass_calib=True):
 
-        dialog = ChessboardDialog(self,modelselection=True,calibration=self.calibration)
+        if pass_calib:
+            cal = self.calibration
+        else:
+            cal = None
+
+        dialog = ChessboardDialog(self,modelselection=True,calibration=cal)
         dialog.exec_()
 
         if dialog.results != []:
