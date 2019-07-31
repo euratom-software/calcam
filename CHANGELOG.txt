@@ -1,6 +1,19 @@
 Calcam Changelog
 ================
 
+Patch 2.3.1 (30 Jul 2019)
+--------------------------
+
+Fixes:
+* Fix image_enhancement.enhance_image() not working properly with 16-bit images.
+* Fix slightly broken layout of chessboard image dialog box.
+* Fix various typos in docs (both standalone and docstrings).
+* Tweaks to exception messages.
+* Manual movement correction diaglog now auto-sizes based on screen resolution like other GUIs.
+* Chessboard images loaded in virtual calibration editor now define the sensor size, instead of being checked for consistency with the pinhole model pixel dimensions.
+* Remove surplus debug print statements.
+
+
 
 Point Release 2.3.0 (20 Jul 2019)
 ---------------------------------

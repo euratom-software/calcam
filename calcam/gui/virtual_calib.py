@@ -145,7 +145,7 @@ class VirtualCalib(CalcamGUIWindow):
                 if self.intrinsics_calib is not None:
                     if len(self.intrinsics_calib.view_models) != 1:
                         self.intrinsics_calib = None
-                        raise UserWarning('This calibration has multiple sub-fields; no worky; sorry.')
+                        raise UserWarning('This calibration has multiple sub-fields, but only single sub-field views are supported in virtual calibrations. Sorry.')
                         self.current_intrinsics_combobox.setChecked(True)
                     else:
                         self.calibration.set_calib_intrinsics(self.intrinsics_calib,update_hist_recursion = not (self.intrinsics_calib is self.calibration) )
@@ -185,7 +185,7 @@ class VirtualCalib(CalcamGUIWindow):
             self.focal_length_box.setEnabled(False)
 
             if self.chessboard_fit is None:
-                self.update_chessboard_intrinsics()
+                self.update_chessboard_intrinsics(pass_calib=False)
                 if self.chessboard_fit is None:
                     self.current_intrinsics_combobox.setChecked(True)
                 return
@@ -221,6 +221,14 @@ class VirtualCalib(CalcamGUIWindow):
             self.resize(size.width()+1,size.height())
             self.refresh_3d()
             self.resize(size.width(),size.height())
+
+
+        # For a reason I don't fully understand, to avoid having partly non-updating
+        # drawing in the VTK frame if the aspect ratio is changed, we have to resize
+        # the window. So resize and and un-resize it again.
+        winsize = self.size()
+        self.resize(winsize.width()+1,winsize.height())
+        self.resize(winsize.width(),winsize.height())
 
         self.refresh_3d()
         self.unsaved_changes = True

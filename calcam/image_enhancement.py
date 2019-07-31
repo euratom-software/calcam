@@ -57,7 +57,7 @@ def enhance_image(image,target_msb=25,target_noise=500,tiles=(20,20),downsample=
 
     # Make sure we have an 8-bit unisnged int image.
     if image.dtype != np.uint8:
-            image = 255 * image / image.max()
+            image = 255 * image.astype(np.float32) / image.max()
             image = image.astype(np.uint8)
 
 
@@ -107,11 +107,6 @@ def enhance_image(image,target_msb=25,target_noise=500,tiles=(20,20),downsample=
 
         best_strength = tan_shape(target_noise,*tanparams)
 
-        #plt.plot(noise,test_strengths,'o')
-        #nn = np.linspace(5,2000,500)
-        #plt.plot(nn, tan_shape(nn,*tanparams))
-        #plt.show()
-
         if best_strength > 0:
             result = cv2.fastNlMeansDenoising(result,h=best_strength,searchWindowSize=nlm_win_size)
     if mono:
@@ -119,7 +114,7 @@ def enhance_image(image,target_msb=25,target_noise=500,tiles=(20,20),downsample=
     else:
         image_lab[:,:,0] = result
         result = cv2.cvtColor(image_lab,cv2.COLOR_LAB2RGB)
-    print(result.dtype)
+
     return result
 
 

@@ -1,6 +1,6 @@
-=============================
-Genral Introduction to Calcam
-=============================
+==============================
+General Introduction to Calcam
+==============================
 
 Calcam is a Python package providing tools for for spatial calibration of cameras, i.e. mapping between points in a camera image and points and sight-lines in 3D space. It was written primarily for use with camera-based diagnostics on fusion experiments, but may be useful for other applications too. The package provides a GUI application for performing calibrations and a Python API for working with calibration results programatically. As well as calibrating real cameras, it can also be used as part of a synthetic diagnostic setup e.g. to define synthetic camera diagnostics for creating synthetic diagnostic images from plasma simulations, or for aiding in designing viewing geometries for camera diagnostics.
 

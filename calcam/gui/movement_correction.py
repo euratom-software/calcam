@@ -50,6 +50,15 @@ class ImageAlignDialog(qt.QDialog):
         qt.uic.loadUi(os.path.join(guipath,'qt_designer_files','movement_corr_dialog.ui'), self)
         self.setWindowIcon(qt.QIcon(os.path.join(guipath, 'icons', 'calcam.png')))
 
+        # See how big the screen is and open the window at an appropriate size
+        desktopinfo = self.app.desktop()
+        available_space = desktopinfo.availableGeometry(self)
+
+        # Open the window with same aspect ratio as the screen, and no fewer than 500px tall.
+        win_height = min(780,0.75*available_space.height())
+        win_width = win_height * available_space.width() / available_space.height()
+        self.resize(win_width,win_height)
+
         self.qvtkwidget_ref = qt.QVTKRenderWindowInteractor(self.ref_frame)
         self.ref_frame.layout().addWidget(self.qvtkwidget_ref)
         self.interactor_ref = CalcamInteractorStyle2D(refresh_callback=self.refresh,newpick_callback = lambda x: self.new_point('ref',x),focus_changed_callback=lambda x: self.change_point_focus('ref',x))
