@@ -236,8 +236,8 @@ class CoordTransformer:
     def original_to_display_coords(self,x,y):
 
         # Let's not overwrite the input arrays, just in case
-        x_out = np.array(x) - self.offset[0]
-        y_out = (np.array(y) - self.offset[1]) * self.pixel_aspectratio
+        x_out = np.array(x)
+        y_out = np.array(y) * self.pixel_aspectratio
 
         current_pixels = [self.x_pixels,int(self.y_pixels*self.pixel_aspectratio)]
 
@@ -315,7 +315,7 @@ class CoordTransformer:
             x_out = float(x_out)
             y_out = float(y_out)
 
-        return x_out + self.offset[0],y_out + self.offset[1]
+        return x_out,y_out
 
 
     # Return the shape of the 'display' format image.

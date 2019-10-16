@@ -76,7 +76,8 @@ def enhance_image(image,target_msb=25,target_noise=500,tiles=(20,20),downsample=
     else:
         target_noise = target_noise * 2
 
-    image = cv2.medianBlur(image,ksize=3)
+    if min(image.shape) > 512:
+        image = cv2.medianBlur(image,ksize=3)
 
     test_clip_lims = [1.,5.,10.]
     contrast = []
@@ -94,7 +95,7 @@ def enhance_image(image,target_msb=25,target_noise=500,tiles=(20,20),downsample=
     starting_noise = cv2.Laplacian(image,cv2.CV_64F).var()
     nlm_win_size = int(np.mean([image.shape[0] / 100, image.shape[1] / 100]))
 
-    if starting_noise > target_noise and nlm_win_size > 1:
+    if starting_noise > target_noise and nlm_win_size > 1 and min(image.shape) > 512:
         test_strengths = [1.,10.,20.,30.]
 
         noise = []

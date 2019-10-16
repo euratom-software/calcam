@@ -393,6 +393,7 @@ class Calibration():
         self.pixel_size = None
         self.readonly = None
         self.filename = None
+        self.crop = None
         self.geometry = CoordTransformer()
 
         # Load calibration from disk if requested.
@@ -454,6 +455,75 @@ class Calibration():
             self.history['pointpairs'][1] = None
         else:
             self.history['pointpairs'][1] = 'Last modified by {:s} on {:s} at {:s}'.format(misc.username,misc.hostname,misc.get_formatted_time())
+
+
+    def set_crop(self,*args):
+        '''
+        Specify a different detector region for analysis than was used to perform
+        the calibration. Useful for example if a CMOS camera has been calibrated
+        over the full frame, but you now want to use this calibration for data which
+        has been cropped.
+
+        Calling this function with `None` as the single argument sets the calibration
+        back to its original state. Otherwise, the parameters are the coordinates of the
+        cropped image relative to the full detector.
+
+        Window coordinates must always be in original coordinates.
+
+        Parameters:
+
+            left (int)   : Full-frame x pixel coordinate of the top-left corner of the crop region
+            top (int)    : Full-frame y pixel coordinate of the top-left corner of the crop region
+            width (int)  : Width of crop region in pixels
+            height (int) : Height of crop region in pixels
+        '''
+        if len(args) == 1 and args[0] is None:
+            # Clear any offset and height overrides
+            raise NotImplementedError()
+
+        elif len(args) == 4:
+
+            if self.crop is not None:
+                self.set_crop(None)
+
+            if self.n_subviews == 1:
+
+                # Change the image shape that the coord transformer is expecting
+                self.geometry.x_pixels = args[2]
+                self.geometry.y_pixels = args[3]
+
+                self.set_subview_mask(np.zeros((args[3],args[2]),dtype='uint8'),coords='Original')
+            else:
+                orig_shape = self.geometry.get_original_shape()
+
+                if args[0] < self.geometry.offset[0] or args[1] < self.geometry.offset[1] or args[0] + args[2] > self.geometry.offset[0] + orig_shape[0] or args[1] + args[3] > self.geometry.offset[1] + orig_shape[1]:
+                    raise Exception('Requested crop exceeds the bounds of the original calibration. This is not possible for calibrations with multiple sub-views.')
+
+                orig_subview_mask = self.get_subview_mask(coords='Original')
+
+                # Change the image shape that the coord transformer is expecting
+                self.geometry.x_pixels = args[2]
+                self.geometry.y_pixels = args[3]
+
+
+                orig_subview_mask = orig_subview_mask[args[1] - self.geometry.offset[1]:args[1] - self.geometry.offset[1] + args[3],args[0] - self.geometry.offset[0]:args[0] - self.geometry.offset[0] + args[2]]
+                self.set_subview_mask(orig_subview_mask,coords='Original')
+
+            self.crop = copy.deepcopy(args)
+
+            # Shift the optical centre of the calibration according to the crop
+            for model in self.view_models:
+                modeldat = model.get_dict()
+                orig_cx,orig_cy = self.geometry.display_to_original_coords(modeldat['cx'],modeldat['cy'])
+                cx = orig_cx + (self.geometry.offset[0] - self.crop[0])
+                cy = orig_cy + (self.geometry.offset[1] - self.crop[1])
+                new_cx,new_cy = self.geometry.original_to_display_coords(cx,cy)
+                modeldat['cx'] = new_cx
+                modeldat['cy'] = new_cy
+                model.load_from_dict(modeldat)
+
+        else:
+            raise ValueError('Cannot understand number of arguments: expected None or left,top,width,height')
 
 
 
@@ -1955,7 +2025,38 @@ class Calibration():
                 vectors[iy,ix] = Vector3D(*viewdirs[iy,ix,:])   
         
         return VectorCamera(origins.T,vectors.T)
-        
+
+
+    def fullframe_meshgrid(self,coords,binning=1,expand=False):
+        '''
+        Get x and y coordinate arrays corresponding to the full image.
+
+        Parameters:
+            coords (str)    : Either ``Display`` or ``Original`` specifying \
+                              the orientation of the raysect camera.
+
+            binning (float) : Pixel binning.
+
+            expand (bool)   : For calibrations of cropped images, whether to \
+                              return the coordinates for the full chip (i.e. \
+                              expand beyond the original calibration scope).
+
+        Returns:
+            (tuple of np.ndarray) : 2D arrays of X and Y coordinates.
+        '''
+        if coords.lower() == 'display':
+            shape = self.geometry.get_display_shape()
+            xl = np.linspace( (binning-1.)/2,float(shape[0]-1)-(binning-1.)/2,(1+float(shape[0]-1))/binning)
+            yl = np.linspace( (binning-1.)/2,float(shape[1]-1)-(binning-1.)/2,(1+float(shape[1]-1))/binning)
+            x,y = np.meshgrid(xl,yl)
+        else:
+            shape = self.geometry.get_original_shape()
+            xl = np.linspace( (binning-1.)/2,float(shape[0]-1)-(binning-1.)/2,(1+float(shape[0]-1))/binning) + self.geometry.offset[0]
+            yl = np.linspace( (binning-1.)/2,float(shape[1]-1)-(binning-1.)/2,(1+float(shape[1]-1))/binning) + self.geometry.offset[1]
+            x,y = np.meshgrid(xl,yl)
+
+        return x,y
+
 
 # The 'fitter' class 
 class Fitter:

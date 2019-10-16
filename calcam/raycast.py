@@ -112,37 +112,26 @@ def raycast_sightlines(calibration,cadmodel,x=None,y=None,binning=1,coords='Disp
     fullchip = False
     if x is None and y is None:
         fullchip = True
-        if coords.lower() == 'display':
-            shape = calibration.geometry.get_display_shape()
-            xl = np.linspace( (binning-1.)/2,float(shape[0]-1)-(binning-1.)/2,(1+float(shape[0]-1))/binning)
-            yl = np.linspace( (binning-1.)/2,float(shape[1]-1)-(binning-1.)/2,(1+float(shape[1]-1))/binning)
-            x,y = np.meshgrid(xl,yl)
-        else:
-            shape = calibration.geometry.get_original_shape()
-            xl = np.linspace( (binning-1.)/2,float(shape[0]-1)-(binning-1.)/2,(1+float(shape[0]-1))/binning)
-            yl = np.linspace( (binning-1.)/2,float(shape[1]-1)-(binning-1.)/2,(1+float(shape[1]-1))/binning)
-            x,y = np.meshgrid(xl,yl)
-            x,y = calibration.geometry.original_to_display_coords(x,y)
-        valid_mask = np.ones(x.shape,dtype=bool)
+        x,y = calibration.fullframe_meshgrid(coords=coords)
+
     elif x is None or y is None:
         raise ValueError('Either both or none of x and y pixel coordinates must be given!')
-    else:
 
-        if np.array(x).ndim == 0:
-            x = np.array([x])
-        else:
-            x = np.array(x)
-   		
-        if np.array(y).ndim == 0:
-            y = np.array([y])
-        else:
-            y = np.array(y)
-   	
-        if x.shape != y.shape:
-            raise ValueError('x and y arrays must be the same shape!')
-        valid_mask = np.logical_and(np.isnan(x) == 0 , np.isnan(y) == 0 )
-        if coords.lower() == 'original':
-            x,y = calibration.geometry.original_to_display_coords(x,y)
+
+    if np.array(x).ndim == 0:
+        x = np.array([x])
+    else:
+        x = np.array(x)
+    if np.array(y).ndim == 0:
+        y = np.array([y])
+    else:
+        y = np.array(y)
+    if x.shape != y.shape:
+        raise ValueError('x and y arrays must be the same shape!')
+
+    valid_mask = np.logical_and(np.isnan(x) == 0 , np.isnan(y) == 0 )
+    if coords.lower() == 'original':
+        x,y = calibration.geometry.original_to_display_coords(x,y)
 
     results = RayData()
     

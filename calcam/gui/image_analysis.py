@@ -333,12 +333,15 @@ class ImageAnalyser(CalcamGUIWindow):
             if self.image is not None:
                 self.image_geometry.pixel_aspectratio = opened_calib.geometry.pixel_aspectratio
                 self.image_geometry.set_transform_actions(opened_calib.geometry.transform_actions)
-                #imshape = np.array(self.image.shape[1::-1])
-                #if np.all(imshape == opened_calib.geometry.get_original_shape()):
-                #    self.image = opened_calib.geometry.original_to_display_image(self.image)
-                #elif not np.all(imshape == opened_calib.geometry.get_display_shape()):
-                #    raise UserWarning('The selected calibration is for a different shape image ({:d}x{:d}) from the loaded image ({:d}x{:d})!'.format(opened_calib.geometry.get_display_shape()[0],opened_calib.geometry.get_display_shape()[1],imshape[0],imshape[1]))
-                
+                self.image_geometry.x_pixels = opened_calib.geometry.x_pixels
+                self.image_geometry.y_pixels = opened_calib.geometry.y_pixels
+                imshape = np.array(self.image.shape[::-1][-2:])
+                if np.all(imshape == np.array(opened_calib.geometry.get_display_shape())):
+                    self.image = opened_calib.geometry.display_to_original_image(self.image)
+
+                elif not np.all(imshape == np.array(opened_calib.geometry.get_original_shape())):
+                    raise UserWarning('The selected calibration is for a different shape image ({:d}x{:d}) from the loaded image ({:d}x{:d})!'.format(opened_calib.geometry.get_display_shape()[0],opened_calib.geometry.get_display_shape()[1],imshape[0],imshape[1]))
+
             self.calibration = opened_calib
             self.calib_name.setText(os.path.split(self.calibration.filename)[1].replace('.ccc',''))
             self.cal_props_button.setEnabled(True)
