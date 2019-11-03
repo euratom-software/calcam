@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                Version 2.3
+                Version 2.4
               </div>
             
           
@@ -294,7 +294,7 @@
 <p>Calcam can try to detect the movement between two images automatically, or there is a GUI tool which allows manual feature matching by the user or automatic detection but user validation.</p>
 <dl class="function">
 <dt id="calcam.movement.detect_movement">
-<code class="descclassname">calcam.movement.</code><code class="descname">detect_movement</code><span class="sig-paren">(</span><em>ref</em>, <em>moved</em>, <em>ref_points=None</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.movement.detect_movement" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">calcam.movement.</code><code class="descname">detect_movement</code><span class="sig-paren">(</span><em>ref</em>, <em>moved</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.movement.detect_movement" title="Permalink to this definition">¶</a></dt>
 <dd><p>Attempt to auto-detect image movement between two images and return a
 MovementCorrection object representing the movement. If the movement cannot
 be successfully determined, raises calcam.movement.DetectionFailedError</p>
@@ -305,7 +305,6 @@ be successfully determined, raises calcam.movement.DetectionFailedError</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>ref</strong> (<em>np.ndarray or calcam.Calibration</em>) &#8211; Reference image or calibration to align to. This can                                                     be either an array containg a refrence image, or a                                                     calcam calibrationn containing an image.</li>
 <li><strong>moved</strong> (<em>np.ndarray or calcam.Calibration</em>) &#8211; Moved image or calibration to align. This can                                                     be either an array containg a refrence image, or a                                                     calcam calibrationn containing an image.</li>
-<li><strong>ref_points</strong> (<em>np.ndarray</em>) &#8211; N x 2 array of (x,y) pixel coordinates defining points                                                    to try and track. If None (default), points are auto-identified.</li>
 </ul>
 </td>
 </tr>

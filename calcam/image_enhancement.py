@@ -31,7 +31,7 @@ import cv2
 import numpy as np
 from scipy.optimize import curve_fit
 
-def enhance_image(image,target_msb=25,target_noise=500,tiles=(20,20),downsample=False):
+def enhance_image(image,target_msb=25,target_noise=500,tiles=(20,20),downsample=False,median=False,bilateral=False):
     """
     Enhance details in a given image. Used both for visual enhancement
     in the Calcam GUIs and as a pre-processing step for automatic camera
@@ -57,8 +57,8 @@ def enhance_image(image,target_msb=25,target_noise=500,tiles=(20,20),downsample=
 
     # Make sure we have an 8-bit unisnged int image.
     if image.dtype != np.uint8:
-            image = 255 * image.astype(np.float32) / image.max()
-            image = image.astype(np.uint8)
+        image = 255 * image.astype(np.float32) / image.max()
+        image = image.astype(np.uint8)
 
 
     if len(image.shape) > 2:
@@ -76,7 +76,7 @@ def enhance_image(image,target_msb=25,target_noise=500,tiles=(20,20),downsample=
     else:
         target_noise = target_noise * 2
 
-    if min(image.shape) > 512:
+    if median:
         image = cv2.medianBlur(image,ksize=3)
 
     test_clip_lims = [1.,5.,10.]
@@ -91,7 +91,9 @@ def enhance_image(image,target_msb=25,target_noise=500,tiles=(20,20),downsample=
     else:
         result = image.copy()
 
-    #result = cv2.bilateralFilter(result,d=-1,sigmaColor=25,sigmaSpace=25)
+    if bilateral:
+        result = cv2.bilateralFilter(result,d=-1,sigmaColor=25,sigmaSpace=25)
+
     starting_noise = cv2.Laplacian(image,cv2.CV_64F).var()
     nlm_win_size = int(np.mean([image.shape[0] / 100, image.shape[1] / 100]))
 

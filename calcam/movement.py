@@ -97,8 +97,8 @@ def find_pointpairs(ref_image,image):
 
     """
     # Enhance the images and ensure they're in the correct format
-    ref_image = enhance_image(ref_image,downsample=True)
-    image = enhance_image(image,downsample=True)
+    ref_image = enhance_image(ref_image,downsample=True,median=True,bilateral=True)
+    image = enhance_image(image,downsample=True,median=True,bilateral=True)
 
     # Does this work in all cases?
     ref_image = ref_image.astype(np.uint8)

@@ -206,8 +206,8 @@ class ImageAnalyser(CalcamGUIWindow):
             image_pos = self.calibration.project_points([coords_3d],check_occlusion_with=self.cadmodel,occlusion_tol=1e-2,coords='original')
 
             for i in range(len(image_pos)):
-                image_pos[i][0][:] = self.image_geometry.original_to_display_coords(*image_pos[i][0])
-                image_pos_nocheck[i][0][:] = self.image_geometry.original_to_display_coords(*image_pos_nocheck[i][0])
+                image_pos[i][0][:] = self.calibration.geometry.original_to_display_coords(*image_pos[i][0])
+                image_pos_nocheck[i][0][:] = self.calibration.geometry.original_to_display_coords(*image_pos_nocheck[i][0])
 
                 if np.any(np.isnan(image_pos_nocheck[i])):
                     visible[i] = False
@@ -314,8 +314,7 @@ class ImageAnalyser(CalcamGUIWindow):
         if self.calibration is not None and self.image is not None and self.cadmodel is not None:
             for i,coords in enumerate(coords_2d):
                 if coords is not None and np.any(coords != self.coords_2d[i]):
-                    coords = self.image_geometry.display_to_original_coords(*coords)
-                    raydata = raycast_sightlines(self.calibration,self.cadmodel,coords[0],coords[1],coords='Original')
+                    raydata = raycast_sightlines(self.calibration,self.cadmodel,coords[0],coords[1],coords='Display')
                     self.update_from_3d(raydata.ray_end_coords[0,:])
                     return
 
@@ -331,16 +330,9 @@ class ImageAnalyser(CalcamGUIWindow):
                 raise UserWarning('The selected calibration file does not contain a full set of calibration parameters. Only calibration files containing all calibration parameters can be used.')
             
             if self.image is not None:
-                self.image_geometry.pixel_aspectratio = opened_calib.geometry.pixel_aspectratio
-                self.image_geometry.set_transform_actions(opened_calib.geometry.transform_actions)
-                self.image_geometry.x_pixels = opened_calib.geometry.x_pixels
-                self.image_geometry.y_pixels = opened_calib.geometry.y_pixels
-                imshape = np.array(self.image.shape[::-1][-2:])
-                if np.all(imshape == np.array(opened_calib.geometry.get_display_shape())):
-                    self.image = opened_calib.geometry.display_to_original_image(self.image)
 
-                elif not np.all(imshape == np.array(opened_calib.geometry.get_original_shape())):
-                    raise UserWarning('The selected calibration is for a different shape image ({:d}x{:d}) from the loaded image ({:d}x{:d})!'.format(opened_calib.geometry.get_display_shape()[0],opened_calib.geometry.get_display_shape()[1],imshape[0],imshape[1]))
+                ioshape = self.image_geometry.get_original_shape()
+                opened_calib.set_detector_window(self.image_geometry.offset[0],self.image_geometry.offset[1],ioshape[0],ioshape[1])
 
             self.calibration = opened_calib
             self.calib_name.setText(os.path.split(self.calibration.filename)[1].replace('.ccc',''))
@@ -350,7 +342,11 @@ class ImageAnalyser(CalcamGUIWindow):
             self.reset_view_button.setEnabled(True)
             self.overlay = None
 
-            self.interactor2d.set_image(self.image_geometry.original_to_display_image(self.image))
+            if self.enhance_checkbox.isChecked():
+                self.interactor2d.set_image(enhance_image(self.calibration.geometry.original_to_display_image(self.image)))
+            else:
+                self.interactor2d.set_image(self.calibration.geometry.original_to_display_image(self.image))
+
             self.interactor2d.set_subview_lookup(self.calibration.n_subviews,self.calibration.subview_lookup)
 
             if opened_calib.cad_config is not None:
@@ -487,29 +483,27 @@ class ImageAnalyser(CalcamGUIWindow):
 
         self.image_geometry = CoordTransformer(offset=newim['image_offset'])
         self.image_geometry.set_image_shape(newim['image_data'].shape[1],newim['image_data'].shape[0],coords=newim['coords'])
+        self.image_geometry.set_transform_actions(newim['transform_actions'])
 
         if self.calibration is not None:
 
-            self.image_geometry.set_transform_actions(self.calibration.geometry.transform_actions)
-            self.image_geometry.pixel_aspectratio = self.calibration.geometry.pixel_aspectratio
-
-            #imshape = image.shape[1::-1]
-            #if np.all(imshape == self.calibration.geometry.get_display_shape()):
-            #    self.image = image
-            #elif np.all(imshape == self.calibration.geometry.get_original_shape()):
-            #    self.image = self.calibration.geometry.original_to_display_image(image)
-            #else:
-            #    self.image = image
-            #    self.unload_calib()
-            #    self.show_msgbox('The current calibration is for a different shaped image.','You will need to load a different calibration for this image.')
+            ioshape = self.image_geometry.get_original_shape()
+            self.calibration.set_detector_window(self.image_geometry.offset[0],self.image_geometry.offset[1],ioshape[0],ioshape[1])
 
 
         if newim['coords'].lower() == 'original':
             self.image = image
         else:
-            self.image = self.image_geometry.display_to_original_image(image)
+            self.image = self.calibration.geometry.display_to_original_image(image)
 
-        self.interactor2d.set_image(self.image_geometry.original_to_display_image(self.image))
+        try:
+            transformer = self.calibration.geometry
+        except AttributeError:
+            transformer = self.image_geometry
+
+
+        self.interactor2d.set_image(transformer.original_to_display_image(self.image))
+
 
         if self.calibration is not None:
             self.interactor2d.set_subview_lookup(self.calibration.n_subviews,self.calibration.subview_lookup)
@@ -521,7 +515,7 @@ class ImageAnalyser(CalcamGUIWindow):
             self.enhance_checkbox.setChecked(True)
 
         
-        self.update_image_info_string(self.image,self.image_geometry)
+        self.update_image_info_string(self.image,transformer)
         self.app.restoreOverrideCursor()
         self.statusbar.clearMessage()
 
@@ -597,7 +591,12 @@ class ImageAnalyser(CalcamGUIWindow):
         else:
             image = self.image
 
-        self.interactor2d.set_image(self.image_geometry.original_to_display_image(image),hold_position=True)
+        if self.calibration is not None:
+            transformer = self.calibration.geometry
+        else:
+            transformer = self.image_geometry
+
+        self.interactor2d.set_image(transformer.original_to_display_image(image),hold_position=True)
         if self.calibration is not None:
             self.interactor2d.set_subview_lookup(self.calibration.n_subviews,self.calibration.subview_lookup)
 

@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                Version 2.3
+                Version 2.4
               </div>
             
           
@@ -537,6 +537,33 @@ fit. Note: this function does not work with fisheye calibrations.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="calcam.Calibration.set_detector_window">
+<code class="descname">set_detector_window</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.Calibration.set_detector_window" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adjust the calibration to apply to a different detector region for than was used
+to perform the calibration. Useful for example if a CMOS camera has been calibrated
+over the full frame, but you now want to use this calibration for data which
+has been cropped.</p>
+<p>Calling this function with <cite>None</cite> as the single argument sets the calibration
+back to its &#8220;native&#8221; state. Otherwise, the parameters are the coordinates of the
+cropped detector region relative to the full detector.</p>
+<p>Detector window coordinates must always be in original coordinates.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>left</strong> (<em>int</em>) &#8211; Full-frame x pixel coordinate of the top-left corner of the crop region</li>
+<li><strong>top</strong> (<em>int</em>) &#8211; Full-frame y pixel coordinate of the top-left corner of the crop region</li>
+<li><strong>width</strong> (<em>int</em>) &#8211; Width of crop region in pixels</li>
+<li><strong>height</strong> (<em>int</em>) &#8211; Height of crop region in pixels</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="calcam.Calibration.set_extrinsics">
 <code class="descname">set_extrinsics</code><span class="sig-paren">(</span><em>campos</em>, <em>upvec=None</em>, <em>camtar=None</em>, <em>view_dir=None</em>, <em>cam_roll=None</em>, <em>src=None</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.Calibration.set_extrinsics" title="Permalink to this definition">¶</a></dt>
 <dd><p>Manually set the camera extrinsic parameters.
@@ -682,11 +709,39 @@ It can also be used to save and load ray cast results to disk.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>x,y</strong> (<em>array-like</em>) &#8211; x and y pixel coordinates at which to get the ray directions.                                       If not specified, the ray directions of every sight-line are returned.</li>
 <li><strong>im_position_tol</strong> (<em>float</em>) &#8211; If x and y are specified but no sight-line was cast at exactly the                                       input coordinates, the nearest casted sight-line will be returned                                       instead provided the pixel coordinates wre within this many pixels of                                       the requested coordinates.</li>
-<li><strong>coords</strong> (<em>str</em>) &#8211; Either <code class="docutils literal"><span class="pre">Display</span></code> or <code class="docutils literal"><span class="pre">Coords</span></code>, specifies what orientation the input x                                       and y correspond to or orientation of the returned array.</li>
+<li><strong>coords</strong> (<em>str</em>) &#8211; Either <code class="docutils literal"><span class="pre">Display</span></code> or <code class="docutils literal"><span class="pre">Original</span></code>, specifies what orientation the input x                                       and y correspond to or orientation of the returned array.</li>
 </ul>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Array containing the sight-line directions. If the ray cast was for the                                       full detector and x and y are not specified, the array shape will be                                       (h x w x 3) where w nd h are the image width and height. Otherwise it will                                       be the same shape as the input x and y coordinates plus an extra dimension.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">np.ndarray</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="calcam.RayData.get_ray_end">
+<code class="descname">get_ray_end</code><span class="sig-paren">(</span><em>x=None</em>, <em>y=None</em>, <em>im_position_tol=1</em>, <em>coords='Display'</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData.get_ray_end" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the 3D x,y,z coordinates where the casted rays / sightlines intersect the CAD model.</p>
+<p>Note: it is advised to use this function rather than accessing the <cite>ray_end_coords</cite>
+attribute of the object directly because this function will respect any image cropping
+applied using the set_detector_window() method.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x,y</strong> (<em>array-like</em>) &#8211; Image pixel coordinates at which to get the sight-line end coordinates.                                      If not specified, the end coordinates of all casted sight lines will be returned.</li>
+<li><strong>im_position_tol</strong> (<em>float</em>) &#8211; If x and y are specified but no sight-line was cast at exactly the                                       input coordinates, the nearest casted sight-line will be returned                                       instead provided the pixel coordinates wre within this many pixels of                                       the requested coordinates.</li>
+<li><strong>coords</strong> (<em>str</em>) &#8211; Either <code class="docutils literal"><span class="pre">Display</span></code> or <code class="docutils literal"><span class="pre">Coords</span></code>, specifies what orientation the input x                                       and y correspond to or orientation of the returned array.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">An array containing the 3D coordinates, in metres, of the points where                                      each sight line intersects the CAD model. If x and y coordinates were                                       given either to this function or to calcam.raycast_sightlines(), the shape of                                       this array is the same as the input x and y arrays with an additional                                       dimension added which contains the  [X,Y,Z] 3D coordinates. Otherwise the shape                                      is (h x w x 3) where w and h are the image width and height (in display coords).</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">np.ndarray</p>
@@ -721,22 +776,38 @@ It can also be used to save and load ray cast results to disk.</p>
 </table>
 </dd></dl>
 
+<dl class="method">
+<dt id="calcam.RayData.get_ray_start">
+<code class="descname">get_ray_start</code><span class="sig-paren">(</span><em>x=None</em>, <em>y=None</em>, <em>im_position_tol=1</em>, <em>coords='Display'</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData.get_ray_start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the 3D x,y,z coordinates of the &#8220;start&#8221; of the casted rays / sightlines.</p>
+<p>Note: it is advised to use this function rather than accessing the <cite>ray_start_coords</cite>
+attribute of the object directly because this function will respect any image cropping
+applied using the set_detector_window() method.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x,y</strong> (<em>array-like</em>) &#8211; Image pixel coordinates at which to get the sight-line start coordinates.                                      If not specified, the start coordinates of all casted sight lines will be returned.</li>
+<li><strong>im_position_tol</strong> (<em>float</em>) &#8211; If x and y are specified but no sight-line was cast at exactly the                                       input coordinates, the nearest casted sight-line will be returned                                       instead provided the pixel coordinates wre within this many pixels of                                       the requested coordinates.</li>
+<li><strong>coords</strong> (<em>str</em>) &#8211; Either <code class="docutils literal"><span class="pre">Display</span></code> or <code class="docutils literal"><span class="pre">Coords</span></code>, specifies what orientation the input x                                       and y correspond to or orientation of the returned array.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">An array containing the 3D coordinates, in metres, of the start of                                       each sight line (i.e. camera pupil position). If x and y coordinates were                                       given either to this function or to calcam.raycast_sightlines(), the shape of                                       this array is the same as the input x and y arrays with an additional                                       dimension added which contains the  [X,Y,Z] 3D coordinates. Otherwise the shape                                      is (h x w x 3) where w and h are the image width and height (in display coords).</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">np.ndarray</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="calcam.RayData.history">
 <code class="descname">history</code><em class="property"> = None</em><a class="headerlink" href="#calcam.RayData.history" title="Permalink to this definition">¶</a></dt>
 <dd><p><em>str</em> &#8211; Human readable description of where the raydata came from.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="calcam.RayData.ray_end_coords">
-<code class="descname">ray_end_coords</code><em class="property"> = None</em><a class="headerlink" href="#calcam.RayData.ray_end_coords" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>np.ndarray</em> &#8211; An array containing the 3D coordinates, in metres, of the points where the sight lines intersect the CAD model. If x and y coordinates were input to raycast_sightlines, the shape of this array is the same as the input x and y arrays with an additional dimension added which contains the [X,Y,Z] 3D coordinates. Otherwise the shape is (h x w x 3) where w and h are the image width and height.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="calcam.RayData.ray_start_coords">
-<code class="descname">ray_start_coords</code><em class="property"> = None</em><a class="headerlink" href="#calcam.RayData.ray_start_coords" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>np.ndarray</em> &#8211; An array containing the 3D coordinates, in metres, of the start of each sight line (i.e. camera pupil position). If x and y coordinates were input to raycast_sightlines, the shape of this array is the same as the input x and y arrays with an additional dimension added which contains the [X,Y,Z] 3D coordinates. Otherwise the shape is (h x w x 3) where w and h are the image width and height.</p>
 </dd></dl>
 
 <dl class="method">
@@ -748,6 +819,33 @@ It can also be used to save and load ray cast results to disk.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>filename</strong> (<em>str</em>) &#8211; File name to save to.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="calcam.RayData.set_detector_window">
+<code class="descname">set_detector_window</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData.set_detector_window" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adjust the raydata to apply to a different detector region for than was used
+to perform the original raycast. Useful for example if a CMOS camera has been calibrated
+over the full frame, but you now want to use this calibration for data which
+has been cropped.</p>
+<p>Calling this function with <cite>None</cite> as the single argument sets the raydata
+back to its &#8220;native&#8221; state. Otherwise, the parameters are the coordinates of the
+cropped detector region relative to the full detector.</p>
+<p>Detector window coordinates must always be in original coordinates.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>left</strong> (<em>int</em>) &#8211; Full-frame x pixel coordinate of the top-left corner of the crop region</li>
+<li><strong>top</strong> (<em>int</em>) &#8211; Full-frame y pixel coordinate of the top-left corner of the crop region</li>
+<li><strong>width</strong> (<em>int</em>) &#8211; Width of crop region in pixels</li>
+<li><strong>height</strong> (<em>int</em>) &#8211; Height of crop region in pixels</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>

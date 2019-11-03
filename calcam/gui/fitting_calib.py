@@ -516,6 +516,9 @@ class FittingCalib(CalcamGUIWindow):
 
         self.interactor2d.set_image(self.calibration.get_image(coords='Display'),n_subviews = self.calibration.n_subviews,subview_lookup = self.calibration.subview_lookup)
 
+        oshape = self.calibration.geometry.get_original_shape()
+        self.detector_window = (int(self.calibration.geometry.offset[0]),int(self.calibration.geometry.offset[1]),int(oshape[0]),int(oshape[1]))
+
         self.image_settings.show()
         if self.enhance_checkbox.isChecked():
             self.enhance_checkbox.setChecked(False)
@@ -568,7 +571,7 @@ class FittingCalib(CalcamGUIWindow):
                         if self.point_pairings[i][1] in pp_to_remove:
                             self.interactor2d.remove_active_cursor(self.point_pairings[i][1])
                             if self.point_pairings[i][0] is not None:
-                                self.interactor3d.remove_active_cursor(self.point_pairings[i][0])
+                                self.interactor3d.remove_cursor(self.point_pairings[i][0])
                             self.point_pairings.remove(self.point_pairings[i])
 
                     self.init_fitting()
@@ -864,10 +867,11 @@ class FittingCalib(CalcamGUIWindow):
                 cursorid_2d = None
                 for j in range(len(pointpairs.image_points[i])):
                     if pointpairs.image_points[i][j] is not None:
-                        if cursorid_2d is None:
-                            cursorid_2d = self.interactor2d.add_active_cursor(pointpairs.image_points[i][j])
-                        else:
-                            self.interactor2d.add_active_cursor(pointpairs.image_points[i][j],add_to=cursorid_2d)
+                        if np.min(pointpairs.image_points[i][j]) >= 0 and pointpairs.image_points[i][j][0] < self.calibration.geometry.get_display_shape()[0] and pointpairs.image_points[i][j][1] < self.calibration.geometry.get_display_shape()[1]:
+                            if cursorid_2d is None:
+                                cursorid_2d = self.interactor2d.add_active_cursor(pointpairs.image_points[i][j])
+                            else:
+                                self.interactor2d.add_active_cursor(pointpairs.image_points[i][j],add_to=cursorid_2d)
 
                 self.point_pairings.append([cursorid_3d,cursorid_2d])
 

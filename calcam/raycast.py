@@ -27,9 +27,9 @@ Written by Scott Silburn
 """
 
 import time
-import sys
 import os
 import random
+import copy
 
 try:
     import vtk
@@ -253,24 +253,7 @@ class RayData:
     def __init__(self,filename=None):
 
         self.ray_end_coords = None
-        '''
-        np.ndarray :An array containing the 3D coordinates, in metres, of the points where \
-        the sight lines intersect the CAD model. If x and y coordinates were \
-        input to raycast_sightlines, the shape of this array is the same as the \
-        input x and y arrays with an additional dimension added which contains the \
-        [X,Y,Z] 3D coordinates. Otherwise the shape is (h x w x 3) where w and h are \
-        the image width and height.
-        '''
-
         self.ray_start_coords = None
-        '''
-        np.ndarray :An array containing the 3D coordinates, in metres, of the start of \
-        each sight line (i.e. camera pupil position). If x and y coordinates were \
-        input to raycast_sightlines, the shape of this array is the same as the \
-        input x and y arrays with an additional dimension added which contains the \
-        [X,Y,Z] 3D coordinates. Otherwise the shape is (h x w x 3) where w and h are \
-        the image width and height.
-        '''
 
         self.history = None
         '''
@@ -283,6 +266,7 @@ class RayData:
         self.x = None
         self.y = None
         self.filename = None
+        self.crop = None
         
         if filename is not None:
             self._load(filename)
@@ -299,6 +283,9 @@ class RayData:
         '''
         if not filename.endswith('.nc'):
             filename = filename + '.nc'
+
+        current_crop = self.crop
+        self.set_detector_window(None)
 			
         f = netcdf_file(filename,'w')
         f.title = 'Calcam v{:s} RayData (ray cast results) file.'.format(calcam_version)
@@ -342,10 +329,13 @@ class RayData:
         else:
             binning.assignValue(0)
 
-        pixelsdim = f.createDimension('pixelsdim',2)
+        f.createDimension('pixelsdim',2)
 
         xpx = f.createVariable('image_original_shape','i4',('pixelsdim',))
         xpx[:] = [self.transform.x_pixels,self.transform.y_pixels]
+
+        offset = f.createVariable('image_offset','i4',('pixelsdim',))
+        offset[:] = self.transform.offset[:]
 
         pixelaspect = f.createVariable('image_original_pixel_aspect','f4',())
         pixelaspect.assignValue(self.transform.pixel_aspectratio)
@@ -356,6 +346,8 @@ class RayData:
         x.units = 'pixels'
         y.units = 'pixels'
         f.close()
+
+        self.set_detector_window(*current_crop)
 
 
 
@@ -381,6 +373,12 @@ class RayData:
         self.transform.pixel_aspectratio = f.variables['image_original_pixel_aspect'].data[()]
 
         try:
+            self.transform.offset = f.variables['image_offset'][:]
+        except KeyError:
+            pass
+
+
+        try:
             self.history = f.history.decode('utf-8')
             self.fullchip = f.fullchip
             if not self.fullchip:
@@ -402,6 +400,258 @@ class RayData:
         self.y = f.variables['PixelYLocation'].data
 
         f.close()
+
+
+    def set_detector_window(self,*args):
+        '''
+        Adjust the raydata to apply to a different detector region for than was used
+        to perform the original raycast. Useful for example if a CMOS camera has been calibrated
+        over the full frame, but you now want to use this calibration for data which
+        has been cropped.
+
+        Calling this function with `None` as the single argument sets the raydata
+        back to its "native" state. Otherwise, the parameters are the coordinates of the
+        cropped detector region relative to the full detector.
+
+        Detector window coordinates must always be in original coordinates.
+
+        Parameters:
+
+            left (int)   : Full-frame x pixel coordinate of the top-left corner of the crop region
+            top (int)    : Full-frame y pixel coordinate of the top-left corner of the crop region
+            width (int)  : Width of crop region in pixels
+            height (int) : Height of crop region in pixels
+        '''
+        if len(args) == 1 and args[0] is None:
+
+            if self.crop is not None:
+
+                dx = self.crop[0] - self.native_geometry[2][0]
+                dy = self.crop[1] - self.native_geometry[2][1]
+
+                ox, oy = self.transform.display_to_original_coords(self.x, self.y)
+                ox = ox + dx
+                oy = oy + dy
+
+                self.transform.x_pixels,self.transform.y_pixels,self.transform.offset = self.native_geometry
+
+                self.x,self.y = self.transform.original_to_display_coords(ox,oy)
+
+                del self.native_geometry
+
+                self.crop_inds = None
+                self.crop = None
+
+        elif len(args) == 4:
+
+            dx = args[0] - self.transform.offset[0]
+            dy = args[1] - self.transform.offset[1]
+
+            ox,oy = self.transform.display_to_original_coords(self.x,self.y)
+            ox = ox - dx
+            oy = oy - dy
+
+            self.native_geometry = (self.transform.x_pixels,self.transform.y_pixels,self.transform.offset)
+
+            self.transform.x_pixels = args[2]
+            self.transform.y_pixels = args[3]
+            self.transform.offset = (args[0],args[1])
+
+            nx,ny = self.transform.original_to_display_coords(ox,oy)
+
+            newshape = self.transform.get_display_shape()
+
+            if self.fullchip and (np.all( nx > 0) or np.all(nx + 1 < newshape[0]) or np.all(ny > 0) or np.all(ny + 1 < newshape[1])):
+                self.transform.x_pixels,self.transform.y_pixels,self.transform.offset = self.native_geometry
+
+                raise ValueError('Requested crop window ({:d}x{:d} at {:d}x{:d}) is outside the raycasted area ({:d}x{:d} at {:d}x{:d})'.format(args[2],args[3],args[0],args[1],self.transform.x_pixels,self.transform.y_pixels,self.transform.offset[0],self.transform.offset[1]))
+
+            self.x = nx
+            self.y = ny
+
+            if self.fullchip:
+                rowinds = np.squeeze(np.argwhere(np.logical_and(self.y[:,0] >= 0, self.y[:,0] < newshape[1])))
+                colinds = np.squeeze(np.argwhere(np.logical_and(self.x[rowinds,:][0,:] >= 0, self.x[rowinds,:][0,:] < newshape[0])))
+                self.crop_inds = (rowinds,colinds)
+
+
+            elif self.x.ndim == 2:
+                xinds = np.argwhere(np.logical_and(self.x >= 0, self.x < newshape[0]))
+                yinds = np.argwhere(np.logical_and(self.y[xinds] >= 0, self.y[xinds] < newshape[1]))
+                self.crop_inds = (xinds,yinds)
+            else:
+                raise Exception("Cropping a raydata object with strange dimensions! I don't know how to do that; help!")
+
+            self.crop = copy.deepcopy(args)
+
+        else:
+            raise ValueError('Cannot understand number of arguments; should ne None or Left,Top,Width,Height')
+
+
+    def get_ray_start(self,x=None,y=None,im_position_tol = 1,coords='Display'):
+        '''
+        Get the 3D x,y,z coordinates of the "start" of the casted rays / sightlines.
+
+        Note: it is advised to use this function rather than accessing the `ray_start_coords`
+        attribute of the object directly because this function will respect any image cropping
+        applied using the set_detector_window() method.
+
+        Parameters:
+
+            x,y (array-like)        : Image pixel coordinates at which to get the sight-line start coordinates.\
+                                      If not specified, the start coordinates of all casted sight lines will be returned.
+            im_position_tol (float) : If x and y are specified but no sight-line was cast at exactly the \
+                                      input coordinates, the nearest casted sight-line will be returned \
+                                      instead provided the pixel coordinates wre within this many pixels of \
+                                      the requested coordinates.
+            coords (str)            : Either ``Display`` or ``Coords``, specifies what orientation the input x \
+                                      and y correspond to or orientation of the returned array.
+
+        Returns:
+
+            np.ndarray              : An array containing the 3D coordinates, in metres, of the start of \
+                                      each sight line (i.e. camera pupil position). If x and y coordinates were \
+                                      given either to this function or to calcam.raycast_sightlines(), the shape of \
+                                      this array is the same as the input x and y arrays with an additional \
+                                      dimension added which contains the  [X,Y,Z] 3D coordinates. Otherwise the shape\
+                                      is (h x w x 3) where w and h are the image width and height (in display coords).
+        '''
+        if x is None and y is None:
+            if self.fullchip:
+                if coords.lower() == 'display':
+                    if self.crop is None:
+                        return self.ray_start_coords
+                    else:
+                        return self.tray_start_coords[self.crop_inds[0],:,:][:,self.crop_inds[1],:]
+                else:
+                    if self.crop is None:
+                        return self.transform.display_to_original_image(self.ray_start_coords)
+                    else:
+                        return self.transform.display_to_original_image(self.ray_start_coords[self.crop_inds[0],:,:][:,self.crop_inds[1],:])
+            else:
+                if self.crop is None:
+                    return self.ray_start_coords
+                else:
+                    return self.ray_start_coords[self.crop_inds[0],:][self.crop_inds[1],:]
+        else:
+            if self.x is None or self.y is None:
+                raise Exception('This ray data does not have x and y pixel indices!')
+            if np.shape(x) != np.shape(y):
+                raise ValueError('x and y arrays must be the same shape!')
+            else:
+
+                if coords.lower() == 'original':
+                    x,y = self.transform.original_to_display_coords(x,y)
+
+                oldshape = np.shape(x)
+                x = np.reshape(x,np.size(x),order='F')
+                y = np.reshape(y,np.size(y),order='F')
+                [start_X,start_Y,start_Z] = np.split(self.ray_start_coords,3,-1)
+                start_X = start_X.flatten()
+                start_Y = start_Y.flatten()
+                start_Z = start_Z.flatten()
+                xflat = self.x.flatten()
+                yflat = self.y.flatten()
+                Xout = np.zeros(np.shape(x))
+                Yout = np.zeros(np.shape(x))
+                Zout = np.zeros(np.shape(x))
+                for pointno in range(x.size):
+                    deltaX = xflat - x[pointno]
+                    deltaY = yflat - y[pointno]
+                    deltaR = np.sqrt(deltaX**2 + deltaY**2)
+                    if np.min(deltaR) <= im_position_tol:
+                        Xout[pointno] = start_X[np.argmin(deltaR)]
+                        Yout[pointno] = start_Y[np.argmin(deltaR)]
+                        Zout[pointno] = start_Z[np.argmin(deltaR)]
+                    else:
+                        raise Exception('No ray-traced pixel within im_position_tol of requested pixel ({:.1f},{:.1f})!'.format(x[pointno],y[pointno]))
+                out = np.hstack([Xout,Yout,Zout])
+
+                return np.reshape(out,oldshape + (3,),order='F')
+
+
+    def get_ray_end(self,x=None,y=None,im_position_tol = 1,coords='Display'):
+        '''
+        Get the 3D x,y,z coordinates where the casted rays / sightlines intersect the CAD model.
+
+        Note: it is advised to use this function rather than accessing the `ray_end_coords`
+        attribute of the object directly because this function will respect any image cropping
+        applied using the set_detector_window() method.
+
+        Parameters:
+
+            x,y (array-like)        : Image pixel coordinates at which to get the sight-line end coordinates.\
+                                      If not specified, the end coordinates of all casted sight lines will be returned.
+            im_position_tol (float) : If x and y are specified but no sight-line was cast at exactly the \
+                                      input coordinates, the nearest casted sight-line will be returned \
+                                      instead provided the pixel coordinates wre within this many pixels of \
+                                      the requested coordinates.
+            coords (str)            : Either ``Display`` or ``Coords``, specifies what orientation the input x \
+                                      and y correspond to or orientation of the returned array.
+
+        Returns:
+
+            np.ndarray              : An array containing the 3D coordinates, in metres, of the points where\
+                                      each sight line intersects the CAD model. If x and y coordinates were \
+                                      given either to this function or to calcam.raycast_sightlines(), the shape of \
+                                      this array is the same as the input x and y arrays with an additional \
+                                      dimension added which contains the  [X,Y,Z] 3D coordinates. Otherwise the shape\
+                                      is (h x w x 3) where w and h are the image width and height (in display coords).
+
+        '''
+        if x is None and y is None:
+            if self.fullchip:
+                if coords.lower() == 'display':
+                    if self.crop is None:
+                        return self.ray_end_coords
+                    else:
+                        return self.ray_end_coords[self.crop_inds[0],:,:][:,self.crop_inds[1],:]
+                else:
+                    if self.crop is None:
+                        return self.transform.display_to_original_image(self.ray_end_coords)
+                    else:
+                        return self.transform.display_to_original_image(self.ray_end_coords[self.crop_inds[0],:,:][:, self.crop_inds[1],:])
+            else:
+                if self.crop is None:
+                    return self.ray_end_coords
+                else:
+                    return self.ray_end_coords[self.crop_inds[0],:][self.crop_inds[1],:]
+        else:
+            if self.x is None or self.y is None:
+                raise Exception('This ray data does not have x and y pixel indices!')
+            if np.shape(x) != np.shape(y):
+                raise ValueError('x and y arrays must be the same shape!')
+            else:
+
+                if coords.lower() == 'original':
+                    x,y = self.transform.original_to_display_coords(x,y)
+
+                oldshape = np.shape(x)
+                x = np.reshape(x,np.size(x),order='F')
+                y = np.reshape(y,np.size(y),order='F')
+                [end_X,end_Y,end_Z] = np.split(self.ray_end_coords,3,-1)
+                end_X = end_X.flatten()
+                end_Y = end_Y.flatten()
+                end_Z = end_Z.flatten()
+                xflat = self.x.flatten()
+                yflat = self.y.flatten()
+                Xout = np.zeros(np.shape(x))
+                Yout = np.zeros(np.shape(x))
+                Zout = np.zeros(np.shape(x))
+                for pointno in range(x.size):
+                    deltaX = xflat - x[pointno]
+                    deltaY = yflat - y[pointno]
+                    deltaR = np.sqrt(deltaX**2 + deltaY**2)
+                    if np.min(deltaR) <= im_position_tol:
+                        Xout[pointno] = end_X[np.argmin(deltaR)]
+                        Yout[pointno] = end_Y[np.argmin(deltaR)]
+                        Zout[pointno] = end_Z[np.argmin(deltaR)]
+                    else:
+                        raise Exception('No ray-traced pixel within im_position_tol of requested pixel!')
+                out = np.hstack([Xout,Yout,Zout])
+
+                return np.reshape(out,oldshape + (3,),order='F')
+
 
 
     def get_ray_lengths(self,x=None,y=None,im_position_tol = 1,coords='Display'):
@@ -434,11 +684,20 @@ class RayData:
         if x is None and y is None:
             if self.fullchip:
                 if coords.lower() == 'display':
+                    if self.crop is None:
+                        return raylength
+                    else:
+                        return raylength[self.crop_inds[0],:][:,self.crop_inds[1]]
+                else:
+                    if self.crop is None:
+                        return self.transform.display_to_original_image(raylength)
+                    else:
+                        return self.transform.display_to_original_image(raylength[self.crop_inds[0],:][:,self.crop_inds[1]])
+            else:
+                if self.crop is None:
                     return raylength
                 else:
-                    return self.transform.display_to_original_image(raylength)
-            else:
-                return raylength
+                    return raylength[self.crop_inds[0]][self.crop_inds[1]]
         else:
             if self.x is None or self.y is None:
                 raise Exception('This ray data does not have x and y pixel indices!')
@@ -473,7 +732,7 @@ class RayData:
                         if deltaR < im_position_tol:
                             RL[pointno] = raylength[yind,xind]
                         else:
-                            raise Exception('No ray-traced pixel within im_position_tol of requested pixel!')
+                            raise Exception('No ray-traced pixel within im_position_tol of requested pixel ({:.1f},{:.1f})!'.format(x[pointno], y[pointno]))
                     else:
                         # This can be very slow if xflat and yflat are big arrays!
                         deltaR = np.sqrt( (xflat - x[pointno])**2 + (yflat - y[pointno])**2 )
@@ -501,7 +760,7 @@ class RayData:
                                       input coordinates, the nearest casted sight-line will be returned \
                                       instead provided the pixel coordinates wre within this many pixels of \
                                       the requested coordinates.
-            coords (str)            : Either ``Display`` or ``Coords``, specifies what orientation the input x \
+            coords (str)            : Either ``Display`` or ``Original``, specifies what orientation the input x \
                                       and y correspond to or orientation of the returned array.
 
         Returns:
@@ -511,17 +770,27 @@ class RayData:
                                       (h x w x 3) where w nd h are the image width and height. Otherwise it will \
                                       be the same shape as the input x and y coordinates plus an extra dimension.
         '''
-        lengths = self.get_ray_lengths()
-        dirs = (self.ray_end_coords - self.ray_start_coords) / np.repeat(lengths.reshape(np.shape(lengths)+(1,)),3,axis=-1)
+        vectors = (self.ray_end_coords - self.ray_start_coords)
+        lengths = np.sqrt(np.sum(vectors**2,axis=-1))
+        dirs =  vectors / np.repeat(lengths.reshape(np.shape(lengths)+(1,)),3,axis=-1)
 
         if x is None and y is None:
             if self.fullchip:
                 if coords.lower() == 'display':
+                    if self.crop is None:
+                        return dirs
+                    else:
+                        return dirs[self.crop_inds[0],:,:][:,self.crop_inds[1],:]
+                else:
+                    if self.crop is None:
+                        return self.transform.display_to_original_image(dirs)
+                    else:
+                        return self.transform.display_to_original_image(dirs[self.crop_inds[0],:,:][:, self.crop_inds[1],:])
+            else:
+                if self.crop is None:
                     return dirs
                 else:
-                    return self.transform.display_to_original_image(dirs,binning=self.binning)
-            else:
-                return dirs
+                    return dirs[self.crop_inds[0]][self.crop_inds[1]]
         else:
             if self.x is None or self.y is None:
                 raise Exception('This ray data does not have x and y pixel indices!')

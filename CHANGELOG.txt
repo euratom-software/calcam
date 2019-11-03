@@ -1,6 +1,18 @@
 Calcam Changelog
 ================
 
+Point Release 2.4.0 (XX Nov 2019)
+---------------------------------
+
+New & Enhancements:
+* Vastly improve treatment of detector sub-windowing: added Calibration.set_detector_window() and RayData.set_detector_window() methods
+* Implement support for detector sub-windowing in image analyser and when loading point pairs from existing calibrations in fitting tool
+* Add optional arguments to enhance_image() to enable or disable enhanecement steps. This allows better image detail retention when enhancing low pixel count images.
+
+Fixes:
+* Fixed a bug in fitting calibration where an exception could be raised when points were cleared.
+
+
 Patch 2.3.1 (30 Jul 2019)
 --------------------------
 

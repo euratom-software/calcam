@@ -83,6 +83,8 @@ class CalcamGUIWindow(qt.QMainWindow):
 
         self.unsaved_changes = False
 
+        self.detector_window = None
+
         # -------------------- Initialise View List ------------------
         self.viewlist.clear()
 
@@ -485,20 +487,22 @@ class CalcamGUIWindow(qt.QMainWindow):
             if obj_type.lower() == 'calibration':
                 try:
                     obj = Calibration(path)
+                    obj.set_detector_window(*self.detector_window)
                 except Exception as e:
                     self.show_msgbox('Error while opening {:s}:<br>{:}'.format(os.path.split(path)[-1],e))
                     obj = None
-	            
-                
+
+
             elif obj_type.lower() == 'pointpairs':
                 if path.endswith('.ccc'):
                     cal = Calibration(path)
+                    cal.set_detector_window(*self.detector_window)
                     obj = cal.pointpairs
                     obj.history = cal.history['pointpairs']
                 elif path.endswith('.csv'):
                     with open(path,'r') as ppf:
                         obj = PointPairs(ppf)
-                        obj.src = 'Loaded from Calcam 1.x file "{:s}"'.format(os.path.split(path)[-1])
+                        obj.src = 'Loaded from Calcam CSV point pairs file "{:s}"'.format(os.path.split(path)[-1])
 
             objs.append(obj)
         self.app.restoreOverrideCursor()

@@ -457,18 +457,18 @@ class Calibration():
             self.history['pointpairs'][1] = 'Last modified by {:s} on {:s} at {:s}'.format(misc.username,misc.hostname,misc.get_formatted_time())
 
 
-    def set_crop(self,*args):
+    def set_detector_window(self,*args):
         '''
-        Specify a different detector region for analysis than was used to perform
-        the calibration. Useful for example if a CMOS camera has been calibrated
+        Adjust the calibration to apply to a different detector region for than was used
+        to perform the calibration. Useful for example if a CMOS camera has been calibrated
         over the full frame, but you now want to use this calibration for data which
         has been cropped.
 
         Calling this function with `None` as the single argument sets the calibration
-        back to its original state. Otherwise, the parameters are the coordinates of the
-        cropped image relative to the full detector.
+        back to its "native" state. Otherwise, the parameters are the coordinates of the
+        cropped detector region relative to the full detector.
 
-        Window coordinates must always be in original coordinates.
+        Detector window coordinates must always be in original coordinates.
 
         Parameters:
 
@@ -477,50 +477,122 @@ class Calibration():
             width (int)  : Width of crop region in pixels
             height (int) : Height of crop region in pixels
         '''
+        # Reset crop
         if len(args) == 1 and args[0] is None:
-            # Clear any offset and height overrides
-            raise NotImplementedError()
 
+            if self.crop is None:
+                return
+
+            # Put subview_mask back to normal
+            if self.n_subviews == 1:
+                mshape = self.geometry.get_original_shape()
+                new_subview_mask = np.zeros((mshape[1], mshape[0]), dtype='uint8')
+                self.set_subview_mask(new_subview_mask,coords='Original')
+            else:
+                self.set_subview_mask(self.native_subview_mask,subview_names=self.subview_names,coords='Original')
+                del self.native_subview_mask
+
+            # Put the image back to normal
+            self.image = self.native_image
+            del self.native_image
+
+            # Put the optical centre back to normal
+            for i,model in enumerate(self.view_models):
+                modeldat = model.get_dict()
+                modeldat['cx'],modeldat['cy'] = self.native_cc[i]
+                model.load_from_dict(modeldat)
+
+            # Put point pairs back to normal
+            if self.pointpairs is not None:
+                pp_before = self.geometry.display_to_original_pointpairs(self.pointpairs)
+
+                dx = self.crop[0] - self.native_geometry[2][0]
+                dy = self.crop[1] - self.native_geometry[2][1]
+
+                for i in range(len(pp_before.image_points)):
+                    for j in range(self.n_subviews):
+                        if pp_before.image_points[i][j] is not None:
+                            pp_before.image_points[i][j] = (pp_before.image_points[i][j][0] + dx, pp_before.image_points[i][j][1] + dy)
+
+            # Put the coordinate transformer back to normal
+            self.geometry.x_pixels,self.geometry.y_pixels,self.geometry.offset = self.native_geometry
+            del self.native_geometry
+
+            if self.pointpairs is not None:
+                self.pointpairs = self.geometry.original_to_display_pointpairs(pp_before)
+
+            self.crop = None
+
+        # Apply a crop
         elif len(args) == 4:
 
             if self.crop is not None:
-                self.set_crop(None)
+                self.set_detector_window(None)
 
             if self.n_subviews == 1:
 
-                # Change the image shape that the coord transformer is expecting
-                self.geometry.x_pixels = args[2]
-                self.geometry.y_pixels = args[3]
-
-                self.set_subview_mask(np.zeros((args[3],args[2]),dtype='uint8'),coords='Original')
+                new_subview_mask = np.zeros((args[3],args[2]),dtype='uint8')
             else:
                 orig_shape = self.geometry.get_original_shape()
 
                 if args[0] < self.geometry.offset[0] or args[1] < self.geometry.offset[1] or args[0] + args[2] > self.geometry.offset[0] + orig_shape[0] or args[1] + args[3] > self.geometry.offset[1] + orig_shape[1]:
                     raise Exception('Requested crop exceeds the bounds of the original calibration. This is not possible for calibrations with multiple sub-views.')
 
+                self.native_subview_mask = self.get_subview_mask(coords='Original')
+
                 orig_subview_mask = self.get_subview_mask(coords='Original')
 
-                # Change the image shape that the coord transformer is expecting
-                self.geometry.x_pixels = args[2]
-                self.geometry.y_pixels = args[3]
+                new_subview_mask = orig_subview_mask[args[1] - self.geometry.offset[1]:args[1] - self.geometry.offset[1] + args[3],args[0] - self.geometry.offset[0]:args[0] - self.geometry.offset[0] + args[2]]
 
-
-                orig_subview_mask = orig_subview_mask[args[1] - self.geometry.offset[1]:args[1] - self.geometry.offset[1] + args[3],args[0] - self.geometry.offset[0]:args[0] - self.geometry.offset[0] + args[2]]
-                self.set_subview_mask(orig_subview_mask,coords='Original')
-
-            self.crop = copy.deepcopy(args)
+            orig_cc = []
+            self.native_cc = []
 
             # Shift the optical centre of the calibration according to the crop
             for model in self.view_models:
                 modeldat = model.get_dict()
+                self.native_cc.append((modeldat['cx'],modeldat['cy']))
                 orig_cx,orig_cy = self.geometry.display_to_original_coords(modeldat['cx'],modeldat['cy'])
-                cx = orig_cx + (self.geometry.offset[0] - self.crop[0])
-                cy = orig_cy + (self.geometry.offset[1] - self.crop[1])
-                new_cx,new_cy = self.geometry.original_to_display_coords(cx,cy)
-                modeldat['cx'] = new_cx
-                modeldat['cy'] = new_cy
+                cx = orig_cx + (self.geometry.offset[0] - args[0])
+                cy = orig_cy + (self.geometry.offset[1] - args[1])
+                orig_cc.append((cx,cy))
+
+
+            # Change the image itself. This does not use set_image() because there's so much other faff involved in set_image()
+            self.native_image = copy.deepcopy(self.image)
+            self.image = self.image[ int(args[1] - self.geometry.offset[1]):int(args[1] - self.geometry.offset[1] + args[3]),int(args[0] - self.geometry.offset[0]):int(args[0] - self.geometry.offset[0] + args[2])]
+
+            # Adjust point pairs
+            if self.pointpairs is not None:
+                pp_before = self.geometry.display_to_original_pointpairs(self.pointpairs)
+                
+                dx = args[0] - self.geometry.offset[0]
+                dy = args[1] - self.geometry.offset[1]
+
+                for i in range(len(pp_before.image_points)):
+                    for j in range(self.n_subviews):
+                        if pp_before.image_points[i][j] is not None:
+                            pp_before.image_points[i][j] = (pp_before.image_points[i][j][0] - dx, pp_before.image_points[i][j][1] - dy)
+
+            # Change the image shape that the coord transformer is expecting
+            self.native_geometry = (self.geometry.x_pixels,self.geometry.y_pixels,self.geometry.offset)
+            self.geometry.x_pixels = args[2]
+            self.geometry.y_pixels = args[3]
+            self.geometry.offset = (args[0],args[1])
+
+            if self.pointpairs is not None:
+                self.pointpairs = self.geometry.original_to_display_pointpairs(pp_before)
+
+            self.set_subview_mask(new_subview_mask,coords='Original')
+
+
+            self.crop = copy.deepcopy(args)
+
+            for i,model in enumerate(self.view_models):
+                modeldat = model.get_dict()
+                modeldat['cx'],modeldat['cy'] = self.geometry.original_to_display_coords(orig_cc[i][0],orig_cc[i][1])
                 model.load_from_dict(modeldat)
+
+
 
         else:
             raise ValueError('Cannot understand number of arguments: expected None or left,top,width,height')
@@ -868,6 +940,9 @@ class Calibration():
         if not filename.endswith('.ccc'):
             filename = filename + '.ccc'
 
+        current_crop = self.crop
+        self.set_detector_window(None)
+
         with ZipSaveFile(filename,'w') as save_file:
 
             # Save the image
@@ -934,6 +1009,9 @@ class Calibration():
 
                 with save_file.open_file(os.path.join(save_file.get_temp_path(),'intrinsics_constraints','points_{:03d}.csv'.format(i)),'w') as ppf:
                     intrinsics[1].save(ppf)
+
+        self.set_detector_window(current_crop)
+
 
 
     def set_fit(self,subview,view_model):
@@ -1307,6 +1385,9 @@ class Calibration():
         # This will be the output
         points_2d = []
 
+        if isinstance(check_occlusion_with,RayData):
+            orig_raydata_crop = check_occlusion_with.crop
+            check_occlusion_with.set_detector_window(*self.crop)
 
         for nview in range(self.n_subviews):
 
@@ -1370,6 +1451,9 @@ class Calibration():
                 p2d[:,0],p2d[:,1] = self.geometry.display_to_original_coords(p2d[:,0],p2d[:,1])
 
             points_2d.append(p2d)
+
+        if isinstance(check_occlusion_with,RayData):
+            check_occlusion_with.set_detector_window(*orig_raydata_crop)
 
         return points_2d
 
@@ -2051,8 +2135,8 @@ class Calibration():
             x,y = np.meshgrid(xl,yl)
         else:
             shape = self.geometry.get_original_shape()
-            xl = np.linspace( (binning-1.)/2,float(shape[0]-1)-(binning-1.)/2,(1+float(shape[0]-1))/binning) + self.geometry.offset[0]
-            yl = np.linspace( (binning-1.)/2,float(shape[1]-1)-(binning-1.)/2,(1+float(shape[1]-1))/binning) + self.geometry.offset[1]
+            xl = np.linspace( (binning-1.)/2,float(shape[0]-1)-(binning-1.)/2,(1+float(shape[0]-1))/binning)
+            yl = np.linspace( (binning-1.)/2,float(shape[1]-1)-(binning-1.)/2,(1+float(shape[1]-1))/binning)
             x,y = np.meshgrid(xl,yl)
 
         return x,y

@@ -902,8 +902,8 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
                 else:
                     self.set_cursor_coords(self.focus_cursor,pickcoords,view_index)
 
-                    if self.cursor_move_callback is not None:
-                        self.cursor_move_callback( self.focus_cursor, self.get_cursor_coords(self.focus_cursor) )
+                if self.cursor_move_callback is not None:
+                    self.cursor_move_callback( self.focus_cursor, self.get_cursor_coords(self.focus_cursor))
 
 
         if self.refresh_callback is not None:
