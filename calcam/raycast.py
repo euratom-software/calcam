@@ -347,7 +347,7 @@ class RayData:
         y.units = 'pixels'
         f.close()
 
-        self.set_detector_window(*current_crop)
+        self.set_detector_window(current_crop)
 
 
 
@@ -402,7 +402,7 @@ class RayData:
         f.close()
 
 
-    def set_detector_window(self,*args):
+    def set_detector_window(self,window):
         '''
         Adjust the raydata to apply to a different detector region for than was used
         to perform the original raycast. Useful for example if a CMOS camera has been calibrated
@@ -410,19 +410,17 @@ class RayData:
         has been cropped.
 
         Calling this function with `None` as the single argument sets the raydata
-        back to its "native" state. Otherwise, the parameters are the coordinates of the
-        cropped detector region relative to the full detector.
+        back to its "native" state. Otherwise, call with a 4 element tuple specifying the
+        left,top,width and height of the detector window.
 
         Detector window coordinates must always be in original coordinates.
 
         Parameters:
 
-            left (int)   : Full-frame x pixel coordinate of the top-left corner of the crop region
-            top (int)    : Full-frame y pixel coordinate of the top-left corner of the crop region
-            width (int)  : Width of crop region in pixels
-            height (int) : Height of crop region in pixels
+            window (tuple or list) : A 4-element tuple or list of integers defining the \
+                                     detector window coordinates (Left,Top,Width,Height)
         '''
-        if len(args) == 1 and args[0] is None:
+        if window is None:
 
             if self.crop is not None:
 
@@ -442,10 +440,10 @@ class RayData:
                 self.crop_inds = None
                 self.crop = None
 
-        elif len(args) == 4:
+        elif len(window) == 4:
 
-            dx = args[0] - self.transform.offset[0]
-            dy = args[1] - self.transform.offset[1]
+            dx = window[0] - self.transform.offset[0]
+            dy = window[1] - self.transform.offset[1]
 
             ox,oy = self.transform.display_to_original_coords(self.x,self.y)
             ox = ox - dx
@@ -453,9 +451,9 @@ class RayData:
 
             self.native_geometry = (self.transform.x_pixels,self.transform.y_pixels,self.transform.offset)
 
-            self.transform.x_pixels = args[2]
-            self.transform.y_pixels = args[3]
-            self.transform.offset = (args[0],args[1])
+            self.transform.x_pixels = window[2]
+            self.transform.y_pixels = window[3]
+            self.transform.offset = (window[0],window[1])
 
             nx,ny = self.transform.original_to_display_coords(ox,oy)
 
@@ -464,7 +462,7 @@ class RayData:
             if self.fullchip and (np.all( nx > 0) or np.all(nx + 1 < newshape[0]) or np.all(ny > 0) or np.all(ny + 1 < newshape[1])):
                 self.transform.x_pixels,self.transform.y_pixels,self.transform.offset = self.native_geometry
 
-                raise ValueError('Requested crop window ({:d}x{:d} at {:d}x{:d}) is outside the raycasted area ({:d}x{:d} at {:d}x{:d})'.format(args[2],args[3],args[0],args[1],self.transform.x_pixels,self.transform.y_pixels,self.transform.offset[0],self.transform.offset[1]))
+                raise ValueError('Requested crop window ({:d}x{:d} at {:d}x{:d}) is outside the raycasted area ({:d}x{:d} at {:d}x{:d})'.format(window[2],window[3],window[0],window[1],self.transform.x_pixels,self.transform.y_pixels,self.transform.offset[0],self.transform.offset[1]))
 
             self.x = nx
             self.y = ny
@@ -482,10 +480,10 @@ class RayData:
             else:
                 raise Exception("Cropping a raydata object with strange dimensions! I don't know how to do that; help!")
 
-            self.crop = copy.deepcopy(args)
+            self.crop = copy.deepcopy(window)
 
         else:
-            raise ValueError('Cannot understand number of arguments; should ne None or Left,Top,Width,Height')
+            raise ValueError('Cannot understand detector window; should be None or (Left,Top,Width,Height)')
 
 
     def get_ray_start(self,x=None,y=None,im_position_tol = 1,coords='Display'):

@@ -332,7 +332,7 @@ class ImageAnalyser(CalcamGUIWindow):
             if self.image is not None:
 
                 ioshape = self.image_geometry.get_original_shape()
-                opened_calib.set_detector_window(self.image_geometry.offset[0],self.image_geometry.offset[1],ioshape[0],ioshape[1])
+                opened_calib.set_detector_window( (self.image_geometry.offset[0],self.image_geometry.offset[1],ioshape[0],ioshape[1]) )
 
             self.calibration = opened_calib
             self.calib_name.setText(os.path.split(self.calibration.filename)[1].replace('.ccc',''))

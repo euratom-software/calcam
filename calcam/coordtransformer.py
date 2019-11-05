@@ -36,6 +36,7 @@ Written by Scott Silburn
 import cv2
 import numpy as np
 import copy
+from scipy.misc import imresize
 
 class CoordTransformer:
     
@@ -224,7 +225,7 @@ class CoordTransformer:
                 data_out = np.rot90(data_out,k=3)
                 
 
-        data_out = cv2.resize(data_out,(self.x_pixels//binning,self.y_pixels//binning),interpolation=interp_method)
+        #data_out = imresize(data_out,size=1./binning,interp=interpolation)
 
         return data_out
 
