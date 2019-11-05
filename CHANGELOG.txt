@@ -1,20 +1,24 @@
 Calcam Changelog
 ================
 
-Point Release 2.4.0 (XX Nov 2019)
+Minor Release 2.4.0 (06 Nov 2019)
 ---------------------------------
 
 New & Enhancements:
 * Vastly improve treatment of detector sub-windowing: added Calibration.set_detector_window() and RayData.set_detector_window() methods
 * Implement support for detector sub-windowing in image analyser and when loading point pairs from existing calibrations in fitting tool
 * Add optional arguments to enhance_image() to enable or disable enhanecement steps. This allows better image detail retention when enhancing low pixel count images.
+* Image Analysis GUI now shows images in display coordinates immediately even if a calibration is not loaded.
 
 Fixes:
-* Fixed a bug in fitting calibration where an exception could be raised when points were cleared.
+* Fixed a bug in fitting calibration GUI where an exception could be raised when points were cleared.
+* Fixed a bug which would raise an exception after editing the name of a 3D line not currently selected.
+* Fix image scaling in CoordTransformer image transform methods to work with non integer dtypes, provided the pixels are square.
+* Fixed a bug when loading calibrations with no detector window offset stored (i.e. from older Calcam versions) which caused exceptions in set_detector_window().
 
 
 Patch 2.3.1 (30 Jul 2019)
---------------------------
+-------------------------
 
 Fixes:
 * Fix image_enhancement.enhance_image() not working properly with 16-bit images.
@@ -26,8 +30,7 @@ Fixes:
 * Remove surplus debug print statements.
 
 
-
-Point Release 2.3.0 (20 Jul 2019)
+Minor Release 2.3.0 (20 Jul 2019)
 ---------------------------------
 
 New & Enhancements:
@@ -80,7 +83,7 @@ Fixes:
 
 
 Minor Release 2.2.0 (25th Feb 2019)
----------------------------------
+-----------------------------------
 
 New & Enhancements:
 * Replaced undocumented geometry matrix functionality in calcam.geometry_matrix with new calcam.gm module and add corresponding documentation.

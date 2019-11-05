@@ -36,7 +36,6 @@ Written by Scott Silburn
 import cv2
 import numpy as np
 import copy
-from scipy.misc import imresize
 
 class CoordTransformer:
     
@@ -180,7 +179,12 @@ class CoordTransformer:
                 data_out = np.rot90(data_out,k=1)
 
         out_shape = self.get_display_shape()
-        data_out = cv2.resize(data_out,(int(out_shape[0]/binning),int(out_shape[1]/binning)),interpolation=interp_method)
+
+        if data_out.shape[0] != int(out_shape[1]/binning) or data_out.shape[1] != int(out_shape[0]/binning):
+            if np.issubdtype(data_out.dtype,np.unsignedinteger):
+                data_out = cv2.resize(data_out,(int(out_shape[0]/binning),int(out_shape[1]/binning)),interpolation=interp_method)
+            else:
+                raise ValueError('Can only reshape arrays with integer dtypes if using non-square pixels.')
 
         return data_out
 
@@ -223,9 +227,14 @@ class CoordTransformer:
                 data_out = np.rot90(data_out,k=2)
             elif action.lower() == 'rotate_clockwise_270':
                 data_out = np.rot90(data_out,k=3)
-                
 
-        #data_out = imresize(data_out,size=1./binning,interp=interpolation)
+        out_shape = self.get_original_shape()
+
+        if data_out.shape[0] != int(out_shape[1]/binning) or data_out.shape[1] != int(out_shape[0]/binning):
+            if np.issubdtype(data_out.dtype, np.unsignedinteger):
+                data_out = cv2.resize(data_out,(int(out_shape[0]/binning),int(out_shape[1]/binning)),interpolation=interp_method)
+            else:
+                raise ValueError('Can only reshape arrays with integer dtypes if using non-square pixels.')
 
         return data_out
 

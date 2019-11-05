@@ -475,6 +475,7 @@ class Calibration():
             window (tuple or list) : A 4-element tuple or list of integers defining the \
                                      detector window coordinates (Left,Top,Width,Height)
         '''
+
         # Reset crop
         if window is None:
 
@@ -491,8 +492,9 @@ class Calibration():
                 del self.native_subview_mask
 
             # Put the image back to normal
-            self.image = self.native_image
-            del self.native_image
+            if self.image is not None:
+                self.image = self.native_image
+                del self.native_image
 
             # Put the optical centre back to normal
             for i,model in enumerate(self.view_models):
@@ -556,8 +558,9 @@ class Calibration():
 
 
             # Change the image itself. This does not use set_image() because there's so much other faff involved in set_image()
-            self.native_image = copy.deepcopy(self.image)
-            self.image = self.image[ int(window[1] - self.geometry.offset[1]):int(window[1] - self.geometry.offset[1] + window[3]),int(window[0] - self.geometry.offset[0]):int(window[0] - self.geometry.offset[0] + window[2])]
+            if self.image is not None:
+                self.native_image = copy.deepcopy(self.image)
+                self.image = self.image[ int(window[1] - self.geometry.offset[1]):int(window[1] - self.geometry.offset[1] + window[3]),int(window[0] - self.geometry.offset[0]):int(window[0] - self.geometry.offset[0] + window[2])]
 
             # Adjust point pairs
             if self.pointpairs is not None:
@@ -659,7 +662,7 @@ class Calibration():
             subview_mask = cv2.imread(os.path.join(save_file.get_temp_path(),'subview_mask.png'))[:,:,0]
 
             if 'image_offset' not in meta:
-                meta['image_offset'] = (0.,0.)
+                meta['image_offset'] = (0,0)
 
             self.geometry = CoordTransformer(transform_actions=meta['image_transform_actions'],paspect=meta['orig_paspect'],offset=meta['image_offset'])
             self.geometry.set_image_shape(subview_mask.shape[1],subview_mask.shape[0],coords='Display')
