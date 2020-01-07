@@ -67,7 +67,7 @@ class Settings(qt.QMainWindow):
             vtk_str = 'NO VTK!'
 
         env_str_left = '<pre>Calcam version: {:s}\nPython version: {:s}\nPlatform:       {:s}</pre>'.format(__version__,'.'.join([str(num) for num in sys.version_info[:3]]),sys.platform,)
-        env_str_right = '<pre>VTK version:    {:s}\nOpenCV version: {:s}\nPyQt version:   {:s}</pre>'.format(vtk_str,cv2.__version__,qt.QT_VERSION_STR)
+        env_str_right = '<pre>VTK version:    {:s}\nOpenCV version: {:s}\nPyQt version:   {:s}\nQVTKRWIBase:    {:s}</pre>'.format(vtk_str,cv2.__version__,qt.QT_VERSION_STR,qt.QVTKRWIBase)
 
         self.env_info_left.setText(env_str_left)
         self.env_info_right.setText(env_str_right)

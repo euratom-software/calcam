@@ -40,7 +40,7 @@ Changes by Fabian Wenzel, Jan. 2016
  Support for Python3
 """
 import vtk
-
+from .qt_wrapper import qt_ver
 # Check whether a specific PyQt implementation was chosen
 try:
     import vtk.qt
@@ -48,34 +48,23 @@ try:
 except ImportError:
     PyQtImpl = None
 
-# Check whether a specific QVTKRenderWindowInteractor base
-# class was chosen, can be set to "QGLWidget"
-QVTKRWIBase = "QWidget"
-try:
-    import vtk.qt
-    QVTKRWIBase = vtk.qt.QVTKRWIBase
-except (ImportError, AttributeError):
-    pass
-
 if PyQtImpl is None:
-    # Autodetect the PyQt implementation to use
-    try:
-        import PyQt5
+    # Check what qt version we're using
+    if qt_ver == 5:
         PyQtImpl = "PyQt5"
-    except ImportError:
-        try:
-            import PyQt4
-            PyQtImpl = "PyQt4"
-        except ImportError:
-            try:
-                import PySide
-                PyQtImpl = "PySide"
-            except ImportError:
-                raise ImportError("Cannot load either PyQt or PySide")
+    elif qt_ver == 4:
+        PyQtImpl = "PyQt4"
+    else:
+        raise ImportError("Unknown PyQt implementation")
 
 if PyQtImpl == "PyQt5":
-    if QVTKRWIBase == "QGLWidget":
+
+    try:
         from PyQt5.QtOpenGL import QGLWidget
+        QVTKRWIBase = "QGLWidget"
+    except:
+        QVTKRWIBase = "QWidget"
+
     from PyQt5.QtWidgets import QWidget
     from PyQt5.QtWidgets import QSizePolicy
     from PyQt5.QtWidgets import QApplication
@@ -85,8 +74,13 @@ if PyQtImpl == "PyQt5":
     from PyQt5.QtCore import QSize
     from PyQt5.QtCore import QEvent
 elif PyQtImpl == "PyQt4":
-    if QVTKRWIBase == "QGLWidget":
+
+    try:
         from PyQt4.QtOpenGL import QGLWidget
+        QVTKRWIBase = "QGLWidget"
+    except:
+        QVTKRWIBase = "QWidget"
+
     from PyQt4.QtGui import QWidget
     from PyQt4.QtGui import QSizePolicy
     from PyQt4.QtGui import QApplication
@@ -95,17 +89,6 @@ elif PyQtImpl == "PyQt4":
     from PyQt4.QtCore import QObject
     from PyQt4.QtCore import QSize
     from PyQt4.QtCore import QEvent
-elif PyQtImpl == "PySide":
-    if QVTKRWIBase == "QGLWidget":
-        from PySide.QtOpenGL import QGLWidget
-    from PySide.QtGui import QWidget
-    from PySide.QtGui import QSizePolicy
-    from PySide.QtGui import QApplication
-    from PySide.QtCore import Qt
-    from PySide.QtCore import QTimer
-    from PySide.QtCore import QObject
-    from PySide.QtCore import QSize
-    from PySide.QtCore import QEvent
 else:
     raise ImportError("Unknown PyQt implementation " + repr(PyQtImpl))
 
