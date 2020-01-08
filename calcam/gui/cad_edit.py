@@ -1,5 +1,5 @@
 '''
-* Copyright 2015-2018 European Atomic Energy Community (EURATOM)
+* Copyright 2015-2020 European Atomic Energy Community (EURATOM)
 *
 * Licensed under the EUPL, Version 1.1 or - as soon they
   will be approved by the European Commission - subsequent
@@ -1016,70 +1016,6 @@ class CADEdit(CalcamGUIWindow):
             self.unsaved_changes = True
 
         return False
-
-
-    def update_viewport_info(self,keep_selection = False):
-
-        campos = self.camera_3d.GetPosition()
-        camtar = self.camera_3d.GetFocalPoint()
-        if self.interactor3d.projection == 'perspective':
-            fov = self.camera_3d.GetViewAngle()
-            fov_suffix = u'\xb0'
-            fov_max = 110
-            fov_min = 1
-            decimals = 1
-        elif self.interactor3d.projection == 'orthographic':
-            fov = self.camera_3d.GetParallelScale()*2
-            fov_suffix = ' m'
-            fov_max = 200
-            fov_min = 0.01
-            decimals = 2
-
-        roll = -self.interactor3d.cam_roll
-
-        self.camX.blockSignals(True)
-        self.camY.blockSignals(True)
-        self.camZ.blockSignals(True)
-        self.tarX.blockSignals(True)
-        self.tarY.blockSignals(True)
-        self.tarZ.blockSignals(True)
-        self.cam_roll.blockSignals(True)
-        try:
-            self.camFOV.blockSignals(True)
-        except AttributeError:
-            pass
-
-        self.camX.setValue(campos[0])
-        self.camY.setValue(campos[1])
-        self.camZ.setValue(campos[2])
-        self.tarX.setValue(camtar[0])
-        self.tarY.setValue(camtar[1])
-        self.tarZ.setValue(camtar[2])
-        self.cam_roll.setValue(roll)
-
-        try:
-            self.camFOV.setSuffix(fov_suffix)
-            self.camFOV.setMinimum(fov_min)
-            self.camFOV.setMaximum(fov_max)
-            self.camFOV.setDecimals(decimals)
-            self.camFOV.setValue(fov)
-        except AttributeError:
-            pass
-
-        self.camX.blockSignals(False)
-        self.camY.blockSignals(False)
-        self.camZ.blockSignals(False)
-        self.tarX.blockSignals(False)
-        self.tarY.blockSignals(False)
-        self.tarZ.blockSignals(False)
-        self.cam_roll.blockSignals(False)
-        try:
-            self.camFOV.blockSignals(False)
-        except AttributeError:
-            pass
-
-        if not keep_selection:
-            self.viewlist.clearSelection() 
 
         
 
