@@ -2110,7 +2110,7 @@ class Calibration():
         return VectorCamera(origins.T,vectors.T)
 
 
-    def fullframe_meshgrid(self,coords,binning=1,expand=False):
+    def fullframe_meshgrid(self,coords,binning=1):
         '''
         Get x and y coordinate arrays corresponding to the full image.
 
@@ -2119,10 +2119,6 @@ class Calibration():
                               the orientation of the raysect camera.
 
             binning (float) : Pixel binning.
-
-            expand (bool)   : For calibrations of cropped images, whether to \
-                              return the coordinates for the full chip (i.e. \
-                              expand beyond the original calibration scope).
 
         Returns:
             (tuple of np.ndarray) : 2D arrays of X and Y coordinates.
