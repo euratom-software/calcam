@@ -283,13 +283,16 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
 
     def add_extra_actor(self,actor):
 
-        self.extra_actors.append(actor)
-        self.renderer.AddActor(actor)
+        if actor not in self.extra_actors:
+            self.extra_actors.append(actor)
+            self.renderer.AddActor(actor)
 
 
     def remove_extra_actor(self,actor):
-        self.extra_actors.remove(actor)
-        self.renderer.RemoveActor(actor)
+
+        if actor in self.extra_actors:
+            self.extra_actors.remove(actor)
+            self.renderer.RemoveActor(actor)
 
 
     def update_clipping(self):

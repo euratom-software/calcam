@@ -332,7 +332,7 @@ class ImageAnalyser(CalcamGUIWindow):
             if self.image is not None:
 
                 ioshape = self.image_geometry.get_original_shape()
-                opened_calib.set_detector_window(self.image_geometry.offset[0],self.image_geometry.offset[1],ioshape[0],ioshape[1])
+                opened_calib.set_detector_window( (self.image_geometry.offset[0],self.image_geometry.offset[1],ioshape[0],ioshape[1]) )
 
             self.calibration = opened_calib
             self.calib_name.setText(os.path.split(self.calibration.filename)[1].replace('.ccc',''))
@@ -481,14 +481,14 @@ class ImageAnalyser(CalcamGUIWindow):
 
                 image = np.uint8(255.*(image - image.min())/(image.max() - image.min()))
 
-        self.image_geometry = CoordTransformer(offset=newim['image_offset'])
+        self.image_geometry = CoordTransformer(offset=newim['image_offset'],paspect=newim['pixel_aspect'])
         self.image_geometry.set_image_shape(newim['image_data'].shape[1],newim['image_data'].shape[0],coords=newim['coords'])
         self.image_geometry.set_transform_actions(newim['transform_actions'])
 
         if self.calibration is not None:
 
             ioshape = self.image_geometry.get_original_shape()
-            self.calibration.set_detector_window(self.image_geometry.offset[0],self.image_geometry.offset[1],ioshape[0],ioshape[1])
+            self.calibration.set_detector_window( (self.image_geometry.offset[0],self.image_geometry.offset[1],ioshape[0],ioshape[1]) )
 
 
         if newim['coords'].lower() == 'original':

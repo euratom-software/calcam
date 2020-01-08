@@ -538,26 +538,20 @@ fit. Note: this function does not work with fisheye calibrations.</p>
 
 <dl class="method">
 <dt id="calcam.Calibration.set_detector_window">
-<code class="descname">set_detector_window</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.Calibration.set_detector_window" title="Permalink to this definition">¶</a></dt>
+<code class="descname">set_detector_window</code><span class="sig-paren">(</span><em>window</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.Calibration.set_detector_window" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adjust the calibration to apply to a different detector region for than was used
 to perform the calibration. Useful for example if a CMOS camera has been calibrated
 over the full frame, but you now want to use this calibration for data which
 has been cropped.</p>
 <p>Calling this function with <cite>None</cite> as the single argument sets the calibration
-back to its &#8220;native&#8221; state. Otherwise, the parameters are the coordinates of the
-cropped detector region relative to the full detector.</p>
+back to its &#8220;native&#8221; state. Otherwise, call with a 4 element tuple specifying the
+left,top,width and height of the detector window.</p>
 <p>Detector window coordinates must always be in original coordinates.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>left</strong> (<em>int</em>) &#8211; Full-frame x pixel coordinate of the top-left corner of the crop region</li>
-<li><strong>top</strong> (<em>int</em>) &#8211; Full-frame y pixel coordinate of the top-left corner of the crop region</li>
-<li><strong>width</strong> (<em>int</em>) &#8211; Width of crop region in pixels</li>
-<li><strong>height</strong> (<em>int</em>) &#8211; Height of crop region in pixels</li>
-</ul>
-</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>window</strong> (<em>tuple or list</em>) &#8211; A 4-element tuple or list of integers defining the                                      detector window coordinates (Left,Top,Width,Height)</td>
 </tr>
 </tbody>
 </table>
@@ -826,26 +820,20 @@ applied using the set_detector_window() method.</p>
 
 <dl class="method">
 <dt id="calcam.RayData.set_detector_window">
-<code class="descname">set_detector_window</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData.set_detector_window" title="Permalink to this definition">¶</a></dt>
+<code class="descname">set_detector_window</code><span class="sig-paren">(</span><em>window</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData.set_detector_window" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adjust the raydata to apply to a different detector region for than was used
 to perform the original raycast. Useful for example if a CMOS camera has been calibrated
 over the full frame, but you now want to use this calibration for data which
 has been cropped.</p>
 <p>Calling this function with <cite>None</cite> as the single argument sets the raydata
-back to its &#8220;native&#8221; state. Otherwise, the parameters are the coordinates of the
-cropped detector region relative to the full detector.</p>
+back to its &#8220;native&#8221; state. Otherwise, call with a 4 element tuple specifying the
+left,top,width and height of the detector window.</p>
 <p>Detector window coordinates must always be in original coordinates.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>left</strong> (<em>int</em>) &#8211; Full-frame x pixel coordinate of the top-left corner of the crop region</li>
-<li><strong>top</strong> (<em>int</em>) &#8211; Full-frame y pixel coordinate of the top-left corner of the crop region</li>
-<li><strong>width</strong> (<em>int</em>) &#8211; Width of crop region in pixels</li>
-<li><strong>height</strong> (<em>int</em>) &#8211; Height of crop region in pixels</li>
-</ul>
-</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>window</strong> (<em>tuple or list</em>) &#8211; A 4-element tuple or list of integers defining the                                      detector window coordinates (Left,Top,Width,Height)</td>
 </tr>
 </tbody>
 </table>
