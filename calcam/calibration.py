@@ -535,8 +535,8 @@ class Calibration():
             else:
                 orig_shape = self.geometry.get_original_shape()
 
-                if args[0] < self.geometry.offset[0] or args[1] < self.geometry.offset[1] or args[0] + args[2] > self.geometry.offset[0] + orig_shape[0] or args[1] + args[3] > self.geometry.offset[1] + orig_shape[1]:
-                    raise Exception('Requested crop exceeds the bounds of the original calibration. This is not possible for calibrations with multiple sub-views.')
+                if window[0] < self.geometry.offset[0] or window[1] < self.geometry.offset[1] or window[0] + window[2] > self.geometry.offset[0] + orig_shape[0] or window[1] + window[3] > self.geometry.offset[1] + orig_shape[1]:
+                    raise Exception('Requested crop of {:d}x{:d} at offset {:d}x{:d} exceeds the bounds of the original calibration ({:d}x{:d} at offset {:d}x{:d}). This is not possible for calibrations with multiple sub-views.'.format(window[2],window[3],window[0],window[1],self.geometry.x_pixels,self.geometry.y_pixels,self.geometry.offset[0],self.geometry.offset[1]))
 
                 self.native_subview_mask = self.get_subview_mask(coords='Original')
 
