@@ -47,6 +47,10 @@ except:
 # This avoids a problem with the version shipped with Enthought
 # Canopy + PyQt5. Also allows me to work around an annoying rendering issue.
 from .qvtkrenderwindowinteractor import QVTKRenderWindowInteractor, QVTKRWIBase
+if QVTKRWIBase == 'QGLWidget':
+    qt_opengl = True
+else:
+    qt_opengl = False
 
 # If we're on Python 3, there is no QString class because PyQt uses 
 # python 3's native string class. But for compatibility with the rest 

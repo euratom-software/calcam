@@ -38,6 +38,11 @@ Changes by Alex Tsui, Apr. 2015
 
 Changes by Fabian Wenzel, Jan. 2016
  Support for Python3
+
+Changes by Scott Silburn, Jan. 2019
+ Change default base class to QGLWidget; falls back to QWidget if not available.
+ Also get PyQt version from calcam qt wrapper.
+
 """
 import vtk
 from .qt_wrapper import qt_ver
