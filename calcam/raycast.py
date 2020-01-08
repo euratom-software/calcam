@@ -112,7 +112,7 @@ def raycast_sightlines(calibration,cadmodel,x=None,y=None,binning=1,coords='Disp
     fullchip = False
     if x is None and y is None:
         fullchip = True
-        x,y = calibration.fullframe_meshgrid(coords=coords)
+        x,y = calibration.fullframe_meshgrid(coords=coords,binning=binning)
 
     elif x is None or y is None:
         raise ValueError('Either both or none of x and y pixel coordinates must be given!')

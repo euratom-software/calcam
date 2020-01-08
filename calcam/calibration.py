@@ -1,5 +1,5 @@
 '''
-* Copyright 2015-2018 European Atomic Energy Community (EURATOM)
+* Copyright 2015-2020 European Atomic Energy Community (EURATOM)
 *
 * Licensed under the EUPL, Version 1.1 or - as soon they
   will be approved by the European Commission - subsequent
@@ -536,7 +536,8 @@ class Calibration():
                 orig_shape = self.geometry.get_original_shape()
 
                 if window[0] < self.geometry.offset[0] or window[1] < self.geometry.offset[1] or window[0] + window[2] > self.geometry.offset[0] + orig_shape[0] or window[1] + window[3] > self.geometry.offset[1] + orig_shape[1]:
-                    raise Exception('Requested crop exceeds the bounds of the original calibration. This is not possible for calibrations with multiple sub-views.')
+                    raise Exception('Requested crop of {:d}x{:d} at offset {:d}x{:d} exceeds the bounds of the original calibration ({:d}x{:d} at offset {:d}x{:d}). This is not possible for calibrations with multiple sub-views.'.format(window[2],window[3],window[0],window[1],self.geometry.x_pixels,self.geometry.y_pixels,self.geometry.offset[0],self.geometry.offset[1]))
+
 
                 self.native_subview_mask = self.get_subview_mask(coords='Original')
 
@@ -2076,7 +2077,7 @@ class Calibration():
         return msg
         
         
-    def get_raysect_camera(self,coords='Display'):
+    def get_raysect_camera(self,coords='Display',binning=1):
         '''
         Get a RaySect observer corresponding to the calibrated camera.
 
@@ -2092,12 +2093,8 @@ class Calibration():
             from raysect.core.math.vector import Vector3D
         except Exception as e:
             raise Exception('Could not import RaySect classes: {:}'.format(e))
-        
 
-        if coords.lower() == 'display':
-            x,y = np.meshgrid(np.arange(self.geometry.get_original_shape()[0]),np.arange(self.geometry.get_original_shape()[1]))        
-        elif coords.lower() == 'original':
-            x,y = np.meshgrid(np.arange(self.geometry.get_original_shape()[0]),np.arange(self.geometry.get_original_shape()[1]))    
+        x,y = self.fullframe_meshgrid(coords,binning=binning)
 
         origins = np.ndarray(x.shape,dtype=object)
         vectors = np.ndarray(x.shape,dtype=object)
@@ -2113,7 +2110,7 @@ class Calibration():
         return VectorCamera(origins.T,vectors.T)
 
 
-    def fullframe_meshgrid(self,coords,binning=1,expand=False):
+    def fullframe_meshgrid(self,coords,binning=1):
         '''
         Get x and y coordinate arrays corresponding to the full image.
 
@@ -2122,10 +2119,6 @@ class Calibration():
                               the orientation of the raysect camera.
 
             binning (float) : Pixel binning.
-
-            expand (bool)   : For calibrations of cropped images, whether to \
-                              return the coordinates for the full chip (i.e. \
-                              expand beyond the original calibration scope).
 
         Returns:
             (tuple of np.ndarray) : 2D arrays of X and Y coordinates.

@@ -66,8 +66,8 @@ class Settings(qt.QMainWindow):
         else:
             vtk_str = 'NO VTK!'
 
-        env_str_left = '<pre>Calcam version: {:s}\nPython version: {:s}\nPlatform:       {:s}</pre>'.format(__version__,'.'.join([str(num) for num in sys.version_info[:3]]),sys.platform,)
-        env_str_right = '<pre>VTK version:    {:s}\nOpenCV version: {:s}\nPyQt version:   {:s}</pre>'.format(vtk_str,cv2.__version__,qt.QT_VERSION_STR)
+        env_str_left = '<pre>Platform:       {:s}\nPython version: {:s}\nCalcam version: {:s}</pre>'.format(sys.platform,'.'.join([str(num) for num in sys.version_info[:3]]),__version__)
+        env_str_right = '<pre>VTK version:    {:s}\nOpenCV version: {:s}\nPyQt version:   {:s}\nQtOpenGL:       {:s}</pre>'.format(vtk_str,cv2.__version__,qt.QT_VERSION_STR,'OK' if qt.qt_opengl else 'UNAVAILABLE')
 
         self.env_info_left.setText(env_str_left)
         self.env_info_right.setText(env_str_right)

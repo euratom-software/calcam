@@ -1,5 +1,5 @@
 '''
-* Copyright 2015-2019 European Atomic Energy Community (EURATOM)
+* Copyright 2015-2020 European Atomic Energy Community (EURATOM)
 *
 * Licensed under the EUPL, Version 1.1 or - as soon they
   will be approved by the European Commission - subsequent
@@ -125,7 +125,7 @@ if 'install' in sys.argv or 'develop' in sys.argv:
 # Actually do the requested setup actions
 s = setup(
           name='Calcam',
-          version='2.4.0',
+          version='2.4.1',
           url='https://euratom-software.github.io/calcam/',
           license='European Union Public License 1.1',
           author='Scott Silburn et.al.',

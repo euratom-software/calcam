@@ -1,6 +1,20 @@
 Calcam Changelog
 ================
 
+Patch 2.4.1 (08 Jan 2020)
+-------------------------
+
+Fixes:
+* Fixed long-standing issue with corrupted CAD model rendering on some unix systems (#55). Requires QtOpenGL submodule of PyQt to be available (otherwise falls back to previous behaviour).
+* Fixed issue where image enhancement made some images look much worse (#51).
+* Fixed camera roll angle entry not working properly in CAD model editor (#54).
+* Fixed bug where after turning on the axisymmetric wall contour display in the 3D viewer, it could not be turned off again (#52).
+* Fixed bug where the detector window information was not loaded properly when loading calibrations in the fitting tool, which led to exceptions when loading point pairs from other calibrations, and possibly other errors.
+
+New & Enhancements:
+* Added display of QtOpenGL module availability to the system information in the Settings dialog box, for troubleshooting rendering issues.
+
+
 Minor Release 2.4.0 (06 Nov 2019)
 ---------------------------------
 

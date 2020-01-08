@@ -1,5 +1,5 @@
 '''
-* Copyright 2015-2018 European Atomic Energy Community (EURATOM)
+* Copyright 2015-2020 European Atomic Energy Community (EURATOM)
 *
 * Licensed under the EUPL, Version 1.1 or - as soon they
   will be approved by the European Commission - subsequent
@@ -45,7 +45,8 @@ def get_image(filename):
                     'subview_names' : cal.subview_names,
                     'coords': 'original',
                     'pixel_aspect':cal.geometry.pixel_aspectratio,
-                    'pixel_size':cal.pixel_size
+                    'pixel_size':cal.pixel_size,
+                    'image_offset':cal.geometry.offset
                     }
 
 

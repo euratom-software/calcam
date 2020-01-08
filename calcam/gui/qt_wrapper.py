@@ -1,5 +1,5 @@
 '''
-* Copyright 2015-2018 European Atomic Energy Community (EURATOM)
+* Copyright 2015-2020 European Atomic Energy Community (EURATOM)
 *
 * Licensed under the EUPL, Version 1.1 or - as soon they
   will be approved by the European Commission - subsequent
@@ -27,11 +27,6 @@ PyQt 4 or 5. Also makes sure matplotlib is using the
 correct backend.
 """
 
-# Import our local version of QVTKRenderWindowInteracor.
-# This avoids a problem with the version shipped with Enthought
-# Canopy + PyQt5.
-from .qvtkrenderwindowinteractor import QVTKRenderWindowInteractor
-
 # Import all the Qt bits and pieces from the relevant module
 try:
     from PyQt5.QtCore import *
@@ -46,6 +41,16 @@ except:
     from PyQt4.QtGui import QTreeWidgetItem as QTreeWidgetItem_class
     from PyQt4 import uic
     qt_ver = 4
+
+
+# Import our local version of QVTKRenderWindowInteracor.
+# This avoids a problem with the version shipped with Enthought
+# Canopy + PyQt5. Also allows me to work around an annoying rendering issue.
+from .qvtkrenderwindowinteractor import QVTKRenderWindowInteractor, QVTKRWIBase
+if QVTKRWIBase == 'QGLWidget':
+    qt_opengl = True
+else:
+    qt_opengl = False
 
 # If we're on Python 3, there is no QString class because PyQt uses 
 # python 3's native string class. But for compatibility with the rest 

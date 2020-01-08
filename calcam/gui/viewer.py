@@ -1,5 +1,5 @@
 '''
-* Copyright 2015-2018 European Atomic Energy Community (EURATOM)
+* Copyright 2015-2020 European Atomic Energy Community (EURATOM)
 *
 * Licensed under the EUPL, Version 1.1 or - as soon they
   will be approved by the European Commission - subsequent
@@ -375,14 +375,10 @@ class Viewer(CalcamGUIWindow):
         self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
 
         if self.contour_actor is not None:
-            try:
-                self.interactor3d.remove_extra_actor(self.contour_actor)
-            except:
-                self.renderer_3d.RemoveActor(self.contour_actor)
+            self.interactor3d.remove_extra_actor(self.contour_actor)
             self.contour_actor = None
 
         if self.contour_2d.isChecked():
-
             cursor_pos = self.interactor3d.get_cursor_coords(0)
             phi = np.arctan2(cursor_pos[1],cursor_pos[0])
             self.contour_actor = render.get_wall_contour_actor(self.cadmodel.wall_contour,'contour',phi)
@@ -393,7 +389,7 @@ class Viewer(CalcamGUIWindow):
         elif self.contour_3d.isChecked():
             self.contour_actor = render.get_wall_contour_actor(self.cadmodel.wall_contour,'surface')
             self.contour_actor.GetProperty().SetColor((1,0,0))
-            self.renderer_3d.AddActor(self.contour_actor)
+            self.interactor3d.add_extra_actor(self.contour_actor)
 
         self.refresh_3d()
         self.app.restoreOverrideCursor()

@@ -81,15 +81,17 @@ def enhance_image(image,target_msb=25,target_noise=500,tiles=(20,20),downsample=
 
     test_clip_lims = [1.,5.,10.]
     contrast = []
+
     for cliplim in test_clip_lims:
         contrast.append( local_contrast( cv2.createCLAHE(cliplim, tiles).apply(image), tiles) )
 
+    result = image.copy()
     if max(contrast) - min(contrast) > 0:
         coefs = np.polyfit(contrast,test_clip_lims,2)
         best_cliplim = np.polyval(coefs,target_msb)
-        result = cv2.createCLAHE(best_cliplim, tiles).apply(image)
-    else:
-        result = image.copy()
+        if best_cliplim > 0:
+            result = cv2.createCLAHE(best_cliplim, tiles).apply(image)
+
 
     if bilateral:
         result = cv2.bilateralFilter(result,d=-1,sigmaColor=25,sigmaSpace=25)
