@@ -2077,7 +2077,7 @@ class Calibration():
         return msg
         
         
-    def get_raysect_camera(self,coords='Display'):
+    def get_raysect_camera(self,coords='Display',binning=1):
         '''
         Get a RaySect observer corresponding to the calibrated camera.
 
@@ -2093,12 +2093,8 @@ class Calibration():
             from raysect.core.math.vector import Vector3D
         except Exception as e:
             raise Exception('Could not import RaySect classes: {:}'.format(e))
-        
 
-        if coords.lower() == 'display':
-            x,y = np.meshgrid(np.arange(self.geometry.get_original_shape()[0]),np.arange(self.geometry.get_original_shape()[1]))        
-        elif coords.lower() == 'original':
-            x,y = np.meshgrid(np.arange(self.geometry.get_original_shape()[0]),np.arange(self.geometry.get_original_shape()[1]))    
+        x,y = self.fullframe_meshgrid(coords,binning=binning)
 
         origins = np.ndarray(x.shape,dtype=object)
         vectors = np.ndarray(x.shape,dtype=object)
