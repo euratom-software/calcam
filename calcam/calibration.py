@@ -2125,13 +2125,13 @@ class Calibration():
         '''
         if coords.lower() == 'display':
             shape = self.geometry.get_display_shape()
-            xl = np.linspace( (binning-1.)/2,float(shape[0]-1)-(binning-1.)/2,(1+float(shape[0]-1))/binning)
-            yl = np.linspace( (binning-1.)/2,float(shape[1]-1)-(binning-1.)/2,(1+float(shape[1]-1))/binning)
+            xl = np.linspace( (binning-1.)/2,float(shape[0]-1)-(binning-1.)/2,int((1+shape[0]-1)/binning))
+            yl = np.linspace( (binning-1.)/2,float(shape[1]-1)-(binning-1.)/2,int((1+shape[1]-1)/binning))
             x,y = np.meshgrid(xl,yl)
         else:
             shape = self.geometry.get_original_shape()
-            xl = np.linspace( (binning-1.)/2,float(shape[0]-1)-(binning-1.)/2,(1+float(shape[0]-1))/binning)
-            yl = np.linspace( (binning-1.)/2,float(shape[1]-1)-(binning-1.)/2,(1+float(shape[1]-1))/binning)
+            xl = np.linspace( (binning-1.)/2,float(shape[0]-1)-(binning-1.)/2,int((1+shape[0]-1)//binning))
+            yl = np.linspace( (binning-1.)/2,float(shape[1]-1)-(binning-1.)/2,int((1+shape[1]-1)//binning))
             x,y = np.meshgrid(xl,yl)
 
         return x,y

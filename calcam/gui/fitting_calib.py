@@ -1328,7 +1328,7 @@ class FittingCalib(CalcamGUIWindow):
 
     def load_calib(self):
 
-        opened_calib = self.object_from_file('calibration')
+        opened_calib = self.object_from_file('calibration',maintain_window=False)
 
         if opened_calib is None:
             return
@@ -1348,7 +1348,7 @@ class FittingCalib(CalcamGUIWindow):
             keep_model = False
 
         self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
-        self.reset(keep_cadmodel = keep_model)
+        self.reset(keep_cadmodel=keep_model)
 
         # Basic setup
         self.filename = opened_calib.filename

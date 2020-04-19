@@ -449,7 +449,7 @@ class CalcamGUIWindow(qt.QMainWindow):
         self.app.restoreOverrideCursor()
 
 
-    def object_from_file(self,obj_type,multiple=False):
+    def object_from_file(self,obj_type,multiple=False,maintain_window=True):
 
         filename_filter = self.config.filename_filters[obj_type]
 
@@ -487,7 +487,8 @@ class CalcamGUIWindow(qt.QMainWindow):
             if obj_type.lower() == 'calibration':
                 try:
                     obj = Calibration(path)
-                    obj.set_detector_window(self.detector_window)
+                    if maintain_window:
+                        obj.set_detector_window(self.detector_window)
                 except Exception as e:
                     self.show_msgbox('Error while opening {:s}:<br>{:}'.format(os.path.split(path)[-1],e))
                     obj = None
@@ -496,7 +497,10 @@ class CalcamGUIWindow(qt.QMainWindow):
             elif obj_type.lower() == 'pointpairs':
                 if path.endswith('.ccc'):
                     cal = Calibration(path)
-                    cal.set_detector_window(self.detector_window)
+
+                    if maintain_window:
+                        cal.set_detector_window(self.detector_window)
+
                     obj = cal.pointpairs
                     obj.history = cal.history['pointpairs']
                 elif path.endswith('.csv'):
