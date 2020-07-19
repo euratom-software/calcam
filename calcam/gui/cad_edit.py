@@ -442,8 +442,11 @@ class CADEdit(CalcamGUIWindow):
         elif new_name == '' or new_name == self.cadmodel.model_variant:
             return
 
-        mesh_root_path = self.cadmodel.mesh_path_roots.pop(self.cadmodel.model_variant)
-        self.cadmodel.mesh_path_roots[new_name] = mesh_root_path
+        try:
+            mesh_root_path = self.cadmodel.mesh_path_roots.pop(self.cadmodel.model_variant)
+            self.cadmodel.mesh_path_roots[new_name] = mesh_root_path
+        except KeyError:
+            pass
         
         grouplist = self.extra_groups.pop(self.cadmodel.model_variant)
         self.extra_groups[new_name] = grouplist
@@ -858,6 +861,7 @@ class CADEdit(CalcamGUIWindow):
 
             if self.current_group is not None:
                 init_name = '{:s}/{:s}'.format(self.current_group,init_name)
+                self.cadmodel.groups[self.current_group].append(init_name)
 
             feature_dict = {'mesh_file':mesh_path,'default_enable':False,'mesh_scale':self.mesh_scale_box.value(),'colour':(0.75,0.75,0.75)}
 
@@ -1146,26 +1150,36 @@ class CADEdit(CalcamGUIWindow):
         
         self.update_feature_tree()
 
-        model_def_dict['features'] = copy.copy(self.model_features)
+        model_def_dict['features'] = copy.deepcopy(self.model_features)
 
         for old_mesh in self.removed_mesh_files:
             self.cadmodel.def_file.remove(old_mesh)
 
         for variant in self.cadmodel.variants:
+
             if variant not in model_def_dict['mesh_path_roots']:
                 model_def_dict['mesh_path_roots'][variant] = '.large/{:s}'.format(variant.replace(' ','_').lower())
+
+            # Existing working directory for file
             tmp_path = self.cadmodel.def_file.get_temp_path().replace(os.sep,'/')
+
             for feature in model_def_dict['features'][variant]:
+
+                # Where the mesh file currently is
                 current_path = self.model_features[variant][feature]['mesh_file'].replace(os.sep,'/')
                 fname = os.path.split(current_path)[1]
-                model_def_dict['features'][variant][feature]['mesh_file'] = os.path.join(self.cadmodel.def_file.get_temp_path(),model_def_dict['mesh_path_roots'][variant],fname)
-                
+
+                # If the file isn't already in the zip file, add it and set the mesh location
+                # to the new copy.
                 if tmp_path not in current_path:
-                    self.cadmodel.def_file.add(current_path,os.path.join(model_def_dict['mesh_path_roots'][variant],fname),replace=True)
-                    self.model_features[variant][feature]['mesh_file'] = fname
-                else:
-                    self.model_features[variant][feature]['mesh_file'] = current_path.replace(tmp_path,'').lstrip('/').replace(model_def_dict['mesh_path_roots'][variant],'').lstrip('/')
-        
+                    rel_mesh_path = os.path.join(model_def_dict['mesh_path_roots'][variant],fname)
+                    self.cadmodel.def_file.add(current_path,rel_mesh_path,replace=True)
+                    self.model_features[variant][feature]['mesh_file'] = os.path.join(tmp_path,rel_mesh_path)
+
+                # Just the filename will be written to the mesh_path field.
+                model_def_dict['features'][variant][feature]['mesh_file'] = fname
+
+
         model_def_dict['views'] = self.cadmodel.views
         model_def_dict['default_variant'] = self.cadmodel.model_variant
         model_def_dict['machine_name'] = str(self.model_name_box.text())

@@ -181,6 +181,7 @@ class CADModel():
             self.model_variant = ''
             self.views = {}
             self.initial_view = None
+            self.mesh_path_roots = {}
 
         self.renderers = []
         self.flat_shading = False
