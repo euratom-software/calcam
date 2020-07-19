@@ -25,8 +25,8 @@ import os
 # A function which actually gets the image.
 # This can take as many arguments as you want.
 # It must return a dictionary, see below
-def get_image(filename):
-	
+def get_image(filename,coords,offset_x,offset_y):
+
     # Get the image data from a file
     dat = cv2.imread(filename)
     if dat is None:
@@ -47,7 +47,9 @@ def get_image(filename):
 
     return_dict = {
                     'image_data': dat,
-                    'source': 'Loaded from image file {:s}'.format(os.path.split(filename)[-1])
+                    'source': 'Loaded from image file {:s}'.format(os.path.split(filename)[-1]),
+                    'coords':coords,
+                    'image_offset':(offset_x,offset_y)
                     }
 
     return return_dict
@@ -56,10 +58,29 @@ def get_image(filename):
 display_name = 'Image File'
 get_image_function = get_image
 get_image_arguments =  [
-                            {
-                            'arg_name':'filename',
-                            'gui_label': 'File Name' , 
-                            'type': 'filename' , 
-                            'filter':'Image Files (*.png *.jpg *.jpeg *.bmp *.jp2 *.tiff *.tif)' 
-                            },
+                        {
+                            'arg_name': 'filename',
+                            'gui_label': 'File Name',
+                            'type': 'filename',
+                            'filter': 'Image Files (*.png *.jpg *.jpeg *.bmp *.jp2 *.tiff *.tif)'
+                        },
+                        {
+                            'arg_name': 'coords',
+                            'gui_label': 'Image Orientation',
+                            'type': 'choice',
+                            'choices': ['Display','Original'],
+                            'default': 'Display'
+                        },
+                        {
+                            'arg_name': 'offset_x',
+                            'gui_label': 'Detector X Offset',
+                            'type': 'int',
+                            'limits':[0,1e4]
+                        },
+                        {
+                            'arg_name': 'offset_y',
+                            'gui_label': 'Detector Y Offset',
+                            'type': 'int',
+                            'limits': [0, 1e4]
+                        },
                         ]

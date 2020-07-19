@@ -1480,7 +1480,7 @@ class FittingCalib(CalcamGUIWindow):
         result = dialog.exec_()
         if result == 1:
             self.calibration.set_subview_mask(dialog.fieldmask,subview_names=dialog.field_names,coords='Display')
-            self.interactor2d.n_subviews = self.calibration.n_subviews
+            self.interactor2d.set_image(self.calibration.get_image(coords='display'),n_subviews = self.calibration.n_subviews,subview_lookup=self.calibration.subview_lookup,hold_position=True)
             self.init_fitting()
             self.unsaved_changes = True
             self.update_n_points()

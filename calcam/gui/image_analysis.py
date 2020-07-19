@@ -493,7 +493,7 @@ class ImageAnalyser(CalcamGUIWindow):
 
         if newim['coords'].lower() == 'original':
             self.image = image
-        else:
+        elif self.calibration is not None:
             self.image = self.calibration.geometry.display_to_original_image(image)
 
         try:
