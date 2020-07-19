@@ -520,7 +520,7 @@ class RayData:
                     if self.crop is None:
                         return self.ray_start_coords
                     else:
-                        return self.tray_start_coords[self.crop_inds[0],:,:][:,self.crop_inds[1],:]
+                        return self.ray_start_coords[self.crop_inds[0],:,:][:,self.crop_inds[1],:]
                 else:
                     if self.crop is None:
                         return self.transform.display_to_original_image(self.ray_start_coords)

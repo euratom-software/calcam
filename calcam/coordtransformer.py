@@ -137,6 +137,18 @@ class CoordTransformer:
                 self.pixel_aspectratio = ref_aspect*pixel_aspect
                 
 
+    def original_to_display_shape(self,shape):
+
+        shape = np.array(shape)
+
+        for action in self.transform_actions:
+            if action.lower() in ['rotate_clockwise_90','rotate_clockwise_270']:
+                shape = shape[::-1]
+
+        return shape
+
+    def display_to_original_shape(self,shape):
+        return self.original_to_display_shape(shape)
 
 
     # Given an array containing an image in original coordinates, returns an array containing the image in display coordinates.
