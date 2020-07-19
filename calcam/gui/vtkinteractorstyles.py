@@ -797,14 +797,29 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
                 self.camera.SetParallelScale(self.zoom_ref_scale)
                 self.camera.SetPosition(xc,yc,1.)
                 self.camera.SetFocalPoint(xc,yc,0.)
-        
-        # Remove and re-add cursor actors. Not sure why this is necessary
-        # but if I don't do it, the cursors disappear
+
+
+        # Re-shuffle cursors into different sub-views if needed.
+        for cursor_id in self.active_cursors.keys():
+            coords = self.get_cursor_coords(cursor_id)
+            new_actor_list = [None] * self.n_subviews
+            new_cursor3d_list = [None] * self.n_subviews
+            for n_old in range(len(coords)):
+                if coords[n_old] is not None:
+                    new_subview = self.subview_lookup(coords[n_old][0],coords[n_old][1])
+                    new_actor_list[new_subview] = self.active_cursors[cursor_id]['actors'][n_old]
+                    self.renderer.RemoveActor(new_actor_list[new_subview])
+                    new_cursor3d_list[new_subview] = self.active_cursors[cursor_id]['cursor3ds'][n_old]
+            self.active_cursors[cursor_id] = {'cursor3ds':new_cursor3d_list,'actors':new_actor_list}
+
+        # Finish re-adding active cursors and remove + re-add passive cursors (not sure why but
+        # they disappear if I don't do this).
         for active_cursor in self.active_cursors.values():
             for actor in active_cursor['actors']:
                 if actor is not None:
-                    self.renderer.RemoveActor(actor)
                     self.renderer.AddActor(actor)
+
+
         for passive_cursor in self.passive_cursors.values():
                 self.renderer.RemoveActor(passive_cursor['actor'])
                 self.renderer.AddActor(passive_cursor['actor'])           
@@ -1103,7 +1118,7 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
 
 
     # Add a new point on the image
-    def add_active_cursor(self,coords,add_to=None,run_move_callback=True):
+    def add_active_cursor(self,coords,add_to=None):
 
         subview = self.subview_lookup(coords[0],coords[1])
 

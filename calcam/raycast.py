@@ -155,7 +155,6 @@ def raycast_sightlines(calibration,cadmodel,x=None,y=None,binning=1,coords='Disp
     results.x = np.reshape(results.x,np.size(results.x),order='F')
     results.y = np.reshape(results.y,np.size(results.y),order='F')
     valid_mask = np.reshape(valid_mask,np.size(valid_mask),order='F')
-    totpx = np.size(results.x)
 
 
     # New results object to store results
@@ -204,7 +203,11 @@ def raycast_sightlines(calibration,cadmodel,x=None,y=None,binning=1,coords='Disp
 
         # Do the raycast and put the result in the output array
         rayend = results.ray_start_coords[ind] + max_ray_length * LOSDir[ind]
-        retval = cell_locator.IntersectWithLine(results.ray_start_coords[ind],rayend,1.e-6,t,pos,coords_,subid)
+
+        if cell_locator is not None:
+            retval = cell_locator.IntersectWithLine(results.ray_start_coords[ind],rayend,1.e-6,t,pos,coords_,subid)
+        else:
+            retval = 0
 
         if abs(retval) > 0:
             results.ray_end_coords[ind,:] = pos[:]
