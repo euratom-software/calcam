@@ -195,7 +195,6 @@ class ImageAnalyser(CalcamGUIWindow):
             self.sightline_actors = []
 
 
-            sightline = False
             intersection_coords = None
 
             visible = [False] * self.calibration.n_subviews
@@ -214,7 +213,6 @@ class ImageAnalyser(CalcamGUIWindow):
                     continue
 
                 raydata = raycast_sightlines(self.calibration,self.cadmodel,image_pos_nocheck[i][0,0],image_pos_nocheck[i][0,1],verbose=False,force_subview=i)
-                sightline = True
                 visible[i] =True
 
                 if np.any(np.isnan(image_pos[i])):
@@ -224,9 +222,9 @@ class ImageAnalyser(CalcamGUIWindow):
                 if visible[i]:
 
                     if self.cursor_ids['2d']['visible'] is None:
-                        self.cursor_ids['2d']['visible'] = self.interactor2d.add_active_cursor(image_pos_nocheck[i][0,:],run_move_callback=False)
+                        self.cursor_ids['2d']['visible'] = self.interactor2d.add_active_cursor(image_pos_nocheck[i][0,:])
                     else:
-                        self.interactor2d.add_active_cursor(image_pos_nocheck[i][0,:],run_move_callback=False,add_to=self.cursor_ids['2d']['visible'])
+                        self.interactor2d.add_active_cursor(image_pos_nocheck[i][0,:],add_to=self.cursor_ids['2d']['visible'])
 
                     if self.sightline_checkbox.isChecked():
                         linesource = vtk.vtkLineSource()
@@ -263,9 +261,9 @@ class ImageAnalyser(CalcamGUIWindow):
 
                 else:
                     if self.cursor_ids['2d']['hidden'] is None:
-                        self.cursor_ids['2d']['hidden'] = self.interactor2d.add_active_cursor(image_pos_nocheck[i][0,:],run_move_callback=False)
+                        self.cursor_ids['2d']['hidden'] = self.interactor2d.add_active_cursor(image_pos_nocheck[i][0,:])
                     else:
-                        self.interactor2d.add_active_cursor(image_pos_nocheck[i][0,:],run_move_callback=False,add_to=self.cursor_ids['2d']['hidden'])
+                        self.interactor2d.add_active_cursor(image_pos_nocheck[i][0,:],add_to=self.cursor_ids['2d']['hidden'])
 
                     if self.sightline_checkbox.isChecked():
                         linesource = vtk.vtkLineSource()
@@ -334,6 +332,11 @@ class ImageAnalyser(CalcamGUIWindow):
                 ioshape = self.image_geometry.get_original_shape()
                 opened_calib.set_detector_window( (self.image_geometry.offset[0],self.image_geometry.offset[1],ioshape[0],ioshape[1]) )
 
+                if self.enhance_checkbox.isChecked():
+                    self.interactor2d.set_image(enhance_image(opened_calib.geometry.original_to_display_image(self.image)))
+                else:
+                    self.interactor2d.set_image(opened_calib.geometry.original_to_display_image(self.image))
+
             self.calibration = opened_calib
             self.calib_name.setText(os.path.split(self.calibration.filename)[1].replace('.ccc',''))
             self.cal_props_button.setEnabled(True)
@@ -342,10 +345,7 @@ class ImageAnalyser(CalcamGUIWindow):
             self.reset_view_button.setEnabled(True)
             self.overlay = None
 
-            if self.enhance_checkbox.isChecked():
-                self.interactor2d.set_image(enhance_image(self.calibration.geometry.original_to_display_image(self.image)))
-            else:
-                self.interactor2d.set_image(self.calibration.geometry.original_to_display_image(self.image))
+
 
             self.interactor2d.set_subview_lookup(self.calibration.n_subviews,self.calibration.subview_lookup)
 
@@ -451,6 +451,11 @@ class ImageAnalyser(CalcamGUIWindow):
         self.cadmodel.get_cell_locator()
         self.statusbar.clearMessage()
         self.app.restoreOverrideCursor()
+        self.overlay = None
+        if self.overlay_checkbox.isChecked():
+            self.overlay_checkbox.setChecked(False)
+            self.overlay_checkbox.setChecked(True)
+
 
 
     def on_load_image(self,newim):
@@ -488,13 +493,21 @@ class ImageAnalyser(CalcamGUIWindow):
         if self.calibration is not None:
 
             ioshape = self.image_geometry.get_original_shape()
-            self.calibration.set_detector_window( (self.image_geometry.offset[0],self.image_geometry.offset[1],ioshape[0],ioshape[1]) )
+            newcrop = (self.image_geometry.offset[0],self.image_geometry.offset[1],ioshape[0],ioshape[1])
+            if self.calibration.crop != newcrop:
+                self.calibration.set_detector_window( (self.image_geometry.offset[0],self.image_geometry.offset[1],ioshape[0],ioshape[1]) )
+                self.overlay = None
+                if self.overlay_checkbox.isChecked():
+                    self.overlay_checkbox.setChecked(False)
+                    self.overlay_checkbox.setChecked(True)
 
 
         if newim['coords'].lower() == 'original':
             self.image = image
         elif self.calibration is not None:
             self.image = self.calibration.geometry.display_to_original_image(image)
+        else:
+            self.image = self.image_geometry.display_to_original_image(image)
 
         try:
             transformer = self.calibration.geometry
@@ -599,6 +612,9 @@ class ImageAnalyser(CalcamGUIWindow):
         self.interactor2d.set_image(transformer.original_to_display_image(image),hold_position=True)
         if self.calibration is not None:
             self.interactor2d.set_subview_lookup(self.calibration.n_subviews,self.calibration.subview_lookup)
+        if self.overlay_checkbox.isChecked():
+            self.overlay_checkbox.setChecked(False)
+            self.overlay_checkbox.setChecked(True)
 
 
 
@@ -609,6 +625,10 @@ class ImageAnalyser(CalcamGUIWindow):
         self.cadmodel.get_cell_locator()
         self.statusbar.clearMessage()
         self.app.restoreOverrideCursor()
+        self.overlay = None
+        if self.overlay_checkbox.isChecked():
+            self.overlay_checkbox.setChecked(False)
+            self.overlay_checkbox.setChecked(True)
 
 
     def update_position_info(self,coords_2d,coords_3d,visible):
