@@ -81,27 +81,24 @@ if 'install' in sys.argv or 'develop' in sys.argv:
 
 
     # Slightly less essential dependencies
-    vtk = True
+    vtk = False
     if check_dependency('vtk'):
         import vtk
         if vtk.vtkVersion.GetVTKMajorVersion() >= 6:
-            print('Dependency VTK: OK!')
-            
-        else:
-            print('Dependency VTK: trying to install using pip...\n')
-            if pip_install('vtk>=6'):
-                print('\nVTK installed OK!')
+            if vtk.vtkVersion.GetVTKMajorVersion() >= 8 and vtk.vtkVersion.GetVTKMinorVersion() > 1:
+                print('Dependency VTK: Installed version >8.1 is known to cause wrong results!')
             else:
-                print('\nFailed to install VTK :(')
-                vtk = False           
-    else:
+                print('Dependency VTK: OK!')
+                vtk = True
+
+    if not vtk:
         print('Dependency VTK: trying to install using pip...\n')
-        if pip_install('vtk>=6'):
+        if pip_install('vtk>=6,<8.2'):
             print('\nVTK installed OK!')
         else:
             print('\nFailed to install VTK :(')
             vtk = False
-           
+
 
     pyqt = True
     if check_dependency('PyQt5'):

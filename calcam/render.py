@@ -100,10 +100,17 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
     renwin = vtk.vtkRenderWindow()
     renwin.OffScreenRenderingOn()
 
-
     # Set up render window for initial, un-distorted window
     renderer = vtk.vtkRenderer()
     renwin.AddRenderer(renderer)
+
+    # Render once to make VTK update the lighting
+    renwin.Render()
+
+    # Make sure the light lights up the whole model without annoying shadows or falloff.
+    light = renderer.GetLights().GetItemAsObject(0)
+    light.PositionalOn()
+    light.SetConeAngle(180)
 
     camera = renderer.GetActiveCamera()
 
@@ -115,10 +122,12 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
         actor.GetProperty().SetLineWidth( actor.GetProperty().GetLineWidth() * aa)
         renderer.AddActor(actor)
         
-
+    vtk_win_im = vtk.vtkRenderLargeImage()
+    vtk_win_im.SetInput(renderer)
 
     # We need a field mask the same size as the output
     fieldmask = cv2.resize(calibration.get_subview_mask(coords='Display'),(int(x_pixels*oversampling),int(y_pixels*oversampling)),interpolation=cv2.INTER_NEAREST)
+
 
     for field in range(calibration.n_subviews):
 
@@ -128,9 +137,6 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
         cx = calibration.view_models[field].cam_matrix[0,2]
         cy = calibration.view_models[field].cam_matrix[1,2]
         fy = calibration.view_models[field].cam_matrix[1,1]
-
-        vtk_win_im = vtk.vtkRenderLargeImage()
-        vtk_win_im.SetInput(renderer)
 
         # Width and height - initial render will be put optical centre in the window centre
         wt = int(2*fov_factor*max(cx,x_pixels-cx))
@@ -148,11 +154,10 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
 
         width = int(wt/window_factor)
         height = int(ht/window_factor)
-
         renwin.SetSize(width,height)
 
         # Set up CAD camera
-        fov_y = 360 * np.arctan( ht / (2*fy) ) / 3.14159
+        fov_y = 360 * np.arctan( ht / (2*fy) ) / np.pi
         cam_pos = calibration.get_pupilpos(subview=field)
         cam_tar = calibration.get_los_direction(cx,cy,subview=field) + cam_pos
         upvec = -1.*calibration.get_cam_to_lab_rotation(subview=field)[:,1]
@@ -166,15 +171,6 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
 
         # Do the render and grab an image
         renwin.Render()
-
-        # Make sure the light lights up the whole model without annoying shadows or falloff.
-        light = renderer.GetLights().GetItemAsObject(0)
-        light.PositionalOn()
-        light.SetConeAngle(180)
-
-        # Do the render and grab an image
-        renwin.Render()
-
         vtk_win_im.Update()
 
         vtk_image = vtk_win_im.GetOutput()
@@ -182,7 +178,7 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
         dims = vtk_image.GetDimensions()
 
         im = np.flipud(vtk_to_numpy(vtk_array).reshape(dims[1], dims[0] , 3))
-        
+
         if transparency:
             alpha = 255 * np.ones([np.shape(im)[0],np.shape(im)[1]],dtype='uint8')
             alpha[np.sum(im,axis=2) == 0] = 0
