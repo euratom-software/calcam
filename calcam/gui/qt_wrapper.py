@@ -60,14 +60,6 @@ try:
 except:
     QString = str
 
-# Make sure Matplotlib is using the right backend for
-# whichever version of Qt we managed to load.
-import matplotlib
-try:
-    matplotlib.use('Qt{:d}Agg'.format(qt_ver),warn=False,force=True)
-except:
-    print('WARNING: Error forcing Matplotlib to use Qt{:d} backend; there may be GUI issues!'.format(qt_ver))
-
 # Here's a little custom constructor for QTreeWidgetItems, which will
 # work in either PyQt4 or 5. For PyQt4 we have to make string list
 # arguments in to QStringLists.

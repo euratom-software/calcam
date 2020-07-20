@@ -27,11 +27,6 @@ CalCam package.
 # Calcam version
 __version__ = '2.4.dev'
 
-
-# Note: We have to import the GUI module before anything
-# else to make sure the Calcam GUI and Matplotlib are
-# using the same version of Qt and will therefore work well
-# together.
 try:
     import vtk
 
