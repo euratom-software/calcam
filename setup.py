@@ -95,9 +95,9 @@ if 'install' in sys.argv or 'develop' in sys.argv:
         print('Dependency VTK: trying to install using pip...\n')
         if pip_install('vtk>=6,<8.2'):
             print('\nVTK installed OK!')
+            vtk = True
         else:
             print('\nFailed to install VTK :(')
-            vtk = False
 
 
     pyqt = True
@@ -144,21 +144,21 @@ if 'install' in sys.argv or 'develop' in sys.argv:
     try:
         env_path = os.environ['PATH']
     except KeyError:
-        env_path = None
+        env_path = ''
     
-    extra_msg = '\nIt can be imported within python with "import calcam"'
-    if script_dir in env_path and pyqt and vtk:
-        extra_msg = extra_msg + '\nThe Calcam GUI can be started by typing "calcam" at a terminal.'
+    extra_msg = '\n\nIt can be imported as a Python module with "import calcam"'
+    if pyqt and vtk:
+        extra_msg = extra_msg + '\n\nThe GUI can be launched using the executable:\n{:s}'.format(os.path.join(script_dir.replace('/',os.path.sep),'calcam'))
+        if sys.platform == 'win32':
+            extra_msg = extra_msg + '.exe'
+        if script_dir in env_path:
+            extra_msg = extra_msg + '\nor just by typing "calcam" at a terminal.'
 
     if not vtk:
-        extra_msg = extra_msg + '\n\nNOTE: Dependency VTK (6.0+) is not installed and could\n      not be installed automatically; the Calcam GUI, rendering\n      and ray casting features will not work until this is installed.'
+        extra_msg = extra_msg + '\n\nNOTE: Dependency VTK (6.0+; < 8.2) is not installed and could\n      not be installed automatically; the Calcam GUI, rendering\n      and ray casting features will not work until this is installed.'
 
     if not pyqt:
         extra_msg = extra_msg + '\n\nNOTE: Dependency PyQt (4 or 5) is not installed and\n      could not be installed automatically; the Calcam \n      GUI will not work until this is installed.'
-    if env_path is not None:
-        if script_dir not in env_path:
-            extra_msg = extra_msg + '\n\nNOTE: The path containing the Calcam GUI launch script:\n\n      {:s}\n\n      is not in your PATH environment variable; consider\n      adding it to enable launching the Calcam GUI directly!'.format(script_dir)
-    else:
-        extra_msg = extra_msg + '\nLocation of Calcam GUI launcher:\n\n{:s}'.format(script_dir)
 
-    print('\n***************************************************************\nCalcam installation complete.{:s}\n***************************************************************\n'.format(extra_msg))
+
+    print('\n***************************************************************\n\nCalcam installation complete.{:s}\n\n***************************************************************\n'.format(extra_msg))
