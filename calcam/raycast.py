@@ -44,7 +44,8 @@ from . import misc
 from . import __version__ as calcam_version
 
 
-def raycast_sightlines(calibration,cadmodel,x=None,y=None,binning=1,coords='Display',verbose=True,force_subview=None,status_callback=None):
+def raycast_sightlines(calibration,cadmodel,x=None,y=None,exclusion_radius=0.0,binning=1,coords='Display',verbose=True,
+                       force_subview=None,status_callback=None):
     '''
     Ray cast camera sight-lines to determine where they intersect the given CAD model.
 
@@ -57,7 +58,15 @@ def raycast_sightlines(calibration,cadmodel,x=None,y=None,binning=1,coords='Disp
         x, y (array-like)                : x and y image pixel coordinates for which to cast sight-lines. \
                                            If not specified, one ray is cast at the centre of every detector pixel.\
                                            x and y must be the same shape.
-                                           
+
+        exclusion_radius (float)         : Distance from camera pupil (in meters) over which to ignore ray \
+                                           intersections with CAD surfaces. \
+                                           This is useful for views involving mirrors and/or prisms where unfolding \
+                                           the optical path results in the virtual pupil location falling behind \
+                                           nearby CAD surfaces. Setting a sufficient exclusion radius will cause the \
+                                           rays to be launched from the other side of these surfaces so they intersect \
+                                           the correct surfaces present in the image.
+
         binning (int)                    : If not explicitly providing x and y image coordinates, pixel binning for ray casting.\
                                            This specifies NxN binning, i.e. for a value of 2, one ray is cast at the centre of \
                                            every 2x2 cluster of pixels.
@@ -202,12 +211,10 @@ def raycast_sightlines(calibration,cadmodel,x=None,y=None,binning=1,coords='Disp
             continue
 
         # Do the raycast and put the result in the output array
+        raystart = results.ray_start_coords[ind] + exclusion_radius * LOSDir[ind]
         rayend = results.ray_start_coords[ind] + max_ray_length * LOSDir[ind]
 
-        if cell_locator is not None:
-            retval = cell_locator.IntersectWithLine(results.ray_start_coords[ind],rayend,1.e-6,t,pos,coords_,subid)
-        else:
-            retval = 0
+        retval = cell_locator.IntersectWithLine(raystart,rayend,1.e-6,t,pos,coords_,subid)
 
         if abs(retval) > 0:
             results.ray_end_coords[ind,:] = pos[:]
