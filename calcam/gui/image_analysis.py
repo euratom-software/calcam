@@ -27,13 +27,13 @@ from .vtkinteractorstyles import CalcamInteractorStyle2D, CalcamInteractorStyle3
 from ..render import render_cam_view
 from ..coordtransformer import CoordTransformer
 from ..raycast import raycast_sightlines
-from ..image_enhancement import enhance_image
+from ..image_enhancement import enhance_image, scale_to_8bit
 
 type_description = {'alignment': 'Manual Alignment', 'fit':'Point pair fitting','virtual':'Virtual'}
 
 # Main calcam window class for actually creating calibrations.
 class ImageAnalyser(CalcamGUIWindow):
- 
+
     def __init__(self, app, parent = None):
 
         # GUI initialisation
@@ -69,7 +69,7 @@ class ImageAnalyser(CalcamGUIWindow):
         self.coords_3d = None
 
         self.populate_models()
-        
+
 
 
         # Disable image transform buttons if we have no image
@@ -142,7 +142,7 @@ class ImageAnalyser(CalcamGUIWindow):
 
 
     def update_cursor_position(self,cursor_id,position):
-        
+
         #info = 'Cursor location: ' + self.cadmodel.format_coord(position).replace('\n',' | ')
 
         pass
@@ -198,7 +198,7 @@ class ImageAnalyser(CalcamGUIWindow):
             intersection_coords = None
 
             visible = [False] * self.calibration.n_subviews
-          
+
             # Find where the cursor(s) is/are in 2D.
             image_pos_nocheck = self.calibration.project_points([coords_3d],coords='original')
 
@@ -290,7 +290,7 @@ class ImageAnalyser(CalcamGUIWindow):
                         actor.GetProperty().SetColor(invisible_colour)
                         self.sightline_actors.append(actor)
                         self.interactor3d.add_extra_actor(actor)
-                    
+
             self.cursor_ids['3d'] = self.interactor3d.add_cursor(coords_3d)
 
             if self.cursor_ids['2d']['visible'] is not None:
@@ -304,7 +304,7 @@ class ImageAnalyser(CalcamGUIWindow):
 
             self.update_position_info(self.coords_2d,self.coords_3d,visible)
 
-            
+
 
 
     def update_from_2d(self,coords_2d):
@@ -326,7 +326,7 @@ class ImageAnalyser(CalcamGUIWindow):
         if opened_calib is not None:
             if None in opened_calib.view_models:
                 raise UserWarning('The selected calibration file does not contain a full set of calibration parameters. Only calibration files containing all calibration parameters can be used.')
-            
+
             if self.image is not None:
 
                 ioshape = self.image_geometry.get_original_shape()
@@ -382,8 +382,8 @@ class ImageAnalyser(CalcamGUIWindow):
                         except Exception as e:
                             self.cadmodel = None
                             if 'Unknown feature' not in str(e):
-                                raise          
-                    
+                                raise
+
                     # I'm not sure why I have to call this twice to get it to work properly.
                     # On the first call it almost works, but not quite accurately. Then
                     # on the second call onwards it's fine. Should be investigated further.
@@ -398,11 +398,11 @@ class ImageAnalyser(CalcamGUIWindow):
                 self.update_from_3d(self.coords_3d)
             else:
                 self.coords_2d = [None] * self.calibration.n_subviews
-                
+
 
 
     def unload_calib(self):
-        
+
         if self.calibration is not None:
             self.calibration = None
             self.calib_name.setText('No Calibration Loaded.')
@@ -411,16 +411,16 @@ class ImageAnalyser(CalcamGUIWindow):
             self.reset_view_button.setEnabled(False)
             self.overlay = None
             self.cal_props_button.setEnabled(False)
-            
+
             if self.cursor_ids['2d']['visible'] is not None:
                 self.interactor2d.remove_active_cursor(self.cursor_ids['2d']['visible'])
                 self.cursor_ids['2d']['visible'] = None
-                
+
             if self.cursor_ids['2d']['hidden'] is not None:
-                self.interactor2d.remove_active_cursor(self.cursor_ids['2d']['hidden'])            
+                self.interactor2d.remove_active_cursor(self.cursor_ids['2d']['hidden'])
                 self.cursor_ids['2d']['hidden'] = None
-                
-                
+
+
     def set_view_to_cursor(self):
         cursorpos = self.interactor3d.get_cursor_coords(self.cursor_ids['3d'])
 
@@ -460,31 +460,7 @@ class ImageAnalyser(CalcamGUIWindow):
 
     def on_load_image(self,newim):
 
-        image = newim['image_data']
-        
-        # If the array isn't already 8-bit int, make it 8-bit int...
-        if image.dtype != np.uint8:
-            # If we're given a higher bit-depth integer, it's easy to downcast it.
-            if image.dtype == np.uint16 or image.dtype == np.int16:
-                image = np.uint8(image/2**8)
-            elif image.dtype == np.uint32 or image.dtype == np.int32:
-                image = np.uint8(image/2**24)
-            elif image.dtype == np.uint64 or image.dtype == np.int64:
-                image = np.uint8(image/2**56)
-
-
-            # Otherwise, scale it in a floating point way to its own max & min
-            # and strip out any transparency info (since we can't be sure of the scale used for transparency)
-            else:
-
-                if image.min() < 0:
-                    image = image - image.min()
-
-                if len(image.shape) == 3:
-                    if image.shape[2] == 4:
-                        image = image[:,:,:-1]
-
-                image = np.uint8(255.*(image - image.min())/(image.max() - image.min()))
+        image = scale_to_8bit(newim['image_data'])
 
         self.image_geometry = CoordTransformer(offset=newim['image_offset'],paspect=newim['pixel_aspect'])
         self.image_geometry.set_image_shape(newim['image_data'].shape[1],newim['image_data'].shape[0],coords=newim['coords'])
@@ -522,12 +498,12 @@ class ImageAnalyser(CalcamGUIWindow):
             self.interactor2d.set_subview_lookup(self.calibration.n_subviews,self.calibration.subview_lookup)
 
         self.image_settings.show()
-            
+
         if self.enhance_checkbox.isChecked():
             self.enhance_checkbox.setChecked(False)
             self.enhance_checkbox.setChecked(True)
 
-        
+
         self.update_image_info_string(self.image,transformer)
         self.app.restoreOverrideCursor()
         self.statusbar.clearMessage()
@@ -538,7 +514,7 @@ class ImageAnalyser(CalcamGUIWindow):
         if self.overlay_checkbox.isChecked():
             self.overlay_checkbox.setChecked(False)
             self.overlay_checkbox.setChecked(True)
-        
+
 
 
     def toggle_overlay(self,show=None):
@@ -573,12 +549,12 @@ class ImageAnalyser(CalcamGUIWindow):
                         dialog.setInformativeText('This usually means the fit is wildly wrong.')
                         dialog.setIcon(qt.QMessageBox.Information)
                         dialog.exec_()
-                        
-                
+
+
                 except:
                     self.interactor2d.set_overlay_image(None)
                     self.statusbar.clearMessage()
-                    self.overlay_checkbox.setChecked(False) 
+                    self.overlay_checkbox.setChecked(False)
                     self.app.restoreOverrideCursor()
                     raise
 
@@ -592,7 +568,7 @@ class ImageAnalyser(CalcamGUIWindow):
 
         else:
             self.interactor2d.set_overlay_image(None)
-   
+
 
 
 
@@ -659,7 +635,7 @@ class ImageAnalyser(CalcamGUIWindow):
 
             sightline_exists = False
 
-            
+
             impos_fieldnames_str = impos_fieldnames_str + '[{:s}]&nbsp;'.format( self.calibration.subview_names[field_index] )
 
             if np.any(np.isnan(coords_2d[field_index][0])):

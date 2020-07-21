@@ -31,6 +31,33 @@ import cv2
 import numpy as np
 from scipy.optimize import curve_fit
 
+
+
+def scale_to_8bit(image):
+
+    # If we have a multi-channel image
+    if len(image.shape) == 3:
+
+        # Remove any transparency channel if there is one
+        if image.shape[2] == 4:
+            image = image[:, :, :-1]
+
+        # If it's actually monochrome, throw away the colour
+        if (np.diff(image.reshape(image.shape[2],-1),axis=0)==0).all():
+            image = image[:,:,0]
+
+    # Do the subtraction & normalisation as float to avoid
+    # overflows or quantisation problems.
+    image = image.astype(np.float32)
+
+    # Scale the image to its max & min
+    image = image - image.min()
+    image = image / image.max()
+
+    # Final 8 bit output
+    return np.uint8(255 * image)
+
+
 def enhance_image(image,target_msb=25,target_noise=500,tiles=(20,20),downsample=False,median=False,bilateral=False):
     """
     Enhance details in a given image. Used both for visual enhancement

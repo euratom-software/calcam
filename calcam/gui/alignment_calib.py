@@ -22,12 +22,12 @@
 from .core import *
 from .vtkinteractorstyles import CalcamInteractorStyle3D
 from ..calibration import Calibration
-from ..image_enhancement import enhance_image
+from ..image_enhancement import enhance_image, scale_to_8bit
 
 # View designer window.
 # This allows creation of FitResults objects for a 'virtual' camera.
 class AlignmentCalib(CalcamGUIWindow):
- 
+
     def __init__(self, app, parent = None):
 
         # GUI initialisation
@@ -158,7 +158,7 @@ class AlignmentCalib(CalcamGUIWindow):
         self.interactor3d.init()
         self.qvtkwidget_3d.GetRenderWindow().GetInteractor().Initialize()
         self.reset()
-        
+
 
 
     def _load_model(self):
@@ -193,7 +193,7 @@ class AlignmentCalib(CalcamGUIWindow):
 
         self.chessboard_fit = None
         self.intrinsics_calib = None
-        
+
         self.update_intrinsics()
 
         self.refresh_3d()
@@ -210,7 +210,7 @@ class AlignmentCalib(CalcamGUIWindow):
             self.update_overlay()
 
     def toggle_wireframe(self,wireframe):
-        
+
         if self.cadmodel is not None:
 
             self.cadmodel.set_wireframe( wireframe )
@@ -243,7 +243,7 @@ class AlignmentCalib(CalcamGUIWindow):
 
         if opened_calib is None:
             return
-        
+
         if opened_calib._type == 'fit':
             raise UserWarning('The selected calibration is a point-pair fitting calibration and cannot be edited in this tool. Please open it with the point fitting calibration tool instead.')
         elif opened_calib._type == 'virtual':
@@ -342,7 +342,7 @@ class AlignmentCalib(CalcamGUIWindow):
         self.app.restoreOverrideCursor()
         if self.cadmodel is not None and self.calibration.image is not None:
             self.tabWidget.setTabEnabled(2,True)
-            
+
         self.unsaved_changes = False
 
 
@@ -366,7 +366,7 @@ class AlignmentCalib(CalcamGUIWindow):
             self.load_chessboard_button.setEnabled(False)
             self.load_intrinsics_button.setEnabled(True)
             self.focal_length_box.setEnabled(False)
-            
+
             if self.intrinsics_calib is None:
                 self.intrinsics_calib = self.object_from_file('calibration')
 
@@ -375,7 +375,7 @@ class AlignmentCalib(CalcamGUIWindow):
                     self.intrinsics_calib = None
                     self.current_intrinsics_combobox.setChecked(True)
                     raise UserWarning('This calibration has multiple sub-fields; no worky; sorry.')
-                
+
                 self.calibration.set_calib_intrinsics(self.intrinsics_calib,update_hist_recursion = not (self.intrinsics_calib is self.calibration))
                 self.current_intrinsics_combobox = self.calcam_intrinsics
             else:
@@ -447,7 +447,7 @@ class AlignmentCalib(CalcamGUIWindow):
         else:
             self.pixel_size_checkbox.setChecked(False)
 
-        self.calibration.set_image( newim['image_data'] , newim['source'],subview_mask = newim['subview_mask'], transform_actions = newim['transform_actions'],coords=newim['coords'],subview_names=newim['subview_names'],pixel_aspect=newim['pixel_aspect'],pixel_size=newim['pixel_size'],offset=newim['image_offset'] )
+        self.calibration.set_image( scale_to_8bit(newim['image_data']) , newim['source'],subview_mask = newim['subview_mask'], transform_actions = newim['transform_actions'],coords=newim['coords'],subview_names=newim['subview_names'],pixel_aspect=newim['pixel_aspect'],pixel_size=newim['pixel_size'],offset=newim['image_offset'] )
 
         imshape = self.calibration.geometry.get_display_shape()
         self.interactor3d.force_aspect = float( imshape[1] ) / float( imshape[0] )
@@ -461,7 +461,7 @@ class AlignmentCalib(CalcamGUIWindow):
         self.resize(size.width(),size.height())
 
         self.calibration.view_models = [None] * self.calibration.n_subviews
-        self.fit_timestamps = [None] * self.calibration.n_subviews 
+        self.fit_timestamps = [None] * self.calibration.n_subviews
 
         if self.calcam_intrinsics.isChecked() and np.any(np.array(self.intrinsics_calib.geometry.get_original_shape()) != np.array(self.calibration.geometry.get_original_shape())):
             self.show_msgbox('The current calibration intrinsics are the wrong shape for this image. The current intrinsics will be reset.')
@@ -469,7 +469,7 @@ class AlignmentCalib(CalcamGUIWindow):
             self.pinhole_intrinsics.setChecked(True)
 
         self.update_intrinsics()
-            
+
         self.image_settings.show()
         self.image_display_settings.show()
 
@@ -541,7 +541,7 @@ class AlignmentCalib(CalcamGUIWindow):
 
         elif self.sender() is self.im_y_stretch_button:
             self.calibration.geometry.set_pixel_aspect(self.im_y_stretch_factor.value(),absolute=False)
- 
+
         elif self.sender() is self.im_reset:
             self.calibration.geometry.set_transform_actions([])
             self.calibration.geometry.set_pixel_aspect(1.)
@@ -549,7 +549,7 @@ class AlignmentCalib(CalcamGUIWindow):
         # Update the image and point pairs
         imshape = self.calibration.geometry.get_display_shape()
         self.interactor3d.force_aspect = float(imshape[1]) / float(imshape[0])
- 
+
         self.update_image_info_string(self.calibration.get_image(),self.calibration.geometry)
 
         self.update_overlay()
@@ -592,4 +592,3 @@ class AlignmentCalib(CalcamGUIWindow):
 
         elif saveas:
             self.filename = orig_filename
-        
