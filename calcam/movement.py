@@ -33,7 +33,7 @@ import cv2
 
 from .pointpairs import PointPairs
 from .calibration import Calibration, Fitter
-from . import config, misc
+from . import misc
 from .image_enhancement import enhance_image
 
 

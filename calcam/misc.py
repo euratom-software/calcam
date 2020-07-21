@@ -26,7 +26,6 @@ be used elsewhere in Calcam.
 '''
 
 import time
-import datetime
 import getpass
 import datetime
 import socket

@@ -23,7 +23,6 @@
 import vtk
 import numpy as np
 import json
-import zipfile
 import os
 import atexit
 from .config import CalcamConfig

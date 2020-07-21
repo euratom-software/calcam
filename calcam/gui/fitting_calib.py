@@ -361,7 +361,7 @@ class FittingCalib(CalcamGUIWindow):
         self.interactor2d.set_cursor_focus(self.point_pairings[-1][1])
         self.interactor3d.set_cursor_focus(None)
         self.selected_pointpair = len(self.point_pairings) - 1
-
+        self.update_cursor_info()
 
         self.update_n_points()
 
@@ -380,6 +380,7 @@ class FittingCalib(CalcamGUIWindow):
         self.interactor3d.set_cursor_focus(self.point_pairings[-1][0])
         self.interactor2d.set_cursor_focus(None)
         self.selected_pointpair = len(self.point_pairings) - 1
+        self.update_cursor_info()
 
         self.update_n_points()
 

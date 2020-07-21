@@ -23,8 +23,6 @@ import vtk
 import cv2
 from vtk.util.numpy_support import vtk_to_numpy
 import numpy as np
-import os
-import sys
 import time
 from .raycast import raycast_sightlines
 import copy
