@@ -1,7 +1,8 @@
 
 
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
   
@@ -11,44 +12,37 @@
   
 
   
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-
-  
-  
-  
-  
-
-  
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/language_data.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
-    <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="“Virtual” Calibrations" href="gui_virtual_calib.html" />
     <link rel="prev" title="Calibration by point fitting" href="gui_calib.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
+
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search" >
+        <div class="wy-side-nav-search">
           
 
           
@@ -82,7 +76,6 @@
           
         </div>
 
-        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -109,7 +102,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#saving-loading-and-viewing-calibration-information">Saving / Loading and viewing calibration information</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="gui_virtual_calib.html">“Virtual” Calibrations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui_virtual_calib.html">&#8220;Virtual&#8221; Calibrations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_image_analyser.html">Image Analyser</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_viewer.html">3D Viewer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_settings.html">Calcam Settings</a></li>
@@ -132,7 +125,6 @@
             
           
         </div>
-        
       </div>
     </nav>
 
@@ -171,7 +163,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><a href="index.html">Docs</a> &raquo;</li>
         
       <li>Calibration by manual alignment</li>
     
@@ -192,7 +184,7 @@
             
   <div class="section" id="calibration-by-manual-alignment">
 <h1>Calibration by manual alignment<a class="headerlink" href="#calibration-by-manual-alignment" title="Permalink to this headline">¶</a></h1>
-<p>While the best and most accurate calibration technique is <a class="reference internal" href="gui_calib.html"><span class="doc">Calibration by point fitting</span></a>, in some cases this is simply not possible because well defined points cannot be identified in the image (e.g. narrow angle camera views which can see only round or curved features on the machine). In this case, Calcam provides a tool for calibration by manually moving the camera view with the mouse until it lines up with the camera image to be calibrated. This will be much more successful if the camera intrinsics can be calibrated accurately, e.g. using chessboard calibration images in the lab, leaving only the extrinsics to be determined “by hand”. Manual calibration only currently supports images with a single <a class="reference internal" href="intro_conventions.html#subviews-intro"><span class="std std-ref">sub-view</span></a>. The manual alignment calibration tool can be started from the Calcam launcher. The layout of the window is shown below:</p>
+<p>While the best and most accurate calibration technique is <a class="reference internal" href="gui_calib.html"><span class="doc">Calibration by point fitting</span></a>, in some cases this is simply not possible because well defined points cannot be identified in the image (e.g. narrow angle camera views which can see only round or curved features on the machine). In this case, Calcam provides a tool for calibration by manually moving the camera view with the mouse until it lines up with the camera image to be calibrated. This will be much more successful if the camera intrinsics can be calibrated accurately, e.g. using chessboard calibration images in the lab, leaving only the extrinsics to be determined &#8220;by hand&#8221;. Manual calibration only currently supports images with a single <a class="reference internal" href="intro_conventions.html#subviews-intro"><span class="std std-ref">sub-view</span></a>. The manual alignment calibration tool can be started from the Calcam launcher. The layout of the window is shown below:</p>
 <img alt="Calibration tool screenshot" class="align-left" src="_images/alignment_calib_annotated.png" />
 <div class="section" id="loading-an-image-to-calibrate">
 <h2>Loading an Image to Calibrate<a class="headerlink" href="#loading-an-image-to-calibrate" title="Permalink to this headline">¶</a></h2>
@@ -202,8 +194,8 @@
 <h2>Current Image Settings<a class="headerlink" href="#current-image-settings" title="Permalink to this headline">¶</a></h2>
 <p>With an image loaded, the <span class="guilabel">Current Image</span> section appears on the <span class="guilabel">Camera Image</span> tab, containing information and settings for the current image. Controls include</p>
 <ul class="simple">
-<li><p><strong>Known Pixel Size</strong>: If you know the pixel size of the camera, it can be entered here. This does not make any difference to the calibration except that focal lengths can be displayed in mm instead of pixels, which can be useful if you know the expected effective focal length of the camera optics.</p></li>
-<li><p><strong>Geometrical Transformations</strong>: Controls for transforming the image to get it the “right way up”. It is recommended to always load images in to Calcam the way they come out of the camera as raw, then use these controls to get the image right-way-up for calibration. The :guilabell:Stretch Vertically by’ button is provided for cameras with non-square pixels or anamorphic optics.</p></li>
+<li><strong>Known Pixel Size</strong>: If you know the pixel size of the camera, it can be entered here. This does not make any difference to the calibration except that focal lengths can be displayed in mm instead of pixels, which can be useful if you know the expected effective focal length of the camera optics.</li>
+<li><strong>Geometrical Transformations</strong>: Controls for transforming the image to get it the &#8220;right way up&#8221;. It is recommended to always load images in to Calcam the way they come out of the camera as raw, then use these controls to get the image right-way-up for calibration. The :guilabell:Stretch Vertically by&#8217; button is provided for cameras with non-square pixels or anamorphic optics.</li>
 </ul>
 <div class="section" id="image-display-effects">
 <h3>Image display effects<a class="headerlink" href="#image-display-effects" title="Permalink to this headline">¶</a></h3>
@@ -216,7 +208,7 @@
 </div>
 <div class="section" id="loading-a-cad-model">
 <h2>Loading a CAD model<a class="headerlink" href="#loading-a-cad-model" title="Permalink to this headline">¶</a></h2>
-<p>At the top the <span class="guilabel">Machine Model</span> control tab are controls for loading a CAD model to calibrate against. Two dropdown boxes are provided to select the CAD model to load and the <a class="reference internal" href="intro_conventions.html#cadmodel-intro"><span class="std std-ref">model variant</span></a>. The <span class="guilabel">Load</span> button to the right of the model variant then loads the model. Underneath the model variant dropdown box is a checkbox labeled <cite>Enable default model features on load</cite>: if checked, the default parts of the CAD model are all loaded as soon as the model itself is loaded. If not checked, the model definition will be loaded but none of the 3D mesh data will be loaded, and instead you can turn on features individually. This is useful if working with a large model on a slow computer where you don’t want to wait for the whole model to load if not needed. You can change to a different CAD model or variant at any time by selecting a different item from the dropdown boxes and clicking <span class="guilabel">Load</span> again.</p>
+<p>At the top the <span class="guilabel">Machine Model</span> control tab are controls for loading a CAD model to calibrate against. Two dropdown boxes are provided to select the CAD model to load and the <a class="reference internal" href="intro_conventions.html#cadmodel-intro"><span class="std std-ref">model variant</span></a>. The <span class="guilabel">Load</span> button to the right of the model variant then loads the model. Underneath the model variant dropdown box is a checkbox labeled <cite>Enable default model features on load</cite>: if checked, the default parts of the CAD model are all loaded as soon as the model itself is loaded. If not checked, the model definition will be loaded but none of the 3D mesh data will be loaded, and instead you can turn on features individually. This is useful if working with a large model on a slow computer where you don&#8217;t want to wait for the whole model to load if not needed. You can change to a different CAD model or variant at any time by selecting a different item from the dropdown boxes and clicking <span class="guilabel">Load</span> again.</p>
 <div class="section" id="turning-cad-model-features-on-off">
 <h3>Turning CAD model features On/Off<a class="headerlink" href="#turning-cad-model-features-on-off" title="Permalink to this headline">¶</a></h3>
 <p>For CAD models composed of multiple parts in separate mesh files, individual mesh files can be turned on or off by ticking/unticking them in the <span class="guilabel">Enable / Disable Features</span> panel. This can be done for individual parts, groups of parts (if defined in the CAD model) or the entire model. This can be helpful to improve performance when working with large models if not all parts are necessary for a particular calibration, or for removing parts which are in the way and make the calibration more difficult.</p>
@@ -234,7 +226,7 @@
 <p>The camera intrinsics are set using the top part of the <span class="guilabel">Alignment Calibration</span> control tab. Camera intrinsics can be set 3 different ways: using intrinsics from an existing calibration (e.g. to calibrate an existing camera &amp; lens setup moved to a new view), using chessboard calibration pattern images from lab measurements, or using a simple pinhole camera model. It is highly recommended to use chessboard images, if possible, or another calcam calibration since this is likely to give much better results and will probably be easier.</p>
 <div class="section" id="existing-calibration-intrinsics">
 <h4>Existing Calibration Intrinsics<a class="headerlink" href="#existing-calibration-intrinsics" title="Permalink to this headline">¶</a></h4>
-<p>To use intrinsics from an existing Calcam calibration, select <span class="guilabel">Use intrinsics from existing calibration</span> and browse for the calibration you want to use. The loaded calibration can be changed using the <span class="guilabel">Load…</span> button.</p>
+<p>To use intrinsics from an existing Calcam calibration, select <span class="guilabel">Use intrinsics from existing calibration</span> and browse for the calibration you want to use. The loaded calibration can be changed using the <span class="guilabel">Load...</span> button.</p>
 </div>
 <div class="section" id="chessboard-calibration-intrinsics">
 <h4>Chessboard Calibration Intrinsics<a class="headerlink" href="#chessboard-calibration-intrinsics" title="Permalink to this headline">¶</a></h4>
@@ -254,15 +246,15 @@
 <p>The camera extrinsics are set by manually adjusting the CAD model view until it lines up as well as possible with the image displayed on top. This can be done by a combination of mouse controls and manually inputting numerical values. As with the intrinsics, the extrinsics are set on the <span class="guilabel">Alignment Calibration</span> control tab.</p>
 <div class="section" id="starting-from-an-existing-view">
 <h4>Starting from an existing view<a class="headerlink" href="#starting-from-an-existing-view" title="Permalink to this headline">¶</a></h4>
-<p>It will often make the alignment easier to start from a view either defined in the CAD model definition or from another Calcam calibration. In the <span class="guilabel">Camera Positioning</span> box, the list of views defined in the CAD model are displayed, and clicking on one of these will immediately set the camera position and orientation to match that view. The field of view from the preset view will not be set, since this is determined by the camera intrinsics which are set separately. To use the extrinsics from an existing Calcam calibration, click the <span class="guilabel">Load…</span> button underneath the view list to choose a calibration file to load. This will set the camera extrinsics to match the loaded calibration, and add that calibration to the list view box so it can be returned to easily.</p>
+<p>It will often make the alignment easier to start from a view either defined in the CAD model definition or from another Calcam calibration. In the <span class="guilabel">Camera Positioning</span> box, the list of views defined in the CAD model are displayed, and clicking on one of these will immediately set the camera position and orientation to match that view. The field of view from the preset view will not be set, since this is determined by the camera intrinsics which are set separately. To use the extrinsics from an existing Calcam calibration, click the <span class="guilabel">Load...</span> button underneath the view list to choose a calibration file to load. This will set the camera extrinsics to match the loaded calibration, and add that calibration to the list view box so it can be returned to easily.</p>
 </div>
 <div class="section" id="mouse-controls">
 <h4>Mouse Controls<a class="headerlink" href="#mouse-controls" title="Permalink to this headline">¶</a></h4>
 <ul class="simple">
-<li><p><kbd class="kbd docutils literal notranslate"><kbd class="kbd docutils literal notranslate">Right</kbd> <kbd class="kbd docutils literal notranslate">Click</kbd> <kbd class="kbd docutils literal notranslate"></kbd>+<kbd class="kbd docutils literal notranslate"></kbd> <kbd class="kbd docutils literal notranslate">Drag</kbd></kbd> - Look around (first-person shooter style control; default) or rotate CAD model depending on settings</p></li>
-<li><p><kbd class="kbd docutils literal notranslate"><kbd class="kbd docutils literal notranslate">Middle</kbd> <kbd class="kbd docutils literal notranslate">Click</kbd> <kbd class="kbd docutils literal notranslate"></kbd>+<kbd class="kbd docutils literal notranslate"></kbd> <kbd class="kbd docutils literal notranslate">Drag</kbd></kbd> - Pan (translate) sideways i.e. in the plane of the monitor.</p></li>
-<li><p><kbd class="kbd docutils literal notranslate"><kbd class="kbd docutils literal notranslate">Scroll</kbd> <kbd class="kbd docutils literal notranslate">Wheel</kbd></kbd> - Move forwards or backwards.</p></li>
-<li><p><kbd class="kbd docutils literal notranslate"><kbd class="kbd docutils literal notranslate">Ctrl</kbd> <kbd class="kbd docutils literal notranslate"></kbd>+<kbd class="kbd docutils literal notranslate"></kbd> <kbd class="kbd docutils literal notranslate">Right</kbd> <kbd class="kbd docutils literal notranslate">Click</kbd> <kbd class="kbd docutils literal notranslate"></kbd>+<kbd class="kbd docutils literal notranslate"></kbd> <kbd class="kbd docutils literal notranslate">Drag</kbd></kbd> - Roll the camera (rotate about the direction of view)</p></li>
+<li><code class="kbd docutils literal"><span class="pre">Right</span> <span class="pre">Click</span> <span class="pre">+</span> <span class="pre">Drag</span></code> - Look around (first-person shooter style control; default) or rotate CAD model depending on settings</li>
+<li><code class="kbd docutils literal"><span class="pre">Middle</span> <span class="pre">Click</span> <span class="pre">+</span> <span class="pre">Drag</span></code> - Pan (translate) sideways i.e. in the plane of the monitor.</li>
+<li><code class="kbd docutils literal"><span class="pre">Scroll</span> <span class="pre">Wheel</span></code> - Move forwards or backwards.</li>
+<li><code class="kbd docutils literal"><span class="pre">Ctrl</span> <span class="pre">+</span> <span class="pre">Right</span> <span class="pre">Click</span> <span class="pre">+</span> <span class="pre">Drag</span></code> - Roll the camera (rotate about the direction of view)</li>
 </ul>
 <p>For finer control, the mouse movement sensitivity can be adjusted using the slider in the <span class="guilabel">Mouse Control Settings</span> box at the bottom of the control tab.</p>
 </div>
@@ -274,7 +266,7 @@
 </div>
 <div class="section" id="saving-loading-and-viewing-calibration-information">
 <h2>Saving / Loading and viewing calibration information<a class="headerlink" href="#saving-loading-and-viewing-calibration-information" title="Permalink to this headline">¶</a></h2>
-<p>Once a satisfactory calibration has been obtained, the calibration can be saved to a Calcam calibration (<code class="docutils literal notranslate"><span class="pre">.ccc</span></code>) file using the <span class="guilabel">Save</span> / <span class="guilabel">Save As</span> buttons on the toolbar at the top of the window. The resulting file can then be loaded in the image analyser tool or using the Calcam <a class="reference internal" href="api_analysis.html"><span class="doc">Python API</span></a> to make use of the calibration. As with any computer application, it is advised to save your work regularly in case of computer crash or user error. Note: whenever the save button is clicked, the camera extrinsics in the saved calibration will be whatever the current CAD view alignment show.</p>
+<p>Once a satisfactory calibration has been obtained, the calibration can be saved to a Calcam calibration (<code class="docutils literal"><span class="pre">.ccc</span></code>) file using the <span class="guilabel">Save</span> / <span class="guilabel">Save As</span> buttons on the toolbar at the top of the window. The resulting file can then be loaded in the image analyser tool or using the Calcam <a class="reference internal" href="api_analysis.html"><span class="doc">Python API</span></a> to make use of the calibration. As with any computer application, it is advised to save your work regularly in case of computer crash or user error. Note: whenever the save button is clicked, the camera extrinsics in the saved calibration will be whatever the current CAD view alignment show.</p>
 <p>Existing manual alignment calibrations can be loaded using the <span class="guilabel">Open</span> button in the toolbar at the top of the window. This will load the image, extrinsics and intrinsics from the saved calibration. If the CAD model which was last used for thet calibration is available, it will also load and set up the CAD model as it was the last time that file was edited.</p>
 <p>Information about the current calibration can be viewed using the <span class="guilabel">Calibration Information</span> button on the toolbar.</p>
 </div>
@@ -291,7 +283,7 @@
         <a href="gui_virtual_calib.html" class="btn btn-neutral float-right" title="“Virtual” Calibrations" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="gui_calib.html" class="btn btn-neutral float-left" title="Calibration by point fitting" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="gui_calib.html" class="btn btn-neutral" title="Calibration by point fitting" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -300,19 +292,11 @@
 
   <div role="contentinfo">
     <p>
-        
         &copy; Copyright 2015-2019, European Atomic Energy Community (EURATOM)
 
     </p>
   </div>
-    
-    
-    
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
-    
-    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -324,16 +308,37 @@
   </div>
   
 
+
+  
+
+    
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'./',
+              VERSION:'',
+              LANGUAGE:'en',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  false,
+              SOURCELINK_SUFFIX: ''
+          };
+      </script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+
+  
+
+  <script type="text/javascript" src="_static/js/theme.js"></script>
+
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

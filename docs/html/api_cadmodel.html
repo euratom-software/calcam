@@ -1,7 +1,8 @@
 
 
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
   
@@ -11,44 +12,37 @@
   
 
   
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-
-  
-  
-  
-  
-
-  
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/language_data.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
-    <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Tomography Geometry Matrices" href="api_geom_matrix.html" />
     <link rel="prev" title="Using Calibration Results" href="api_analysis.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
+
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search" >
+        <div class="wy-side-nav-search">
           
 
           
@@ -82,7 +76,6 @@
           
         </div>
 
-        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -102,7 +95,7 @@
 <li class="toctree-l1"><a class="reference internal" href="gui_intro.html">Introduction &amp; Launcher</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_calib.html">Calibration by point fitting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_alignment_calib.html">Calibration by manual alignment</a></li>
-<li class="toctree-l1"><a class="reference internal" href="gui_virtual_calib.html">“Virtual” Calibrations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui_virtual_calib.html">&#8220;Virtual&#8221; Calibrations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_image_analyser.html">Image Analyser</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_viewer.html">3D Viewer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_settings.html">Calcam Settings</a></li>
@@ -125,7 +118,6 @@
             
           
         </div>
-        
       </div>
     </nav>
 
@@ -164,7 +156,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><a href="index.html">Docs</a> &raquo;</li>
         
       <li>CAD Models</li>
     
@@ -185,250 +177,293 @@
             
   <div class="section" id="cad-models">
 <h1>CAD Models<a class="headerlink" href="#cad-models" title="Permalink to this headline">¶</a></h1>
-<p>Using CAD models programatically, e.g. loading them for rendering images or ray casting, is done with the <a class="reference internal" href="#calcam.CADModel" title="calcam.CADModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">calcam.CADModel</span></code></a> class.</p>
-<dl class="py class">
+<p>Using CAD models programatically, e.g. loading them for rendering images or ray casting, is done with the <a class="reference internal" href="#calcam.CADModel" title="calcam.CADModel"><code class="xref py py-class docutils literal"><span class="pre">calcam.CADModel</span></code></a> class.</p>
+<dl class="class">
 <dt id="calcam.CADModel">
-<em class="property">class </em><code class="sig-prename descclassname">calcam.</code><code class="sig-name descname">CADModel</code><span class="sig-paren">(</span><em class="sig-param">model_name=None</em>, <em class="sig-param">model_variant=None</em>, <em class="sig-param">status_callback=&lt;function print_status&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">calcam.</code><code class="descname">CADModel</code><span class="sig-paren">(</span><em>model_name=None</em>, <em>model_variant=None</em>, <em>status_callback=&lt;function print_status&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Class for representing a CAD model in Calcam.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>model_name</strong> (<em>str</em>) – Either the machine name of a CAD model in Calcam’s model search path,                                   or filename of a .ccm file to load the model from.</p></li>
-<li><p><strong>model_variant</strong> (<em>str</em>) – Name of the model variant to load. If not specified, the default variant                                   specified in the CAD model is loaded.</p></li>
-<li><p><strong>status_callback</strong> (<em>func</em>) – Function to call with status messages. If given, this function is called                                   with a string describing the status. If set to None, no status updates are                                   issued.</p></li>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>model_name</strong> (<em>str</em>) &#8211; Either the machine name of a CAD model in Calcam&#8217;s model search path,                                   or filename of a .ccm file to load the model from.</li>
+<li><strong>model_variant</strong> (<em>str</em>) &#8211; Name of the model variant to load. If not specified, the default variant                                   specified in the CAD model is loaded.</li>
+<li><strong>status_callback</strong> (<em>func</em>) &#8211; Function to call with status messages. If given, this function is called                                   with a string describing the status. If set to None, no status updates are                                   issued.</li>
 </ul>
-</dd>
-</dl>
-<dl class="py method">
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
 <dt id="calcam.CADModel.enable_only">
-<code class="sig-name descname">enable_only</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">features</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.enable_only" title="Permalink to this definition">¶</a></dt>
+<code class="descname">enable_only</code><span class="sig-paren">(</span><em>features</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.enable_only" title="Permalink to this definition">¶</a></dt>
 <dd><p>Disable all model parts except those specified.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>features</strong> (<em>str</em><em> or </em><em>list of str</em>) – Name(s) of the feature(s) and/or                                             group(s) to have enabled.</p>
-</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>features</strong> (<em>str or list of str</em>) &#8211; Name(s) of the feature(s) and/or                                             group(s) to have enabled.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
-<dl class="py method">
+<dl class="method">
 <dt id="calcam.CADModel.format_coord">
-<code class="sig-name descname">format_coord</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">coords</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.format_coord" title="Permalink to this definition">¶</a></dt>
+<code class="descname">format_coord</code><span class="sig-paren">(</span><em>coords</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.format_coord" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a pretty string giving information about a specified 3D position.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>coords</strong> (<em>array-like</em>) – 3 element array-like specifying a point in 3D                                   as X,Y,Z in metres.</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>String containing information about the given point.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>str</p>
-</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>coords</strong> (<em>array-like</em>) &#8211; 3 element array-like specifying a point in 3D                                   as X,Y,Z in metres.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">String containing information about the given point.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
-<dl class="py method">
+<dl class="method">
 <dt id="calcam.CADModel.get_colour">
-<code class="sig-name descname">get_colour</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">features</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.get_colour" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get_colour</code><span class="sig-paren">(</span><em>features=None</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.get_colour" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the current colour of part or all of the CAD model.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>features</strong> (<em>list of str</em>) – List of names of the features to get the colour for.                                       If not specified, all feature colours are returned.</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>List of 3 element tuples specifying the colours (R,G,B)                                       of the given features, where R, G and B range from 0 to 1.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>List</p>
-</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>features</strong> (<em>list of str</em>) &#8211; List of names of the features to get the colour for.                                       If not specified, all feature colours are returned.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">List of 3 element tuples specifying the colours (R,G,B)                                       of the given features, where R, G and B range from 0 to 1.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">List</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
-<dl class="py method">
+<dl class="method">
 <dt id="calcam.CADModel.get_enabled_features">
-<code class="sig-name descname">get_enabled_features</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.get_enabled_features" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get_enabled_features</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.get_enabled_features" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get a list of the currently enabled features.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Names of the currently enabled features.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>list of str</p>
-</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Names of the currently enabled features.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list of str</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
-<dl class="py method">
+<dl class="method">
 <dt id="calcam.CADModel.get_extent">
-<code class="sig-name descname">get_extent</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.get_extent" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get_extent</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.get_extent" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the extent of the model in 3D space.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>6 element array specifying the extent of the model in metres:                        [x_min, x_max, y_min, y_max, z_min, z_max]</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>np.array</p>
-</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">6 element array specifying the extent of the model in metres:                        [x_min, x_max, y_min, y_max, z_min, z_max]</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">np.array</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
-<dl class="py method">
+<dl class="method">
 <dt id="calcam.CADModel.get_feature_list">
-<code class="sig-name descname">get_feature_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.get_feature_list" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get_feature_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.get_feature_list" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get a list of the names of all features
 which constitute the model.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>List of feature names.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>list of str</p>
-</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">List of feature names.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list of str</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
-<dl class="py method">
+<dl class="method">
 <dt id="calcam.CADModel.get_group_enable_state">
-<code class="sig-name descname">get_group_enable_state</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">group</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.get_group_enable_state" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get_group_enable_state</code><span class="sig-paren">(</span><em>group=None</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.get_group_enable_state" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check the enable status of a named group of features.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>group</strong> (<em>str</em>) – Name of the group to check. If not given,                           the entire model is taken to be the group.</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>0 if no features in the group are anebled;                           1 if some features in the group are enabled;                           2 if all features in the group are enabled.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>int</p>
-</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>group</strong> (<em>str</em>) &#8211; Name of the group to check. If not given,                           the entire model is taken to be the group.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">0 if no features in the group are anebled;                           1 if some features in the group are enabled;                           2 if all features in the group are enabled.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">int</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
-<dl class="py method">
+<dl class="method">
 <dt id="calcam.CADModel.get_linewidth">
-<code class="sig-name descname">get_linewidth</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">features</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.get_linewidth" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get_linewidth</code><span class="sig-paren">(</span><em>features=None</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.get_linewidth" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the line width used for rendering the model as wireframe.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>features</strong> (<em>list of str</em>) – List of names of the features to get the line width for.                                       If not specified, all feature line widths are returned.</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>List of the line widths.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>list of float</p>
-</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>features</strong> (<em>list of str</em>) &#8211; List of names of the features to get the line width for.                                       If not specified, all feature line widths are returned.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">List of the line widths.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">list of float</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
-<dl class="py method">
+<dl class="method">
 <dt id="calcam.CADModel.get_status_callback">
-<code class="sig-name descname">get_status_callback</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.get_status_callback" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get_status_callback</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.get_status_callback" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the current callback function</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Current status callback function, if present.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>func or NoneType</p>
-</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Current status callback function, if present.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">func or NoneType</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
-<dl class="py method">
+<dl class="method">
 <dt id="calcam.CADModel.reset_colour">
-<code class="sig-name descname">reset_colour</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">features</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.reset_colour" title="Permalink to this definition">¶</a></dt>
+<code class="descname">reset_colour</code><span class="sig-paren">(</span><em>features=None</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.reset_colour" title="Permalink to this definition">¶</a></dt>
 <dd><p>Reset the colour of part or all of the CAD model to the default(s).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>features</strong> (<em>list of str</em>) – List of features for which to reset the colours.                                      If not given, all features will have their colours reset.</p>
-</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>features</strong> (<em>list of str</em>) &#8211; List of features for which to reset the colours.                                      If not given, all features will have their colours reset.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
-<dl class="py method">
+<dl class="method">
 <dt id="calcam.CADModel.set_colour">
-<code class="sig-name descname">set_colour</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">colour</span></em>, <em class="sig-param"><span class="n">features</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.set_colour" title="Permalink to this definition">¶</a></dt>
+<code class="descname">set_colour</code><span class="sig-paren">(</span><em>colour</em>, <em>features=None</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.set_colour" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set the colour of part or all of the CAD model.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>colour</strong> (<em>tuple</em>) – 3-element tuple specifying a colour in (R,G,B)                                       where the values are in the range 0 to 1.</p></li>
-<li><p><strong>features</strong> (<em>list of str</em>) – List of names of the features to set this colour.                                       If not specified, applies to the whole model.</p></li>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>colour</strong> (<em>tuple</em>) &#8211; 3-element tuple specifying a colour in (R,G,B)                                       where the values are in the range 0 to 1.</li>
+<li><strong>features</strong> (<em>list of str</em>) &#8211; List of names of the features to set this colour.                                       If not specified, applies to the whole model.</li>
 </ul>
-</dd>
-</dl>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
-<dl class="py method">
+<dl class="method">
 <dt id="calcam.CADModel.set_features_enabled">
-<code class="sig-name descname">set_features_enabled</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">enable</span></em>, <em class="sig-param"><span class="n">features</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.set_features_enabled" title="Permalink to this definition">¶</a></dt>
+<code class="descname">set_features_enabled</code><span class="sig-paren">(</span><em>enable</em>, <em>features=None</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.set_features_enabled" title="Permalink to this definition">¶</a></dt>
 <dd><p>Enable or disable parts of the CAD model.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>enable</strong> (<em>bool</em>) – Whether to set the relevant features                                               as enabeled (True) or disabled (False).</p></li>
-<li><p><strong>features</strong> (<em>str</em><em> or </em><em>list of str</em>) – Name(s) of the feature(s) and/or group(s)                                               of features of  to enable or disable.                                               If not specified, applies to all features                                               in the model.</p></li>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>enable</strong> (<em>bool</em>) &#8211; Whether to set the relevant features                                               as enabeled (True) or disabled (False).</li>
+<li><strong>features</strong> (<em>str or list of str</em>) &#8211; Name(s) of the feature(s) and/or group(s)                                               of features of  to enable or disable.                                               If not specified, applies to all features                                               in the model.</li>
 </ul>
-</dd>
-</dl>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
-<dl class="py method">
+<dl class="method">
 <dt id="calcam.CADModel.set_flat_shading">
-<code class="sig-name descname">set_flat_shading</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">flat_shading</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.set_flat_shading" title="Permalink to this definition">¶</a></dt>
+<code class="descname">set_flat_shading</code><span class="sig-paren">(</span><em>flat_shading</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.set_flat_shading" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set flat shading (no lighting applied to model rendering)
 enabled or disabled.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>flat_shading</strong> (<em>bool</em>) – Whether to enable or disable flat shading.</p>
-</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>flat_shading</strong> (<em>bool</em>) &#8211; Whether to enable or disable flat shading.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
-<dl class="py method">
+<dl class="method">
 <dt id="calcam.CADModel.set_linewidth">
-<code class="sig-name descname">set_linewidth</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">linewidth</span></em>, <em class="sig-param"><span class="n">features</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.set_linewidth" title="Permalink to this definition">¶</a></dt>
+<code class="descname">set_linewidth</code><span class="sig-paren">(</span><em>linewidth</em>, <em>features=None</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.set_linewidth" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set the line width used when rendering the CAD model as wireframe.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>linewidth</strong> (<em>float</em>) – Line width.</p></li>
-<li><p><strong>features</strong> (<em>list of str</em>) – List of names of the features to set the line                                       width for. If not specified, applies to the whole model.</p></li>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>linewidth</strong> (<em>float</em>) &#8211; Line width.</li>
+<li><strong>features</strong> (<em>list of str</em>) &#8211; List of names of the features to set the line                                       width for. If not specified, applies to the whole model.</li>
 </ul>
-</dd>
-</dl>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
-<dl class="py method">
+<dl class="method">
 <dt id="calcam.CADModel.set_status_callback">
-<code class="sig-name descname">set_status_callback</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">status_callback</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.set_status_callback" title="Permalink to this definition">¶</a></dt>
+<code class="descname">set_status_callback</code><span class="sig-paren">(</span><em>status_callback</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.set_status_callback" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set the status callback function.</p>
 <p>The given function will be called with a string when the CAD model
 object does something, and is called with None when the operatio is
 finished. If set to None, the object will provide no output when it is
 busy doing things.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>status_callback</strong> (<em>fun</em>) – Status callback function.</p>
-</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>status_callback</strong> (<em>fun</em>) &#8211; Status callback function.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
-<dl class="py method">
+<dl class="method">
 <dt id="calcam.CADModel.set_wireframe">
-<code class="sig-name descname">set_wireframe</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">wireframe</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.set_wireframe" title="Permalink to this definition">¶</a></dt>
+<code class="descname">set_wireframe</code><span class="sig-paren">(</span><em>wireframe</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.set_wireframe" title="Permalink to this definition">¶</a></dt>
 <dd><p>Enable or disable rendering the model as wireframe.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>wireframe</strong> (<em>bool</em>) – Whether to render as wireframe.</p>
-</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>wireframe</strong> (<em>bool</em>) &#8211; Whether to render as wireframe.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
-<dl class="py method">
+<dl class="method">
 <dt id="calcam.CADModel.unload">
-<code class="sig-name descname">unload</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.unload" title="Permalink to this definition">¶</a></dt>
+<code class="descname">unload</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.unload" title="Permalink to this definition">¶</a></dt>
 <dd><p>Unloads the CAD model object.</p>
 </dd></dl>
 
@@ -447,7 +482,7 @@ busy doing things.</p>
         <a href="api_geom_matrix.html" class="btn btn-neutral float-right" title="Tomography Geometry Matrices" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="api_analysis.html" class="btn btn-neutral float-left" title="Using Calibration Results" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="api_analysis.html" class="btn btn-neutral" title="Using Calibration Results" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -456,19 +491,11 @@ busy doing things.</p>
 
   <div role="contentinfo">
     <p>
-        
         &copy; Copyright 2015-2019, European Atomic Energy Community (EURATOM)
 
     </p>
   </div>
-    
-    
-    
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
-    
-    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -480,16 +507,37 @@ busy doing things.</p>
   </div>
   
 
+
+  
+
+    
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'./',
+              VERSION:'',
+              LANGUAGE:'en',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  false,
+              SOURCELINK_SUFFIX: ''
+          };
+      </script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+
+  
+
+  <script type="text/javascript" src="_static/js/theme.js"></script>
+
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

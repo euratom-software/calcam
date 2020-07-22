@@ -1,7 +1,8 @@
 
 
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
   
@@ -11,44 +12,37 @@
   
 
   
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-
-  
-  
-  
-  
-
-  
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/language_data.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
-    <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="3D Viewer" href="gui_viewer.html" />
     <link rel="prev" title="“Virtual” Calibrations" href="gui_virtual_calib.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
+
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search" >
+        <div class="wy-side-nav-search">
           
 
           
@@ -82,7 +76,6 @@
           
         </div>
 
-        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -102,7 +95,7 @@
 <li class="toctree-l1"><a class="reference internal" href="gui_intro.html">Introduction &amp; Launcher</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_calib.html">Calibration by point fitting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_alignment_calib.html">Calibration by manual alignment</a></li>
-<li class="toctree-l1"><a class="reference internal" href="gui_virtual_calib.html">“Virtual” Calibrations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui_virtual_calib.html">&#8220;Virtual&#8221; Calibrations</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Image Analyser</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#loading-an-image-to-analyse">Loading an image to analyse</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#loading-a-calibration">Loading a Calibration</a></li>
@@ -131,7 +124,6 @@
             
           
         </div>
-        
       </div>
     </nav>
 
@@ -170,7 +162,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><a href="index.html">Docs</a> &raquo;</li>
         
       <li>Image Analyser</li>
     
@@ -201,12 +193,12 @@
 </div>
 <div class="section" id="loading-a-calibration">
 <h2>Loading a Calibration<a class="headerlink" href="#loading-a-calibration" title="Permalink to this headline">¶</a></h2>
-<p>The calibration to use for the analysis is also controlled on the <span class="guilabel">Image and Calibration</span> control tab. To load a calibration to use for the analysis, click the <span class="guilabel">Load…</span> button in the <span class="guilabel">Calibration for analysis</span> box. This box also displays the name of the currently loaded calibration, and full details of the calibration can be viewed by clicking the <span class="guilabel">Properties…</span> button in this box.</p>
+<p>The calibration to use for the analysis is also controlled on the <span class="guilabel">Image and Calibration</span> control tab. To load a calibration to use for the analysis, click the <span class="guilabel">Load...</span> button in the <span class="guilabel">Calibration for analysis</span> box. This box also displays the name of the currently loaded calibration, and full details of the calibration can be viewed by clicking the <span class="guilabel">Properties...</span> button in this box.</p>
 <p>If the loaded calibration contains information about the CAD model settings last used when the calibration was edited, the applicable CAD model will be automatically loaded, if available. The CAD view will also be set to match the camera view automatically when the calibration is loaded.</p>
 </div>
 <div class="section" id="loading-a-cad-model">
 <h2>Loading a CAD model<a class="headerlink" href="#loading-a-cad-model" title="Permalink to this headline">¶</a></h2>
-<p>If the CAD model is not loaded automatically when loading the calibration, or you want to change the CAD model used, this is controlled on the <span class="guilabel">Machine Model</span> control tab. At the top of this tab are controls for loading a CAD model. Two dropdown boxes are provided to select the CAD model to load and the <a class="reference internal" href="intro_conventions.html#cadmodel-intro"><span class="std std-ref">model variant</span></a>. The <span class="guilabel">Load</span> button to the right of the model variant then loads the model. Underneath the model variant dropdown box is a checkbox labeled <cite>Enable default model features on load</cite>: if checked, the default parts of the CAD model are all loaded as soon as the model itself is loaded. If not checked, the model definition will be loaded but none of the 3D mesh data will be loaded, and instead you can turn on features individually. This is useful if working with a large model on a slow computer where you don’t want to wait for the whole model to load if not needed. You can change to a different CAD model or variant at any time by selecting a different item from the dropdown boxes and clicking <span class="guilabel">Load</span> again.</p>
+<p>If the CAD model is not loaded automatically when loading the calibration, or you want to change the CAD model used, this is controlled on the <span class="guilabel">Machine Model</span> control tab. At the top of this tab are controls for loading a CAD model. Two dropdown boxes are provided to select the CAD model to load and the <a class="reference internal" href="intro_conventions.html#cadmodel-intro"><span class="std std-ref">model variant</span></a>. The <span class="guilabel">Load</span> button to the right of the model variant then loads the model. Underneath the model variant dropdown box is a checkbox labeled <cite>Enable default model features on load</cite>: if checked, the default parts of the CAD model are all loaded as soon as the model itself is loaded. If not checked, the model definition will be loaded but none of the 3D mesh data will be loaded, and instead you can turn on features individually. This is useful if working with a large model on a slow computer where you don&#8217;t want to wait for the whole model to load if not needed. You can change to a different CAD model or variant at any time by selecting a different item from the dropdown boxes and clicking <span class="guilabel">Load</span> again.</p>
 <div class="section" id="turning-cadmodel-features-on-off">
 <h3>Turning CADmodel features On/Off<a class="headerlink" href="#turning-cadmodel-features-on-off" title="Permalink to this headline">¶</a></h3>
 <p>For CAD models composed of multiple parts in separate mesh files, individual mesh files can be turned on or off by ticking/unticking them in the <span class="guilabel">Enable / Disable Features</span> panel. This can be done for individual parts, groups of parts (if defined in the CAD model) or the entire model. This can be helpful to improve performance when working with large models if not all parts are necessary for a particular calibration, or for removing parts which are in the way and make the calibration more difficult.</p>
@@ -216,36 +208,36 @@
 <h2>Performing Position Analysis<a class="headerlink" href="#performing-position-analysis" title="Permalink to this headline">¶</a></h2>
 <p>With an image, calibration and CAD model loaded, clicking on either the CAD model or image will place a green cursor at the clicked position. A green cursor will also appear at the corresponding point on the other view. Quantitative information about the current cursor position is displayed on the <span class="guilabel">Position Analysis</span> tab.</p>
 <p>If the cursor is placed on the CAD model at a position not visible in the image, the cursor turns red on the CAD model view. If the cursor position is within the image field of view but hidden behind part of the CAD model, a red cursor will also appear on the image at the position where that point would be if it was not hidden from view.</p>
-<p>By default, the CAD model view will also show a solid green line in 3D representing the line of sight from the camera to the cursor position. A red line shows the continuation of the sight-line after it has passed the cursor. If the cursor is hidden from the camera’s view, a green sight-line is shown up to the point where the sight-line hits the object hiding the cursor, then the remainder of the sight-line is shown in red.</p>
+<p>By default, the CAD model view will also show a solid green line in 3D representing the line of sight from the camera to the cursor position. A red line shows the continuation of the sight-line after it has passed the cursor. If the cursor is hidden from the camera&#8217;s view, a green sight-line is shown up to the point where the sight-line hits the object hiding the cursor, then the remainder of the sight-line is shown in red.</p>
 <p>The <span class="guilabel">Position Analysis</span> control tab has boxes showing details of the image coordinates, 3D coordinates and sight-line coordinates corresponding to the current cursor position. It also contains the following additional controls:</p>
 <ul class="simple">
-<li><p><span class="guilabel">Show CAD wireframe overlay on image</span> checkbox: displays the CAD wireframe overlay on top of the image. This can be used to confirm the accuracy of the calibration or provide context for the image.</p></li>
-<li><p><span class="guilabel">Show cursor close-up</span> button: If the cursor is visible to the camera, this button sets the 3D CAD view to show a close-up of the current cursor position.</p></li>
-<li><p><span class="guilabel">Reset View</span> button: resets the 3D CAD view to match the image.</p></li>
-<li><p><span class="guilabel">Show line-of-sight on 3D view</span> checkbox: turn on or off display of the camera sight-line on the 3D view. If turned off, only the cursor is shown.</p></li>
+<li><span class="guilabel">Show CAD wireframe overlay on image</span> checkbox: displays the CAD wireframe overlay on top of the image. This can be used to confirm the accuracy of the calibration or provide context for the image.</li>
+<li><span class="guilabel">Show cursor close-up</span> button: If the cursor is visible to the camera, this button sets the 3D CAD view to show a close-up of the current cursor position.</li>
+<li><span class="guilabel">Reset View</span> button: resets the 3D CAD view to match the image.</li>
+<li><span class="guilabel">Show line-of-sight on 3D view</span> checkbox: turn on or off display of the camera sight-line on the 3D view. If turned off, only the cursor is shown.</li>
 </ul>
 <div class="section" id="image-mouse-navigation">
 <h3>Image mouse navigation<a class="headerlink" href="#image-mouse-navigation" title="Permalink to this headline">¶</a></h3>
 <p>The image can be manipulated at any time using the following mouse controls:</p>
 <ul class="simple">
-<li><p><kbd class="kbd docutils literal notranslate"><kbd class="kbd docutils literal notranslate">Scroll</kbd> <kbd class="kbd docutils literal notranslate">Wheel</kbd></kbd> - Zoom in or out, centred at the current mouse position.</p></li>
-<li><p><kbd class="kbd docutils literal notranslate"><kbd class="kbd docutils literal notranslate">Middle</kbd> <kbd class="kbd docutils literal notranslate">Click</kbd> <kbd class="kbd docutils literal notranslate"></kbd>+<kbd class="kbd docutils literal notranslate"></kbd> <kbd class="kbd docutils literal notranslate">Drag</kbd></kbd> - Drag the image around.</p></li>
+<li><code class="kbd docutils literal"><span class="pre">Scroll</span> <span class="pre">Wheel</span></code> - Zoom in or out, centred at the current mouse position.</li>
+<li><code class="kbd docutils literal"><span class="pre">Middle</span> <span class="pre">Click</span> <span class="pre">+</span> <span class="pre">Drag</span></code> - Drag the image around.</li>
 </ul>
 </div>
 <div class="section" id="cad-view-navigation">
 <h3>CAD view navigation<a class="headerlink" href="#cad-view-navigation" title="Permalink to this headline">¶</a></h3>
 <p>You can interactively navigate around the CAD model using the following mouse controls:</p>
 <ul class="simple">
-<li><p><kbd class="kbd docutils literal notranslate"><kbd class="kbd docutils literal notranslate">Right</kbd> <kbd class="kbd docutils literal notranslate">Click</kbd> <kbd class="kbd docutils literal notranslate"></kbd>+<kbd class="kbd docutils literal notranslate"></kbd> <kbd class="kbd docutils literal notranslate">Drag</kbd></kbd> - Look around (first-person shooter style control; default) or rotate CAD model depending on settings</p></li>
-<li><p><kbd class="kbd docutils literal notranslate"><kbd class="kbd docutils literal notranslate">Middle</kbd> <kbd class="kbd docutils literal notranslate">Click</kbd> <kbd class="kbd docutils literal notranslate"></kbd>+<kbd class="kbd docutils literal notranslate"></kbd> <kbd class="kbd docutils literal notranslate">Drag</kbd></kbd> - Pan (translate) sideways i.e. in the plane of the monitor.</p></li>
-<li><p><kbd class="kbd docutils literal notranslate"><kbd class="kbd docutils literal notranslate">Scroll</kbd> <kbd class="kbd docutils literal notranslate">Wheel</kbd></kbd> - Move forwards or backwards.</p></li>
-<li><p><kbd class="kbd docutils literal notranslate"><kbd class="kbd docutils literal notranslate">Ctrl</kbd> <kbd class="kbd docutils literal notranslate"></kbd>+<kbd class="kbd docutils literal notranslate"></kbd> <kbd class="kbd docutils literal notranslate">Scroll</kbd> <kbd class="kbd docutils literal notranslate">Wheel</kbd></kbd> Reduce or increase the CAD field-of-view angle (i.e. Zoom)</p></li>
-<li><p><kbd class="kbd docutils literal notranslate"><kbd class="kbd docutils literal notranslate">Ctrl</kbd> <kbd class="kbd docutils literal notranslate"></kbd>+<kbd class="kbd docutils literal notranslate"></kbd> <kbd class="kbd docutils literal notranslate">Right</kbd> <kbd class="kbd docutils literal notranslate">Click</kbd> <kbd class="kbd docutils literal notranslate"></kbd>+<kbd class="kbd docutils literal notranslate"></kbd> <kbd class="kbd docutils literal notranslate">Drag</kbd></kbd> - Roll the camera (rotate about the direction of view)</p></li>
+<li><code class="kbd docutils literal"><span class="pre">Right</span> <span class="pre">Click</span> <span class="pre">+</span> <span class="pre">Drag</span></code> - Look around (first-person shooter style control; default) or rotate CAD model depending on settings</li>
+<li><code class="kbd docutils literal"><span class="pre">Middle</span> <span class="pre">Click</span> <span class="pre">+</span> <span class="pre">Drag</span></code> - Pan (translate) sideways i.e. in the plane of the monitor.</li>
+<li><code class="kbd docutils literal"><span class="pre">Scroll</span> <span class="pre">Wheel</span></code> - Move forwards or backwards.</li>
+<li><code class="kbd docutils literal"><span class="pre">Ctrl</span> <span class="pre">+</span> <span class="pre">Scroll</span> <span class="pre">Wheel</span></code> Reduce or increase the CAD field-of-view angle (i.e. Zoom)</li>
+<li><code class="kbd docutils literal"><span class="pre">Ctrl</span> <span class="pre">+</span> <span class="pre">Right</span> <span class="pre">Click</span> <span class="pre">+</span> <span class="pre">Drag</span></code> - Roll the camera (rotate about the direction of view)</li>
 </ul>
-<p>In addition to the mouse controls, the <span class="guilabel">3D Viewport</span> tab  can be used to control the current view of the CAD model. At the top of this tab is a list of viewports defined in the CAD model definition. Clicking on a view in this pane immediately changes the CAD viewport to that view. You can also set the view to match an existing calibrated camera by clicking the <span class="guilabel">Add from calibration(s)…</span> button below the viewport list. You can then select one or more Calcam calibration files to load, and the views defined by the calibration will be added to the viewport list on the 3D Viewport tab.</p>
+<p>In addition to the mouse controls, the <span class="guilabel">3D Viewport</span> tab  can be used to control the current view of the CAD model. At the top of this tab is a list of viewports defined in the CAD model definition. Clicking on a view in this pane immediately changes the CAD viewport to that view. You can also set the view to match an existing calibrated camera by clicking the <span class="guilabel">Add from calibration(s)...</span> button below the viewport list. You can then select one or more Calcam calibration files to load, and the views defined by the calibration will be added to the viewport list on the 3D Viewport tab.</p>
 <p>If you want to save the current view of the CAD model in to the model definition so you can easily return to it, enter a name in the <span class="guilabel">Name</span> box under the heading <span class="guilabel">Save current view as preset</span> and click <span class="guilabel">Save</span>. The view will then be added to the viewport list, and if the model definition you are using is not read-only, will be saved to the model definition for future use.</p>
-<p>Near the bottom of the tab are editable boxes showing the current viewport’s camera position, camera view target, field of view and roll. These update automatically to reflect the current viewport, and you can manually set up the CAD view by editing these.</p>
-<p>At the bottom of this tab are options for configuring the mouse controls for CAD navigation. The <kbd class="kbd docutils literal notranslate"><kbd class="kbd docutils literal notranslate">Right</kbd> <kbd class="kbd docutils literal notranslate">Click</kbd> <kbd class="kbd docutils literal notranslate"></kbd>+<kbd class="kbd docutils literal notranslate"></kbd> <kbd class="kbd docutils literal notranslate">Drag</kbd></kbd> behaviour can be toggled between looking around and rotating the model about a point in front of the camera, and the mouse sensitivity can be adjusted.</p>
+<p>Near the bottom of the tab are editable boxes showing the current viewport&#8217;s camera position, camera view target, field of view and roll. These update automatically to reflect the current viewport, and you can manually set up the CAD view by editing these.</p>
+<p>At the bottom of this tab are options for configuring the mouse controls for CAD navigation. The <code class="kbd docutils literal"><span class="pre">Right</span> <span class="pre">Click</span> <span class="pre">+</span> <span class="pre">Drag</span></code> behaviour can be toggled between looking around and rotating the model about a point in front of the camera, and the mouse sensitivity can be adjusted.</p>
 </div>
 </div>
 </div>
@@ -261,7 +253,7 @@
         <a href="gui_viewer.html" class="btn btn-neutral float-right" title="3D Viewer" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="gui_virtual_calib.html" class="btn btn-neutral float-left" title="“Virtual” Calibrations" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="gui_virtual_calib.html" class="btn btn-neutral" title="“Virtual” Calibrations" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -270,19 +262,11 @@
 
   <div role="contentinfo">
     <p>
-        
         &copy; Copyright 2015-2019, European Atomic Energy Community (EURATOM)
 
     </p>
   </div>
-    
-    
-    
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
-    
-    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -294,16 +278,37 @@
   </div>
   
 
+
+  
+
+    
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'./',
+              VERSION:'',
+              LANGUAGE:'en',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  false,
+              SOURCELINK_SUFFIX: ''
+          };
+      </script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+
+  
+
+  <script type="text/javascript" src="_static/js/theme.js"></script>
+
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>
