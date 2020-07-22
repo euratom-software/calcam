@@ -24,6 +24,12 @@ Calcam Setup script.
 Uses setuptools and pip.
 '''
 
+try:
+    import pip
+except ImportError:
+    print('\nERROR: PIP is not installed.\nPlease install the PIP package before using this setup script (see https://pip.pypa.io/en/stable/installing/)\n')
+    exit()
+
 import sys
 import os
 import subprocess
