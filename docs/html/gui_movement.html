@@ -1,8 +1,7 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
   
@@ -12,37 +11,44 @@
   
 
   
-  
-  
-  
-
-  
-
-  
-  
-    
-
-  
-
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="next" title="Using Calibration Results" href="api_analysis.html" />
-    <link rel="prev" title="Calcam Settings" href="gui_settings.html" /> 
 
   
-  <script src="_static/js/modernizr.min.js"></script>
+  
+  
+  
 
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Using Calibration Results" href="api_analysis.html" />
+    <link rel="prev" title="Calcam Settings" href="gui_settings.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -59,7 +65,7 @@
             
             
               <div class="version">
-                Version 2.4
+                Version 2.5
               </div>
             
           
@@ -76,6 +82,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -86,82 +93,19 @@
               <p class="caption"><span class="caption-text">Introduction</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="intro_general.html">General Introduction to Calcam</a></li>
-<li class="toctree-l1"><a class="reference internal" href="intro_install_setup.html">Getting Up &amp; Running</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="intro_install_setup.html#downloading">Downloading</a></li>
-<li class="toctree-l2"><a class="reference internal" href="intro_install_setup.html#installation">Installation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="intro_install_setup.html#initial-configuration">Initial Configuration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="intro_install_setup.html#upgrading-from-calcam-1-x">Upgrading from Calcam 1.x</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="intro_theory.html">Camera Calibration Theory</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="intro_theory.html#camera-model">Camera Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="intro_theory.html#perspective-distortion-model">Perspective Distortion Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="intro_theory.html#fisheye-distirtion-model">Fisheye Distirtion Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="intro_theory.html#underlying-opencv-documentation">Underlying OpenCV Documentation</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="intro_conventions.html">Concepts &amp; Conventions</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="intro_conventions.html#image-pixel-coordinates">Image Pixel Coordinates</a></li>
-<li class="toctree-l2"><a class="reference internal" href="intro_conventions.html#sub-views">Sub-views</a></li>
-<li class="toctree-l2"><a class="reference internal" href="intro_conventions.html#cad-models">CAD Models</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="intro_install_setup.html">Getting Up &amp; Running</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro_theory.html">Camera Calibration Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro_conventions.html">Concepts &amp; Conventions</a></li>
 </ul>
 <p class="caption"><span class="caption-text">GUI App User Guide</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="gui_intro.html">Introduction &amp; Launcher</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="gui_intro.html#starting-the-launcher">Starting the launcher</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="gui_calib.html">Calibration by point fitting</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#loading-an-image-to-calibrate">Loading an Image to Calibrate</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#image-mouse-navigation">Image Mouse Navigation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#current-image-settings">Current Image Settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#loading-and-manipulating-a-cad-model">Loading and manipulating a CAD model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#defining-calibration-points">Defining Calibration Points</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#fitting-the-camera-model">Fitting the camera model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#saving-loading-and-viewing-calibration-information">Saving / Loading and viewing calibration information</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="gui_alignment_calib.html">Calibration by manual alignment</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="gui_alignment_calib.html#loading-an-image-to-calibrate">Loading an Image to Calibrate</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_alignment_calib.html#current-image-settings">Current Image Settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_alignment_calib.html#loading-a-cad-model">Loading a CAD model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_alignment_calib.html#performing-the-alignment-calibration">Performing the alignment calibration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_alignment_calib.html#saving-loading-and-viewing-calibration-information">Saving / Loading and viewing calibration information</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="gui_virtual_calib.html">&#8220;Virtual&#8221; Calibrations</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="gui_virtual_calib.html#loading-a-cad-model">Loading a CAD model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_virtual_calib.html#creating-the-virtual-calibration">Creating the Virtual Calibration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_virtual_calib.html#saving-loading-and-viewing-calibration-information">Saving / Loading and viewing calibration information</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="gui_image_analyser.html">Image Analyser</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="gui_image_analyser.html#loading-an-image-to-analyse">Loading an image to analyse</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_image_analyser.html#loading-a-calibration">Loading a Calibration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_image_analyser.html#loading-a-cad-model">Loading a CAD model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_image_analyser.html#performing-position-analysis">Performing Position Analysis</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="gui_viewer.html">3D Viewer</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#loading-a-cad-model">Loading a CAD model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#turning-cad-model-parts-on-off">Turning CAD model parts On/Off</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#cad-model-appearance-settings">CAD model appearance settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#wall-contour-display">Wall contour display</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#mouse-navigation">Mouse Navigation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#d-viewport-tab">3D ViewPort Tab</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#visualising-camera-fields-of-view">Visualising camera fields of view</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#displaying-arbitrary-3d-lines">Displaying Arbitrary 3D Lines</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#rendering-and-saving-images">Rendering and saving images</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="gui_settings.html">Calcam Settings</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="gui_settings.html#cad-model-definition-settings">CAD Model Definition Settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_settings.html#image-source-settings">Image Source Settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_settings.html#environment-information">Environment Information</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="gui_intro.html">Introduction &amp; Launcher</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui_calib.html">Calibration by point fitting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui_alignment_calib.html">Calibration by manual alignment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui_virtual_calib.html">“Virtual” Calibrations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui_image_analyser.html">Image Analyser</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui_viewer.html">3D Viewer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui_settings.html">Calcam Settings</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Camera Movement Determination</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#identifying-points">Identifying Points</a></li>
@@ -172,55 +116,22 @@
 </ul>
 <p class="caption"><span class="caption-text">API User Guide</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="api_analysis.html">Using Calibration Results</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="api_analysis.html#the-calibration-class">The Calibration Class</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_analysis.html#rendering-images">Rendering images</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_analysis.html#ray-casting">Ray casting</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="api_analysis.html">Using Calibration Results</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_cadmodel.html">CAD Models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api_geom_matrix.html">Tomography Geometry Matrices</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="api_geom_matrix.html#background">Background</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_geom_matrix.html#the-geometry-matrix-class">The Geometry Matrix class</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_geom_matrix.html#reconstruction-grids">Reconstruction grids</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="api_movement.html">Camera Movement Correction</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="api_movement.html#background">Background</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_movement.html#determining-camera-movement">Determining Camera Movement</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_movement.html#the-movementcorrection-class">The MovementCorrection class</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_movement.html#adjusting-calibrations-for-image-movement">Adjusting calibrations for image movement</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="api_examples.html">Examples</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="api_examples.html#mapping-a-magnetic-field-line-on-to-an-image">Mapping a magnetic field line on to an image</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_examples.html#rendering-camera-view-wireframe">Rendering: camera view wireframe</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_examples.html#ray-casting">Ray casting</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_examples.html#tomography-geometry-matrices">Tomography Geometry Matrices</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_examples.html#camera-movement-correction">Camera Movement Correction</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="api_geom_matrix.html">Tomography Geometry Matrices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_movement.html">Camera Movement Correction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_examples.html">Examples</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Developer Documentation</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="dev_imsources.html">Image Sources</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="dev_imsources.html#return-format-of-image-loading-function">Return format of image loading function</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dev_imsources.html#structure-of-get-image-arguments">Structure of get_image_arguments</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dev_imsources.html#example">Example</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dev_imsources.html#adding-to-calcam">Adding to Calcam</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="dev_coord_formatter.html">3D Coordinate Formatters</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="dev_coord_formatter.html#example">Example</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dev_coord_formatter.html#note-on-sub-module-and-function-names">Note on sub-module and function names</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dev_coord_formatter.html#adding-to-a-cad-model">Adding to a CAD model</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="dev_imsources.html">Image Sources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dev_coord_formatter.html">3D Coordinate Formatters</a></li>
 </ul>
 
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -259,7 +170,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="index.html">Docs</a> &raquo;</li>
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
       <li>Camera Movement Determination</li>
     
@@ -280,17 +191,17 @@
             
   <div class="section" id="camera-movement-determination">
 <h1>Camera Movement Determination<a class="headerlink" href="#camera-movement-determination" title="Permalink to this headline">¶</a></h1>
-<p>A common issue to deal with is that after a camera has been spatially calibrated, the camera then moves and needs to be re-calibrated. The calcam movement correction GUI provides a tool for aligning a &#8220;moved image&#8221; to a reference image, resulting in a correction which can be applied to images or calibrations to account for image movement.</p>
+<p>A common issue to deal with is that after a camera has been spatially calibrated, the camera then moves and needs to be re-calibrated. The calcam movement correction GUI provides a tool for aligning a “moved image” to a reference image, resulting in a correction which can be applied to images or calibrations to account for image movement.</p>
 <div class="section" id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
-<p>Unlike the main GUI tools in calcam, the movement correction GUI cannot be opened from the launcher, but is launched using the <a class="reference internal" href="api_movement.html#calcam.movement.manual_movement" title="calcam.movement.manual_movement"><code class="xref py py-func docutils literal"><span class="pre">calcam.movement.manual_movement()</span></code></a> function.</p>
+<p>Unlike the main GUI tools in calcam, the movement correction GUI cannot be opened from the launcher, but is launched using the <a class="reference internal" href="api_movement.html#calcam.movement.manual_movement" title="calcam.movement.manual_movement"><code class="xref py py-func docutils literal notranslate"><span class="pre">calcam.movement.manual_movement()</span></code></a> function.</p>
 <p>Once opened, the GUI is shown below:</p>
 <img alt="Movement correction dialog box screenshot" class="align-left" src="_images/manual_movement_dialog.png" />
 <p>The tool is based on identifying a set of corresponding points between the reference and moved images. A minimum of 3 points are required to define the movement between two images.</p>
-<p>The GUI shows the two images side-by-side, with the reference image on the left and moved image on the right. If an existing <a class="reference internal" href="api_movement.html#calcam.movement.MovementCorrection" title="calcam.movement.MovementCorrection"><code class="xref py py-class docutils literal"><span class="pre">calcam.movement.MovementCorrection</span></code></a> object is provided to the launcher function, the GUI will start showing the provided movement correction. This can be used, for example, for checking if one movement correction object is suitable for a different moved image. The images can be navigated using the mouse:</p>
+<p>The GUI shows the two images side-by-side, with the reference image on the left and moved image on the right. If an existing <a class="reference internal" href="api_movement.html#calcam.movement.MovementCorrection" title="calcam.movement.MovementCorrection"><code class="xref py py-class docutils literal notranslate"><span class="pre">calcam.movement.MovementCorrection</span></code></a> object is provided to the launcher function, the GUI will start showing the provided movement correction. This can be used, for example, for checking if one movement correction object is suitable for a different moved image. The images can be navigated using the mouse:</p>
 <ul class="simple">
-<li><code class="kbd docutils literal"><span class="pre">Scroll</span> <span class="pre">Wheel</span></code> - Zoom in or out, centred at the current mouse position.</li>
-<li><code class="kbd docutils literal"><span class="pre">Middle</span> <span class="pre">Click</span> <span class="pre">+</span> <span class="pre">Drag</span></code> - Drag the image around.</li>
+<li><p><kbd class="kbd docutils literal notranslate"><kbd class="kbd docutils literal notranslate">Scroll</kbd> <kbd class="kbd docutils literal notranslate">Wheel</kbd></kbd> - Zoom in or out, centred at the current mouse position.</p></li>
+<li><p><kbd class="kbd docutils literal notranslate"><kbd class="kbd docutils literal notranslate">Middle</kbd> <kbd class="kbd docutils literal notranslate">Click</kbd> <kbd class="kbd docutils literal notranslate"></kbd>+<kbd class="kbd docutils literal notranslate"></kbd> <kbd class="kbd docutils literal notranslate">Drag</kbd></kbd> - Drag the image around.</p></li>
 </ul>
 <p>The reference and moved images will move together if the mouse controls are used on either image.</p>
 <p>To make features easier to identify, image enhancement can be applied to the displayed images using the <span class="guilabel">Enhance Images</span> checkbox just above the images.</p>
@@ -299,12 +210,12 @@
 <h2>Identifying Points<a class="headerlink" href="#identifying-points" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="auto-detecting-matching-points">
 <h3>Auto-detecting matching points<a class="headerlink" href="#auto-detecting-matching-points" title="Permalink to this headline">¶</a></h3>
-<p>The tool includes the option to try to automatically detect a set of corresponding points between the images. This uses the same algorithm as <a class="reference internal" href="api_movement.html#calcam.movement.detect_movement" title="calcam.movement.detect_movement"><code class="xref py py-func docutils literal"><span class="pre">calcam.movement.detect_movement()</span></code></a>, but allows manual checking of the results using the GUI. To auto-detect a set of points, click the <span class="guilabel">Auto-detect</span> button near the top of the window. This will remove any existing points on the images, add the auto-detected points to the display and estimate the image movement from the points. If a good set of points cannot be auto-detected, a dialog box will be shown informing you of this.</p>
+<p>The tool includes the option to try to automatically detect a set of corresponding points between the images. This uses the same algorithm as <a class="reference internal" href="api_movement.html#calcam.movement.detect_movement" title="calcam.movement.detect_movement"><code class="xref py py-func docutils literal notranslate"><span class="pre">calcam.movement.detect_movement()</span></code></a>, but allows manual checking of the results using the GUI. To auto-detect a set of points, click the <span class="guilabel">Auto-detect</span> button near the top of the window. This will remove any existing points on the images, add the auto-detected points to the display and estimate the image movement from the points. If a good set of points cannot be auto-detected, a dialog box will be shown informing you of this.</p>
 </div>
 <div class="section" id="manually-adding-points">
 <h3>Manually adding points<a class="headerlink" href="#manually-adding-points" title="Permalink to this headline">¶</a></h3>
 <p>If automatic detection does not provide a high enough accuracy result, pairs of matching points can be added to the images manually. This works very similarly to the pointpair based calibration tool. Point positions are displayed on the images views as red <strong>+</strong> cursors at the point locations. At any given time, one point pair can be selected for editing. The selected point pair will be indicated with larger green <strong>+</strong> cursors.</p>
-<p>Once you have identified a common feature on the two images, <code class="kbd docutils literal"><span class="pre">Ctrl</span> <span class="pre">+</span> <span class="pre">Click</span></code>  on the location on either image to create a new point pair. A point will be placed at the mouse location. Then click, without holding <code class="kbd docutils literal"><span class="pre">Ctrl</span></code>, the corresponding point on the other image to finish creating the point pair. You should now see green cursors on both images. Clicking either image again will move the green cursor representing the current point to the clicked location. To start another point pair, <code class="kbd docutils literal"><span class="pre">Ctrl</span> <span class="pre">+</span> <span class="pre">Click</span></code> again and repeat the process. The cursors showing the existing points will turn red, indicating they are no longer selected. In general, left clicking on either image will move the currently selected point to the clicked location. Clicking an existing cursor will select that point pair for editing, and holding <code class="kbd docutils literal"><span class="pre">Ctrl</span></code> while clicking will start a new point pair. The currently selected point pair can be deleted by pressing the <code class="kbd docutils literal"><span class="pre">Del</span></code> key on the keyboard. All points can be removed at once by clicking the <span class="guilabel">Clear</span> button at the top of the window.</p>
+<p>Once you have identified a common feature on the two images, <kbd class="kbd docutils literal notranslate"><kbd class="kbd docutils literal notranslate">Ctrl</kbd> <kbd class="kbd docutils literal notranslate"></kbd>+<kbd class="kbd docutils literal notranslate"></kbd> <kbd class="kbd docutils literal notranslate">Click</kbd></kbd>  on the location on either image to create a new point pair. A point will be placed at the mouse location. Then click, without holding <kbd class="kbd docutils literal notranslate">Ctrl</kbd>, the corresponding point on the other image to finish creating the point pair. You should now see green cursors on both images. Clicking either image again will move the green cursor representing the current point to the clicked location. To start another point pair, <kbd class="kbd docutils literal notranslate"><kbd class="kbd docutils literal notranslate">Ctrl</kbd> <kbd class="kbd docutils literal notranslate"></kbd>+<kbd class="kbd docutils literal notranslate"></kbd> <kbd class="kbd docutils literal notranslate">Click</kbd></kbd> again and repeat the process. The cursors showing the existing points will turn red, indicating they are no longer selected. In general, left clicking on either image will move the currently selected point to the clicked location. Clicking an existing cursor will select that point pair for editing, and holding <kbd class="kbd docutils literal notranslate">Ctrl</kbd> while clicking will start a new point pair. The currently selected point pair can be deleted by pressing the <kbd class="kbd docutils literal notranslate">Del</kbd> key on the keyboard. All points can be removed at once by clicking the <span class="guilabel">Clear</span> button at the top of the window.</p>
 </div>
 </div>
 <div class="section" id="calculating-and-checking-the-movement-correction">
@@ -312,15 +223,15 @@
 <p>Once you have at least 3 pairs of points on the images, click the <span class="guilabel">Go!</span> button to calculate the movement correction. If the sets of points are not sufficiently consistent, the movement will not be estimated and a dialog box stating this will be displayed.</p>
 <p>When a movement correction is successfully determined, some information about the correction is displayed below the <span class="guilabel">Go!</span> button:</p>
 <ul class="simple">
-<li>The translation, rotation and scale to go from the moved image to the reference image.</li>
-<li>The DDScore: this is a calculated score estimating how much improved the alignment of the two images is by the determined movement correction. This is a number in the range -1 to 1, where negative values indicate the alignment got worse, 0 is no change and positive numbers indicate an improvement i.e. successful movement correction.</li>
+<li><p>The translation, rotation and scale to go from the moved image to the reference image.</p></li>
+<li><p>The DDScore: this is a calculated score estimating how much improved the alignment of the two images is by the determined movement correction. This is a number in the range -1 to 1, where negative values indicate the alignment got worse, 0 is no change and positive numbers indicate an improvement i.e. successful movement correction.</p></li>
 </ul>
 <p>In addition, positions of the corrected points are shown on both images as blue <strong>+</strong> cursors. For a successful movement correction, on the reference (left-hand) images the blue points should align well with the user-clicked red and green cursors. On the right-hand image, the difference between the red and blue cursors shows how much each point has moved. The blue points can be turned on or off with the <span class="guilabel">Show adjusted points in blue</span> checkbox.</p>
 <p>The most direct way to visually assess the movement correction quality is to use the <span class="guilabel">Overlay transformed image on both</span> button. While this button is held down, the moved image is adjusted to align with the reference image and overlaid on both image displayes. For a successful movement correction, the overlaid image should align well on the reference image (left hand side), and the difference on the right-hand side shows how much the image has moved. Clicking, holding down then releasing this button allows quick back-and-forth comparison of the image alignment to assess the movement correction quality.</p>
 </div>
 <div class="section" id="finishing">
 <h2>Finishing<a class="headerlink" href="#finishing" title="Permalink to this headline">¶</a></h2>
-<p>If a good movement correction is obtained, clicking <span class="guilabel">OK</span> at the bottom of the window will close the dialog box, and the launcher function will return a <a class="reference internal" href="api_movement.html#calcam.movement.MovementCorrection" title="calcam.movement.MovementCorrection"><code class="xref py py-class docutils literal"><span class="pre">calcam.movement.MovementCorrection</span></code></a> object representing the determined movement correction. If <span class="guilabel">Cancel</span> is clicked instead, the launching function will return <code class="docutils literal"><span class="pre">None</span></code>.</p>
+<p>If a good movement correction is obtained, clicking <span class="guilabel">OK</span> at the bottom of the window will close the dialog box, and the launcher function will return a <a class="reference internal" href="api_movement.html#calcam.movement.MovementCorrection" title="calcam.movement.MovementCorrection"><code class="xref py py-class docutils literal notranslate"><span class="pre">calcam.movement.MovementCorrection</span></code></a> object representing the determined movement correction. If <span class="guilabel">Cancel</span> is clicked instead, the launching function will return <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
 </div>
 </div>
 
@@ -335,7 +246,7 @@
         <a href="api_analysis.html" class="btn btn-neutral float-right" title="Using Calibration Results" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="gui_settings.html" class="btn btn-neutral" title="Calcam Settings" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="gui_settings.html" class="btn btn-neutral float-left" title="Calcam Settings" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -344,11 +255,19 @@
 
   <div role="contentinfo">
     <p>
+        
         &copy; Copyright 2015-2019, European Atomic Energy Community (EURATOM)
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -360,37 +279,16 @@
   </div>
   
 
-
-  
-
-    
-    
-      <script type="text/javascript">
-          var DOCUMENTATION_OPTIONS = {
-              URL_ROOT:'./',
-              VERSION:'',
-              LANGUAGE:'en',
-              COLLAPSE_INDEX:false,
-              FILE_SUFFIX:'.html',
-              HAS_SOURCE:  false,
-              SOURCELINK_SUFFIX: ''
-          };
-      </script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
-
-  
-
-  <script type="text/javascript" src="_static/js/theme.js"></script>
-
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>

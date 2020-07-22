@@ -3,27 +3,82 @@ Getting Up & Running
 ====================
 
 
-Downloading
------------
-The latest version of Calcam can be downloaded using the :guilabel:`Clone or Download` button on the `GitHub repository page <https://github.com/euratom-software/calcam>`_, or, if you want to use Git, can be cloned from the GitHub reporepository with the command::
+What you will need
+------------------
+
+A computer with Python installed
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Calcam will work with Python on Windows, Linux or OSX. If starting from scratch and you have a choice of Python versions, it is recommended to use Python 3.7. It will work fine with earlier versions of 3.x, however 3.8 is more difficult because the the required version of VTK is not easily available for Python 3.8 (as of July 2020). You can download installers for Python 3.7 for Windows or OSX from `Python.org <https://www.python.org/downloads/release/python-378/>`_ , or get it from your favourite software repository on Linux.
+
+You will also need the ``pip`` package installed for the Calcam installer script to work. If you are using Python 3.4 or newer from Python.org, ``pip`` will be installed by default, and it's also probably included in most other modern Python distributions you might be using. If you don't have ``pip`` installed, the Calcam setup script will give an error message telling you so. Documentation for how to get pip can be found `here <https://pip.pypa.io/en/stable/installing/>`_ . 
+
+
+A copy of the Calcam source code
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The latest release version of the Calcam source can be downloaded from the `Releases page on GitHub <https://github.com/euratom-software/calcam/releases>`_. 
+
+Alternatively, the "cutting edge" development version can be downloaded using the green :guilabel:`Code` button on the `GitHub repository page <https://github.com/euratom-software/calcam>`_. If you want to use Git, which is recommended if you want to do any development on Calcam, the source can be cloned from the GitHub reporepository with the command::
 
 	git clone https://github.com/euratom-software/calcam.git
+
+About Calcam's dependencies
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+This section will only be relevant if you have problems getting Calcam up and running and need some more specific information - if you're getting started, you can skip ahead to the "Installation" section.
+
+Calcam is built upon several existing libraries, which means it requires various other Python modules to be installed for it to work. Normally the setup script will take care of these automatically. In case it can't and the setup raises errors about the dependencies, or you have problems importint calcam once installed, the following table gives details of the Python packages which are required by Calcam. When tourbleshooting installation or first running Calcam, it is recommeneded to first dheck if each of these dependencies are installed and working correctly, and if they are, Calcam should work.
+
++---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Module / Library    | Versions Tested                                                                                                                                                    |
++=====================+====================================================================================================================================================================+
+| SciPy               | Up to 1.5.1                                                                                                                                                        |
++---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| NumPy               | Up to 1.19.0                                                                                                                                                       |
++---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| MatPlotLib          | Up to 3.3.0                                                                                                                                                        |
++---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| OpenCV (a.k.a. cv2) | Tested with versions between 2.4 to 4.3.0                                                                                                                          |
+|                     |                                                                                                                                                                    |
+|                     | Fisheye camera model only available if using 3.x or newer.                                                                                                         |
+|                     |                                                                                                                                                                    |
+|                     | If running under OSX older than 10.12, versions newer than 3.2 may cause crashes on import (downgrade to versions < 3.3 to fix).                                   |
++---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| VTK                 | OK with versions between 6.2 to 8.1.6.                                                                                                                             |
+|                     |                                                                                                                                                                    |
+|                     | Versions 8.2.0 or newer do not work properly with Calcam! (see `Issue #58 <https://github.com/euratom-software/calcam/issues/58>`_ )                               |
++---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| PyQt                | Tested up to 5.15.0                                                                                                                                                |
+|                     |                                                                                                                                                                    |
+|                     | Versions 5.11 and older known to cause unreadable text on OSX when using dark theme                                                                                |
++---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 
 
 Installation
 -------------
-Calcam is a Python package, so the first thing to do is install Python, if you don't have it already. It is highly recommended to use Pyton 3.x, however Calcam will also work with Python 2.7. You will also need the ``pip`` and ``setuptools`` python packages (which should be redily available, if not installed by default, in most OSs / python distributions) to take advantage of Calcam's setup script as described below. 
-
-Once you have Python working and the Calcam repository files on your computer, the package can be installed from the system command line using the setup script included in the root of the Calcam repository with::
+Once you have a copy of the source files on your computer, navigate to the directory where Calcam has been unzipped or cloned and open a terminal / command prompt. To install Calcam, use the command::
 
 	python setup.py install
 
-This will try to install Calcam's dependencies (Scipy, MatPlotLib, OpenCV, PyQt and VTK) if they are not already installed; copy Calcam to the appropriate Python library path; and create a convenient launcher script for the Calcam GUI. On some combinations of platforms and python versions, the PyQt and VTK libraries may not be installable automatically by the setup script, in which case it will show a warning detailing what could not be installed automatically. Some features of Calcam will still work without these dependencies, but they must be installed in order to make the full Calcam API and GUI available. If you find yourself on a platform where one or more dependencies cannot be installed automatically, the easiest way to get install them is probably to see if your OS has pre-built packages available for them, or to use a python distribution such as `Enthought Canopy <https://www.enthought.com/product/canopy/>`_ or `Python (x,y) <https://python-xy.github.io/>`_ which can provide the necessary dependencies via its own package management.
+This will check for and try to install Calcam's dependencies (see previous section for gory details); copy the Calcam source to the appropriate Python library path; and create a convenient launcher executable for the Calcam GUI. If all goes well, this script should end with a message which looks something like this::
 
-If installing on a system where you do not have the relevant admin/root permissions to install python packages globally (in which case running the above command will produce an error message saying something about permissions), adding the ``--user`` switch to the above installation command will install the package for your user account and will not require admin/root permissions.
 
-After the setup script is finished you can delete the downloaded calcam files, if you want.
+	***************************************************************
+
+	Calcam installation complete.
+
+	It can be imported as a Python module with "import calcam"
+
+	The GUI can be launched using the executable:
+	C:\Users\username\AppData\Roaming\Python\Python37\Scripts\calcam.exe
+
+	***************************************************************
+
+For convenience it is recommended to make a shortcut to the calcam GUI executable given in the setup complete message. After the setup script is finished you can delete the downloaded calcam files, if you want.
+
+
+Installing without admin/root permissions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+If installing on a system where you do not have the relevant admin/root permissions to install python packages globally, the setup script may crash with an error related to permissions, permission denied or a similar error message. In this case, adding the ``--user`` option to the installation command will install the package for your user account and will not require admin/root permissions.
 
 
 Installing in Development mode
@@ -33,6 +88,11 @@ If you plan to do any development on Calcam, and want to be able to edit the Cal
 	python setup.py develop
 
 In this case the copy of the code you are installing from remains the "live" version and can be used for development. Again, the ``--user`` switch can be added to install in the current user's library path rather than the system one.
+
+Errors with dependencies
+~~~~~~~~~~~~~~~~~~~~~~~~
+The setup script will try to install the other Python pcakegs which Calcam requires automatically. On some combinations of operating system and Python versions this may not always work properly. In this case, the setup script will give an error or warning specifying which dependency could not be installed, and what the effects are (either the Calcam installation will not be completed or there will be a warning that the Calcam GUI will not work). In this case it is necessary to manually install the dependencies before installing calcam: see the above section on dependencies for details of what must be installed.
+
 
 
 Initial Configuration

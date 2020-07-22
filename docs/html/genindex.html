@@ -1,9 +1,7 @@
 
 
-
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
   
@@ -13,35 +11,42 @@
   
 
   
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
   
   
   
 
   
-
-  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" /> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
+    
+    <link rel="index" title="Index" href="#" />
+    <link rel="search" title="Search" href="search.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -58,7 +63,7 @@
             
             
               <div class="version">
-                Version 2.4
+                Version 2.5
               </div>
             
           
@@ -75,6 +80,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -85,141 +91,39 @@
               <p class="caption"><span class="caption-text">Introduction</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="intro_general.html">General Introduction to Calcam</a></li>
-<li class="toctree-l1"><a class="reference internal" href="intro_install_setup.html">Getting Up &amp; Running</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="intro_install_setup.html#downloading">Downloading</a></li>
-<li class="toctree-l2"><a class="reference internal" href="intro_install_setup.html#installation">Installation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="intro_install_setup.html#initial-configuration">Initial Configuration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="intro_install_setup.html#upgrading-from-calcam-1-x">Upgrading from Calcam 1.x</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="intro_theory.html">Camera Calibration Theory</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="intro_theory.html#camera-model">Camera Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="intro_theory.html#perspective-distortion-model">Perspective Distortion Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="intro_theory.html#fisheye-distirtion-model">Fisheye Distirtion Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="intro_theory.html#underlying-opencv-documentation">Underlying OpenCV Documentation</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="intro_conventions.html">Concepts &amp; Conventions</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="intro_conventions.html#image-pixel-coordinates">Image Pixel Coordinates</a></li>
-<li class="toctree-l2"><a class="reference internal" href="intro_conventions.html#sub-views">Sub-views</a></li>
-<li class="toctree-l2"><a class="reference internal" href="intro_conventions.html#cad-models">CAD Models</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="intro_install_setup.html">Getting Up &amp; Running</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro_theory.html">Camera Calibration Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro_conventions.html">Concepts &amp; Conventions</a></li>
 </ul>
 <p class="caption"><span class="caption-text">GUI App User Guide</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="gui_intro.html">Introduction &amp; Launcher</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="gui_intro.html#starting-the-launcher">Starting the launcher</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="gui_calib.html">Calibration by point fitting</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#loading-an-image-to-calibrate">Loading an Image to Calibrate</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#image-mouse-navigation">Image Mouse Navigation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#current-image-settings">Current Image Settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#loading-and-manipulating-a-cad-model">Loading and manipulating a CAD model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#defining-calibration-points">Defining Calibration Points</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#fitting-the-camera-model">Fitting the camera model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#saving-loading-and-viewing-calibration-information">Saving / Loading and viewing calibration information</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="gui_alignment_calib.html">Calibration by manual alignment</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="gui_alignment_calib.html#loading-an-image-to-calibrate">Loading an Image to Calibrate</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_alignment_calib.html#current-image-settings">Current Image Settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_alignment_calib.html#loading-a-cad-model">Loading a CAD model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_alignment_calib.html#performing-the-alignment-calibration">Performing the alignment calibration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_alignment_calib.html#saving-loading-and-viewing-calibration-information">Saving / Loading and viewing calibration information</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="gui_virtual_calib.html">&#8220;Virtual&#8221; Calibrations</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="gui_virtual_calib.html#loading-a-cad-model">Loading a CAD model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_virtual_calib.html#creating-the-virtual-calibration">Creating the Virtual Calibration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_virtual_calib.html#saving-loading-and-viewing-calibration-information">Saving / Loading and viewing calibration information</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="gui_image_analyser.html">Image Analyser</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="gui_image_analyser.html#loading-an-image-to-analyse">Loading an image to analyse</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_image_analyser.html#loading-a-calibration">Loading a Calibration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_image_analyser.html#loading-a-cad-model">Loading a CAD model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_image_analyser.html#performing-position-analysis">Performing Position Analysis</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="gui_viewer.html">3D Viewer</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#loading-a-cad-model">Loading a CAD model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#turning-cad-model-parts-on-off">Turning CAD model parts On/Off</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#cad-model-appearance-settings">CAD model appearance settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#wall-contour-display">Wall contour display</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#mouse-navigation">Mouse Navigation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#d-viewport-tab">3D ViewPort Tab</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#visualising-camera-fields-of-view">Visualising camera fields of view</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#displaying-arbitrary-3d-lines">Displaying Arbitrary 3D Lines</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#rendering-and-saving-images">Rendering and saving images</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="gui_settings.html">Calcam Settings</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="gui_settings.html#cad-model-definition-settings">CAD Model Definition Settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_settings.html#image-source-settings">Image Source Settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_settings.html#environment-information">Environment Information</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="gui_movement.html">Camera Movement Determination</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="gui_movement.html#introduction">Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_movement.html#identifying-points">Identifying Points</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_movement.html#calculating-and-checking-the-movement-correction">Calculating and checking the movement correction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_movement.html#finishing">Finishing</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="gui_intro.html">Introduction &amp; Launcher</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui_calib.html">Calibration by point fitting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui_alignment_calib.html">Calibration by manual alignment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui_virtual_calib.html">“Virtual” Calibrations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui_image_analyser.html">Image Analyser</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui_viewer.html">3D Viewer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui_settings.html">Calcam Settings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui_movement.html">Camera Movement Determination</a></li>
 </ul>
 <p class="caption"><span class="caption-text">API User Guide</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="api_analysis.html">Using Calibration Results</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="api_analysis.html#the-calibration-class">The Calibration Class</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_analysis.html#rendering-images">Rendering images</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_analysis.html#ray-casting">Ray casting</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="api_analysis.html">Using Calibration Results</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_cadmodel.html">CAD Models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api_geom_matrix.html">Tomography Geometry Matrices</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="api_geom_matrix.html#background">Background</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_geom_matrix.html#the-geometry-matrix-class">The Geometry Matrix class</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_geom_matrix.html#reconstruction-grids">Reconstruction grids</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="api_movement.html">Camera Movement Correction</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="api_movement.html#background">Background</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_movement.html#determining-camera-movement">Determining Camera Movement</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_movement.html#the-movementcorrection-class">The MovementCorrection class</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_movement.html#adjusting-calibrations-for-image-movement">Adjusting calibrations for image movement</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="api_examples.html">Examples</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="api_examples.html#mapping-a-magnetic-field-line-on-to-an-image">Mapping a magnetic field line on to an image</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_examples.html#rendering-camera-view-wireframe">Rendering: camera view wireframe</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_examples.html#ray-casting">Ray casting</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_examples.html#tomography-geometry-matrices">Tomography Geometry Matrices</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_examples.html#camera-movement-correction">Camera Movement Correction</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="api_geom_matrix.html">Tomography Geometry Matrices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_movement.html">Camera Movement Correction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_examples.html">Examples</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Developer Documentation</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="dev_imsources.html">Image Sources</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="dev_imsources.html#return-format-of-image-loading-function">Return format of image loading function</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dev_imsources.html#structure-of-get-image-arguments">Structure of get_image_arguments</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dev_imsources.html#example">Example</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dev_imsources.html#adding-to-calcam">Adding to Calcam</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="dev_coord_formatter.html">3D Coordinate Formatters</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="dev_coord_formatter.html#example">Example</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dev_coord_formatter.html#note-on-sub-module-and-function-names">Note on sub-module and function names</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dev_coord_formatter.html#adding-to-a-cad-model">Adding to a CAD model</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="dev_imsources.html">Image Sources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dev_coord_formatter.html">3D Coordinate Formatters</a></li>
 </ul>
 
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -258,12 +162,14 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="index.html">Docs</a> &raquo;</li>
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
-      <li></li>
+      <li>Index</li>
     
     
       <li class="wy-breadcrumbs-aside">
+        
+            
         
       </li>
     
@@ -299,436 +205,282 @@
 </div>
 <h2 id="C">C</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_cadmodel.html#calcam.CADModel">CADModel (class in calcam)</a>
-  </dt>
-
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_analysis.html#calcam.Calibration">Calibration (class in calcam)</a>
-  </dt>
-
-  </dl></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_cadmodel.html#calcam.CADModel">CADModel (class in calcam)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_analysis.html#calcam.Calibration">Calibration (class in calcam)</a>
+</li>
+  </ul></td>
 </tr></table>
 
 <h2 id="D">D</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_geom_matrix.html#calcam.gm.GeometryMatrix.data">data (calcam.gm.GeometryMatrix attribute)</a>
-  </dt>
-
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_movement.html#calcam.movement.detect_movement">detect_movement() (in module calcam.movement)</a>
-  </dt>
-
-  </dl></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_geom_matrix.html#calcam.gm.GeometryMatrix.data">data (calcam.gm.GeometryMatrix attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_movement.html#calcam.movement.detect_movement">detect_movement() (in module calcam.movement)</a>
+</li>
+  </ul></td>
 </tr></table>
 
 <h2 id="E">E</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_cadmodel.html#calcam.CADModel.enable_only">enable_only() (calcam.CADModel method)</a>
-  </dt>
-
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_geom_matrix.html#calcam.gm.PoloidalVolumeGrid.extent">extent (calcam.gm.PoloidalVolumeGrid attribute)</a>
-  </dt>
-
-  </dl></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_cadmodel.html#calcam.CADModel.enable_only">enable_only() (calcam.CADModel method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_geom_matrix.html#calcam.gm.PoloidalVolumeGrid.extent">extent() (calcam.gm.PoloidalVolumeGrid property)</a>
+</li>
+  </ul></td>
 </tr></table>
 
 <h2 id="F">F</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_cadmodel.html#calcam.CADModel.format_coord">format_coord() (calcam.CADModel method)</a>
-  </dt>
-
-      
-  <dt><a href="api_geom_matrix.html#calcam.gm.GeometryMatrix.format_image">format_image() (calcam.gm.GeometryMatrix method)</a>
-  </dt>
-
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_geom_matrix.html#calcam.gm.GeometryMatrix.fromfile">fromfile() (calcam.gm.GeometryMatrix class method)</a>
-  </dt>
-
-  </dl></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_cadmodel.html#calcam.CADModel.format_coord">format_coord() (calcam.CADModel method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_geom_matrix.html#calcam.gm.GeometryMatrix.format_image">format_image() (calcam.gm.GeometryMatrix method)</a>
+</li>
+      <li><a href="api_geom_matrix.html#calcam.gm.GeometryMatrix.fromfile">fromfile() (calcam.gm.GeometryMatrix class method)</a>
+</li>
+  </ul></td>
 </tr></table>
 
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_geom_matrix.html#calcam.gm.GeometryMatrix">GeometryMatrix (class in calcam.gm)</a>
-  </dt>
-
-      
-  <dt><a href="api_analysis.html#calcam.Calibration.get_cam_matrix">get_cam_matrix() (calcam.Calibration method)</a>
-  </dt>
-
-      
-  <dt><a href="api_analysis.html#calcam.Calibration.get_cam_roll">get_cam_roll() (calcam.Calibration method)</a>
-  </dt>
-
-      
-  <dt><a href="api_analysis.html#calcam.Calibration.get_cam_to_lab_rotation">get_cam_to_lab_rotation() (calcam.Calibration method)</a>
-  </dt>
-
-      
-  <dt><a href="api_geom_matrix.html#calcam.gm.PoloidalVolumeGrid.get_cell_intersections">get_cell_intersections() (calcam.gm.PoloidalVolumeGrid method)</a>
-  </dt>
-
-      
-  <dt><a href="api_cadmodel.html#calcam.CADModel.get_colour">get_colour() (calcam.CADModel method)</a>
-  </dt>
-
-      
-  <dt><a href="api_movement.html#calcam.movement.MovementCorrection.get_ddscore">get_ddscore() (calcam.movement.MovementCorrection method)</a>
-  </dt>
-
-      
-  <dt><a href="api_cadmodel.html#calcam.CADModel.get_enabled_features">get_enabled_features() (calcam.CADModel method)</a>
-  </dt>
-
-      
-  <dt><a href="api_cadmodel.html#calcam.CADModel.get_extent">get_extent() (calcam.CADModel method)</a>
-  </dt>
-
-      
-  <dt><a href="api_cadmodel.html#calcam.CADModel.get_feature_list">get_feature_list() (calcam.CADModel method)</a>
-  </dt>
-
-      
-  <dt><a href="api_analysis.html#calcam.Calibration.get_fov">get_fov() (calcam.Calibration method)</a>
-  </dt>
-
-      
-  <dt><a href="api_cadmodel.html#calcam.CADModel.get_group_enable_state">get_group_enable_state() (calcam.CADModel method)</a>
-  </dt>
-
-      
-  <dt><a href="api_analysis.html#calcam.Calibration.get_image">get_image() (calcam.Calibration method)</a>
-  </dt>
-
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_geom_matrix.html#calcam.gm.GeometryMatrix.get_included_pixels">get_included_pixels() (calcam.gm.GeometryMatrix method)</a>
-  </dt>
-
-      
-  <dt><a href="api_cadmodel.html#calcam.CADModel.get_linewidth">get_linewidth() (calcam.CADModel method)</a>
-  </dt>
-
-      
-  <dt><a href="api_geom_matrix.html#calcam.gm.GeometryMatrix.get_los_coverage">get_los_coverage() (calcam.gm.GeometryMatrix method)</a>
-  </dt>
-
-      
-  <dt><a href="api_analysis.html#calcam.Calibration.get_los_direction">get_los_direction() (calcam.Calibration method)</a>
-  </dt>
-
-      
-  <dt><a href="api_analysis.html#calcam.Calibration.get_pupilpos">get_pupilpos() (calcam.Calibration method)</a>
-  </dt>
-
-      
-  <dt><a href="api_analysis.html#calcam.RayData.get_ray_directions">get_ray_directions() (calcam.RayData method)</a>
-  </dt>
-
-      
-  <dt><a href="api_analysis.html#calcam.RayData.get_ray_end">get_ray_end() (calcam.RayData method)</a>
-  </dt>
-
-      
-  <dt><a href="api_analysis.html#calcam.RayData.get_ray_lengths">get_ray_lengths() (calcam.RayData method)</a>
-  </dt>
-
-      
-  <dt><a href="api_analysis.html#calcam.RayData.get_ray_start">get_ray_start() (calcam.RayData method)</a>
-  </dt>
-
-      
-  <dt><a href="api_analysis.html#calcam.Calibration.get_raysect_camera">get_raysect_camera() (calcam.Calibration method)</a>
-  </dt>
-
-      
-  <dt><a href="api_cadmodel.html#calcam.CADModel.get_status_callback">get_status_callback() (calcam.CADModel method)</a>
-  </dt>
-
-      
-  <dt><a href="api_analysis.html#calcam.Calibration.get_undistort_coeffs">get_undistort_coeffs() (calcam.Calibration method)</a>
-  </dt>
-
-      
-  <dt><a href="api_geom_matrix.html#calcam.gm.GeometryMatrix.grid">grid (calcam.gm.GeometryMatrix attribute)</a>
-  </dt>
-
-  </dl></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_geom_matrix.html#calcam.gm.GeometryMatrix">GeometryMatrix (class in calcam.gm)</a>
+</li>
+      <li><a href="api_analysis.html#calcam.Calibration.get_cam_matrix">get_cam_matrix() (calcam.Calibration method)</a>
+</li>
+      <li><a href="api_analysis.html#calcam.Calibration.get_cam_roll">get_cam_roll() (calcam.Calibration method)</a>
+</li>
+      <li><a href="api_analysis.html#calcam.Calibration.get_cam_to_lab_rotation">get_cam_to_lab_rotation() (calcam.Calibration method)</a>
+</li>
+      <li><a href="api_geom_matrix.html#calcam.gm.PoloidalVolumeGrid.get_cell_intersections">get_cell_intersections() (calcam.gm.PoloidalVolumeGrid method)</a>
+</li>
+      <li><a href="api_cadmodel.html#calcam.CADModel.get_colour">get_colour() (calcam.CADModel method)</a>
+</li>
+      <li><a href="api_movement.html#calcam.movement.MovementCorrection.get_ddscore">get_ddscore() (calcam.movement.MovementCorrection method)</a>
+</li>
+      <li><a href="api_cadmodel.html#calcam.CADModel.get_enabled_features">get_enabled_features() (calcam.CADModel method)</a>
+</li>
+      <li><a href="api_cadmodel.html#calcam.CADModel.get_extent">get_extent() (calcam.CADModel method)</a>
+</li>
+      <li><a href="api_cadmodel.html#calcam.CADModel.get_feature_list">get_feature_list() (calcam.CADModel method)</a>
+</li>
+      <li><a href="api_analysis.html#calcam.Calibration.get_fov">get_fov() (calcam.Calibration method)</a>
+</li>
+      <li><a href="api_cadmodel.html#calcam.CADModel.get_group_enable_state">get_group_enable_state() (calcam.CADModel method)</a>
+</li>
+      <li><a href="api_analysis.html#calcam.Calibration.get_image">get_image() (calcam.Calibration method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_geom_matrix.html#calcam.gm.GeometryMatrix.get_included_pixels">get_included_pixels() (calcam.gm.GeometryMatrix method)</a>
+</li>
+      <li><a href="api_cadmodel.html#calcam.CADModel.get_linewidth">get_linewidth() (calcam.CADModel method)</a>
+</li>
+      <li><a href="api_geom_matrix.html#calcam.gm.GeometryMatrix.get_los_coverage">get_los_coverage() (calcam.gm.GeometryMatrix method)</a>
+</li>
+      <li><a href="api_analysis.html#calcam.Calibration.get_los_direction">get_los_direction() (calcam.Calibration method)</a>
+</li>
+      <li><a href="api_analysis.html#calcam.Calibration.get_pupilpos">get_pupilpos() (calcam.Calibration method)</a>
+</li>
+      <li><a href="api_analysis.html#calcam.RayData.get_ray_directions">get_ray_directions() (calcam.RayData method)</a>
+</li>
+      <li><a href="api_analysis.html#calcam.RayData.get_ray_end">get_ray_end() (calcam.RayData method)</a>
+</li>
+      <li><a href="api_analysis.html#calcam.RayData.get_ray_lengths">get_ray_lengths() (calcam.RayData method)</a>
+</li>
+      <li><a href="api_analysis.html#calcam.RayData.get_ray_start">get_ray_start() (calcam.RayData method)</a>
+</li>
+      <li><a href="api_analysis.html#calcam.Calibration.get_raysect_camera">get_raysect_camera() (calcam.Calibration method)</a>
+</li>
+      <li><a href="api_cadmodel.html#calcam.CADModel.get_status_callback">get_status_callback() (calcam.CADModel method)</a>
+</li>
+      <li><a href="api_analysis.html#calcam.Calibration.get_undistort_coeffs">get_undistort_coeffs() (calcam.Calibration method)</a>
+</li>
+      <li><a href="api_geom_matrix.html#calcam.gm.GeometryMatrix.grid">grid (calcam.gm.GeometryMatrix attribute)</a>
+</li>
+  </ul></td>
 </tr></table>
 
 <h2 id="H">H</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_analysis.html#calcam.RayData.history">history (calcam.RayData attribute)</a>
-  </dt>
-
-  </dl></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_analysis.html#calcam.RayData.history">history (calcam.RayData attribute)</a>
+</li>
+  </ul></td>
 </tr></table>
 
 <h2 id="I">I</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_geom_matrix.html#calcam.gm.PoloidalVolumeGrid.interpolate">interpolate() (calcam.gm.PoloidalVolumeGrid method)</a>
-  </dt>
-
-  </dl></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_geom_matrix.html#calcam.gm.PoloidalVolumeGrid.interpolate">interpolate() (calcam.gm.PoloidalVolumeGrid method)</a>
+</li>
+  </ul></td>
 </tr></table>
 
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_movement.html#calcam.movement.MovementCorrection.load">load() (calcam.movement.MovementCorrection class method)</a>
-  </dt>
-
-  </dl></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_movement.html#calcam.movement.MovementCorrection.load">load() (calcam.movement.MovementCorrection class method)</a>
+</li>
+  </ul></td>
 </tr></table>
 
 <h2 id="M">M</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_movement.html#calcam.movement.manual_movement">manual_movement() (in module calcam.movement)</a>
-  </dt>
-
-      
-  <dt><a href="api_movement.html#calcam.movement.MovementCorrection.moved_to_ref_coords">moved_to_ref_coords() (calcam.movement.MovementCorrection method)</a>
-  </dt>
-
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_movement.html#calcam.movement.MovementCorrection">MovementCorrection (class in calcam.movement)</a>
-  </dt>
-
-  </dl></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_movement.html#calcam.movement.manual_movement">manual_movement() (in module calcam.movement)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_movement.html#calcam.movement.MovementCorrection.moved_to_ref_coords">moved_to_ref_coords() (calcam.movement.MovementCorrection method)</a>
+</li>
+      <li><a href="api_movement.html#calcam.movement.MovementCorrection">MovementCorrection (class in calcam.movement)</a>
+</li>
+  </ul></td>
 </tr></table>
 
 <h2 id="N">N</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_geom_matrix.html#calcam.gm.PoloidalVolumeGrid.n_cells">n_cells (calcam.gm.PoloidalVolumeGrid attribute)</a>
-  </dt>
-
-      
-  <dt><a href="api_geom_matrix.html#calcam.gm.PoloidalVolumeGrid.n_segments">n_segments (calcam.gm.PoloidalVolumeGrid attribute)</a>
-  </dt>
-
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_geom_matrix.html#calcam.gm.PoloidalVolumeGrid.n_vertices">n_vertices (calcam.gm.PoloidalVolumeGrid attribute)</a>
-  </dt>
-
-  </dl></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_geom_matrix.html#calcam.gm.PoloidalVolumeGrid.n_cells">n_cells() (calcam.gm.PoloidalVolumeGrid property)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_geom_matrix.html#calcam.gm.PoloidalVolumeGrid.n_segments">n_segments() (calcam.gm.PoloidalVolumeGrid property)</a>
+</li>
+      <li><a href="api_geom_matrix.html#calcam.gm.PoloidalVolumeGrid.n_vertices">n_vertices() (calcam.gm.PoloidalVolumeGrid property)</a>
+</li>
+  </ul></td>
 </tr></table>
 
 <h2 id="P">P</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_geom_matrix.html#calcam.gm.PoloidalVolumeGrid.plot">plot() (calcam.gm.PoloidalVolumeGrid method)</a>
-  </dt>
-
-      
-  <dt><a href="api_geom_matrix.html#calcam.gm.PoloidalVolumeGrid">PoloidalVolumeGrid (class in calcam.gm)</a>
-  </dt>
-
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_analysis.html#calcam.Calibration.project_points">project_points() (calcam.Calibration method)</a>
-  </dt>
-
-  </dl></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_geom_matrix.html#calcam.gm.PoloidalVolumeGrid.plot">plot() (calcam.gm.PoloidalVolumeGrid method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_geom_matrix.html#calcam.gm.PoloidalVolumeGrid">PoloidalVolumeGrid (class in calcam.gm)</a>
+</li>
+      <li><a href="api_analysis.html#calcam.Calibration.project_points">project_points() (calcam.Calibration method)</a>
+</li>
+  </ul></td>
 </tr></table>
 
 <h2 id="R">R</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_analysis.html#calcam.raycast_sightlines">raycast_sightlines() (in module calcam)</a>
-  </dt>
-
-      
-  <dt><a href="api_analysis.html#calcam.RayData">RayData (class in calcam)</a>
-  </dt>
-
-      
-  <dt><a href="api_movement.html#calcam.movement.MovementCorrection.ref_to_moved_coords">ref_to_moved_coords() (calcam.movement.MovementCorrection method)</a>
-  </dt>
-
-      
-  <dt><a href="api_geom_matrix.html#calcam.gm.PoloidalVolumeGrid.remove_cells">remove_cells() (calcam.gm.PoloidalVolumeGrid method)</a>
-  </dt>
-
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_analysis.html#calcam.render_cam_view">render_cam_view() (in module calcam)</a>
-  </dt>
-
-      
-  <dt><a href="api_cadmodel.html#calcam.CADModel.reset_colour">reset_colour() (calcam.CADModel method)</a>
-  </dt>
-
-      
-  <dt><a href="api_movement.html#calcam.movement.MovementCorrection.rotation">rotation (calcam.movement.MovementCorrection attribute)</a>
-  </dt>
-
-  </dl></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_analysis.html#calcam.raycast_sightlines">raycast_sightlines() (in module calcam)</a>
+</li>
+      <li><a href="api_analysis.html#calcam.RayData">RayData (class in calcam)</a>
+</li>
+      <li><a href="api_movement.html#calcam.movement.MovementCorrection.ref_to_moved_coords">ref_to_moved_coords() (calcam.movement.MovementCorrection method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_geom_matrix.html#calcam.gm.PoloidalVolumeGrid.remove_cells">remove_cells() (calcam.gm.PoloidalVolumeGrid method)</a>
+</li>
+      <li><a href="api_analysis.html#calcam.render_cam_view">render_cam_view() (in module calcam)</a>
+</li>
+      <li><a href="api_cadmodel.html#calcam.CADModel.reset_colour">reset_colour() (calcam.CADModel method)</a>
+</li>
+      <li><a href="api_movement.html#calcam.movement.MovementCorrection.rotation">rotation() (calcam.movement.MovementCorrection property)</a>
+</li>
+  </ul></td>
 </tr></table>
 
 <h2 id="S">S</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_geom_matrix.html#calcam.gm.GeometryMatrix.save">save() (calcam.gm.GeometryMatrix method)</a>
-  </dt>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_geom_matrix.html#calcam.gm.GeometryMatrix.save">save() (calcam.gm.GeometryMatrix method)</a>
 
-      <dd><dl>
-        
-  <dt><a href="api_analysis.html#calcam.RayData.save">(calcam.RayData method)</a>
-  </dt>
+      <ul>
+        <li><a href="api_movement.html#calcam.movement.MovementCorrection.save">(calcam.movement.MovementCorrection method)</a>
+</li>
+        <li><a href="api_analysis.html#calcam.RayData.save">(calcam.RayData method)</a>
+</li>
+      </ul></li>
+      <li><a href="api_movement.html#calcam.movement.MovementCorrection.scale">scale() (calcam.movement.MovementCorrection property)</a>
+</li>
+      <li><a href="api_geom_matrix.html#calcam.gm.GeometryMatrix.set_binning">set_binning() (calcam.gm.GeometryMatrix method)</a>
+</li>
+      <li><a href="api_cadmodel.html#calcam.CADModel.set_colour">set_colour() (calcam.CADModel method)</a>
+</li>
+      <li><a href="api_analysis.html#calcam.Calibration.set_detector_window">set_detector_window() (calcam.Calibration method)</a>
 
-        
-  <dt><a href="api_movement.html#calcam.movement.MovementCorrection.save">(calcam.movement.MovementCorrection method)</a>
-  </dt>
-
-      </dl></dd>
-      
-  <dt><a href="api_movement.html#calcam.movement.MovementCorrection.scale">scale (calcam.movement.MovementCorrection attribute)</a>
-  </dt>
-
-      
-  <dt><a href="api_geom_matrix.html#calcam.gm.GeometryMatrix.set_binning">set_binning() (calcam.gm.GeometryMatrix method)</a>
-  </dt>
-
-      
-  <dt><a href="api_cadmodel.html#calcam.CADModel.set_colour">set_colour() (calcam.CADModel method)</a>
-  </dt>
-
-      
-  <dt><a href="api_analysis.html#calcam.Calibration.set_detector_window">set_detector_window() (calcam.Calibration method)</a>
-  </dt>
-
-      <dd><dl>
-        
-  <dt><a href="api_analysis.html#calcam.RayData.set_detector_window">(calcam.RayData method)</a>
-  </dt>
-
-      </dl></dd>
-      
-  <dt><a href="api_analysis.html#calcam.Calibration.set_extrinsics">set_extrinsics() (calcam.Calibration method)</a>
-  </dt>
-
-      
-  <dt><a href="api_cadmodel.html#calcam.CADModel.set_features_enabled">set_features_enabled() (calcam.CADModel method)</a>
-  </dt>
-
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_cadmodel.html#calcam.CADModel.set_flat_shading">set_flat_shading() (calcam.CADModel method)</a>
-  </dt>
-
-      
-  <dt><a href="api_geom_matrix.html#calcam.gm.GeometryMatrix.set_included_pixels">set_included_pixels() (calcam.gm.GeometryMatrix method)</a>
-  </dt>
-
-      
-  <dt><a href="api_cadmodel.html#calcam.CADModel.set_linewidth">set_linewidth() (calcam.CADModel method)</a>
-  </dt>
-
-      
-  <dt><a href="api_cadmodel.html#calcam.CADModel.set_status_callback">set_status_callback() (calcam.CADModel method)</a>
-  </dt>
-
-      
-  <dt><a href="api_cadmodel.html#calcam.CADModel.set_wireframe">set_wireframe() (calcam.CADModel method)</a>
-  </dt>
-
-      
-  <dt><a href="api_geom_matrix.html#calcam.gm.squaregrid">squaregrid() (in module calcam.gm)</a>
-  </dt>
-
-  </dl></td>
+      <ul>
+        <li><a href="api_analysis.html#calcam.RayData.set_detector_window">(calcam.RayData method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_analysis.html#calcam.Calibration.set_extrinsics">set_extrinsics() (calcam.Calibration method)</a>
+</li>
+      <li><a href="api_cadmodel.html#calcam.CADModel.set_features_enabled">set_features_enabled() (calcam.CADModel method)</a>
+</li>
+      <li><a href="api_cadmodel.html#calcam.CADModel.set_flat_shading">set_flat_shading() (calcam.CADModel method)</a>
+</li>
+      <li><a href="api_geom_matrix.html#calcam.gm.GeometryMatrix.set_included_pixels">set_included_pixels() (calcam.gm.GeometryMatrix method)</a>
+</li>
+      <li><a href="api_cadmodel.html#calcam.CADModel.set_linewidth">set_linewidth() (calcam.CADModel method)</a>
+</li>
+      <li><a href="api_cadmodel.html#calcam.CADModel.set_status_callback">set_status_callback() (calcam.CADModel method)</a>
+</li>
+      <li><a href="api_cadmodel.html#calcam.CADModel.set_wireframe">set_wireframe() (calcam.CADModel method)</a>
+</li>
+      <li><a href="api_geom_matrix.html#calcam.gm.squaregrid">squaregrid() (in module calcam.gm)</a>
+</li>
+  </ul></td>
 </tr></table>
 
 <h2 id="T">T</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_movement.html#calcam.movement.MovementCorrection.translation">translation (calcam.movement.MovementCorrection attribute)</a>
-  </dt>
-
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_geom_matrix.html#calcam.gm.trigrid">trigrid() (in module calcam.gm)</a>
-  </dt>
-
-  </dl></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_movement.html#calcam.movement.MovementCorrection.translation">translation() (calcam.movement.MovementCorrection property)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_geom_matrix.html#calcam.gm.trigrid">trigrid() (in module calcam.gm)</a>
+</li>
+  </ul></td>
 </tr></table>
 
 <h2 id="U">U</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_analysis.html#calcam.Calibration.undistort_image">undistort_image() (calcam.Calibration method)</a>
-  </dt>
-
-      
-  <dt><a href="api_cadmodel.html#calcam.CADModel.unload">unload() (calcam.CADModel method)</a>
-  </dt>
-
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_movement.html#calcam.movement.update_calibration">update_calibration() (in module calcam.movement)</a>
-  </dt>
-
-  </dl></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_analysis.html#calcam.Calibration.undistort_image">undistort_image() (calcam.Calibration method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_cadmodel.html#calcam.CADModel.unload">unload() (calcam.CADModel method)</a>
+</li>
+      <li><a href="api_movement.html#calcam.movement.update_calibration">update_calibration() (in module calcam.movement)</a>
+</li>
+  </ul></td>
 </tr></table>
 
 <h2 id="W">W</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_movement.html#calcam.movement.MovementCorrection.warp_moved_to_ref">warp_moved_to_ref() (calcam.movement.MovementCorrection method)</a>
-  </dt>
-
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="api_movement.html#calcam.movement.MovementCorrection.warp_ref_to_moved">warp_ref_to_moved() (calcam.movement.MovementCorrection method)</a>
-  </dt>
-
-  </dl></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_movement.html#calcam.movement.MovementCorrection.warp_moved_to_ref">warp_moved_to_ref() (calcam.movement.MovementCorrection method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_movement.html#calcam.movement.MovementCorrection.warp_ref_to_moved">warp_ref_to_moved() (calcam.movement.MovementCorrection method)</a>
+</li>
+  </ul></td>
 </tr></table>
 
 
@@ -743,11 +495,19 @@
 
   <div role="contentinfo">
     <p>
+        
         &copy; Copyright 2015-2019, European Atomic Energy Community (EURATOM)
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -759,37 +519,16 @@
   </div>
   
 
-
-  
-
-    
-    
-      <script type="text/javascript">
-          var DOCUMENTATION_OPTIONS = {
-              URL_ROOT:'./',
-              VERSION:'',
-              LANGUAGE:'en',
-              COLLAPSE_INDEX:false,
-              FILE_SUFFIX:'.html',
-              HAS_SOURCE:  false,
-              SOURCELINK_SUFFIX: ''
-          };
-      </script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
-
-  
-
-  <script type="text/javascript" src="_static/js/theme.js"></script>
-
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>

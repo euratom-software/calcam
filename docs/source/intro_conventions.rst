@@ -18,6 +18,10 @@ By default, calcam functions work with display coordinates unless specified othe
 
 .. _subviews_intro:
 
+Detector / Image Offset
+~~~~~~~~~~~~~~~~~~~~~~~
+Many scientific CMOS cameras can be configured to readout only a specific region-of-interest (ROI) within the image sensor area to achieve higher frame rates. In such cases, the recorded image area can be specified by the width and height in pixels, and the offset in pixels of the top-left corner of the recorded image from the top-left corner of the whole detector. Calcam supports keeping track of this offset when working with images from this type of camera. This allows, for example, a camera to be calibrated for one readout ROI, but then the same calibration can still be used if the ROI setting is changed. This requires that you tell calcam the camera ROI offset settings (top left of the ROI relative to the top left of the whole detector) when calibrating or analysing such images. The offset is always specified in original coordinates (as it would be in the camera settings) and in Calcam is referred to as the image offset or detector offset. If using a camera where the readout ROI never changes, there is no need to pay attention to these settings or values.
+
 Sub-views
 ---------
 Some camera diagnostic systems include optics such that multiple views share the same detector. For example, systems including a mirror or prism which result in two distinct camera views each occupying different parts of the image. To deal with these cases, Calcam has the concept of sub-views. A sub-view is an individual camera view, and an image can consist of one more more sub-views each occupying different parts of the image. Each sub-view is individually calibrated, and a mask is used to keep track of which image pixels belong to each sub-view. 

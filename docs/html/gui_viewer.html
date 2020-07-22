@@ -1,8 +1,7 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
   
@@ -12,37 +11,44 @@
   
 
   
-  
-  
-  
-
-  
-
-  
-  
-    
-
-  
-
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="next" title="Calcam Settings" href="gui_settings.html" />
-    <link rel="prev" title="Image Analyser" href="gui_image_analyser.html" /> 
 
   
-  <script src="_static/js/modernizr.min.js"></script>
+  
+  
+  
 
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Calcam Settings" href="gui_settings.html" />
+    <link rel="prev" title="Image Analyser" href="gui_image_analyser.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -59,7 +65,7 @@
             
             
               <div class="version">
-                Version 2.4
+                Version 2.5
               </div>
             
           
@@ -76,6 +82,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -86,64 +93,17 @@
               <p class="caption"><span class="caption-text">Introduction</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="intro_general.html">General Introduction to Calcam</a></li>
-<li class="toctree-l1"><a class="reference internal" href="intro_install_setup.html">Getting Up &amp; Running</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="intro_install_setup.html#downloading">Downloading</a></li>
-<li class="toctree-l2"><a class="reference internal" href="intro_install_setup.html#installation">Installation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="intro_install_setup.html#initial-configuration">Initial Configuration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="intro_install_setup.html#upgrading-from-calcam-1-x">Upgrading from Calcam 1.x</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="intro_theory.html">Camera Calibration Theory</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="intro_theory.html#camera-model">Camera Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="intro_theory.html#perspective-distortion-model">Perspective Distortion Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="intro_theory.html#fisheye-distirtion-model">Fisheye Distirtion Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="intro_theory.html#underlying-opencv-documentation">Underlying OpenCV Documentation</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="intro_conventions.html">Concepts &amp; Conventions</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="intro_conventions.html#image-pixel-coordinates">Image Pixel Coordinates</a></li>
-<li class="toctree-l2"><a class="reference internal" href="intro_conventions.html#sub-views">Sub-views</a></li>
-<li class="toctree-l2"><a class="reference internal" href="intro_conventions.html#cad-models">CAD Models</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="intro_install_setup.html">Getting Up &amp; Running</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro_theory.html">Camera Calibration Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro_conventions.html">Concepts &amp; Conventions</a></li>
 </ul>
 <p class="caption"><span class="caption-text">GUI App User Guide</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="gui_intro.html">Introduction &amp; Launcher</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="gui_intro.html#starting-the-launcher">Starting the launcher</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="gui_calib.html">Calibration by point fitting</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#loading-an-image-to-calibrate">Loading an Image to Calibrate</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#image-mouse-navigation">Image Mouse Navigation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#current-image-settings">Current Image Settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#loading-and-manipulating-a-cad-model">Loading and manipulating a CAD model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#defining-calibration-points">Defining Calibration Points</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#fitting-the-camera-model">Fitting the camera model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#saving-loading-and-viewing-calibration-information">Saving / Loading and viewing calibration information</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="gui_alignment_calib.html">Calibration by manual alignment</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="gui_alignment_calib.html#loading-an-image-to-calibrate">Loading an Image to Calibrate</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_alignment_calib.html#current-image-settings">Current Image Settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_alignment_calib.html#loading-a-cad-model">Loading a CAD model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_alignment_calib.html#performing-the-alignment-calibration">Performing the alignment calibration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_alignment_calib.html#saving-loading-and-viewing-calibration-information">Saving / Loading and viewing calibration information</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="gui_virtual_calib.html">&#8220;Virtual&#8221; Calibrations</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="gui_virtual_calib.html#loading-a-cad-model">Loading a CAD model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_virtual_calib.html#creating-the-virtual-calibration">Creating the Virtual Calibration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_virtual_calib.html#saving-loading-and-viewing-calibration-information">Saving / Loading and viewing calibration information</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="gui_image_analyser.html">Image Analyser</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="gui_image_analyser.html#loading-an-image-to-analyse">Loading an image to analyse</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_image_analyser.html#loading-a-calibration">Loading a Calibration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_image_analyser.html#loading-a-cad-model">Loading a CAD model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_image_analyser.html#performing-position-analysis">Performing Position Analysis</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="gui_intro.html">Introduction &amp; Launcher</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui_calib.html">Calibration by point fitting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui_alignment_calib.html">Calibration by manual alignment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui_virtual_calib.html">“Virtual” Calibrations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui_image_analyser.html">Image Analyser</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">3D Viewer</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#loading-a-cad-model">Loading a CAD model</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#turning-cad-model-parts-on-off">Turning CAD model parts On/Off</a></li>
@@ -156,71 +116,27 @@
 <li class="toctree-l2"><a class="reference internal" href="#rendering-and-saving-images">Rendering and saving images</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="gui_settings.html">Calcam Settings</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="gui_settings.html#cad-model-definition-settings">CAD Model Definition Settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_settings.html#image-source-settings">Image Source Settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_settings.html#environment-information">Environment Information</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="gui_movement.html">Camera Movement Determination</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="gui_movement.html#introduction">Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_movement.html#identifying-points">Identifying Points</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_movement.html#calculating-and-checking-the-movement-correction">Calculating and checking the movement correction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_movement.html#finishing">Finishing</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="gui_settings.html">Calcam Settings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui_movement.html">Camera Movement Determination</a></li>
 </ul>
 <p class="caption"><span class="caption-text">API User Guide</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="api_analysis.html">Using Calibration Results</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="api_analysis.html#the-calibration-class">The Calibration Class</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_analysis.html#rendering-images">Rendering images</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_analysis.html#ray-casting">Ray casting</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="api_analysis.html">Using Calibration Results</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_cadmodel.html">CAD Models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api_geom_matrix.html">Tomography Geometry Matrices</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="api_geom_matrix.html#background">Background</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_geom_matrix.html#the-geometry-matrix-class">The Geometry Matrix class</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_geom_matrix.html#reconstruction-grids">Reconstruction grids</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="api_movement.html">Camera Movement Correction</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="api_movement.html#background">Background</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_movement.html#determining-camera-movement">Determining Camera Movement</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_movement.html#the-movementcorrection-class">The MovementCorrection class</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_movement.html#adjusting-calibrations-for-image-movement">Adjusting calibrations for image movement</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="api_examples.html">Examples</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="api_examples.html#mapping-a-magnetic-field-line-on-to-an-image">Mapping a magnetic field line on to an image</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_examples.html#rendering-camera-view-wireframe">Rendering: camera view wireframe</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_examples.html#ray-casting">Ray casting</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_examples.html#tomography-geometry-matrices">Tomography Geometry Matrices</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_examples.html#camera-movement-correction">Camera Movement Correction</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="api_geom_matrix.html">Tomography Geometry Matrices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_movement.html">Camera Movement Correction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_examples.html">Examples</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Developer Documentation</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="dev_imsources.html">Image Sources</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="dev_imsources.html#return-format-of-image-loading-function">Return format of image loading function</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dev_imsources.html#structure-of-get-image-arguments">Structure of get_image_arguments</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dev_imsources.html#example">Example</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dev_imsources.html#adding-to-calcam">Adding to Calcam</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="dev_coord_formatter.html">3D Coordinate Formatters</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="dev_coord_formatter.html#example">Example</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dev_coord_formatter.html#note-on-sub-module-and-function-names">Note on sub-module and function names</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dev_coord_formatter.html#adding-to-a-cad-model">Adding to a CAD model</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="dev_imsources.html">Image Sources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dev_coord_formatter.html">3D Coordinate Formatters</a></li>
 </ul>
 
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -259,7 +175,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="index.html">Docs</a> &raquo;</li>
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
       <li>3D Viewer</li>
     
@@ -284,7 +200,7 @@
 <img alt="3D Viewer Screenshot" class="align-left" src="_images/viewer_annotated.png" />
 <div class="section" id="loading-a-cad-model">
 <h2>Loading a CAD model<a class="headerlink" href="#loading-a-cad-model" title="Permalink to this headline">¶</a></h2>
-<p>At the top the <span class="guilabel">Machine Model</span> control tab are controls for loading a CAD model to calibrate against. Two dropdown boxes are provided to select the CAD model to load and the <a class="reference internal" href="intro_conventions.html#cadmodel-intro"><span class="std std-ref">model variant</span></a>. The <span class="guilabel">Load</span> button to the right of the model variant then loads the model. Underneath the model variant dropdown box is a checkbox labeled <cite>Enable default model features on load</cite>: if checked, the default parts of the CAD model are all loaded as soon as the model itself is loaded. If not checked, the model definition will be loaded but none of the 3D mesh data will be loaded, and instead you can turn on features individually. This is useful if working with a large model on a slow computer where you don&#8217;t want to wait for the whole model to load if not needed. You can change to a different CAD model or variant at any time by selecting a different item from the dropdown boxes and clicking <span class="guilabel">Load</span> again.</p>
+<p>At the top the <span class="guilabel">Machine Model</span> control tab are controls for loading a CAD model to calibrate against. Two dropdown boxes are provided to select the CAD model to load and the <a class="reference internal" href="intro_conventions.html#cadmodel-intro"><span class="std std-ref">model variant</span></a>. The <span class="guilabel">Load</span> button to the right of the model variant then loads the model. Underneath the model variant dropdown box is a checkbox labeled <cite>Enable default model features on load</cite>: if checked, the default parts of the CAD model are all loaded as soon as the model itself is loaded. If not checked, the model definition will be loaded but none of the 3D mesh data will be loaded, and instead you can turn on features individually. This is useful if working with a large model on a slow computer where you don’t want to wait for the whole model to load if not needed. You can change to a different CAD model or variant at any time by selecting a different item from the dropdown boxes and clicking <span class="guilabel">Load</span> again.</p>
 </div>
 <div class="section" id="turning-cad-model-parts-on-off">
 <h2>Turning CAD model parts On/Off<a class="headerlink" href="#turning-cad-model-parts-on-off" title="Permalink to this headline">¶</a></h2>
@@ -296,18 +212,18 @@
 </div>
 <div class="section" id="wall-contour-display">
 <h2>Wall contour display<a class="headerlink" href="#wall-contour-display" title="Permalink to this headline">¶</a></h2>
-<p>If the CAD model dfinition includes an <span class="math">\((R,Z)\)</span> wall contour, this can be displayed using the controls in the <span class="guilabel">Show R,Z Wall Contour</span> box. Here you can select between not showing the wall contour, showing it as a line at the toroidal position of the cursor, or revolving the R,Z contour in 3D to show a simplified, toroidally symmetric wall shape.</p>
+<p>If the CAD model dfinition includes an <span class="math notranslate nohighlight">\((R,Z)\)</span> wall contour, this can be displayed using the controls in the <span class="guilabel">Show R,Z Wall Contour</span> box. Here you can select between not showing the wall contour, showing it as a line at the toroidal position of the cursor, or revolving the R,Z contour in 3D to show a simplified, toroidally symmetric wall shape.</p>
 </div>
 <div class="section" id="mouse-navigation">
 <h2>Mouse Navigation<a class="headerlink" href="#mouse-navigation" title="Permalink to this headline">¶</a></h2>
 <p>You can interactively navigate around the 3D view using the following mouse controls:</p>
 <ul class="simple">
-<li><code class="kbd docutils literal"><span class="pre">Left</span> <span class="pre">Click</span></code> - Place a cursor on the 3D model, or move the cursor if one already exists. This will display information about the cursor position in the window status bar and can be used by cross-sectioning / wall contour display features.</li>
-<li><code class="kbd docutils literal"><span class="pre">Right</span> <span class="pre">Click</span> <span class="pre">+</span> <span class="pre">Drag</span></code> - Look around (first-person shooter style control; default) or rotate CAD model depending on settings</li>
-<li><code class="kbd docutils literal"><span class="pre">Middle</span> <span class="pre">Click</span> <span class="pre">+</span> <span class="pre">Drag</span></code> - Pan (translate) sideways i.e. in the plane of the monitor.</li>
-<li><code class="kbd docutils literal"><span class="pre">Scroll</span> <span class="pre">Wheel</span></code> - Move forwards or backwards.</li>
-<li><code class="kbd docutils literal"><span class="pre">Ctrl</span> <span class="pre">+</span> <span class="pre">Scroll</span> <span class="pre">Wheel</span></code> Reduce or increase the CAD field-of-view angle (i.e. Zoom)</li>
-<li><code class="kbd docutils literal"><span class="pre">Ctrl</span> <span class="pre">+</span> <span class="pre">Right</span> <span class="pre">Click</span> <span class="pre">+</span> <span class="pre">Drag</span></code> - Roll the camera (rotate about the direction of view)</li>
+<li><p><kbd class="kbd docutils literal notranslate"><kbd class="kbd docutils literal notranslate">Left</kbd> <kbd class="kbd docutils literal notranslate">Click</kbd></kbd> - Place a cursor on the 3D model, or move the cursor if one already exists. This will display information about the cursor position in the window status bar and can be used by cross-sectioning / wall contour display features.</p></li>
+<li><p><kbd class="kbd docutils literal notranslate"><kbd class="kbd docutils literal notranslate">Right</kbd> <kbd class="kbd docutils literal notranslate">Click</kbd> <kbd class="kbd docutils literal notranslate"></kbd>+<kbd class="kbd docutils literal notranslate"></kbd> <kbd class="kbd docutils literal notranslate">Drag</kbd></kbd> - Look around (first-person shooter style control; default) or rotate CAD model depending on settings</p></li>
+<li><p><kbd class="kbd docutils literal notranslate"><kbd class="kbd docutils literal notranslate">Middle</kbd> <kbd class="kbd docutils literal notranslate">Click</kbd> <kbd class="kbd docutils literal notranslate"></kbd>+<kbd class="kbd docutils literal notranslate"></kbd> <kbd class="kbd docutils literal notranslate">Drag</kbd></kbd> - Pan (translate) sideways i.e. in the plane of the monitor.</p></li>
+<li><p><kbd class="kbd docutils literal notranslate"><kbd class="kbd docutils literal notranslate">Scroll</kbd> <kbd class="kbd docutils literal notranslate">Wheel</kbd></kbd> - Move forwards or backwards.</p></li>
+<li><p><kbd class="kbd docutils literal notranslate"><kbd class="kbd docutils literal notranslate">Ctrl</kbd> <kbd class="kbd docutils literal notranslate"></kbd>+<kbd class="kbd docutils literal notranslate"></kbd> <kbd class="kbd docutils literal notranslate">Scroll</kbd> <kbd class="kbd docutils literal notranslate">Wheel</kbd></kbd> Reduce or increase the CAD field-of-view angle (i.e. Zoom)</p></li>
+<li><p><kbd class="kbd docutils literal notranslate"><kbd class="kbd docutils literal notranslate">Ctrl</kbd> <kbd class="kbd docutils literal notranslate"></kbd>+<kbd class="kbd docutils literal notranslate"></kbd> <kbd class="kbd docutils literal notranslate">Right</kbd> <kbd class="kbd docutils literal notranslate">Click</kbd> <kbd class="kbd docutils literal notranslate"></kbd>+<kbd class="kbd docutils literal notranslate"></kbd> <kbd class="kbd docutils literal notranslate">Drag</kbd></kbd> - Roll the camera (rotate about the direction of view)</p></li>
 </ul>
 </div>
 <div class="section" id="d-viewport-tab">
@@ -320,18 +236,18 @@
 </div>
 <div class="section" id="cad-viewport-adjustment">
 <h3>CAD Viewport Adjustment<a class="headerlink" href="#cad-viewport-adjustment" title="Permalink to this headline">¶</a></h3>
-<p>In the <span class="guilabel">Select pre-defined viewport</span> box is a list of viewports defined in the CAD model definition. Clicking on a view in this pane immediately changes the CAD viewport to that view. You can also set the view to match an existing calibrated camera by clicking the <span class="guilabel">Add from calibration(s)...</span> button below the viewport list. You can then select one or more Calcam calibration files to load, and the views defined by the calibration will be added to the viewport list on the 3D Viewport tab. In addition there are two <span class="guilabel">Auto Cross-Sections</span> views which will position the camera and set cross-sectioning options to view the entire model, cut in cross-section through the origin.</p>
+<p>In the <span class="guilabel">Select pre-defined viewport</span> box is a list of viewports defined in the CAD model definition. Clicking on a view in this pane immediately changes the CAD viewport to that view. You can also set the view to match an existing calibrated camera by clicking the <span class="guilabel">Add from calibration(s)…</span> button below the viewport list. You can then select one or more Calcam calibration files to load, and the views defined by the calibration will be added to the viewport list on the 3D Viewport tab. In addition there are two <span class="guilabel">Auto Cross-Sections</span> views which will position the camera and set cross-sectioning options to view the entire model, cut in cross-section through the origin.</p>
 <p>If you want to save the current view of the CAD model in to the model definition so you can easily return to it, enter a name in the <span class="guilabel">Name</span> box under the heading <span class="guilabel">Save current view as preset</span> and click <span class="guilabel">Save</span>. The view will then be added to the viewport list, and if the model definition you are using is not read-only, will be saved to the model definition for future use.</p>
-<p>Near the bottom of the tab are editable boxes showing the current viewport&#8217;s camera position, camera view target, field of view and roll. These update automatically to reflect the current viewport, and you can manually set up the CAD view by editing these.</p>
+<p>Near the bottom of the tab are editable boxes showing the current viewport’s camera position, camera view target, field of view and roll. These update automatically to reflect the current viewport, and you can manually set up the CAD view by editing these.</p>
 </div>
 <div class="section" id="mouse-control-settings">
 <h3>Mouse Control Settings<a class="headerlink" href="#mouse-control-settings" title="Permalink to this headline">¶</a></h3>
-<p>At the bottom of this tab are options for configuring the mouse controls for 3D navigation. The <code class="kbd docutils literal"><span class="pre">Right</span> <span class="pre">Click</span> <span class="pre">+</span> <span class="pre">Drag</span></code> behaviour can be toggled between looking around and rotating the model about a point in front of the camera, and the mouse sensitivity can be adjusted.</p>
+<p>At the bottom of this tab are options for configuring the mouse controls for 3D navigation. The <kbd class="kbd docutils literal notranslate"><kbd class="kbd docutils literal notranslate">Right</kbd> <kbd class="kbd docutils literal notranslate">Click</kbd> <kbd class="kbd docutils literal notranslate"></kbd>+<kbd class="kbd docutils literal notranslate"></kbd> <kbd class="kbd docutils literal notranslate">Drag</kbd></kbd> behaviour can be toggled between looking around and rotating the model about a point in front of the camera, and the mouse sensitivity can be adjusted.</p>
 </div>
 </div>
 <div class="section" id="visualising-camera-fields-of-view">
 <h2>Visualising camera fields of view<a class="headerlink" href="#visualising-camera-fields-of-view" title="Permalink to this headline">¶</a></h2>
-<p>Calcam calibration files can be loaded by the 3D viewer to visualise the camera sight-lines / fields of view on the 3D model. This is done on the <span class="guilabel">Camera Sight Lines</span> tab. Clicking the <span class="guilabel">Add...</span> button below the list of currently loaded calibrations will open a file browsing dialog to load a calibration file. Once loaded, the calibrated camera&#8217;s field of view is shown as a shaded volume in the 3D view. The sight-lines for a given calibration can be turned on or off using the tick-box next to its name. With multiple calibrations loaded, a legend showing which camera corresponds to which colour can be turned on or off using the checkbox next to the  <span class="guilabel">Add...</span> button. To change the name of a calibration in the legend, single-click the calibration name in the list box and enter the new name.</p>
+<p>Calcam calibration files can be loaded by the 3D viewer to visualise the camera sight-lines / fields of view on the 3D model. This is done on the <span class="guilabel">Camera Sight Lines</span> tab. Clicking the <span class="guilabel">Add…</span> button below the list of currently loaded calibrations will open a file browsing dialog to load a calibration file. Once loaded, the calibrated camera’s field of view is shown as a shaded volume in the 3D view. The sight-lines for a given calibration can be turned on or off using the tick-box next to its name. With multiple calibrations loaded, a legend showing which camera corresponds to which colour can be turned on or off using the checkbox next to the  <span class="guilabel">Add…</span> button. To change the name of a calibration in the legend, single-click the calibration name in the list box and enter the new name.</p>
 <div class="section" id="sight-line-appearance">
 <h3>Sight-line appearance<a class="headerlink" href="#sight-line-appearance" title="Permalink to this headline">¶</a></h3>
 <p>With one or more calibrations selected in the loaded calibration list, the appearance of the selected calibration(s) sight-lines can be adjusted with the controls in the <span class="guilabel">Apperance</span> box at the bottom of the tab. The appearance of the sight-line cone can be switched between a solid shaded volume and a sparser set of individual lines representing pixel sight-lines. The colour and level of transparency of the displayed sight-lines can also be changed using the controls in this box.</p>
@@ -342,7 +258,7 @@
 <p>In addition to showing camera sight-lines, additional arbitrary 3D lines can be added to the visualisation, e.g. representing other diagnostic sight-lines, object trajectories, magnetic fiels lines or flux surfaces. The 3D data are loaded from ASCII files with .txt, .csv or .dat extensions.</p>
 <div class="section" id="preparation-of-ascii-files">
 <h3>Preparation of ASCII files<a class="headerlink" href="#preparation-of-ascii-files" title="Permalink to this headline">¶</a></h3>
-<p>The ASCII data to be displayed can take one of two formats, depending on whether you want to display a continuous line defined by a set of 3D points, or a collection of individual lines each with a start and end point. To display a single continuous 3D line, the file should contain a list of 3D points along the line, with each point taking up one line of the text file. Each line of the text file must therefore contain 3 numbers, which can be delimited with commas, spaces or tabs. If you wish to display a set of disconnected line segments, each line of the text file must contain 6 numbers: the 3D coordinates for the start of the 3D line segment followed by the 3D coordinates for the end of the line segment. The coordinates can be given either in cartesian coordinates <span class="math">\(X,Y,Z\)</span> or <span class="math">\(R,Z,\phi\)</span> where <span class="math">\(\phi\)</span> is the toroidal angle in radians.</p>
+<p>The ASCII data to be displayed can take one of two formats, depending on whether you want to display a continuous line defined by a set of 3D points, or a collection of individual lines each with a start and end point. To display a single continuous 3D line, the file should contain a list of 3D points along the line, with each point taking up one line of the text file. Each line of the text file must therefore contain 3 numbers, which can be delimited with commas, spaces or tabs. If you wish to display a set of disconnected line segments, each line of the text file must contain 6 numbers: the 3D coordinates for the start of the 3D line segment followed by the 3D coordinates for the end of the line segment. The coordinates can be given either in cartesian coordinates <span class="math notranslate nohighlight">\(X,Y,Z\)</span> or <span class="math notranslate nohighlight">\(R,Z,\phi\)</span> where <span class="math notranslate nohighlight">\(\phi\)</span> is the toroidal angle in radians.</p>
 </div>
 </div>
 <div class="section" id="rendering-and-saving-images">
@@ -355,8 +271,8 @@
 <div class="section" id="rendering-calibrated-camera-views">
 <h3>Rendering calibrated camera views<a class="headerlink" href="#rendering-calibrated-camera-views" title="Permalink to this headline">¶</a></h3>
 <p>The tool can also be used to render the CAD model, in the current configuration set up in the window, from the point of view of a calibrated camera. This will exactly match the position, orientation, focal length and distortion of the calibrated camera, so the rendered image should exactly match with real camera images to within the accuracy of the calibration.</p>
-<p>This is done by selecting <span class="guilabel">Calibration Result</span> at the top of the <span class="guilabel">Render / Save Image</span> tab. Then, click the <span class="guilabel">Select...</span> button in the <span class="guilabel">Render Settings</span> box to browse for a calibration file to use. You can then choose whether the output image should be in original or display orientation for the camera, and the output pixel resolution if you wish to render at a higher resolution than the real camera.  In the <span class="guilabel">Render Settings</span> box you can also change the level of anti-aliasing to eliminate sharp edges in the rendered image, which is implemented by rendering the output at higher resolution than desired and then down-sampling again. You can also choose whether to use a black background, as in the display window, or to make any black areas of the image transparent in the output image. If there is a cursor placed in the current view, you can choose whether or not to show the cursor on the output image. Note: If there is a sight-line legend displayed, this will not be included in the output image.</p>
-<p>When the above settings are set as desired, click the <span class="guilabel">Render Image...</span> button to save an image file.</p>
+<p>This is done by selecting <span class="guilabel">Calibration Result</span> at the top of the <span class="guilabel">Render / Save Image</span> tab. Then, click the <span class="guilabel">Select…</span> button in the <span class="guilabel">Render Settings</span> box to browse for a calibration file to use. You can then choose whether the output image should be in original or display orientation for the camera, and the output pixel resolution if you wish to render at a higher resolution than the real camera.  In the <span class="guilabel">Render Settings</span> box you can also change the level of anti-aliasing to eliminate sharp edges in the rendered image, which is implemented by rendering the output at higher resolution than desired and then down-sampling again. You can also choose whether to use a black background, as in the display window, or to make any black areas of the image transparent in the output image. If there is a cursor placed in the current view, you can choose whether or not to show the cursor on the output image. Note: If there is a sight-line legend displayed, this will not be included in the output image.</p>
+<p>When the above settings are set as desired, click the <span class="guilabel">Render Image…</span> button to save an image file.</p>
 </div>
 </div>
 </div>
@@ -372,7 +288,7 @@
         <a href="gui_settings.html" class="btn btn-neutral float-right" title="Calcam Settings" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="gui_image_analyser.html" class="btn btn-neutral" title="Image Analyser" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="gui_image_analyser.html" class="btn btn-neutral float-left" title="Image Analyser" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -381,11 +297,19 @@
 
   <div role="contentinfo">
     <p>
+        
         &copy; Copyright 2015-2019, European Atomic Energy Community (EURATOM)
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -397,37 +321,16 @@
   </div>
   
 
-
-  
-
-    
-    
-      <script type="text/javascript">
-          var DOCUMENTATION_OPTIONS = {
-              URL_ROOT:'./',
-              VERSION:'',
-              LANGUAGE:'en',
-              COLLAPSE_INDEX:false,
-              FILE_SUFFIX:'.html',
-              HAS_SOURCE:  false,
-              SOURCELINK_SUFFIX: ''
-          };
-      </script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
-
-  
-
-  <script type="text/javascript" src="_static/js/theme.js"></script>
-
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>

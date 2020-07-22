@@ -60,7 +60,7 @@ author = u'Scott Silburn et. al.'
 # built documents.
 #
 # The short X.Y version.
-version = 'Version 2.4'
+version = 'Version 2.5'
 # The full version, including alpha/beta/rc tags.
 #release = u'1.9.3'
 
@@ -119,7 +119,7 @@ html_copy_source = False
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-html_theme_options = { 'collapse_navigation':False, 'sticky_navigation':True, 'navigation_depth':2,  'logo_only':True, }
+html_theme_options = { 'collapse_navigation':True, 'sticky_navigation':True, 'navigation_depth':2,  'logo_only':True, }
 
 # Add any paths that contain custom themes here, relative to this directory.
 #html_theme_path = []

@@ -1,8 +1,7 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
   
@@ -12,37 +11,44 @@
   
 
   
-  
-  
-  
-
-  
-
-  
-  
-    
-
-  
-
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="next" title="Camera Calibration Theory" href="intro_theory.html" />
-    <link rel="prev" title="General Introduction to Calcam" href="intro_general.html" /> 
 
   
-  <script src="_static/js/modernizr.min.js"></script>
+  
+  
+  
 
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Camera Calibration Theory" href="intro_theory.html" />
+    <link rel="prev" title="General Introduction to Calcam" href="intro_general.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -59,7 +65,7 @@
             
             
               <div class="version">
-                Version 2.4
+                Version 2.5
               </div>
             
           
@@ -76,6 +82,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -87,140 +94,44 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="intro_general.html">General Introduction to Calcam</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Getting Up &amp; Running</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#downloading">Downloading</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#what-you-will-need">What you will need</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#initial-configuration">Initial Configuration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#upgrading-from-calcam-1-x">Upgrading from Calcam 1.x</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="intro_theory.html">Camera Calibration Theory</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="intro_theory.html#camera-model">Camera Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="intro_theory.html#perspective-distortion-model">Perspective Distortion Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="intro_theory.html#fisheye-distirtion-model">Fisheye Distirtion Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="intro_theory.html#underlying-opencv-documentation">Underlying OpenCV Documentation</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="intro_conventions.html">Concepts &amp; Conventions</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="intro_conventions.html#image-pixel-coordinates">Image Pixel Coordinates</a></li>
-<li class="toctree-l2"><a class="reference internal" href="intro_conventions.html#sub-views">Sub-views</a></li>
-<li class="toctree-l2"><a class="reference internal" href="intro_conventions.html#cad-models">CAD Models</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="intro_theory.html">Camera Calibration Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro_conventions.html">Concepts &amp; Conventions</a></li>
 </ul>
 <p class="caption"><span class="caption-text">GUI App User Guide</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="gui_intro.html">Introduction &amp; Launcher</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="gui_intro.html#starting-the-launcher">Starting the launcher</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="gui_calib.html">Calibration by point fitting</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#loading-an-image-to-calibrate">Loading an Image to Calibrate</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#image-mouse-navigation">Image Mouse Navigation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#current-image-settings">Current Image Settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#loading-and-manipulating-a-cad-model">Loading and manipulating a CAD model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#defining-calibration-points">Defining Calibration Points</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#fitting-the-camera-model">Fitting the camera model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_calib.html#saving-loading-and-viewing-calibration-information">Saving / Loading and viewing calibration information</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="gui_alignment_calib.html">Calibration by manual alignment</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="gui_alignment_calib.html#loading-an-image-to-calibrate">Loading an Image to Calibrate</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_alignment_calib.html#current-image-settings">Current Image Settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_alignment_calib.html#loading-a-cad-model">Loading a CAD model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_alignment_calib.html#performing-the-alignment-calibration">Performing the alignment calibration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_alignment_calib.html#saving-loading-and-viewing-calibration-information">Saving / Loading and viewing calibration information</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="gui_virtual_calib.html">&#8220;Virtual&#8221; Calibrations</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="gui_virtual_calib.html#loading-a-cad-model">Loading a CAD model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_virtual_calib.html#creating-the-virtual-calibration">Creating the Virtual Calibration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_virtual_calib.html#saving-loading-and-viewing-calibration-information">Saving / Loading and viewing calibration information</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="gui_image_analyser.html">Image Analyser</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="gui_image_analyser.html#loading-an-image-to-analyse">Loading an image to analyse</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_image_analyser.html#loading-a-calibration">Loading a Calibration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_image_analyser.html#loading-a-cad-model">Loading a CAD model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_image_analyser.html#performing-position-analysis">Performing Position Analysis</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="gui_viewer.html">3D Viewer</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#loading-a-cad-model">Loading a CAD model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#turning-cad-model-parts-on-off">Turning CAD model parts On/Off</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#cad-model-appearance-settings">CAD model appearance settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#wall-contour-display">Wall contour display</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#mouse-navigation">Mouse Navigation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#d-viewport-tab">3D ViewPort Tab</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#visualising-camera-fields-of-view">Visualising camera fields of view</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#displaying-arbitrary-3d-lines">Displaying Arbitrary 3D Lines</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_viewer.html#rendering-and-saving-images">Rendering and saving images</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="gui_settings.html">Calcam Settings</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="gui_settings.html#cad-model-definition-settings">CAD Model Definition Settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_settings.html#image-source-settings">Image Source Settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_settings.html#environment-information">Environment Information</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="gui_movement.html">Camera Movement Determination</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="gui_movement.html#introduction">Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_movement.html#identifying-points">Identifying Points</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_movement.html#calculating-and-checking-the-movement-correction">Calculating and checking the movement correction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gui_movement.html#finishing">Finishing</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="gui_intro.html">Introduction &amp; Launcher</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui_calib.html">Calibration by point fitting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui_alignment_calib.html">Calibration by manual alignment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui_virtual_calib.html">“Virtual” Calibrations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui_image_analyser.html">Image Analyser</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui_viewer.html">3D Viewer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui_settings.html">Calcam Settings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui_movement.html">Camera Movement Determination</a></li>
 </ul>
 <p class="caption"><span class="caption-text">API User Guide</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="api_analysis.html">Using Calibration Results</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="api_analysis.html#the-calibration-class">The Calibration Class</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_analysis.html#rendering-images">Rendering images</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_analysis.html#ray-casting">Ray casting</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="api_analysis.html">Using Calibration Results</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_cadmodel.html">CAD Models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api_geom_matrix.html">Tomography Geometry Matrices</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="api_geom_matrix.html#background">Background</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_geom_matrix.html#the-geometry-matrix-class">The Geometry Matrix class</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_geom_matrix.html#reconstruction-grids">Reconstruction grids</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="api_movement.html">Camera Movement Correction</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="api_movement.html#background">Background</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_movement.html#determining-camera-movement">Determining Camera Movement</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_movement.html#the-movementcorrection-class">The MovementCorrection class</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_movement.html#adjusting-calibrations-for-image-movement">Adjusting calibrations for image movement</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="api_examples.html">Examples</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="api_examples.html#mapping-a-magnetic-field-line-on-to-an-image">Mapping a magnetic field line on to an image</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_examples.html#rendering-camera-view-wireframe">Rendering: camera view wireframe</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_examples.html#ray-casting">Ray casting</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_examples.html#tomography-geometry-matrices">Tomography Geometry Matrices</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_examples.html#camera-movement-correction">Camera Movement Correction</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="api_geom_matrix.html">Tomography Geometry Matrices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_movement.html">Camera Movement Correction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_examples.html">Examples</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Developer Documentation</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="dev_imsources.html">Image Sources</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="dev_imsources.html#return-format-of-image-loading-function">Return format of image loading function</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dev_imsources.html#structure-of-get-image-arguments">Structure of get_image_arguments</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dev_imsources.html#example">Example</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dev_imsources.html#adding-to-calcam">Adding to Calcam</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="dev_coord_formatter.html">3D Coordinate Formatters</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="dev_coord_formatter.html#example">Example</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dev_coord_formatter.html#note-on-sub-module-and-function-names">Note on sub-module and function names</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dev_coord_formatter.html#adding-to-a-cad-model">Adding to a CAD model</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="dev_imsources.html">Image Sources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dev_coord_formatter.html">3D Coordinate Formatters</a></li>
 </ul>
 
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -259,7 +170,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="index.html">Docs</a> &raquo;</li>
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
       <li>Getting Up &amp; Running</li>
     
@@ -280,41 +191,111 @@
             
   <div class="section" id="getting-up-running">
 <h1>Getting Up &amp; Running<a class="headerlink" href="#getting-up-running" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="downloading">
-<h2>Downloading<a class="headerlink" href="#downloading" title="Permalink to this headline">¶</a></h2>
-<p>The latest version of Calcam can be downloaded using the <span class="guilabel">Clone or Download</span> button on the <a class="reference external" href="https://github.com/euratom-software/calcam">GitHub repository page</a>, or, if you want to use Git, can be cloned from the GitHub reporepository with the command:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">euratom</span><span class="o">-</span><span class="n">software</span><span class="o">/</span><span class="n">calcam</span><span class="o">.</span><span class="n">git</span>
+<div class="section" id="what-you-will-need">
+<h2>What you will need<a class="headerlink" href="#what-you-will-need" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="a-computer-with-python-installed">
+<h3>A computer with Python installed<a class="headerlink" href="#a-computer-with-python-installed" title="Permalink to this headline">¶</a></h3>
+<p>Calcam will work with Python on Windows, Linux or OSX. If starting from scratch and you have a choice of Python versions, it is recommended to use Python 3.7. It will work fine with earlier versions of 3.x, however 3.8 is more difficult because the the required version of VTK is not easily available for Python 3.8 (as of July 2020). You can download installers for Python 3.7 for Windows or OSX from <a class="reference external" href="https://www.python.org/downloads/release/python-378/">Python.org</a> , or get it from your favourite software repository on Linux.</p>
+<p>You will also need the <code class="docutils literal notranslate"><span class="pre">pip</span></code> package installed for the Calcam installer script to work. If you are using Python 3.4 or newer from Python.org, <code class="docutils literal notranslate"><span class="pre">pip</span></code> will be installed by default, and it’s also probably included in most other modern Python distributions you might be using. If you don’t have <code class="docutils literal notranslate"><span class="pre">pip</span></code> installed, the Calcam setup script will give an error message telling you so. Documentation for how to get pip can be found <a class="reference external" href="https://pip.pypa.io/en/stable/installing/">here</a> .</p>
+</div>
+<div class="section" id="a-copy-of-the-calcam-source-code">
+<h3>A copy of the Calcam source code<a class="headerlink" href="#a-copy-of-the-calcam-source-code" title="Permalink to this headline">¶</a></h3>
+<p>The latest release version of the Calcam source can be downloaded from the <a class="reference external" href="https://github.com/euratom-software/calcam/releases">Releases page on GitHub</a>.</p>
+<p>Alternatively, the “cutting edge” development version can be downloaded using the green <span class="guilabel">Code</span> button on the <a class="reference external" href="https://github.com/euratom-software/calcam">GitHub repository page</a>. If you want to use Git, which is recommended if you want to do any development on Calcam, the source can be cloned from the GitHub reporepository with the command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">euratom</span><span class="o">-</span><span class="n">software</span><span class="o">/</span><span class="n">calcam</span><span class="o">.</span><span class="n">git</span>
 </pre></div>
+</div>
+</div>
+<div class="section" id="about-calcam-s-dependencies">
+<h3>About Calcam’s dependencies<a class="headerlink" href="#about-calcam-s-dependencies" title="Permalink to this headline">¶</a></h3>
+<p>This section will only be relevant if you have problems getting Calcam up and running and need some more specific information - if you’re getting started, you can skip ahead to the “Installation” section.</p>
+<p>Calcam is built upon several existing libraries, which means it requires various other Python modules to be installed for it to work. Normally the setup script will take care of these automatically. In case it can’t and the setup raises errors about the dependencies, or you have problems importint calcam once installed, the following table gives details of the Python packages which are required by Calcam. When tourbleshooting installation or first running Calcam, it is recommeneded to first dheck if each of these dependencies are installed and working correctly, and if they are, Calcam should work.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 11%" />
+<col style="width: 89%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Module / Library</p></th>
+<th class="head"><p>Versions Tested</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>SciPy</p></td>
+<td><p>Up to 1.5.1</p></td>
+</tr>
+<tr class="row-odd"><td><p>NumPy</p></td>
+<td><p>Up to 1.19.0</p></td>
+</tr>
+<tr class="row-even"><td><p>MatPlotLib</p></td>
+<td><p>Up to 3.3.0</p></td>
+</tr>
+<tr class="row-odd"><td><p>OpenCV (a.k.a. cv2)</p></td>
+<td><p>Tested with versions between 2.4 to 4.3.0</p>
+<p>Fisheye camera model only available if using 3.x or newer.</p>
+<p>If running under OSX older than 10.12, versions newer than 3.2 may cause crashes on import (downgrade to versions &lt; 3.3 to fix).</p>
+</td>
+</tr>
+<tr class="row-even"><td><p>VTK</p></td>
+<td><p>OK with versions between 6.2 to 8.1.6.</p>
+<p>Versions 8.2.0 or newer do not work properly with Calcam! (see <a class="reference external" href="https://github.com/euratom-software/calcam/issues/58">Issue #58</a> )</p>
+</td>
+</tr>
+<tr class="row-odd"><td><p>PyQt</p></td>
+<td><p>Tested up to 5.15.0</p>
+<p>Versions 5.11 and older known to cause unreadable text on OSX when using dark theme</p>
+</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <div class="section" id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
-<p>Calcam is a Python package, so the first thing to do is install Python, if you don&#8217;t have it already. It is highly recommended to use Pyton 3.x, however Calcam will also work with Python 2.7. You will also need the <code class="docutils literal"><span class="pre">pip</span></code> and <code class="docutils literal"><span class="pre">setuptools</span></code> python packages (which should be redily available, if not installed by default, in most OSs / python distributions) to take advantage of Calcam&#8217;s setup script as described below.</p>
-<p>Once you have Python working and the Calcam repository files on your computer, the package can be installed from the system command line using the setup script included in the root of the Calcam repository with:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">install</span>
+<p>Once you have a copy of the source files on your computer, navigate to the directory where Calcam has been unzipped or cloned and open a terminal / command prompt. To install Calcam, use the command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">install</span>
 </pre></div>
 </div>
-<p>This will try to install Calcam&#8217;s dependencies (Scipy, MatPlotLib, OpenCV, PyQt and VTK) if they are not already installed; copy Calcam to the appropriate Python library path; and create a convenient launcher script for the Calcam GUI. On some combinations of platforms and python versions, the PyQt and VTK libraries may not be installable automatically by the setup script, in which case it will show a warning detailing what could not be installed automatically. Some features of Calcam will still work without these dependencies, but they must be installed in order to make the full Calcam API and GUI available. If you find yourself on a platform where one or more dependencies cannot be installed automatically, the easiest way to get install them is probably to see if your OS has pre-built packages available for them, or to use a python distribution such as <a class="reference external" href="https://www.enthought.com/product/canopy/">Enthought Canopy</a> or <a class="reference external" href="https://python-xy.github.io/">Python (x,y)</a> which can provide the necessary dependencies via its own package management.</p>
-<p>If installing on a system where you do not have the relevant admin/root permissions to install python packages globally (in which case running the above command will produce an error message saying something about permissions), adding the <code class="docutils literal"><span class="pre">--user</span></code> switch to the above installation command will install the package for your user account and will not require admin/root permissions.</p>
-<p>After the setup script is finished you can delete the downloaded calcam files, if you want.</p>
+<p>This will check for and try to install Calcam’s dependencies (see previous section for gory details); copy the Calcam source to the appropriate Python library path; and create a convenient launcher executable for the Calcam GUI. If all goes well, this script should end with a message which looks something like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">***************************************************************</span>
+
+<span class="n">Calcam</span> <span class="n">installation</span> <span class="n">complete</span><span class="o">.</span>
+
+<span class="n">It</span> <span class="n">can</span> <span class="n">be</span> <span class="n">imported</span> <span class="k">as</span> <span class="n">a</span> <span class="n">Python</span> <span class="n">module</span> <span class="k">with</span> <span class="s2">&quot;import calcam&quot;</span>
+
+<span class="n">The</span> <span class="n">GUI</span> <span class="n">can</span> <span class="n">be</span> <span class="n">launched</span> <span class="n">using</span> <span class="n">the</span> <span class="n">executable</span><span class="p">:</span>
+<span class="n">C</span><span class="p">:</span>\<span class="n">Users</span>\<span class="n">username</span>\<span class="n">AppData</span>\<span class="n">Roaming</span>\<span class="n">Python</span>\<span class="n">Python37</span>\<span class="n">Scripts</span>\<span class="n">calcam</span><span class="o">.</span><span class="n">exe</span>
+
+<span class="o">***************************************************************</span>
+</pre></div>
+</div>
+<p>For convenience it is recommended to make a shortcut to the calcam GUI executable given in the setup complete message. After the setup script is finished you can delete the downloaded calcam files, if you want.</p>
+<div class="section" id="installing-without-admin-root-permissions">
+<h3>Installing without admin/root permissions<a class="headerlink" href="#installing-without-admin-root-permissions" title="Permalink to this headline">¶</a></h3>
+<p>If installing on a system where you do not have the relevant admin/root permissions to install python packages globally, the setup script may crash with an error related to permissions, permission denied or a similar error message. In this case, adding the <code class="docutils literal notranslate"><span class="pre">--user</span></code> option to the installation command will install the package for your user account and will not require admin/root permissions.</p>
+</div>
 <div class="section" id="installing-in-development-mode">
 <h3>Installing in Development mode<a class="headerlink" href="#installing-in-development-mode" title="Permalink to this headline">¶</a></h3>
 <p>If you plan to do any development on Calcam, and want to be able to edit the Calcam source code without having to run the setup script again to have your changes go live, you can use the below alternative command to install calcam in development mode:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">develop</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">develop</span>
 </pre></div>
 </div>
-<p>In this case the copy of the code you are installing from remains the &#8220;live&#8221; version and can be used for development. Again, the <code class="docutils literal"><span class="pre">--user</span></code> switch can be added to install in the current user&#8217;s library path rather than the system one.</p>
+<p>In this case the copy of the code you are installing from remains the “live” version and can be used for development. Again, the <code class="docutils literal notranslate"><span class="pre">--user</span></code> switch can be added to install in the current user’s library path rather than the system one.</p>
+</div>
+<div class="section" id="errors-with-dependencies">
+<h3>Errors with dependencies<a class="headerlink" href="#errors-with-dependencies" title="Permalink to this headline">¶</a></h3>
+<p>The setup script will try to install the other Python pcakegs which Calcam requires automatically. On some combinations of operating system and Python versions this may not always work properly. In this case, the setup script will give an error or warning specifying which dependency could not be installed, and what the effects are (either the Calcam installation will not be completed or there will be a warning that the Calcam GUI will not work). In this case it is necessary to manually install the dependencies before installing calcam: see the above section on dependencies for details of what must be installed.</p>
 </div>
 </div>
 <div class="section" id="initial-configuration">
 <h2>Initial Configuration<a class="headerlink" href="#initial-configuration" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="setting-up-cad-model-definitions">
 <h3>Setting up CAD Model Definitions<a class="headerlink" href="#setting-up-cad-model-definitions" title="Permalink to this headline">¶</a></h3>
-<p>Camera calibration in Calcam is based on matching features between camera images and a CAD model of the scene viewed by the camera. As such, it is necessary to define one or more CAD models for use in calcam. The current version supports importing <code class="docutils literal"><span class="pre">.stl</span></code> or <code class="docutils literal"><span class="pre">.obj</span></code> format 3D mesh files. It&#8217;s usually convenient to split the model in to several individual mesh files containing different parts of the scene, and these can then be turned on or off individually when working with the model. Calcam packages these mesh files in to a custom zipped file format (.ccm) along with various metadata to create a Calcam CAD model file. You can have several such files and easily switch between them at any time. It is recommended to read the <a class="reference internal" href="intro_conventions.html#cadmodel-intro"><span class="std std-ref">CAD Models</span></a> section in concepts and conventions, then consult the user guide for the <a class="reference internal" href="gui_settings.html"><span class="doc">Calcam Settings</span></a> interface for details of how to set up CAD model definitions.</p>
+<p>Camera calibration in Calcam is based on matching features between camera images and a CAD model of the scene viewed by the camera. As such, it is necessary to define one or more CAD models for use in calcam. The current version supports importing <code class="docutils literal notranslate"><span class="pre">.stl</span></code> or <code class="docutils literal notranslate"><span class="pre">.obj</span></code> format 3D mesh files. It’s usually convenient to split the model in to several individual mesh files containing different parts of the scene, and these can then be turned on or off individually when working with the model. Calcam packages these mesh files in to a custom zipped file format (.ccm) along with various metadata to create a Calcam CAD model file. You can have several such files and easily switch between them at any time. It is recommended to read the <a class="reference internal" href="intro_conventions.html#cadmodel-intro"><span class="std std-ref">CAD Models</span></a> section in concepts and conventions, then consult the user guide for the <a class="reference internal" href="gui_settings.html"><span class="doc">Calcam Settings</span></a> interface for details of how to set up CAD model definitions.</p>
 </div>
 <div class="section" id="setting-up-custom-image-sources-optional">
 <h3>Setting up custom image sources (optional)<a class="headerlink" href="#setting-up-custom-image-sources-optional" title="Permalink to this headline">¶</a></h3>
-<p>As standard, Calcam can load camera images from most common image file formats. If desired, you can set up additional custom &#8220;image sources&#8221;, which are user-defined Python modules for loading camera images in to Calcam. For example you may want to load camera data directly from a central data server, or read images from an unusual file format. This can be done by writing a small python module which plugs in to calcam and handles the image loading. A full guide to writing such modules can be found in the <a class="reference internal" href="dev_imsources.html"><span class="doc">Image Sources</span></a> developer documentation page. Once written, they can be added to Calcam with the <a class="reference internal" href="gui_settings.html"><span class="doc">Calcam Settings</span></a> interface.</p>
+<p>As standard, Calcam can load camera images from most common image file formats. If desired, you can set up additional custom “image sources”, which are user-defined Python modules for loading camera images in to Calcam. For example you may want to load camera data directly from a central data server, or read images from an unusual file format. This can be done by writing a small python module which plugs in to calcam and handles the image loading. A full guide to writing such modules can be found in the <a class="reference internal" href="dev_imsources.html"><span class="doc">Image Sources</span></a> developer documentation page. Once written, they can be added to Calcam with the <a class="reference internal" href="gui_settings.html"><span class="doc">Calcam Settings</span></a> interface.</p>
 </div>
 </div>
 <div class="section" id="upgrading-from-calcam-1-x">
@@ -326,9 +307,9 @@
 </div>
 <div class="section" id="file-formats">
 <h3>File Formats<a class="headerlink" href="#file-formats" title="Permalink to this headline">¶</a></h3>
-<p>Whereas in Calcam 1, imported images, point pairs, calibration and fit results were all stored in separate files, in Calcam 2 all of these elements are stored together as a calibration. This is to maintain better traceability of calcam calibrations and make it easier for users to share data. Except for <code class="docutils literal"><span class="pre">.csv</span></code> point pair files, Calcam 2 is not backwards compatible with Calcam 1 files, therefore to use existing data from Calcam 1 you must convert your Calcam 1 data to the new Calcam 2 formats. This can be done in bulk using the file converter utility provided in the <code class="docutils literal"><span class="pre">calcam1_file_converter</span></code> directory of the calcam 2 repo. Running <code class="docutils literal"><span class="pre">convert_files.py</span></code> from this directory as a script will open the tool, which is shown below:</p>
+<p>Whereas in Calcam 1, imported images, point pairs, calibration and fit results were all stored in separate files, in Calcam 2 all of these elements are stored together as a calibration. This is to maintain better traceability of calcam calibrations and make it easier for users to share data. Except for <code class="docutils literal notranslate"><span class="pre">.csv</span></code> point pair files, Calcam 2 is not backwards compatible with Calcam 1 files, therefore to use existing data from Calcam 1 you must convert your Calcam 1 data to the new Calcam 2 formats. This can be done in bulk using the file converter utility provided in the <code class="docutils literal notranslate"><span class="pre">calcam1_file_converter</span></code> directory of the calcam 2 repo. Running <code class="docutils literal notranslate"><span class="pre">convert_files.py</span></code> from this directory as a script will open the tool, which is shown below:</p>
 <img alt="Calcam 1.x file converter screenshot" src="_images/file_converter.png" />
-<p>At the top of this window, the &#8220;Source Directory&#8221;, where the tool will look for Calcam 1.x files to convert, is displayed. This is typically detected automatically, but you can also manually set the source directory manually using the <span class="guilabel">Browse...</span> button (this should be the complete Calcam 1.x data directory, i.e. the location of the <code class="docutils literal"><span class="pre">FitResults</span></code>, <code class="docutils literal"><span class="pre">Images</span></code>, <code class="docutils literal"><span class="pre">PointPairs</span></code> etc directories).</p>
+<p>At the top of this window, the “Source Directory”, where the tool will look for Calcam 1.x files to convert, is displayed. This is typically detected automatically, but you can also manually set the source directory manually using the <span class="guilabel">Browse…</span> button (this should be the complete Calcam 1.x data directory, i.e. the location of the <code class="docutils literal notranslate"><span class="pre">FitResults</span></code>, <code class="docutils literal notranslate"><span class="pre">Images</span></code>, <code class="docutils literal notranslate"><span class="pre">PointPairs</span></code> etc directories).</p>
 <p>Below this are 2 main sections: the top section for converting existing calibrations, and the bottom section for converting existing CAD model definitions. When the <span class="guilabel">Convert!</span> button is clicked in the relevant section, the large status bar at the bottom of the window will show the current progress during the conversion. The three text boxes containing file paths are used to specify where the output Calcam 2 calibration files should be saved to, since in Calcam 2 this can be wherever you want.</p>
 <p>When converting calibrations, if the <span class="guilabel">Try to match with image files based on name</span> checkbox is ticked, the tool will try to match up calibration results with images by looking for Calcam image save files whose name also appears in the name of the calibration result being converted. If such an image is found, the image will be added to the resulting Calcam 2 save file. To disable this auto-matching, un-tick this checkbox, and Calcam 2 calibration results converted from Calcam 1 files will simply not contain any images.</p>
 <p><strong>Note:</strong> the conversion process does not alter or remove any of the original Calcam 1 data, so if anything goes wrong and you have to, or want to, go back to using Calcam 1.x, the data will still be intact, and it is left to the user to remove the old Calcam 1 data when you feel sufficiently comfortable to do so.</p>
@@ -337,11 +318,11 @@
 <h3>API Changes Summary<a class="headerlink" href="#api-changes-summary" title="Permalink to this headline">¶</a></h3>
 <p>The change from Calcam 1 to Calcam 2 includes several compatibility breaking API changes. The main changes to the API are:</p>
 <ul class="simple">
-<li>The old <code class="xref py py-class docutils literal"><span class="pre">calcam.CalibResults</span></code> class has been superceded by the new <a class="reference internal" href="api_analysis.html#calcam.Calibration" title="calcam.Calibration"><code class="xref py py-class docutils literal"><span class="pre">calcam.Calibration</span></code></a> class. This maintains the methods for working with calibration results which existed in <code class="xref py py-class docutils literal"><span class="pre">calcam.CalibResults</span></code>, with the addition that <a class="reference internal" href="api_analysis.html#calcam.Calibration" title="calcam.Calibration"><code class="xref py py-class docutils literal"><span class="pre">calcam.Calibration</span></code></a> now contains data on the entire calibration process: image, point pairs, fit results and metadata.</li>
-<li>The old <code class="xref py py-class docutils literal"><span class="pre">calcam.VirtualCalib</span></code> class has been removed: virtual calibration results are now represented by the new <a class="reference internal" href="api_analysis.html#calcam.Calibration" title="calcam.Calibration"><code class="xref py py-class docutils literal"><span class="pre">calcam.Calibration</span></code></a> class, meaning all types of calibration use the same class in Calcam 2.</li>
-<li>The <code class="xref py py-class docutils literal"><span class="pre">RayCaster</span></code> class has been removed. This is because although more functionality was originally envisaged for this class, that additional functionality is no longer planned for Calcam and therefore only a single method of this class was ever useful. In addition, the important element of this class&#8217; state was already being held by other objects. The functionality of the <code class="xref py py-class docutils literal"><span class="pre">RayCaster</span></code> class has been moved to the function <a class="reference internal" href="api_analysis.html#calcam.raycast_sightlines" title="calcam.raycast_sightlines"><code class="xref py py-func docutils literal"><span class="pre">calcam.raycast_sightlines()</span></code></a></li>
-<li>The <code class="xref py py-class docutils literal"><span class="pre">machine_geometry</span></code> module has been removed. Now instead of every CAD modeling having its own class inside calcam.machine_geometry, the <a class="reference internal" href="api_cadmodel.html#calcam.CADModel" title="calcam.CADModel"><code class="xref py py-class docutils literal"><span class="pre">calcam.CADModel</span></code></a> class is used for all CAD models and is instanciated with string arguments to specify the name of the model you want. Also there have been various changes to method names and call signatures in the CAD model class.</li>
-<li>Naming conventions: to be more Pythonic, throughout the API argument or function names which previously used capital letters and <code class="docutils literal"><span class="pre">PascalCase</span></code> or <code class="docutils literal"><span class="pre">camelCase</span></code> have been changed to <code class="docutils literal"><span class="pre">lowercase_with_underscores</span></code>, while class names keep <code class="docutils literal"><span class="pre">PascalCase</span></code>.</li>
+<li><p>The old <code class="xref py py-class docutils literal notranslate"><span class="pre">calcam.CalibResults</span></code> class has been superceded by the new <a class="reference internal" href="api_analysis.html#calcam.Calibration" title="calcam.Calibration"><code class="xref py py-class docutils literal notranslate"><span class="pre">calcam.Calibration</span></code></a> class. This maintains the methods for working with calibration results which existed in <code class="xref py py-class docutils literal notranslate"><span class="pre">calcam.CalibResults</span></code>, with the addition that <a class="reference internal" href="api_analysis.html#calcam.Calibration" title="calcam.Calibration"><code class="xref py py-class docutils literal notranslate"><span class="pre">calcam.Calibration</span></code></a> now contains data on the entire calibration process: image, point pairs, fit results and metadata.</p></li>
+<li><p>The old <code class="xref py py-class docutils literal notranslate"><span class="pre">calcam.VirtualCalib</span></code> class has been removed: virtual calibration results are now represented by the new <a class="reference internal" href="api_analysis.html#calcam.Calibration" title="calcam.Calibration"><code class="xref py py-class docutils literal notranslate"><span class="pre">calcam.Calibration</span></code></a> class, meaning all types of calibration use the same class in Calcam 2.</p></li>
+<li><p>The <code class="xref py py-class docutils literal notranslate"><span class="pre">RayCaster</span></code> class has been removed. This is because although more functionality was originally envisaged for this class, that additional functionality is no longer planned for Calcam and therefore only a single method of this class was ever useful. In addition, the important element of this class’ state was already being held by other objects. The functionality of the <code class="xref py py-class docutils literal notranslate"><span class="pre">RayCaster</span></code> class has been moved to the function <a class="reference internal" href="api_analysis.html#calcam.raycast_sightlines" title="calcam.raycast_sightlines"><code class="xref py py-func docutils literal notranslate"><span class="pre">calcam.raycast_sightlines()</span></code></a></p></li>
+<li><p>The <code class="xref py py-class docutils literal notranslate"><span class="pre">machine_geometry</span></code> module has been removed. Now instead of every CAD modeling having its own class inside calcam.machine_geometry, the <a class="reference internal" href="api_cadmodel.html#calcam.CADModel" title="calcam.CADModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">calcam.CADModel</span></code></a> class is used for all CAD models and is instanciated with string arguments to specify the name of the model you want. Also there have been various changes to method names and call signatures in the CAD model class.</p></li>
+<li><p>Naming conventions: to be more Pythonic, throughout the API argument or function names which previously used capital letters and <code class="docutils literal notranslate"><span class="pre">PascalCase</span></code> or <code class="docutils literal notranslate"><span class="pre">camelCase</span></code> have been changed to <code class="docutils literal notranslate"><span class="pre">lowercase_with_underscores</span></code>, while class names keep <code class="docutils literal notranslate"><span class="pre">PascalCase</span></code>.</p></li>
 </ul>
 <p>For more information, see the API documentation in <a class="reference internal" href="api_analysis.html"><span class="doc">Using Calibration Results</span></a> and the <a class="reference internal" href="api_examples.html"><span class="doc">Examples</span></a> .</p>
 </div>
@@ -359,7 +340,7 @@
         <a href="intro_theory.html" class="btn btn-neutral float-right" title="Camera Calibration Theory" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="intro_general.html" class="btn btn-neutral" title="General Introduction to Calcam" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="intro_general.html" class="btn btn-neutral float-left" title="General Introduction to Calcam" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -368,11 +349,19 @@
 
   <div role="contentinfo">
     <p>
+        
         &copy; Copyright 2015-2019, European Atomic Energy Community (EURATOM)
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -384,37 +373,16 @@
   </div>
   
 
-
-  
-
-    
-    
-      <script type="text/javascript">
-          var DOCUMENTATION_OPTIONS = {
-              URL_ROOT:'./',
-              VERSION:'',
-              LANGUAGE:'en',
-              COLLAPSE_INDEX:false,
-              FILE_SUFFIX:'.html',
-              HAS_SOURCE:  false,
-              SOURCELINK_SUFFIX: ''
-          };
-      </script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
-
-  
-
-  <script type="text/javascript" src="_static/js/theme.js"></script>
-
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>
