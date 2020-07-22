@@ -44,7 +44,7 @@ from . import misc
 from . import __version__ as calcam_version
 
 
-def raycast_sightlines(calibration,cadmodel,x=None,y=None,exclusion_radius=0.0,binning=1,coords='Display',verbose=True,
+def raycast_sightlines(calibration,cadmodel,x=None,y=None,exclusion_radius=0.0,binning=1,coords='Display',verbose=True,intersecting_only=False,
                        force_subview=None,status_callback=None):
     '''
     Ray cast camera sight-lines to determine where they intersect the given CAD model.
@@ -74,6 +74,10 @@ def raycast_sightlines(calibration,cadmodel,x=None,y=None,exclusion_radius=0.0,b
         coords (str)                     : Either ``Display`` or ``Original``. If specifying x and y coordinates,\
                                            specifies whether the input x and y are in original or display coords. \
                                            Otherwise, specifies the orientation of the returned data.
+
+        intersecting_only (bool)         : If set to True, the ray end coordinates and length for sight-lines which do not intersect \
+                                           with the CAD model (i.e. sight lines which "escape" through holes in the model) are set to NaN. \
+                                           This is useful if you are only interested in sight-lines which intersect with CAD model surfaces. 
         
         force_subview (int)              : If specified, forces use of the camera model from this index of sub-view \
                                            in the calibration. Otherwise, sub-views are chosen according to the \
@@ -218,6 +222,8 @@ def raycast_sightlines(calibration,cadmodel,x=None,y=None,exclusion_radius=0.0,b
 
         if abs(retval) > 0:
             results.ray_end_coords[ind,:] = pos[:]
+        elif intersecting_only:
+        	results.ray_end_coords[ind,:] = np.nan
         else:
             results.ray_end_coords[ind,:] = rayend
 

@@ -2,10 +2,10 @@ The following people have contributed to the project:
 
 Scott Silburn
 James Harrison
-Mark Smithies
-Alasdair Wynn
 Tom Farley
 Jordan Cavalier
+Mark Smithies
+Alasdair Wynn
 Sam Van Stroud
 Jamie McGowan
 Augustin Marignier
