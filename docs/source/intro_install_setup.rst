@@ -21,37 +21,6 @@ Alternatively, the "cutting edge" development version can be downloaded using th
 
 	git clone https://github.com/euratom-software/calcam.git
 
-About Calcam's dependencies
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-This section will only be relevant if you have problems getting Calcam up and running and need some more specific information - if you're getting started, you can skip ahead to the "Installation" section.
-
-Calcam is built upon several existing libraries, which means it requires various other Python modules to be installed for it to work. Normally the setup script will take care of these automatically. In case it can't and the setup raises errors about the dependencies, or you have problems importint calcam once installed, the following table gives details of the Python packages which are required by Calcam. When tourbleshooting installation or first running Calcam, it is recommeneded to first dheck if each of these dependencies are installed and working correctly, and if they are, Calcam should work.
-
-+---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Module / Library    | Versions Tested                                                                                                                                                    |
-+=====================+====================================================================================================================================================================+
-| SciPy               | Up to 1.5.1                                                                                                                                                        |
-+---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| NumPy               | Up to 1.19.0                                                                                                                                                       |
-+---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| MatPlotLib          | Up to 3.3.0                                                                                                                                                        |
-+---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| OpenCV (a.k.a. cv2) | Tested with versions between 2.4 to 4.3.0                                                                                                                          |
-|                     |                                                                                                                                                                    |
-|                     | Fisheye camera model only available if using 3.x or newer.                                                                                                         |
-|                     |                                                                                                                                                                    |
-|                     | If running under OSX older than 10.12, versions newer than 3.2 may cause crashes on import (downgrade to versions < 3.3 to fix).                                   |
-+---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| VTK                 | OK with versions between 6.2 to 8.1.6.                                                                                                                             |
-|                     |                                                                                                                                                                    |
-|                     | Versions 8.2.0 or newer do not work properly with Calcam! (see `Issue #58 <https://github.com/euratom-software/calcam/issues/58>`_ )                               |
-+---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| PyQt                | Tested up to 5.15.0                                                                                                                                                |
-|                     |                                                                                                                                                                    |
-|                     | Versions 5.11 and older known to cause unreadable text on OSX when using dark theme                                                                                |
-+---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-
-
 
 Installation
 -------------
@@ -59,7 +28,7 @@ Once you have a copy of the source files on your computer, navigate to the direc
 
 	python setup.py install
 
-This will check for and try to install Calcam's dependencies (see previous section for gory details); copy the Calcam source to the appropriate Python library path; and create a convenient launcher executable for the Calcam GUI. If all goes well, this script should end with a message which looks something like this::
+This will check for and try to install Calcam's dependencies (see section below for gory details); copy the Calcam source to the appropriate Python library path; and create a convenient launcher executable for the Calcam GUI. If all goes well, this script should end with a message which looks something like this::
 
 
 	***************************************************************
@@ -89,9 +58,35 @@ If you plan to do any development on Calcam, and want to be able to edit the Cal
 
 In this case the copy of the code you are installing from remains the "live" version and can be used for development. Again, the ``--user`` switch can be added to install in the current user's library path rather than the system one.
 
-Errors with dependencies
-~~~~~~~~~~~~~~~~~~~~~~~~
-The setup script will try to install the other Python pcakegs which Calcam requires automatically. On some combinations of operating system and Python versions this may not always work properly. In this case, the setup script will give an error or warning specifying which dependency could not be installed, and what the effects are (either the Calcam installation will not be completed or there will be a warning that the Calcam GUI will not work). In this case it is necessary to manually install the dependencies before installing calcam: see the above section on dependencies for details of what must be installed.
+
+Errors related to  dependencies
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Calcam is built upon several existing libraries, which means it requires various other Python modules to be installed for it to work. The setup script will try to install the other Python pcakegs required by Calcam automatically. On some combinations of operating system and Python versions this may not always work properly. In this case, the setup script will give an error or warning specifying which dependency could not be installed, and what the effects are (either the Calcam installation will not be completed or there will be a warning that the Calcam GUI will not work). In other cases, the install my complete fine but then you get error messages when first trying to import Calcam or start the GUI. When tourbleshooting installation or first run problems, it is recommeneded to first check if each of the Python modules Calcam depends on are installed and working correctly on their own (and if they are, Calcam should work). The table below gives details of Calcam's dependencies and known issues with certain versions:
+
+
++---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Module / Library    | Versions Tested                                                                                                                                                    |
++=====================+====================================================================================================================================================================+
+| SciPy               | Up to 1.5.1                                                                                                                                                        |
++---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| NumPy               | Up to 1.19.0                                                                                                                                                       |
++---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| MatPlotLib          | Up to 3.3.0                                                                                                                                                        |
++---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| OpenCV (a.k.a. cv2) | Tested with versions between 2.4 to 4.3.0                                                                                                                          |
+|                     |                                                                                                                                                                    |
+|                     | Fisheye camera model only available if using 3.x or newer.                                                                                                         |
+|                     |                                                                                                                                                                    |
+|                     | If running under OSX older than 10.12, versions newer than 3.2 may cause crashes on import (downgrade to versions < 3.3 to fix).                                   |
++---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| VTK                 | OK with versions between 6.2 to 8.1.6.                                                                                                                             |
+|                     |                                                                                                                                                                    |
+|                     | Versions 8.2.0 or newer do not work properly with Calcam! (see `Issue #58 <https://github.com/euratom-software/calcam/issues/58>`_ )                               |
++---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| PyQt                | Tested up to 5.15.0                                                                                                                                                |
+|                     |                                                                                                                                                                    |
+|                     | Versions 5.11 and older known to cause unreadable text on OSX when using dark theme                                                                                |
++---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 
 

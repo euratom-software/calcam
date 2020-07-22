@@ -1,8 +1,7 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
   
@@ -12,36 +11,43 @@
   
 
   
-  
-  
-  
-
-  
-
-  
-  
-    
-
-  
-
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="prev" title="Image Sources" href="dev_imsources.html" /> 
 
   
-  <script src="_static/js/modernizr.min.js"></script>
+  
+  
+  
 
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Image Sources" href="dev_imsources.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -75,6 +81,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -94,7 +101,7 @@
 <li class="toctree-l1"><a class="reference internal" href="gui_intro.html">Introduction &amp; Launcher</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_calib.html">Calibration by point fitting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_alignment_calib.html">Calibration by manual alignment</a></li>
-<li class="toctree-l1"><a class="reference internal" href="gui_virtual_calib.html">&#8220;Virtual&#8221; Calibrations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui_virtual_calib.html">“Virtual” Calibrations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_image_analyser.html">Image Analyser</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_viewer.html">3D Viewer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_settings.html">Calcam Settings</a></li>
@@ -122,6 +129,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -160,7 +168,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="index.html">Docs</a> &raquo;</li>
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
       <li>3D Coordinate Formatters</li>
     
@@ -181,11 +189,11 @@
             
   <div class="section" id="d-coordinate-formatters">
 <h1>3D Coordinate Formatters<a class="headerlink" href="#d-coordinate-formatters" title="Permalink to this headline">¶</a></h1>
-<p>Custom 3D coordinate formatters are used to change the format of information displayed by Calcam about a point in 3D on the CAD model. A custom coordinate formatter takes the form of a python module or package. The module or package is required to have a function at its top level called <code class="xref py py-func docutils literal"><span class="pre">format_coord()</span></code> which takes as its input argument a 3 element sequence containing <span class="math">\(X,Y,Z\)</span> coordinates in metres. The function must return a single string containing the information to be displayed in the Calcam GUI. It is highly recommended that different elements of information should be separated by newline characters i.e. <cite>n</cite>.</p>
+<p>Custom 3D coordinate formatters are used to change the format of information displayed by Calcam about a point in 3D on the CAD model. A custom coordinate formatter takes the form of a python module or package. The module or package is required to have a function at its top level called <code class="xref py py-func docutils literal notranslate"><span class="pre">format_coord()</span></code> which takes as its input argument a 3 element sequence containing <span class="math notranslate nohighlight">\(X,Y,Z\)</span> coordinates in metres. The function must return a single string containing the information to be displayed in the Calcam GUI. It is highly recommended that different elements of information should be separated by newline characters i.e. <cite>n</cite>.</p>
 <div class="section" id="example">
 <h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
 <p>Below is a simple example of a coordinate formatter</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="c1"># MAST coordinate formatter, includes sector number.</span>
 <span class="k">def</span> <span class="nf">format_coord</span><span class="p">(</span><span class="n">coords</span><span class="p">):</span>
@@ -200,11 +208,11 @@
     <span class="n">sector</span> <span class="o">=</span> <span class="p">(</span><span class="mi">3</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">phi</span><span class="o">/</span><span class="mi">30</span><span class="p">))</span> <span class="o">%</span> <span class="mi">12</span>
 
     <span class="c1"># Build the output string</span>
-    <span class="n">formatted_coord</span> <span class="o">=</span> <span class="s1">&#39;X,Y,Z: ( {:.3f} m , {:.3f} m , {:.3f} m )&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">coords</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+    <span class="n">formatted_coord</span> <span class="o">=</span> <span class="s1">&#39;X,Y,Z: ( </span><span class="si">{:.3f}</span><span class="s1"> m , </span><span class="si">{:.3f}</span><span class="s1"> m , </span><span class="si">{:.3f}</span><span class="s1"> m )&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">coords</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
 
-    <span class="n">formatted_coord</span> <span class="o">=</span> <span class="n">formatted_coord</span> <span class="o">+</span> <span class="s1">u&#39;</span><span class="se">\n</span><span class="s1">R,Z,</span><span class="se">\u03d5</span><span class="s1">: ( {:.3f} m , {:.3f}m , {:.1f}</span><span class="se">\xb0</span><span class="s1"> )&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">),</span><span class="n">coords</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span><span class="n">phi</span><span class="p">)</span>
+    <span class="n">formatted_coord</span> <span class="o">=</span> <span class="n">formatted_coord</span> <span class="o">+</span> <span class="sa">u</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">R,Z,</span><span class="se">\u03d5</span><span class="s1">: ( </span><span class="si">{:.3f}</span><span class="s1"> m , </span><span class="si">{:.3f}</span><span class="s1">m , </span><span class="si">{:.1f}</span><span class="se">\xb0</span><span class="s1"> )&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">),</span><span class="n">coords</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span><span class="n">phi</span><span class="p">)</span>
 
-    <span class="n">formatted_coord</span> <span class="o">=</span> <span class="n">formatted_coord</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Sector {:.0f}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sector</span><span class="p">)</span>
+    <span class="n">formatted_coord</span> <span class="o">=</span> <span class="n">formatted_coord</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Sector </span><span class="si">{:.0f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sector</span><span class="p">)</span>
 
     <span class="k">return</span>  <span class="n">formatted_coord</span>
 </pre></div>
@@ -212,12 +220,12 @@
 </div>
 <div class="section" id="note-on-sub-module-and-function-names">
 <h2>Note on sub-module and function names<a class="headerlink" href="#note-on-sub-module-and-function-names" title="Permalink to this headline">¶</a></h2>
-<p>If the custom coordinate formatter takes the form of a package (i.e. a folder containing <code class="docutils literal"><span class="pre">__init__.py</span></code> along with other python files), some care should be taken not to import from a sub-module anything with the same name as that sub-module. This can cause problems if the coordinate formatter has to be re-loaded e.g. re-loading the CAD model or using the <span class="guilabel">Refresh</span> button in the CAD model editor, due to the way Calcam re-loads coordinate formatter code.  For example, doing the following in <code class="docutils literal"><span class="pre">__init__.py</span></code> :</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">.do_something</span> <span class="kn">import</span> <span class="n">do_something</span>
+<p>If the custom coordinate formatter takes the form of a package (i.e. a folder containing <code class="docutils literal notranslate"><span class="pre">__init__.py</span></code> along with other python files), some care should be taken not to import from a sub-module anything with the same name as that sub-module. This can cause problems if the coordinate formatter has to be re-loaded e.g. re-loading the CAD model or using the <span class="guilabel">Refresh</span> button in the CAD model editor, due to the way Calcam re-loads coordinate formatter code.  For example, doing the following in <code class="docutils literal notranslate"><span class="pre">__init__.py</span></code> :</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">.do_something</span> <span class="kn">import</span> <span class="n">do_something</span>
 </pre></div>
 </div>
-<p>Would mean that if the coordinate formatting code is re-loaded, the <code class="docutils literal"><span class="pre">do_something</span></code> module would not be re-loaded with the rest of the code, which may or may not cause problems when the code is executed (depending on the contents of the <code class="docutils literal"><span class="pre">do_something</span></code> module). To avoid this issue, ensure functions (or any other object) imported in the coordinate formatting code do not have the same name as their parent modules. For instance, the above example could be fixed by renaming the <code class="docutils literal"><span class="pre">do_something</span></code> module so that the same line looks like:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">.DoSomething</span> <span class="kn">import</span> <span class="n">do_something</span>
+<p>Would mean that if the coordinate formatting code is re-loaded, the <code class="docutils literal notranslate"><span class="pre">do_something</span></code> module would not be re-loaded with the rest of the code, which may or may not cause problems when the code is executed (depending on the contents of the <code class="docutils literal notranslate"><span class="pre">do_something</span></code> module). To avoid this issue, ensure functions (or any other object) imported in the coordinate formatting code do not have the same name as their parent modules. For instance, the above example could be fixed by renaming the <code class="docutils literal notranslate"><span class="pre">do_something</span></code> module so that the same line looks like:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">.DoSomething</span> <span class="kn">import</span> <span class="n">do_something</span>
 </pre></div>
 </div>
 </div>
@@ -236,7 +244,7 @@
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
       
-        <a href="dev_imsources.html" class="btn btn-neutral" title="Image Sources" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="dev_imsources.html" class="btn btn-neutral float-left" title="Image Sources" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -245,11 +253,19 @@
 
   <div role="contentinfo">
     <p>
+        
         &copy; Copyright 2015-2019, European Atomic Energy Community (EURATOM)
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -261,37 +277,16 @@
   </div>
   
 
-
-  
-
-    
-    
-      <script type="text/javascript">
-          var DOCUMENTATION_OPTIONS = {
-              URL_ROOT:'./',
-              VERSION:'',
-              LANGUAGE:'en',
-              COLLAPSE_INDEX:false,
-              FILE_SUFFIX:'.html',
-              HAS_SOURCE:  false,
-              SOURCELINK_SUFFIX: ''
-          };
-      </script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
-
-  
-
-  <script type="text/javascript" src="_static/js/theme.js"></script>
-
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>

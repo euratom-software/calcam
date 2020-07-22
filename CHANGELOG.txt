@@ -1,12 +1,12 @@
 Calcam Changelog
 ================
 
-Minor Release 2.5.0 (XX Jul 2020)
+Minor Release 2.5.0 (22 Jul 2020)
 ---------------------------------
 
 New & Enhancements:
-* Improved value scaling of images with >8 bits per pixel to give better image display for high bit-depth images.
-* Added exclusion_radius and intersecting_only keyword arguments to raycast_sightlines() (#49)
+* Improved brightness scaling of images with >8 bits per pixel to give better image display for high bit-depth images.
+* Added new keyword arguments "exclusion_radius" and "intersecting_only" to raycast_sightlines() (#49) (see documentation for details)
 * Add options for specifying original or display coordinates and ROI offset when loading image files.
 * Improve setup script messages for more user-friendliness
 * Improve introductory documentation, mainly installation guide / dependencies.
@@ -19,7 +19,7 @@ Fixes:
 * Fix exceptions raised in the point fitting tool if changing split-field definition with point pairs already defined.
 * Fix exceptions raised in image analyser when loading an image before a calibration
 * Fix several bugs in the CAD model editor which raised exceptions and/or resulted in broken .ccm files.
-* Image analyser now updates wireframe overlays when selecting or dselecting CAD features or loading images with different detector windows
+* Image analyser now correctly updates wireframe overlays when selecting or deselecting CAD features or loading images with different detector windows
 * Fix issue where cursor position information was not updated when creating a new point in the fitting calibration tool.
 * Remove now unnecessary (I think) setting of matplotlib backend which could cause crashes on import if using matplotlib > 3.2.
 * Change setup.py to avoid installing VTK > 8.2 (workaround for issue #58)

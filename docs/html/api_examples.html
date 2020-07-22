@@ -1,8 +1,7 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
   
@@ -12,37 +11,44 @@
   
 
   
-  
-  
-  
-
-  
-
-  
-  
-    
-
-  
-
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="next" title="Image Sources" href="dev_imsources.html" />
-    <link rel="prev" title="Camera Movement Correction" href="api_movement.html" /> 
 
   
-  <script src="_static/js/modernizr.min.js"></script>
+  
+  
+  
 
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Image Sources" href="dev_imsources.html" />
+    <link rel="prev" title="Camera Movement Correction" href="api_movement.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -76,6 +82,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -95,7 +102,7 @@
 <li class="toctree-l1"><a class="reference internal" href="gui_intro.html">Introduction &amp; Launcher</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_calib.html">Calibration by point fitting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_alignment_calib.html">Calibration by manual alignment</a></li>
-<li class="toctree-l1"><a class="reference internal" href="gui_virtual_calib.html">&#8220;Virtual&#8221; Calibrations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui_virtual_calib.html">“Virtual” Calibrations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_image_analyser.html">Image Analyser</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_viewer.html">3D Viewer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_settings.html">Calcam Settings</a></li>
@@ -125,6 +132,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -163,7 +171,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="index.html">Docs</a> &raquo;</li>
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
       <li>Examples</li>
     
@@ -187,12 +195,12 @@
 <p>This page has some examples of using the Calcam API. It is not meant to demonstrate all API features exhaustively, but gives some examples of simple use cases and workflows; for more complete details of the API features please refer to the other API documentation pages.</p>
 <div class="section" id="mapping-a-magnetic-field-line-on-to-an-image">
 <h2>Mapping a magnetic field line on to an image<a class="headerlink" href="#mapping-a-magnetic-field-line-on-to-an-image" title="Permalink to this headline">¶</a></h2>
-<p>We start with an image of a MAST plasma on to which we want to overlay a magnetic field line, which we will assume is saved as <code class="docutils literal"><span class="pre">image.png</span></code> in the current directory. We also have a Calcam calibration for that image stored in the file <code class="docutils literal"><span class="pre">mycalib.ccc</span></code>, which for convenience we assume is also saved in the current directory. Finally, we have a <code class="docutils literal"><span class="pre">.csv</span></code> file containing a set of 3D coordinates of points along a magnetic field line (generated using a field line tracing tool), with each row of the file containg X,Y,Z coordinates of a single point.</p>
+<p>We start with an image of a MAST plasma on to which we want to overlay a magnetic field line, which we will assume is saved as <code class="docutils literal notranslate"><span class="pre">image.png</span></code> in the current directory. We also have a Calcam calibration for that image stored in the file <code class="docutils literal notranslate"><span class="pre">mycalib.ccc</span></code>, which for convenience we assume is also saved in the current directory. Finally, we have a <code class="docutils literal notranslate"><span class="pre">.csv</span></code> file containing a set of 3D coordinates of points along a magnetic field line (generated using a field line tracing tool), with each row of the file containg X,Y,Z coordinates of a single point.</p>
 <p>We can plot the field line on top of the image with the following code:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">calcam</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">calcam</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">cv2</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 
 <span class="c1"># Load the image using OpenCV</span>
 <span class="n">cam_image</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="s1">&#39;image.png&#39;</span><span class="p">)</span>
@@ -217,10 +225,10 @@
 <p>This results in the figure below:</p>
 <img alt="MAST field line projection example" src="_images/mast_fieldline_example_1.png" />
 <p>Note that the parts of the field line hidden behind the centre stack are still visible, which looks strange. To only show the parts of the field line which are not hidden behind parts of the machine, we can modify the above code to also load the MAST CAD model and check which points are hidden from the camera by the CAD geometry:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">calcam</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">calcam</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">cv2</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 
 <span class="c1"># Load the image using OpenCV</span>
 <span class="n">cam_image</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="s1">&#39;image.png&#39;</span><span class="p">)</span>
@@ -254,15 +262,15 @@
 <div class="section" id="rendering-camera-view-wireframe">
 <h2>Rendering: camera view wireframe<a class="headerlink" href="#rendering-camera-view-wireframe" title="Permalink to this headline">¶</a></h2>
 <p>For this example, we start with a Calcam calibration for a MAST camera, and we want to render a wireframe version of the MAST CAD model which aligns with the camera image. This might be used, for example, to use as an overlay on a plasma image to give context to the image. We can do this with the following code:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">calcam</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">calcam</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 
 <span class="c1"># Load the calcam calibration</span>
 <span class="n">cam_calib</span> <span class="o">=</span> <span class="n">calcam</span><span class="o">.</span><span class="n">Calibration</span><span class="p">(</span><span class="s1">&#39;mycalib.ccc&#39;</span><span class="p">)</span>
 
 <span class="c1"># Load the MAST CAD model and set it to be bright red wireframe</span>
 <span class="n">mast_machine</span> <span class="o">=</span> <span class="n">calcam</span><span class="o">.</span><span class="n">CADModel</span><span class="p">(</span><span class="s1">&#39;MAST&#39;</span><span class="p">)</span>
-<span class="n">mast_machine</span><span class="o">.</span><span class="n">set_wireframe</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">mast_machine</span><span class="o">.</span><span class="n">set_wireframe</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">mast_machine</span><span class="o">.</span><span class="n">set_colour</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">))</span>
 
 <span class="c1"># Render the image to produce the array rendered_im</span>
@@ -281,7 +289,7 @@
 <div class="section" id="ray-casting">
 <h2>Ray casting<a class="headerlink" href="#ray-casting" title="Permalink to this headline">¶</a></h2>
 <p>Imagine we have an IR image from a first wall monitoring camera which shows some unusual event at pixel coordinates (100,250). We might want to get the 3D coordinates on the CAD model corresponding to this pixel to tell us where exactly this event took place. We could do this by ray-casting that particular pixel:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">calcam</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">calcam</span>
 
 <span class="c1"># Load the calibration</span>
 <span class="n">cam_calib</span> <span class="o">=</span> <span class="n">calcam</span><span class="o">.</span><span class="n">Calibration</span><span class="p">(</span><span class="s1">&#39;my_calibration.ccc&#39;</span><span class="p">)</span>
@@ -296,9 +304,9 @@
 <span class="n">coords</span> <span class="o">=</span> <span class="n">raydata</span><span class="o">.</span><span class="n">ray_end_coords</span><span class="p">[</span><span class="mi">0</span><span class="p">,:]</span>
 </pre></div>
 </div>
-<p>The 3-element array <code class="docutils literal"><span class="pre">coords</span></code> will then contain the <span class="math">\(X,Y,Z\)</span> coordinates, in metres, of where the event of interest appened.</p>
+<p>The 3-element array <code class="docutils literal notranslate"><span class="pre">coords</span></code> will then contain the <span class="math notranslate nohighlight">\(X,Y,Z\)</span> coordinates, in metres, of where the event of interest appened.</p>
 <p>Alternatively, we could ray cast every pixel on the detector and then find the coordinates from whiever one(s) we want afterwards:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="c1"># Do the ray cast to find the sight-line / CAD model intersection coordinates</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Do the ray cast to find the sight-line / CAD model intersection coordinates</span>
 <span class="n">raydata</span> <span class="o">=</span> <span class="n">calcam</span><span class="o">.</span><span class="n">raycast_sightlines</span><span class="p">(</span><span class="n">cam_calib</span><span class="p">,</span><span class="n">jet_machine</span><span class="p">)</span>
 
 <span class="c1"># The coordinates at the wall are contained in the raydata&#39;s ray_end_coords array.</span>
@@ -312,15 +320,15 @@
 <div class="section" id="tomography-geometry-matrices">
 <h2>Tomography Geometry Matrices<a class="headerlink" href="#tomography-geometry-matrices" title="Permalink to this headline">¶</a></h2>
 <p>For this example, we assume we already have a set of saved raydata relating to a camera we want to tomographically invert. For the purposes of this example we imagine it is a divertor camera on MAST, which can see Z heights up to about -0.6m in its field of view. To make the geometry matrix, we do this:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">calcam</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">calcam</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="c1"># Note that including &quot;if __name__ == &#39;__main__&#39; is actually important here;</span>
 <span class="c1"># because the geometry matrix calculation uses multiprocessing, this</span>
 <span class="c1"># python file will be imported in each child thread and if we omit this</span>
 <span class="c1"># if statement, lots of bad things will happen.</span>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
         <span class="c1"># Load the raydata (see previous example for how to generate raydata)</span>
         <span class="n">raydata</span> <span class="o">=</span> <span class="n">calcam</span><span class="o">.</span><span class="n">RayData</span><span class="p">(</span><span class="s1">&#39;my_raydata.nc&#39;</span><span class="p">)</span>
 
@@ -352,8 +360,8 @@
         <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>Now let&#8217;s imagine we have an image from the camera in a (height x width) NumPy array called <code class="docutils literal"><span class="pre">image</span></code>, which we want to invert. The actual solver for <span class="math">\(Ax = b\)</span> to do the inversion is beyond the scope of Calcam, so let&#8217;s assume your sparse matrix solver of choice is a function with call signature <code class="docutils literal"><span class="pre">x</span> <span class="pre">=</span> <span class="pre">my_solver(A,b)</span></code>, where <code class="docutils literal"><span class="pre">x</span></code> will be a 1D vector containing the result, <code class="docutils literal"><span class="pre">A</span></code> is the geometry matrix and <code class="docutils literal"><span class="pre">b</span></code> is the input data vector. We would then do the tomographic inversion like so:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="c1"># Re-format the camera image in to a 1D vector ready for inversion.</span>
+<p>Now let’s imagine we have an image from the camera in a (height x width) NumPy array called <code class="docutils literal notranslate"><span class="pre">image</span></code>, which we want to invert. The actual solver for <span class="math notranslate nohighlight">\(Ax = b\)</span> to do the inversion is beyond the scope of Calcam, so let’s assume your sparse matrix solver of choice is a function with call signature <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">=</span> <span class="pre">my_solver(A,b)</span></code>, where <code class="docutils literal notranslate"><span class="pre">x</span></code> will be a 1D vector containing the result, <code class="docutils literal notranslate"><span class="pre">A</span></code> is the geometry matrix and <code class="docutils literal notranslate"><span class="pre">b</span></code> is the input data vector. We would then do the tomographic inversion like so:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Re-format the camera image in to a 1D vector ready for inversion.</span>
 <span class="c1"># Note: if we have binning or pixel exclusion set up in the geometry matrix,</span>
 <span class="c1"># this takes care of all that for us (we just feed it the raw camera image).</span>
 <span class="n">data_vec</span> <span class="o">=</span> <span class="n">geom_mat</span><span class="o">.</span><span class="n">format_image</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
@@ -362,8 +370,8 @@
 <span class="n">x</span> <span class="o">=</span> <span class="n">my_solver</span><span class="p">(</span><span class="n">geom_mat</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">data_vec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>We can then visualise the results and / or extract them for further analsys. Note that it is not straightforward to directly get the inversion results at a given <span class="math">\(R,Z\)</span> position directly from <code class="docutils literal"><span class="pre">x</span></code>, since the order of veluaes in <code class="docutils literal"><span class="pre">x</span></code> corresponds to the order of the cell indexing in the grid, which can be arbitrary and depends on how the grid was constructued. We therefore need to use the grid&#8217;s <code class="xref py py-func docutils literal"><span class="pre">interpolate()</span></code> method to do this:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="c1"># Have a look at the results!</span>
+<p>We can then visualise the results and / or extract them for further analsys. Note that it is not straightforward to directly get the inversion results at a given <span class="math notranslate nohighlight">\(R,Z\)</span> position directly from <code class="docutils literal notranslate"><span class="pre">x</span></code>, since the order of veluaes in <code class="docutils literal notranslate"><span class="pre">x</span></code> corresponds to the order of the cell indexing in the grid, which can be arbitrary and depends on how the grid was constructued. We therefore need to use the grid’s <code class="xref py py-func docutils literal notranslate"><span class="pre">interpolate()</span></code> method to do this:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Have a look at the results!</span>
 <span class="n">geom_mat</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 
@@ -378,25 +386,25 @@
 </div>
 <div class="section" id="camera-movement-correction">
 <h2>Camera Movement Correction<a class="headerlink" href="#camera-movement-correction" title="Permalink to this headline">¶</a></h2>
-<p>Let&#8217;s say we have a good calibration, and we have a <a class="reference internal" href="api_analysis.html#calcam.Calibration" title="calcam.Calibration"><code class="xref py py-class docutils literal"><span class="pre">calcam.Calibration</span></code></a> object for it in <code class="docutils literal"><span class="pre">my_calib</span></code>. We also have an image from the same camera some time later when the camera has moved, stored in a Numpy array called <code class="docutils literal"><span class="pre">moved_im</span></code>. We can then try to determine the correction to align the moved image with the calibration by:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">mov</span> <span class="o">=</span> <span class="n">calcam</span><span class="o">.</span><span class="n">movement</span><span class="o">.</span><span class="n">detect_movement</span><span class="p">(</span><span class="n">my_calib</span><span class="p">,</span> <span class="n">moved_im</span><span class="p">)</span>
+<p>Let’s say we have a good calibration, and we have a <a class="reference internal" href="api_analysis.html#calcam.Calibration" title="calcam.Calibration"><code class="xref py py-class docutils literal notranslate"><span class="pre">calcam.Calibration</span></code></a> object for it in <code class="docutils literal notranslate"><span class="pre">my_calib</span></code>. We also have an image from the same camera some time later when the camera has moved, stored in a Numpy array called <code class="docutils literal notranslate"><span class="pre">moved_im</span></code>. We can then try to determine the correction to align the moved image with the calibration by:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">mov</span> <span class="o">=</span> <span class="n">calcam</span><span class="o">.</span><span class="n">movement</span><span class="o">.</span><span class="n">detect_movement</span><span class="p">(</span><span class="n">my_calib</span><span class="p">,</span> <span class="n">moved_im</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Alternatively, we can determine the camera movement manually using the GUI by:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">mov</span> <span class="o">=</span> <span class="n">calcam</span><span class="o">.</span><span class="n">movement</span><span class="o">.</span><span class="n">manual_movement</span><span class="p">(</span><span class="n">my_calib</span><span class="p">,</span> <span class="n">moved_im</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">mov</span> <span class="o">=</span> <span class="n">calcam</span><span class="o">.</span><span class="n">movement</span><span class="o">.</span><span class="n">manual_movement</span><span class="p">(</span><span class="n">my_calib</span><span class="p">,</span> <span class="n">moved_im</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Now we have a movement correction object, we can use it to warp the new image so it aligns with the calibration:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">corrected_image</span><span class="p">,</span> <span class="n">mask</span> <span class="o">=</span> <span class="n">mov</span><span class="o">.</span><span class="n">warp_moved_to_ref</span><span class="p">(</span><span class="n">moved_im</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">corrected_image</span><span class="p">,</span> <span class="n">mask</span> <span class="o">=</span> <span class="n">mov</span><span class="o">.</span><span class="n">warp_moved_to_ref</span><span class="p">(</span><span class="n">moved_im</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>The array <code class="docutils literal"><span class="pre">corrected_image</span></code> then contains the image warped to align with the calibration, while <code class="docutils literal"><span class="pre">mask</span></code> is an array the same size as the image containing <code class="docutils literal"><span class="pre">True</span></code> where a pixel in the warped image contains real image data, and <code class="docutils literal"><span class="pre">False</span></code> if the corresponding pixel is outside the border of the actual data.</p>
+<p>The array <code class="docutils literal notranslate"><span class="pre">corrected_image</span></code> then contains the image warped to align with the calibration, while <code class="docutils literal notranslate"><span class="pre">mask</span></code> is an array the same size as the image containing <code class="docutils literal notranslate"><span class="pre">True</span></code> where a pixel in the warped image contains real image data, and <code class="docutils literal notranslate"><span class="pre">False</span></code> if the corresponding pixel is outside the border of the actual data.</p>
 <p>Alternatively, we could create an updated calibration object accounting for the camera movement:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">updated_calib</span> <span class="o">=</span> <span class="n">calcam</span><span class="o">.</span><span class="n">movement</span><span class="o">.</span><span class="n">update_calibration</span><span class="p">(</span><span class="n">my_calib</span><span class="p">,</span><span class="n">moved_im</span><span class="p">,</span><span class="n">mov</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">updated_calib</span> <span class="o">=</span> <span class="n">calcam</span><span class="o">.</span><span class="n">movement</span><span class="o">.</span><span class="n">update_calibration</span><span class="p">(</span><span class="n">my_calib</span><span class="p">,</span><span class="n">moved_im</span><span class="p">,</span><span class="n">mov</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>We can also save the movement correction for use again later, and load it back from a file:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">mov</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;my movement correction.cmc&#39;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">mov</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;my movement correction.cmc&#39;</span><span class="p">)</span>
 <span class="n">mov_loaded</span> <span class="o">=</span> <span class="n">calcam</span><span class="o">.</span><span class="n">movement</span><span class="o">.</span><span class="n">MovementCorrection</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;my movement correction.cmc&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -414,7 +422,7 @@
         <a href="dev_imsources.html" class="btn btn-neutral float-right" title="Image Sources" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="api_movement.html" class="btn btn-neutral" title="Camera Movement Correction" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="api_movement.html" class="btn btn-neutral float-left" title="Camera Movement Correction" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -423,11 +431,19 @@
 
   <div role="contentinfo">
     <p>
+        
         &copy; Copyright 2015-2019, European Atomic Energy Community (EURATOM)
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -439,37 +455,16 @@
   </div>
   
 
-
-  
-
-    
-    
-      <script type="text/javascript">
-          var DOCUMENTATION_OPTIONS = {
-              URL_ROOT:'./',
-              VERSION:'',
-              LANGUAGE:'en',
-              COLLAPSE_INDEX:false,
-              FILE_SUFFIX:'.html',
-              HAS_SOURCE:  false,
-              SOURCELINK_SUFFIX: ''
-          };
-      </script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
-
-  
-
-  <script type="text/javascript" src="_static/js/theme.js"></script>
-
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>

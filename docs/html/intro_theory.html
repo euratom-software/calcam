@@ -1,8 +1,7 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
   
@@ -12,37 +11,44 @@
   
 
   
-  
-  
-  
-
-  
-
-  
-  
-    
-
-  
-
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="next" title="Concepts &amp; Conventions" href="intro_conventions.html" />
-    <link rel="prev" title="Getting Up &amp; Running" href="intro_install_setup.html" /> 
 
   
-  <script src="_static/js/modernizr.min.js"></script>
+  
+  
+  
 
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Concepts &amp; Conventions" href="intro_conventions.html" />
+    <link rel="prev" title="Getting Up &amp; Running" href="intro_install_setup.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -76,6 +82,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -101,7 +108,7 @@
 <li class="toctree-l1"><a class="reference internal" href="gui_intro.html">Introduction &amp; Launcher</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_calib.html">Calibration by point fitting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_alignment_calib.html">Calibration by manual alignment</a></li>
-<li class="toctree-l1"><a class="reference internal" href="gui_virtual_calib.html">&#8220;Virtual&#8221; Calibrations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui_virtual_calib.html">“Virtual” Calibrations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_image_analyser.html">Image Analyser</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_viewer.html">3D Viewer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_settings.html">Calcam Settings</a></li>
@@ -124,6 +131,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -162,7 +170,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="index.html">Docs</a> &raquo;</li>
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
       <li>Camera Calibration Theory</li>
     
@@ -186,32 +194,32 @@
 <p>This page details the mathematics of the camera calibration.</p>
 <div class="section" id="camera-model">
 <h2>Camera Model<a class="headerlink" href="#camera-model" title="Permalink to this headline">¶</a></h2>
-<p>Calcam is based on fitting or otherwise creating a model which describes the relationship between 3D real-world coordinates and image coordinates. It supports two different models: one for conventional perspective projection lenses and one for fisheye lenses. In both cases, we wish to relate the coordinates of a point <span class="math">\((X,Y,Z)\)</span> in the lab frame to its pixel coordinates <span class="math">\((x{_p},y{_p})\)</span> in the camera image. First, we must consider the position and viewing direction of the camera in the lab frame, which is described by a 3D translation and rotation. The translation and rotation parameters are known as the <em>extrinsic</em> parameters in the model.  Knowing these, we can apply a suitable translation and rotation to obtain the point of interest&#8217;s coordinates in the camera frame: a 3D real space coordinate system where the camera pupil is at the origin and the camera looks along the positive <span class="math">\(Z\)</span> axis. We denote the coordinates of our point of interest in the camera frame as <span class="math">\((X^\prime,Y^\prime,Z^\prime)\)</span>.</p>
+<p>Calcam is based on fitting or otherwise creating a model which describes the relationship between 3D real-world coordinates and image coordinates. It supports two different models: one for conventional perspective projection lenses and one for fisheye lenses. In both cases, we wish to relate the coordinates of a point <span class="math notranslate nohighlight">\((X,Y,Z)\)</span> in the lab frame to its pixel coordinates <span class="math notranslate nohighlight">\((x{_p},y{_p})\)</span> in the camera image. First, we must consider the position and viewing direction of the camera in the lab frame, which is described by a 3D translation and rotation. The translation and rotation parameters are known as the <em>extrinsic</em> parameters in the model.  Knowing these, we can apply a suitable translation and rotation to obtain the point of interest’s coordinates in the camera frame: a 3D real space coordinate system where the camera pupil is at the origin and the camera looks along the positive <span class="math notranslate nohighlight">\(Z\)</span> axis. We denote the coordinates of our point of interest in the camera frame as <span class="math notranslate nohighlight">\((X^\prime,Y^\prime,Z^\prime)\)</span>.</p>
 <p>In order to find the pixel coordinates of this point in the camera image, we start with a simple perspective projection, where the height of an object in the image is inversely proportional to its distance from the camera pupil:</p>
-<div class="math">
+<div class="math notranslate nohighlight">
 \[\begin{split}\begin{pmatrix}x_n\\y_n\end{pmatrix} = \begin{pmatrix}X^\prime/Z^\prime\\Y^\prime/Z^\prime\end{pmatrix}.
 \label{eqn:cmmodel_pinhole}\end{split}\]</div>
-<p>The <em>normalised</em> coordinates <span class="math">\((x_n,y_n)\)</span> are then transformed by a model which describes the image distortion due to the optical system. This model depends on the lens projection being assumed, and models for the perspective and fisheye lens types are described in the following sections. Here we simply denote the resulting distorted normalised coordinates as <span class="math">\((x_d, y_d)\)</span>. Finally, the normalised, distorted coordinates are related to the actual pixel coordinates <span class="math">\(x_p, y_p\)</span> in the image plane by multiplication with the <em>camera matrix</em>:</p>
-<div class="math">
+<p>The <em>normalised</em> coordinates <span class="math notranslate nohighlight">\((x_n,y_n)\)</span> are then transformed by a model which describes the image distortion due to the optical system. This model depends on the lens projection being assumed, and models for the perspective and fisheye lens types are described in the following sections. Here we simply denote the resulting distorted normalised coordinates as <span class="math notranslate nohighlight">\((x_d, y_d)\)</span>. Finally, the normalised, distorted coordinates are related to the actual pixel coordinates <span class="math notranslate nohighlight">\(x_p, y_p\)</span> in the image plane by multiplication with the <em>camera matrix</em>:</p>
+<div class="math notranslate nohighlight">
 \[\begin{split}\begin{pmatrix}x_p\\y_p\\1\end{pmatrix} = \begin{pmatrix}f_x &amp; 0 &amp; c_x \\ 0 &amp; f_y &amp; c_y\\0 &amp; 0 &amp; 1\end{pmatrix}\begin{pmatrix}x_d\\y_d\\1\end{pmatrix}.
 \label{eqn:cammatrix}\end{split}\]</div>
-<p>Here <span class="math">\(f_x\)</span> and <span class="math">\(f_y\)</span> are the effective focal length of the imaging system measured in units of detector pixels in the horizontal and vertical directions, and are  expected to be equal for square pixels and non-anamorphic optics. <span class="math">\(c_x\)</span> and <span class="math">\(c_y\)</span> are the pixel coordinates of the centre of the perspective projection on the sensor, expected to be close to the detector centre. The parameters in the camera matrix, along with those describing the distortion model, constitute the <em>intrinsic</em> camera parameters, i.e. they are characteristic of the camera and optical system and are independent of how that system is placed in the lab.</p>
+<p>Here <span class="math notranslate nohighlight">\(f_x\)</span> and <span class="math notranslate nohighlight">\(f_y\)</span> are the effective focal length of the imaging system measured in units of detector pixels in the horizontal and vertical directions, and are  expected to be equal for square pixels and non-anamorphic optics. <span class="math notranslate nohighlight">\(c_x\)</span> and <span class="math notranslate nohighlight">\(c_y\)</span> are the pixel coordinates of the centre of the perspective projection on the sensor, expected to be close to the detector centre. The parameters in the camera matrix, along with those describing the distortion model, constitute the <em>intrinsic</em> camera parameters, i.e. they are characteristic of the camera and optical system and are independent of how that system is placed in the lab.</p>
 </div>
 <div class="section" id="perspective-distortion-model">
 <h2>Perspective Distortion Model<a class="headerlink" href="#perspective-distortion-model" title="Permalink to this headline">¶</a></h2>
 <p>The image distortion model for perspective projection lenses takes in to account radial (barrel or pincushion) distortion, and tangential (wedge-prism like, usually due to de-centring of optical components) distortions. The equation relating the undistorted and distorted normalised image coordinates in this model is:</p>
-<div class="math" id="distortion-eqn">
+<div class="math notranslate nohighlight" id="distortion-eqn">
 \[\begin{split}\begin{pmatrix}x_d\\y_d\end{pmatrix} = \left[ 1 + k_1r^2 + k_2r^4 + k_3r^6\right]\begin{pmatrix}x_n\\y_n\end{pmatrix} +  \begin{pmatrix}2p_1x_ny_n + p_2(r^2 + 2x_n^2)\\p_1(r^2 + 2y^2) + 2p_2x{_n}y{_n}\end{pmatrix},
 \label{eq:perspective_distortion}\end{split}\]</div>
-<p>where <span class="math">\(r = \sqrt{x_n^2 + y_n^2}\)</span>, and <span class="math">\(k_n\)</span> and <span class="math">\(p_n\)</span> are radial and tangential distortion coefficients, respectively. The polynomial in <span class="math">\(r^2\)</span> in the first term describes the radial distortion while the second term represents tangential distortion.</p>
+<p>where <span class="math notranslate nohighlight">\(r = \sqrt{x_n^2 + y_n^2}\)</span>, and <span class="math notranslate nohighlight">\(k_n\)</span> and <span class="math notranslate nohighlight">\(p_n\)</span> are radial and tangential distortion coefficients, respectively. The polynomial in <span class="math notranslate nohighlight">\(r^2\)</span> in the first term describes the radial distortion while the second term represents tangential distortion.</p>
 </div>
 <div class="section" id="fisheye-distirtion-model">
 <h2>Fisheye Distirtion Model<a class="headerlink" href="#fisheye-distirtion-model" title="Permalink to this headline">¶</a></h2>
 <p>The fisheye distortion model only includes radial fisheye distortion. Unlike the perspective projection model, the polynomial describing the radial distortion is a function of an anglular distance from the centre of perspective, rather than a linear distance in the image:</p>
-<div class="math">
+<div class="math notranslate nohighlight">
 \[\begin{split}\begin{pmatrix}x_d\\y_d\end{pmatrix} = \frac{\theta}{r}\left[ 1 + k_1\theta^2 + k_2\theta^4 + k_3\theta^6 + k_4\theta^8\right]\begin{pmatrix}x_n\\y_n\end{pmatrix},
 \label{eqn:fisheye_distortion}\end{split}\]</div>
-<p>where <span class="math">\(r = \sqrt{x_n^2 + y_n^2}\)</span> and <span class="math">\(\theta = \tan^{-1}(r)\)</span>.</p>
+<p>where <span class="math notranslate nohighlight">\(r = \sqrt{x_n^2 + y_n^2}\)</span> and <span class="math notranslate nohighlight">\(\theta = \tan^{-1}(r)\)</span>.</p>
 </div>
 <div class="section" id="underlying-opencv-documentation">
 <h2>Underlying OpenCV Documentation<a class="headerlink" href="#underlying-opencv-documentation" title="Permalink to this headline">¶</a></h2>
@@ -230,7 +238,7 @@
         <a href="intro_conventions.html" class="btn btn-neutral float-right" title="Concepts &amp; Conventions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="intro_install_setup.html" class="btn btn-neutral" title="Getting Up &amp; Running" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="intro_install_setup.html" class="btn btn-neutral float-left" title="Getting Up &amp; Running" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -239,11 +247,19 @@
 
   <div role="contentinfo">
     <p>
+        
         &copy; Copyright 2015-2019, European Atomic Energy Community (EURATOM)
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -255,37 +271,16 @@
   </div>
   
 
-
-  
-
-    
-    
-      <script type="text/javascript">
-          var DOCUMENTATION_OPTIONS = {
-              URL_ROOT:'./',
-              VERSION:'',
-              LANGUAGE:'en',
-              COLLAPSE_INDEX:false,
-              FILE_SUFFIX:'.html',
-              HAS_SOURCE:  false,
-              SOURCELINK_SUFFIX: ''
-          };
-      </script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
-
-  
-
-  <script type="text/javascript" src="_static/js/theme.js"></script>
-
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>
