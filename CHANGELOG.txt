@@ -1,6 +1,13 @@
 Calcam Changelog
 ================
 
+Master branch changes since 2.5.0
+---------------------------------
+
+Fixes:
+* Roll back changes to render_cam_view() made in v2.5.0 because they break rendering for images with multiple sub-views.
+
+
 Minor Release 2.5.0 (22 Jul 2020)
 ---------------------------------
 
