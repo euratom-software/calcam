@@ -7,6 +7,10 @@ Master branch changes since 2.5.0
 Fixes:
 * Roll back changes to render_cam_view() made in v2.5.0 because they break rendering for images with multiple sub-views.
 * Fixed bug in version checking logic so the upgrade message is not shown when using the master branch version.
+* Fix bug in coordtransformer() in image size checking logic which would cause erroneous errors about expected image size (possibly related to #56).
+* Properly format docstrings in coordtransformer.py
+* Enable rendering with oversampling and original coords (previously raised an exception saying not supported)
+* Fix bug in CoordTransformer.original_to_display_shape() and display_to_original_shape() where the pixel aspect ratio was ignored.
 
 Minor Release 2.5.0 (22 Jul 2020)
 ---------------------------------
