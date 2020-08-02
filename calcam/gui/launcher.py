@@ -48,10 +48,14 @@ def update_prompt_string(queue):
 
     response = request.urlopen('https://api.github.com/repos/euratom-software/calcam/tags',timeout=0.5)
     data = json.loads(response.read().decode('utf-8'))
-    latest_version = data[0]['name'].replace('v','').split('+')[0]
+    latest_version = data[0]['name'].replace('v','')
+    current_version = __version__.split('+')[0]
+
+    print(latest_version)
+    print(current_version)
 
     updatestring = None
-    if __version__ != latest_version:
+    if current_version != latest_version:
         updatestring = '<b>Calcam {:} is now available! Find out what changed <a href=https://github.com/euratom-software/calcam/blob/{:s}/CHANGELOG.txt>here</a>, and/or download the source zip <a href={:s}>here</a>!</b>'.format(data[0]['name'],data[0]['commit']['sha'],data[0]['zipball_url'])
     
     queue.put(updatestring)
