@@ -51,9 +51,6 @@ def update_prompt_string(queue):
     latest_version = data[0]['name'].replace('v','')
     current_version = __version__.split('+')[0]
 
-    print(latest_version)
-    print(current_version)
-
     updatestring = None
     if current_version != latest_version:
         updatestring = '<b>Calcam {:} is now available! Find out what changed <a href=https://github.com/euratom-software/calcam/blob/{:s}/CHANGELOG.txt>here</a>, and/or download the source zip <a href={:s}>here</a>!</b>'.format(data[0]['name'],data[0]['commit']['sha'],data[0]['zipball_url'])
