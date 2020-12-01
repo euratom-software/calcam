@@ -1,5 +1,5 @@
 '''
-* Copyright 2015-2018 European Atomic Energy Community (EURATOM)
+* Copyright 2015-2020 European Atomic Energy Community (EURATOM)
 *
 * Licensed under the EUPL, Version 1.1 or - as soon they
   will be approved by the European Commission - subsequent
@@ -19,42 +19,37 @@
   permissions and limitations under the Licence.
 '''
 
-
-"""
-Image coordinate transformer class for CalCam
-
-This class keeps track of the relationship between 'original'
-image pixel coordinates (i.e. straight from the camera) and 'display'
-(flipped, rotated etc to appear the "right way round") coordinates.
-
-Methods are provided for transforming between original and display coordinates.
-
-Written by Scott Silburn
-2015-05-17
-"""
-
 import cv2
 import numpy as np
 import copy
 
+
 class CoordTransformer:
+    """
+    Class to handle coordinate transformations between 'display' and 'original' image coordinates.
+    """
     
     def __init__(self,transform_actions=[],orig_x=None,orig_y=None,paspect=1.,offset=(0,0)):
-
 
         self.set_transform_actions(transform_actions)
         self.x_pixels = orig_x
         self.y_pixels = orig_y
         self.offset = offset
-
         self.pixel_aspectratio = paspect
 
 
-    # Define the actions to perform on an image to change it from original to display coordinates.
-    # Input: transform_actions: a list of strings, specifying image transform actions, in the order
-    # they should be performed. See line 37 for allowed strings.
-    def set_transform_actions(self,transform_actions):
 
+    def set_transform_actions(self,transform_actions):
+        """
+        Set the actions to perform on an image to change it from original to display coordinates.
+
+        Parameters:
+
+            transform_actions (list of str) : List of strings specifying image transform actions, in the order \\
+                                              they should be performed. Allowed strings are: 'flip_up_down', \\
+                                              'flip_left_right','rotate_clockwise_90','rotate_clockwise_180', \\
+                                              or 'rotate_clockwise_270'
+        """
         self.transform_actions = []
         for action in transform_actions:
             if action.lower() in ['flip_up_down','flip_left_right','rotate_clockwise_90','rotate_clockwise_180','rotate_clockwise_270']:
@@ -65,12 +60,26 @@ class CoordTransformer:
                 raise Exception('Unknown transformation action "' + action + '"')
                 
 
+
     def get_transform_actions(self):
+        """
+        Returns a list of strings specifying the actions to perform on an image to change it from original to display coordinates,
+        in the order they are performed.
+        """
         return copy.copy(self.transform_actions)
 
 
+
     def set_image_shape(self,w,h,coords='Original'):
-        
+        """
+        Set the shape of the image to be transformed.
+
+        Parameters:
+
+            w (int)      : Image witdh in pixels
+            h (int)      : Image height in pixels
+            coords (str) : 'Original' or 'Display', whether the specified with and height are the display or original shape
+        """
         shape = [w,h]
         
         if coords.lower() == 'display':
@@ -83,13 +92,30 @@ class CoordTransformer:
         self.y_pixels = int(shape[1])
             
 
-    def set_offset(self,x_offset,y_offset):
 
+    def set_offset(self,x_offset,y_offset):
+        """
+        Specify the offset of the image top-left from the detector top-left (for CMOS sensors with smaller
+        redout windows.
+
+        Parameters:
+
+            x_offset (int) : Horizontal offset in pixels
+            y_offset (int) : Vertical offset in pixels
+        """
         self.offset = (x_offset,y_offset)
 
 
-    def add_transform_action(self,transform_action):
 
+    def add_transform_action(self,transform_action):
+        """
+        Specify an additional action to change the image from original to display coordinates.
+        The added action will be performed last.
+
+        Parameters:
+
+            transform_action (str) : String specifying the transform action (for allowed values see `set_transform_actions()`
+        """
         transform_action = transform_action.lower()
 
         if transform_action not in ['flip_up_down','flip_left_right','rotate_clockwise_90','rotate_clockwise_180','rotate_clockwise_270']:
@@ -116,8 +142,22 @@ class CoordTransformer:
 
 
 
-    def set_pixel_aspect(self,pixel_aspect,relative_to='display',absolute=True):
 
+    def set_pixel_aspect(self,pixel_aspect,relative_to='display',absolute=True):
+        """
+        Set the pixel aspect ratio of the camera (pixel height / pixel width) for cameras with non-square pixels.
+
+        Parameters:
+
+            pixel_aspect (float) : Ratio of pixel height / pixel width.
+
+            relative_to (str)    : 'Display' or 'Original', whether the height/width is specified with the image \
+                                   in its original or display coordinates
+
+            absolute (bool)      : Whether the specified ratio is specified in absolute terms (default) \
+                                   or relative to the currently set pixel aspect ratio (i.e. only has an effect \
+                                   if the aspect ratio is already set != 1).
+        """
         if absolute:
             ref_aspect = 1.
         else:
@@ -135,29 +175,73 @@ class CoordTransformer:
                 self.pixel_aspectratio = ref_aspect/pixel_aspect
             else:
                 self.pixel_aspectratio = ref_aspect*pixel_aspect
-                
+
+
 
     def original_to_display_shape(self,shape):
+        """
+        Based on the transform actions and pixel aspect ratio, get the display image shape for a
+        given original image shape.
 
-        shape = np.array(shape)
+        Parameters:
+
+           shape (sequence) : 2-element sequence specifying the original image (width,height)
+
+        Returns:
+
+           Tuple : 2-element tuple specifying the displayed image (width,height).
+        """
+        shape = np.array(shape,dtype=np.float32)
+        shape[1] = shape[1] * self.pixel_aspectratio
 
         for action in self.transform_actions:
             if action.lower() in ['rotate_clockwise_90','rotate_clockwise_270']:
                 shape = shape[::-1]
 
-        return shape
+        return tuple(np.round(shape).astype(int))
+
+
 
     def display_to_original_shape(self,shape):
-        return self.original_to_display_shape(shape)
+        """
+        Based on the transform actions and pixel aspect ratio, get the original image shape for a
+        given displayed image shape.
+
+        Parameters:
+
+           shape (sequence) : 2-element sequence specifying the displayed image (width,height)
+
+        Returns:
+
+           Tuple : 2-element tuple specifying the original image (width,height).
+        """
+        shape = np.array(shape,dtype=np.float32)
+        shape[1] = shape[1] / self.pixel_aspectratio
+
+        for action in self.transform_actions:
+            if action.lower() in ['rotate_clockwise_90','rotate_clockwise_270']:
+                shape = shape[::-1]
+
+        return tuple(np.round(shape).astype(int))
 
 
-    # Given an array containing an image in original coordinates, returns an array containing the image in display coordinates.
-    # Inputs:   image - numpy ndarray containing the image in original coordinates.
-    #           skip_resize - 
-    #           binning - 
-    # Returns: data_out - numpy ndarray containing the image in display coordinates.
+
+
     def original_to_display_image(self,image,interpolation='nearest'):
+        """
+        Transform an image from original to display orientation.
 
+        Parameters:
+
+            image (np.ndarray)  : Array containing the image in original orientation.
+
+            interpolation (str) : Interpolation method, allowed strings are 'nearest' or 'cubic'.
+
+
+        Returns:
+
+            np.ndarray : Array containing the image in display orientation.
+        """
         if interpolation.lower() == 'nearest':
             interp_method = cv2.INTER_NEAREST
         elif interpolation.lower() == 'cubic':
@@ -168,12 +252,11 @@ class CoordTransformer:
         expected_size = np.array(self.get_original_shape())
         im_size = np.array(image.shape[1::-1])
         ratio = expected_size / im_size
-        binning = 1
-        if np.any(expected_size != im_size):
-            if not np.any(np.mod(expected_size,im_size)) and np.abs(ratio[0]-ratio[1]) < 1e-5:
-                binning = ratio[0]
-            else:
-                raise Exception('Expected (multiple of) {:d}x{:d} pixel image, got {:d}x{:d}!'.format(expected_size[0],expected_size[1],image.shape[1],image.shape[0]))
+
+        if np.abs(ratio[0]-ratio[1]) < 1e-5:
+            binning = ratio[0]
+        else:
+            raise Exception('Expected (multiple of) {:d}x{:d} pixel image, got {:d}x{:d}!'.format(expected_size[0],expected_size[1],image.shape[1],image.shape[0]))
 
         data_out = image.copy()
 
@@ -193,21 +276,27 @@ class CoordTransformer:
         out_shape = self.get_display_shape()
 
         if data_out.shape[0] != int(out_shape[1]/binning) or data_out.shape[1] != int(out_shape[0]/binning):
-            if np.issubdtype(data_out.dtype,np.unsignedinteger):
-                data_out = cv2.resize(data_out,(int(out_shape[0]/binning),int(out_shape[1]/binning)),interpolation=interp_method)
-            else:
-                raise ValueError('Can only reshape arrays with integer dtypes if using non-square pixels.')
+            data_out = cv2.resize(data_out,(int(out_shape[0]/binning),int(out_shape[1]/binning)),interpolation=interp_method)
 
         return data_out
 
 
-    # Given an array containing an image in display coordinates, returns an array containing the image in original coordinates.
-    # Inputs:   image - numpy ndarray containing the image in display coordinates.
-    #           skip_resize - 
-    #           binning - 
-    # Returns: data_out - numpy ndarray containing the image in original coordinates.
-    def display_to_original_image(self,image,interpolation='nearest'):
 
+    def display_to_original_image(self,image,interpolation='nearest'):
+        """
+        Transform an image from display to original orientation.
+
+        Parameters:
+
+            image (np.ndarray)  : Array containing the image in display orientation.
+
+            interpolation (str) : Interpolation method, allowed strings are 'nearest' or 'cubic'.
+
+
+        Returns:
+
+            np.ndarray : Array containing the image in original orientation.
+        """
         if interpolation.lower() == 'nearest':
             interp_method = cv2.INTER_NEAREST
         elif interpolation.lower() == 'cubic':
@@ -219,12 +308,11 @@ class CoordTransformer:
         expected_size = np.array(self.get_display_shape())
         im_size = np.array(image.shape[1::-1])
         ratio = expected_size / im_size
-        binning = 1
-        if np.any(expected_size != im_size):
-            if not np.any(np.mod(expected_size,im_size)) and np.abs(ratio[0]-ratio[1]) < 1e-5:
-                binning = ratio[0]
-            else:
-                raise Exception('Expected (multiple of) {:d}x{:d} pixel image, got {:d}x{:d}!'.format(expected_size[0],expected_size[1],image.shape[1],image.shape[0]))
+
+        if np.abs(ratio[0]-ratio[1]) < 1e-5:
+            binning = ratio[0]
+        else:
+            raise Exception('Expected (multiple of) {:d}x{:d} pixel image, got {:d}x{:d}!'.format(expected_size[0],expected_size[1],image.shape[1],image.shape[0]))
 
         data_out = image.copy()
 
@@ -243,19 +331,31 @@ class CoordTransformer:
         out_shape = self.get_original_shape()
 
         if data_out.shape[0] != int(out_shape[1]/binning) or data_out.shape[1] != int(out_shape[0]/binning):
-            if np.issubdtype(data_out.dtype, np.unsignedinteger):
-                data_out = cv2.resize(data_out,(int(out_shape[0]/binning),int(out_shape[1]/binning)),interpolation=interp_method)
-            else:
-                raise ValueError('Can only reshape arrays with integer dtypes if using non-square pixels.')
+            data_out = cv2.resize(data_out,(int(out_shape[0]/binning),int(out_shape[1]/binning)),interpolation=interp_method)
 
         return data_out
 
 
-    # Given pixel coordinates in original coordinates, translate these to display coordinates.
-    # Inputs:   x,y - array-like objects containing the x and y pixel coordinates in the original image
-    # Outputs: x_out, y_out: numpy arrays, the same size and shape as the input x and y, giving the corresponding
-    #           coordinates in the 'display' format image.
+
     def original_to_display_coords(self,x,y):
+        """
+        Given pixel coordinates in original coordinates, translate these to display coordinates.
+
+        Parameters:
+
+            x (float or np.ndarray) : Original x pixel coordinates. Can be a single value or array. \\
+                                      x and y must be the same shape.
+
+            y (float or np.ndarray) : Original y pixel coordinates. Can be a single value or array. \\
+                                      x and y must be the same shape.
+
+
+        Returns:
+
+            x : Display x coordinates. Single value or array with the same shape as input x.
+
+            y : Display y coordinates. Single value or array with the same shape as input y.
+        """
 
         # Let's not overwrite the input arrays, just in case
         x_out = np.array(x)
@@ -295,11 +395,26 @@ class CoordTransformer:
         return x_out,y_out
 
 
-    # Given pixel coordinates in display coordinates, translate these to original coordinates.
-    # Inputs:   x,y - array-like objects containing the x and y pixel coordinates in the display format image
-    # Outputs: x_out, y_out: numpy arrays, the same size and shape as the input x and y, giving the corresponding
-    #           coordinates in the original image
+
     def display_to_original_coords(self,x,y):
+        """
+        Given pixel coordinates in display coordinates, translate these to original coordinates.
+
+        Parameters:
+
+            x (float or np.ndarray) : Display x pixel coordinates. Can be a single value or array. \\
+                                      x and y must be the same shape.
+
+            y (float or np.ndarray) : Display y pixel coordinates. Can be a single value or array. \\
+                                      x and y must be the same shape.
+
+
+        Returns:
+
+            x : Original x coordinates. Single value or array with the same shape as input x.
+
+            y : Original y coordinates. Single value or array with the same shape as input y.
+        """
 
         # Let's not overwrite the input arrays, just in case
         x_out = np.array(x)
@@ -340,12 +455,16 @@ class CoordTransformer:
         return x_out,y_out
 
 
-    # Return the shape of the 'display' format image.
-    # Outputs: display_shape - 2 element list [x pixels, y pixels]
-    # Note this is the opposite way around to the 'array shape' which is [y pixels, x pixels]
-    # since Python addresses image arrays [y,x]
-    def get_display_shape(self):
 
+
+    def get_display_shape(self):
+        """
+        Get the shape of the image in display orientation.
+
+        Returns:
+
+            Tuple specifying the (width,height) of the image in display orientation
+        """
         display_shape = [self.x_pixels,int(np.round(self.y_pixels*self.pixel_aspectratio))]
 
         for action in self.transform_actions:
@@ -355,12 +474,31 @@ class CoordTransformer:
         return tuple(display_shape)
 
 
+
     def get_original_shape(self):
+        """
+        Get the shape of the image in original orientation (as it comes from the camera).
+
+        Returns:
+
+            Tuple specifying the (width,height) of the image in original orientation
+        """
         return (self.x_pixels,self.y_pixels)
 
 
-    def display_to_original_pointpairs(self,pointpairs):
 
+    def display_to_original_pointpairs(self,pointpairs):
+        """
+        Given a set of point pairs in display coordinates, transform them to original coordinates.
+
+        Parameters:
+
+            pointpairs (calcam.PointPairs) : Point pairs object with the point pairs in display coordinates.
+
+        Returns:
+
+            calcam.PointPairs object with the point pairs in original coordinates.
+        """
         if pointpairs is None:
             return None
 
@@ -374,8 +512,19 @@ class CoordTransformer:
         return pp_out
 
 
-    def original_to_display_pointpairs(self,pointpairs):
 
+    def original_to_display_pointpairs(self,pointpairs):
+        """
+        Given a set of point pairs in original coordinates, transform them to display coordinates.
+
+        Parameters:
+
+            pointpairs (calcam.PointPairs) : Point pairs object with the point pairs in original coordinates.
+
+        Returns:
+
+            calcam.PointPairs object with the point pairs in display coordinates.
+        """
         if pointpairs is None:
             return None
 

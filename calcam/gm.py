@@ -1043,7 +1043,7 @@ class GeometryMatrix:
         '''
         Load a geometry matrix from a compressed NumPy binary file
         '''
-        f = np.load(filename)
+        f = np.load(filename, allow_pickle=True)
         
         self.binning = float(f['binning'])
         self.pixel_order = str(f['pixel_order'])

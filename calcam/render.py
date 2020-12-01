@@ -57,9 +57,6 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
     if np.any(calibration.view_models) is None:
         raise ValueError('This calibration object does not contain any fit results! Cannot render an image without a calibration fit.')
 
-    if coords.lower() == 'original' and oversampling != 1:
-        raise Exception('Cannot render in original coordinates with oversampling!')
-
     if interpolation.lower() == 'nearest':
         interp_method = cv2.INTER_NEAREST
     elif interpolation.lower() == 'cubic':
