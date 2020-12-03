@@ -18,6 +18,7 @@
 * See the Licence for the specific language governing
   permissions and limitations under the Licence.
 '''
+import sys
 
 from .viewer import Viewer
 from .launcher import Launcher
@@ -28,8 +29,8 @@ from .image_analysis import ImageAnalyser
 from .settings import Settings
 from .cad_edit import CADEdit
 from .movement_correction import ImageAlignDialog
-
 from . import qt_wrapper as qt
+from ..calibration import Calibration
 
 def open_window(window_class,*args):
     app = qt.QApplication([])
@@ -40,4 +41,14 @@ def open_window(window_class,*args):
         return app.exec_(),win
 
 def start_gui():
-    open_window(Launcher)
+
+    try:
+        cal = Calibration(sys.argv[1])
+        if cal._type == 'alignment':
+            open_window(AlignmentCalib,sys.argv[1])
+        elif cal._type == 'virtual':
+            open_window(VirtualCalib,sys.argv[1])
+        elif cal._type == 'fit':
+            open_window(FittingCalib,sys.argv[1])
+    except:
+        open_window(Launcher)

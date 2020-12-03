@@ -28,7 +28,7 @@ from ..image_enhancement import enhance_image, scale_to_8bit
 # This allows creation of FitResults objects for a 'virtual' camera.
 class AlignmentCalib(CalcamGUIWindow):
 
-    def __init__(self, app, parent = None):
+    def __init__(self, app, parent = None, load_file=None):
 
         # GUI initialisation
         CalcamGUIWindow.init(self,'alignment_calib_editor.ui',app,parent)
@@ -159,6 +159,9 @@ class AlignmentCalib(CalcamGUIWindow):
         self.qvtkwidget_3d.GetRenderWindow().GetInteractor().Initialize()
         self.reset()
 
+        if load_file is not None:
+            self.open_calib(load_file)
+
 
 
     def _load_model(self):
@@ -237,9 +240,12 @@ class AlignmentCalib(CalcamGUIWindow):
                 self.focal_length_box.blockSignals(False)
 
 
-    def open_calib(self):
+    def open_calib(self,filename=None):
 
-        opened_calib = self.object_from_file('calibration')
+        if filename is not None:
+            opened_calib = Calibration(filename)
+        else:
+            opened_calib = self.object_from_file('calibration')
 
         if opened_calib is None:
             return

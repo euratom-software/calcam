@@ -33,7 +33,7 @@ from ..movement import detect_movement, DetectionFailedError
 # Main calcam window class for actually creating calibrations.
 class FittingCalib(CalcamGUIWindow):
 
-    def __init__(self, app, parent = None):
+    def __init__(self, app, parent = None, load_file=None):
 
         # GUI initialisation
         CalcamGUIWindow.init(self,'fitting_calib.ui',app,parent)
@@ -192,6 +192,9 @@ class FittingCalib(CalcamGUIWindow):
         self.qvtkwidget_3d.GetRenderWindow().GetInteractor().Initialize()
         self.qvtkwidget_2d.GetRenderWindow().GetInteractor().Initialize()
         self.interactor3d.on_resize()
+
+        if load_file is not None:
+            self.load_calib(load_file)
 
 
     def modify_intrinsics_calib(self):
@@ -1327,9 +1330,12 @@ class FittingCalib(CalcamGUIWindow):
 
 
 
-    def load_calib(self):
+    def load_calib(self,filename=None):
 
-        opened_calib = self.object_from_file('calibration',maintain_window=False)
+        if filename is not None:
+            opened_calib = Calibration(filename)
+        else:
+            opened_calib = self.object_from_file('calibration',maintain_window=False)
 
         if opened_calib is None:
             return

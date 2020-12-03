@@ -4,6 +4,9 @@ Calcam Changelog
 Master branch changes since 2.5.0
 ---------------------------------
 
+New & Enhancements:
+* Enable direct opening of .ccc files by passing the filename to the Calcam GUI executable.
+
 Fixes:
 * Roll back changes to render_cam_view() made in v2.5.0 because they break rendering for images with multiple sub-views.
 * Fixed bug in version checking logic so the upgrade message is not shown when using the master branch version.
@@ -12,6 +15,7 @@ Fixes:
 * Enable rendering with oversampling and original coords (previously raised an exception saying not supported)
 * Fix bug in CoordTransformer.original_to_display_shape() and display_to_original_shape() where the pixel aspect ratio was ignored.
 * Fix a bug which raised an exception and prevented loading saved geometry matrices with newer versions of NumPy.
+
 
 Minor Release 2.5.0 (22 Jul 2020)
 ---------------------------------

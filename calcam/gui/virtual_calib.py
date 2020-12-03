@@ -29,7 +29,7 @@ from ..calibration import Calibration
 # This allows creation of FitResults objects for a 'virtual' camera.
 class VirtualCalib(CalcamGUIWindow):
  
-    def __init__(self, app, parent = None):
+    def __init__(self, app, parent = None,load_file=None):
 
         # GUI initialisation
         CalcamGUIWindow.init(self,'virtual_calib_editor.ui',app,parent)
@@ -109,6 +109,9 @@ class VirtualCalib(CalcamGUIWindow):
         self.interactor3d.init()
         self.qvtkwidget_3d.GetRenderWindow().GetInteractor().Initialize()
         self.update_intrinsics()
+
+        if load_file is not None:
+            self.open_calib(load_file)
         
 
 
@@ -269,9 +272,12 @@ class VirtualCalib(CalcamGUIWindow):
       
 
 
-    def open_calib(self):
+    def open_calib(self,filename):
 
-        opened_calib = self.object_from_file('calibration')
+        if filename is not None:
+            opened_calib = Calibration(filename)
+        else:
+            opened_calib = self.object_from_file('calibration')
 
         if opened_calib is None:
             return
