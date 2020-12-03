@@ -1332,9 +1332,9 @@ class FittingCalib(CalcamGUIWindow):
 
     def load_calib(self,filename=None):
 
-        if filename is not None:
+        try:
             opened_calib = Calibration(filename)
-        else:
+        except:
             opened_calib = self.object_from_file('calibration',maintain_window=False)
 
         if opened_calib is None:

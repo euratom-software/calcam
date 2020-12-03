@@ -272,11 +272,11 @@ class VirtualCalib(CalcamGUIWindow):
       
 
 
-    def open_calib(self,filename):
+    def open_calib(self,filename=None):
 
-        if filename is not None:
+        try:
             opened_calib = Calibration(filename)
-        else:
+        except:
             opened_calib = self.object_from_file('calibration')
 
         if opened_calib is None:
