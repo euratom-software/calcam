@@ -15,6 +15,7 @@ Fixes:
 * Enable rendering with oversampling and original coords (previously raised an exception saying not supported)
 * Fix bug in CoordTransformer.original_to_display_shape() and display_to_original_shape() where the pixel aspect ratio was ignored.
 * Fix a bug which raised an exception and prevented loading saved geometry matrices with newer versions of NumPy.
+* Replace exception raised when saving an empty alignment calibration with a friendlier dialog box.
 
 
 Minor Release 2.5.0 (22 Jul 2020)

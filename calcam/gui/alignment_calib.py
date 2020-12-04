@@ -567,6 +567,9 @@ class AlignmentCalib(CalcamGUIWindow):
 
     def save(self,saveas=False):
 
+        if self.calibration.view_models[0] is None:
+            raise UserWarning('Nothing to save! You need to load a camera image to calibrate before you can save anything in this tool.')
+
         if saveas:
             orig_filename = self.filename
             self.filename = None
