@@ -45,10 +45,10 @@ def start_gui():
     try:
         cal = Calibration(sys.argv[1])
         if cal._type == 'alignment':
-            open_window(AlignmentCalib,sys.argv[1])
+            open_window(AlignmentCalib,cal.filename)
         elif cal._type == 'virtual':
-            open_window(VirtualCalib,sys.argv[1])
+            open_window(VirtualCalib,cal.filename)
         elif cal._type == 'fit':
-            open_window(FittingCalib,sys.argv[1])
+            open_window(FittingCalib,cal.filename)
     except:
         open_window(Launcher)
