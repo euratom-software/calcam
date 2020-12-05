@@ -49,8 +49,8 @@ class ViewModel():
     @staticmethod
     def from_dict(coeffs_dict):
 
-        if coeffs_dict['model'] == 'perspective':
-            return PerspectiveViewModel(coeffs_dict=coeffs_dict)
+        if coeffs_dict['model'] in ['perspective','rectilinear']:
+            return RectilinearViewModel(coeffs_dict=coeffs_dict)
         elif coeffs_dict['model'] == 'fisheye':
             return FisheyeeViewModel(coeffs_dict=coeffs_dict)
 
@@ -145,7 +145,7 @@ class ViewModel():
 
 
 # Class representing a perspective camera model.
-class PerspectiveViewModel(ViewModel):
+class RectilinearViewModel(ViewModel):
 
     # Can be initialised either with the output of opencv.CalibrateCamera or from 
     # a dictionary containing the model coefficients
@@ -154,7 +154,7 @@ class PerspectiveViewModel(ViewModel):
         if cv2_output is None and coeffs_dict is None:
             raise ValueError('Either OpenCV output or coefficient dictionary must be defined!')
 
-        self.model = 'perspective'
+        self.model = 'rectilinear'
         self.fit_options = []
 
         if cv2_output is not None:
@@ -1156,7 +1156,7 @@ class Calibration():
             if subview is None:
 
                 # Output should be the same shape as input + an extra length 3 axis
-                output = np.zeros(np.shape(x) + (3,))
+                output = np.zeros(np.shape(x) + (3,)) + np.nan
 
                 # An array the same size as output sepcifying which sub-view calibration to use
                 subview_mask = self.subview_lookup(x,y)
@@ -1731,7 +1731,7 @@ class Calibration():
         except:
             pass
 
-        self.view_models = [PerspectiveViewModel(coeffs_dict=coeffs_dict)]
+        self.view_models = [RectilinearViewModel(coeffs_dict=coeffs_dict)]
 
         self.intrinsics_constraints = []
 
@@ -1847,8 +1847,8 @@ class Calibration():
             else:
                 raise Exception('This calibration contains muyltiple sub-views; therefore the subview number must be specified.')
 
-        if self.view_models[subview].model != 'perspective':
-            raise Exception('Undistortion parameter getting is not supported for this model type.')
+        if self.view_models[subview].model == 'fisheye':
+            raise Exception('Undistortion parameter getting is not supported for fisheye lenses.')
 
         if radial_terms is None:
             if 'Disable k3' in self.view_models[subview].fit_options:
@@ -2070,8 +2070,8 @@ class Calibration():
 
         msg = msg + 'Field of view (h x v):       {:.1f} x {:.1f} degrees\n'.format(*self.get_fov(subview=subview))
             
-        msg = msg + 'Distortion model:            {:s}\n'.format(model.model.capitalize())
-        if model.model == 'perspective':
+        msg = msg + 'Lens Type:                   {:s}\n'.format(model.model.capitalize())
+        if model.model == 'rectilinear':
             msg = msg + 'Radial dist. (k) coeffs:     ( {:.4f}, {:.4f}, {:.4f} ) \n'.format(model.kc[0][0],model.kc[0][1],model.kc[0][4])
             msg = msg + 'Decentring dist. (p) coeffs: ( {:.4f}, {:.4f} )\n\n'.format(model.kc[0][2],model.kc[0][3])
         elif model.model == 'fisheye':
@@ -2170,7 +2170,7 @@ class Calibration():
 # The 'fitter' class 
 class Fitter:
 
-    def __init__(self,model='perspective'):
+    def __init__(self,model='rectilinear'):
         
         self.pointpairs = [None]
         self.set_model(model)
@@ -2189,7 +2189,7 @@ class Fitter:
 
     def set_model(self,model):
 
-        if model == 'perspective':
+        if model == 'rectilinear':
             self.model = model
         elif model == 'fisheye':
             opencv_major_version = int(cv2.__version__[0])
@@ -2206,7 +2206,7 @@ class Fitter:
     # Output: fitflags (long int)
     def get_fitflags(self):
 
-        if self.model == 'perspective':
+        if self.model == 'rectilinear':
             fitflags = cv2.CALIB_USE_INTRINSIC_GUESS
 
             if self.fixaspectratio:
@@ -2246,7 +2246,7 @@ class Fitter:
         
         Output = []
 
-        if self.model == 'perspective':
+        if self.model == 'rectilinear':
 
             if self.fixaspectratio:
                 Output.append('Fix Fx = Fy')
@@ -2337,7 +2337,7 @@ class Fitter:
     def get_n_params(self):
         
         # If we're doing a perspective fit...
-        if self.model == 'perspective':
+        if self.model == 'rectilinear':
             free_params = 15
             free_params = free_params - self.fixk1
             free_params = free_params - self.fixk2
@@ -2383,13 +2383,13 @@ class Fitter:
 
 
         # Do the fit!
-        if self.model == 'perspective':
+        if self.model == 'rectilinear':
             if int(cv2.__version__[0]) > 2:
                 fit_output = cv2.calibrateCamera(obj_points,img_points,self.image_display_shape,copy.copy(self.initial_matrix),None,flags=self.get_fitflags())
             else:
                 fit_output = cv2.calibrateCamera(obj_points,img_points,self.image_display_shape,copy.copy(self.initial_matrix),flags=self.get_fitflags())
 
-            fitted_model = PerspectiveViewModel(cv2_output = fit_output)
+            fitted_model = RectilinearViewModel(cv2_output = fit_output)
             fitted_model.fit_options = self.get_fitflags_strings()
             
             if not self.ignore_upside_down and fitted_model.get_cam_to_lab_rotation()[2,1] > 0:

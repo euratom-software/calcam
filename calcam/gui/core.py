@@ -249,7 +249,7 @@ class CalcamGUIWindow(qt.QMainWindow):
         if dialog.results != []:
             chessboard_pointpairs = dialog.results
             if dialog.perspective_model.isChecked():
-                fitter = Fitter('perspective')
+                fitter = Fitter('rectilinear')
             elif dialog.fisheye_model.isChecked():
                 fitter = Fitter('fisheye')
             fitter.set_image_shape( dialog.results[0][0].shape[1::-1] )

@@ -476,28 +476,22 @@ class FittingCalib(CalcamGUIWindow):
         # If we already have an image in the calibration, check if the new one is the same size.
         try:
             # If the new image is the same size, assume all its metadata are the same as the existing image.
-            if imshape == tuple(self.calibration.geometry.get_display_shape()):
-                if 'coords' not in newim:
+            if imshape == tuple(self.calibration.geometry.get_display_shape()) or imshape == tuple(self.calibration.geometry.get_original_shape()):
+
+                if self.calibration.geometry.get_display_shape() == self.calibration.geometry.get_original_shape():
+                    if 'coords' not in newim:
+                        newim['coords'] = 'display'
+                elif imshape == tuple(self.calibration.geometry.get_display_shape()):
                     newim['coords'] = 'display'
-                if 'subview_mask' not in newim:
-                    newim['subview_mask'] == self.calibration.get_subview_mask(coords='Display')
-                if 'subview_names' not in newim:
-                    newim['subview_names'] = self.calibration.subview_names
-
-                newim['transform_actions'] = self.calibration.geometry.transform_actions
-                newim['pixel_aspect'] = self.calibration.geometry.pixel_aspectratio
-                newim['pixel_size'] = self.calibration.pixel_size
-            elif imshape == tuple(self.calibration.geometry.get_original_shape()):
-                if 'coords' not in newim:
+                else:
                     newim['coords'] = 'original'
-                if 'subview_mask' not in newim:
-                    newim['subview_mask'] == self.calibration.get_subview_mask(coords='Original')
-                if 'subview_names' not in newim:
-                    newim['subview_names'] = self.calibration.subview_names
 
+                newim['subview_names'] = self.calibration.subview_names
+                newim['subview_mask'] = self.calibration.get_subview_mask(coords=newim['coords'])
                 newim['transform_actions'] = self.calibration.geometry.transform_actions
                 newim['pixel_aspect'] = self.calibration.geometry.pixel_aspectratio
                 newim['pixel_size'] = self.calibration.pixel_size
+
             else:
                 # If the new image is the wrong size, we have to start a new calibration.
                 msg = 'The selected image has different dimensions ({:d}x{:d}) to the current one so cannot be loaded without starting a new calibration.<br><br>Do you want to start a new calibration based on the loaded image?'.format(imshape[0],imshape[1])
@@ -747,7 +741,7 @@ class FittingCalib(CalcamGUIWindow):
             results_groupbox.setHidden(True)
 
             model = self.fitters[field].model
-            widgetlist[0].setChecked(model == 'perspective')
+            widgetlist[0].setChecked(model == 'rectilinear')
             widgetlist[1].setChecked(model == 'fisheye')
 
 
@@ -871,7 +865,7 @@ class FittingCalib(CalcamGUIWindow):
                 self.clear_pointpairs()
 
             for i in range(len(pointpairs.object_points)):
-                cursorid_3d = self.interactor3d.add_cursor(pointpairs.object_points[i])
+
 
                 cursorid_2d = None
                 for j in range(len(pointpairs.image_points[i])):
@@ -882,7 +876,9 @@ class FittingCalib(CalcamGUIWindow):
                             else:
                                 self.interactor2d.add_active_cursor(pointpairs.image_points[i][j],add_to=cursorid_2d)
 
-                self.point_pairings.append([cursorid_3d,cursorid_2d])
+                if cursorid_2d is not None:
+                    cursorid_3d = self.interactor3d.add_cursor(pointpairs.object_points[i])
+                    self.point_pairings.append([cursorid_3d,cursorid_2d])
 
             self.update_pointpairs(src=src,history=history,clear_fit=clear_fit)
             self.update_n_points()
@@ -1052,7 +1048,7 @@ class FittingCalib(CalcamGUIWindow):
 
             widgets = self.fit_results_widgets[subview]
 
-            if self.calibration.view_models[subview].model == 'perspective':
+            if self.calibration.view_models[subview].model == 'rectilinear':
                 widgets[0].setText( '<b>RMS Fit Residual: {: .1f} pixels<b>'.format(params.reprojection_error) )
                 widgets[1].setText( ' : <br>'.join( [  'Pupil position' ,
                                                     'View direction' ,
@@ -1439,7 +1435,7 @@ class FittingCalib(CalcamGUIWindow):
         for field in range(len(self.fit_settings_widgets)):
             if opened_calib.view_models[field] is not None:
 
-                if opened_calib.view_models[field].model == 'perspective':
+                if opened_calib.view_models[field].model == 'rectilinear':
                     self.fit_settings_widgets[field][0].setChecked(True)
                     widget_index_start = 2
                     widget_index_end = 6
@@ -1508,7 +1504,7 @@ class FittingCalib(CalcamGUIWindow):
             if self.sender() == self.fit_settings_widgets[field][0]:
                 self.perspective_settings[field].show()
                 self.fisheye_settings[field].hide()
-                self.fitters[field].set_model('perspective')
+                self.fitters[field].set_model('rectilinear')
             elif self.sender() == self.fit_settings_widgets[field][1]:
                 self.perspective_settings[field].hide()
                 self.fisheye_settings[field].show()

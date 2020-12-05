@@ -21,6 +21,8 @@ Fixes:
 * Fix pop-up of VTK error window when closing Calcam GUI on Windows.
 * Fix Calibration.subview_mask not being restored properly when resetting detector windowing using Calibration.set_detector_window(None) (Issue #60)
 * Fix image cropping not working properly in Calibration.set_detector_window() if the requested window is bigger than the original calibration.
+* Fix un-paired 3D cursors being added when importing point pairs from a calibration with a bigger readout window.
+* Fix exception raised when loading a new image in to a calibration with multuple sub-views (by keeping subview mask when loading new image)
 
 
 Minor Release 2.5.0 (22 Jul 2020)
