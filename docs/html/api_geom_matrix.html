@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                Version 2.5
+                Version 2.6
               </div>
             
           
@@ -468,7 +468,7 @@ provides the functionality for now.</p>
 
 <dl class="py method">
 <dt id="calcam.gm.PoloidalVolumeGrid.plot">
-<code class="sig-name descname">plot</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">clim</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">cmap</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">line_colour</span><span class="o">=</span><span class="default_value">0, 0, 0</span></em>, <em class="sig-param"><span class="n">cell_linewidth</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">cblabel</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">axes</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.PoloidalVolumeGrid.plot" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">plot</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">clim</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">cmap</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">line_colour</span><span class="o">=</span><span class="default_value">(0, 0, 0)</span></em>, <em class="sig-param"><span class="n">cell_linewidth</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">cblabel</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">axes</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.PoloidalVolumeGrid.plot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Either plot a given data vector on the grid, or if no data vector is given,
 plot the grid itself.</p>
 <dl class="field-list simple">
@@ -525,7 +525,10 @@ plot the grid itself.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>wall_contour</strong> (<em>str</em><em> or </em><em>numpy.ndarray</em>) – Either the name of a Calcam CAD model                                               from which to use the wall contour, or an                                               N x 2 array of R,Z points defining the machine wall.</p></li>
 <li><p><strong>cell_size</strong> (<em>float</em>) – Side length of each grid cell in metres.</p></li>
-<li><p><strong>rmin</strong><strong>, </strong><strong>rmax</strong><strong>, </strong><strong>zmin</strong><strong>, </strong><strong>zmax</strong> (<em>floats</em>) – Optional limits of the grid extent in the R, Z plane.                                               Any combination of these may or may not be given; if none                                               are given the entire wall contour interior is gridded.</p></li>
+<li><p><strong>rmin</strong> (<em>floats</em>) – Optional limits of the grid extent in the R, Z plane.                                               Any combination of these may or may not be given; if none                                               are given the entire wall contour interior is gridded.</p></li>
+<li><p><strong>rmax</strong> – Optional limits of the grid extent in the R, Z plane.                                               Any combination of these may or may not be given; if none                                               are given the entire wall contour interior is gridded.</p></li>
+<li><p><strong>zmin</strong> – Optional limits of the grid extent in the R, Z plane.                                               Any combination of these may or may not be given; if none                                               are given the entire wall contour interior is gridded.</p></li>
+<li><p><strong>zmax</strong> – Optional limits of the grid extent in the R, Z plane.                                               Any combination of these may or may not be given; if none                                               are given the entire wall contour interior is gridded.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -549,7 +552,10 @@ generate the grid.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>wall_contour</strong> (<em>str</em><em> or </em><em>numpy.ndarray</em>) – Either the name of a Calcam CAD model                                               from which to use the wall contour, or an                                               N x 2 array of R,Z points defining the machine wall.</p></li>
 <li><p><strong>max_cell_scale</strong> (<em>float</em>) – Approximate maximum allowed length scale for a grid                                               cell, in metres.</p></li>
-<li><p><strong>rmin</strong><strong>, </strong><strong>rmax</strong><strong>, </strong><strong>zmin</strong><strong>, </strong><strong>zmax</strong> (<em>floats</em>) – Optional limits of the grid extent in the R, Z plane.                                               Any combination of these may or may not be given; if none                                               are given the entire wall contour interior is gridded.</p></li>
+<li><p><strong>rmin</strong> (<em>floats</em>) – Optional limits of the grid extent in the R, Z plane.                                               Any combination of these may or may not be given; if none                                               are given the entire wall contour interior is gridded.</p></li>
+<li><p><strong>rmax</strong> – Optional limits of the grid extent in the R, Z plane.                                               Any combination of these may or may not be given; if none                                               are given the entire wall contour interior is gridded.</p></li>
+<li><p><strong>zmin</strong> – Optional limits of the grid extent in the R, Z plane.                                               Any combination of these may or may not be given; if none                                               are given the entire wall contour interior is gridded.</p></li>
+<li><p><strong>zmax</strong> – Optional limits of the grid extent in the R, Z plane.                                               Any combination of these may or may not be given; if none                                               are given the entire wall contour interior is gridded.</p></li>
 </ul>
 </dd>
 </dl>
@@ -590,7 +596,7 @@ This can be used to further control the meshing; see the MeshPy documentation fo
   <div role="contentinfo">
     <p>
         
-        &copy; Copyright 2015-2019, European Atomic Energy Community (EURATOM)
+        &copy; Copyright 2015-2020, European Atomic Energy Community (EURATOM)
 
     </p>
   </div>

@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                Version 2.5
+                Version 2.6
               </div>
             
           
@@ -289,7 +289,7 @@
 <div class="section" id="fit-options">
 <h3>Fit Options<a class="headerlink" href="#fit-options" title="Permalink to this headline">¶</a></h3>
 <p>At the top of the page are the fitting &amp; camera model options. The default options will typically produce good results for most images, however in some cases they will need to be adjusted to get a good quality result.</p>
-<p>The first option to choose is whether to use the perspective or fisheye lens distortion model: these two can be switched using the radio buttons at the top of the fit options section. Depending on the selected model, some or all of the following options will be available:</p>
+<p>The first option to choose is whether to use the rectilinear or fisheye lens model: these two can be switched using the radio buttons at the top of the fit options section. Depending on the selected model, some or all of the following options will be available:</p>
 <ul class="simple">
 <li><p><span class="guilabel">Disable k1…k3</span> These options, when checked, cause the corresponding radial distortion coefficients in the distortion model to be fixed at 0 in the fit. This can be used to change the order of the radial distortion model, and disables radial distortion entirely if all three are checked. Disabling higher order radial distortion terms can improve fits when the point pairs do not sufficiently constrain the distortion model, when the fitted results can show large erroneous distortions.</p></li>
 <li><p><span class="guilabel">Disable Tangential Distortion</span> This option sets the coefficients <span class="math notranslate nohighlight">\(p_1\)</span> and <span class="math notranslate nohighlight">\(p_2\)</span> in the distortion model to be fixed at 0 in the fit, i.e. disables tangential distortion in the fitted model. This can be helpful if the fitting results in large erroneous values of these coefficients.</p></li>
@@ -338,7 +338,7 @@
   <div role="contentinfo">
     <p>
         
-        &copy; Copyright 2015-2019, European Atomic Energy Community (EURATOM)
+        &copy; Copyright 2015-2020, European Atomic Energy Community (EURATOM)
 
     </p>
   </div>

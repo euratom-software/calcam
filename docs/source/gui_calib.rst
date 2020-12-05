@@ -136,7 +136,7 @@ Fit Options
 ~~~~~~~~~~~
 At the top of the page are the fitting & camera model options. The default options will typically produce good results for most images, however in some cases they will need to be adjusted to get a good quality result. 
 
-The first option to choose is whether to use the perspective or fisheye lens distortion model: these two can be switched using the radio buttons at the top of the fit options section. Depending on the selected model, some or all of the following options will be available:
+The first option to choose is whether to use the rectilinear or fisheye lens model: these two can be switched using the radio buttons at the top of the fit options section. Depending on the selected model, some or all of the following options will be available:
 
 - :guilabel:`Disable k1...k3` These options, when checked, cause the corresponding radial distortion coefficients in the distortion model to be fixed at 0 in the fit. This can be used to change the order of the radial distortion model, and disables radial distortion entirely if all three are checked. Disabling higher order radial distortion terms can improve fits when the point pairs do not sufficiently constrain the distortion model, when the fitted results can show large erroneous distortions.
 - :guilabel:`Disable Tangential Distortion` This option sets the coefficients :math:`p_1` and :math:`p_2` in the distortion model to be fixed at 0 in the fit, i.e. disables tangential distortion in the fitted model. This can be helpful if the fitting results in large erroneous values of these coefficients.

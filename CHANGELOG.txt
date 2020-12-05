@@ -1,13 +1,13 @@
 Calcam Changelog
 ================
 
-Master branch changes since 2.5.0
+Minor Release 2.6.0 (05 Dec 2020)
 ---------------------------------
 
 New & Enhancements:
+* Allow setting of detector window using Calibration.set_detector_window() for multi sub-view calibrations if the requested window is not entirely overlapping with the original.
 * Enable direct opening of .ccc files by passing the filename to the Calcam GUI executable.
 * Change references to "perspective" lens model to "rectilinear"
-* Allow setting of detector window using Calibration.set_detector_window() for multi sub-view calibrations if the requested window is not entirely overlapping with the original.
 
 Fixes:
 * Roll back changes to render_cam_view() made in v2.5.0 because they break rendering for images with multiple sub-views.
