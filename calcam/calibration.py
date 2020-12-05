@@ -24,6 +24,7 @@ import cv2
 import os
 import json
 import copy
+import warnings
 
 from scipy.ndimage.measurements import center_of_mass as CoM
 from scipy.optimize import minimize
@@ -457,7 +458,7 @@ class Calibration():
             self.history['pointpairs'][1] = 'Last modified by {:s} on {:s} at {:s}'.format(misc.username,misc.hostname,misc.get_formatted_time())
 
 
-    def set_detector_window(self,window):
+    def set_detector_window(self,window,bounds_error='warn'):
         '''
         Adjust the calibration to apply to a different detector region for than was used
         to perform the calibration. Useful for example if a CMOS camera has been calibrated
@@ -472,8 +473,15 @@ class Calibration():
 
         Parameters:
 
-            window (tuple or list) : A 4-element tuple or list of integers defining the \
+            window (sequence)      : A 4-element sequence of integers defining the \
                                      detector window coordinates (Left,Top,Width,Height)
+
+            bounds_error (str)     : How to handle the case for calibrations with multiple \
+                                     sub-views if the requested detector region goes outside \
+                                     the original calibration i.e. the outside the defined sub-view \
+                                     map. 'except' will raise an exception, 'warn' will raise a warning \
+                                     and 'silent' will not alert the user at all. If 'warn' or 'silent', \
+                                     only pixels within the original calibrated area will be usable. Default is 'warn'.
         '''
 
         # Reset crop
@@ -483,13 +491,8 @@ class Calibration():
                 return
 
             # Put subview_mask back to normal
-            if self.n_subviews == 1:
-                mshape = self.geometry.get_original_shape()
-                new_subview_mask = np.zeros((mshape[1], mshape[0]), dtype='uint8')
-                self.set_subview_mask(new_subview_mask,coords='Original')
-            else:
-                self.set_subview_mask(self.native_subview_mask,subview_names=self.subview_names,coords='Original')
-                del self.native_subview_mask
+            self.set_subview_mask(self.native_subview_mask,subview_names=self.subview_names,coords='Original')
+            del self.native_subview_mask
 
             # Put the image back to normal
             if self.image is not None:
@@ -529,21 +532,35 @@ class Calibration():
             if self.crop is not None:
                 self.set_detector_window(None)
 
-            if self.n_subviews == 1:
+            # Save the original sub-view mask so we can put it back later.
+            self.native_subview_mask = self.get_subview_mask(coords='Original')
 
+            if self.n_subviews == 1:
                 new_subview_mask = np.zeros((window[3],window[2]),dtype='uint8')
             else:
                 orig_shape = self.geometry.get_original_shape()
-
-                if window[0] < self.geometry.offset[0] or window[1] < self.geometry.offset[1] or window[0] + window[2] > self.geometry.offset[0] + orig_shape[0] or window[1] + window[3] > self.geometry.offset[1] + orig_shape[1]:
-                    raise Exception('Requested crop of {:d}x{:d} at offset {:d}x{:d} exceeds the bounds of the original calibration ({:d}x{:d} at offset {:d}x{:d}). This is not possible for calibrations with multiple sub-views.'.format(window[2],window[3],window[0],window[1],self.geometry.x_pixels,self.geometry.y_pixels,self.geometry.offset[0],self.geometry.offset[1]))
-
-
-                self.native_subview_mask = self.get_subview_mask(coords='Original')
-
                 orig_subview_mask = self.get_subview_mask(coords='Original')
 
-                new_subview_mask = orig_subview_mask[window[1] - self.geometry.offset[1]:window[1] - self.geometry.offset[1] + window[3],window[0] - self.geometry.offset[0]:window[0] - self.geometry.offset[0] + window[2]]
+                if window[0] < self.geometry.offset[0] or window[1] < self.geometry.offset[1] or window[0] + window[2] > self.geometry.offset[0] + orig_shape[0] or window[1] + window[3] > self.geometry.offset[1] + orig_shape[1]:
+                    if bounds_error.lower() == 'except':
+                        raise Exception('Requested calibration crop of {:d}x{:d} at offset {:d}x{:d} exceeds the bounds of the original calibration ({:d}x{:d} at offset {:d}x{:d}). This is not possible for calibrations with multiple sub-views.'.format(window[2],window[3],window[0],window[1],self.geometry.x_pixels,self.geometry.y_pixels,self.geometry.offset[0],self.geometry.offset[1]))
+                    elif bounds_error.lower() == 'warn':
+                        warnings.warn('Requested calibration crop of {:d}x{:d} at offset {:d}x{:d} exceeds the bounds of the original calibration ({:d}x{:d} at offset {:d}x{:d}). Only pixels within the original area will be usable.'.format(window[2],window[3],window[0],window[1],self.geometry.x_pixels,self.geometry.y_pixels,self.geometry.offset[0],self.geometry.offset[1]))
+
+                    new_subview_mask = np.zeros((window[3],window[2]),dtype=np.int8) - 1
+
+                    xstart_newmask = max(0,self.geometry.offset[0] - window[0])
+                    ystart_newmask = max(0,self.geometry.offset[1] - window[1])
+
+                    xstart_oldmask = max(0,window[0] - self.geometry.offset[0])
+                    ystart_oldmask = max(0,window[1] - self.geometry.offset[1])
+                    w = min(orig_shape[0] - xstart_oldmask,window[2] - xstart_newmask)
+                    h = min(orig_shape[1] - ystart_oldmask,window[3] - ystart_newmask)
+
+                    new_subview_mask[ystart_newmask:ystart_newmask+h,xstart_newmask:xstart_newmask+w] = orig_subview_mask[ystart_oldmask:ystart_oldmask+h,xstart_oldmask:xstart_oldmask+h]
+
+                else:
+                    new_subview_mask = orig_subview_mask[window[1] - self.geometry.offset[1]:window[1] - self.geometry.offset[1] + window[3],window[0] - self.geometry.offset[0]:window[0] - self.geometry.offset[0] + window[2]]
 
             orig_cc = []
             self.native_cc = []
@@ -561,7 +578,26 @@ class Calibration():
             # Change the image itself. This does not use set_image() because there's so much other faff involved in set_image()
             if self.image is not None:
                 self.native_image = copy.deepcopy(self.image)
-                self.image = self.image[ int(window[1] - self.geometry.offset[1]):int(window[1] - self.geometry.offset[1] + window[3]),int(window[0] - self.geometry.offset[0]):int(window[0] - self.geometry.offset[0] + window[2])]
+
+                # Case where the requested crop has parts outside the original image
+                if window[0] < self.geometry.offset[0] or window[1] < self.geometry.offset[1] or window[0] + window[2] > self.geometry.offset[0] + orig_shape[0] or window[1] + window[3] > self.geometry.offset[1] + orig_shape[1]:
+
+                    orig_shape = self.geometry.get_original_shape()
+
+                    xstart_newim = max(0,self.geometry.offset[0] - window[0])
+                    ystart_newim = max(0,self.geometry.offset[1] - window[1])
+
+                    xstart_oldim = max(0,window[0] - self.geometry.offset[0])
+                    ystart_oldim = max(0,window[1] - self.geometry.offset[1])
+                    w = min(orig_shape[0] - xstart_oldim,window[2] - xstart_newim)
+                    h = min(orig_shape[1] - ystart_oldim,window[3] - ystart_newim)
+
+                    self.image = np.zeros((window[3],window[2],self.native_image.shape[2]),dtype=self.native_image.dtype)
+                    self.image[ystart_newim:ystart_newim+h,xstart_newim:xstart_newim+w,:] = self.native_image[ystart_oldim:ystart_oldim+h,xstart_oldim:xstart_oldim+w,:]
+
+                else:
+                    # Simply crop the original
+                    self.image = self.image[ int(window[1] - self.geometry.offset[1]):int(window[1] - self.geometry.offset[1] + window[3]),int(window[0] - self.geometry.offset[0]):int(window[0] - self.geometry.offset[0] + window[2])]
 
             # Adjust point pairs
             if self.pointpairs is not None:
@@ -594,10 +630,8 @@ class Calibration():
                 modeldat['cx'],modeldat['cy'] = self.geometry.original_to_display_coords(orig_cc[i][0],orig_cc[i][1])
                 model.load_from_dict(modeldat)
 
-
-
         else:
-            raise ValueError('Cannot understand number of arguments: expected None or left,top,width,height')
+            raise ValueError('Cannot understand window argument: expected None or sequence of left,top,width,height')
 
 
 
@@ -1244,10 +1278,7 @@ class Calibration():
         hcntr = int(np.round(hcntr))
 
         # Horizontal extent of sub-field
-        if fullchip:
-            h_extent = np.array([0,hsize-1])
-        else:
-            h_extent = np.argwhere(subview_mask[vcntr,:] == subview)
+        h_extent = np.argwhere(subview_mask[vcntr,:] == subview)
 
         # Horizontal FOV
         norm1 = self.normalise(h_extent.min()-0.5,vcntr,subview=subview)
@@ -1327,8 +1358,7 @@ class Calibration():
 
 
         # Output should be the same shape as input + an extra length 3 axis
-        output = np.zeros(np.shape(x) + (3,))
-
+        output = np.zeros(np.shape(x) + (3,)) + np.nan
 
         if subview is None:
 
