@@ -7,6 +7,7 @@ Master branch changes since 2.5.0
 New & Enhancements:
 * Enable direct opening of .ccc files by passing the filename to the Calcam GUI executable.
 * Change references to "perspective" lens model to "rectilinear"
+* Allow setting of detector window using Calibration.set_detector_window() for multi sub-view calibrations if the requested window is not entirely overlapping with the original.
 
 Fixes:
 * Roll back changes to render_cam_view() made in v2.5.0 because they break rendering for images with multiple sub-views.
@@ -18,6 +19,9 @@ Fixes:
 * Fix a bug which raised an exception and prevented loading saved geometry matrices with newer versions of NumPy.
 * Replace exception raised when saving an empty alignment calibration with a friendlier dialog box.
 * Fix pop-up of VTK error window when closing Calcam GUI on Windows.
+* Fix Calibration.subview_mask not being restored properly when resetting detector windowing using Calibration.set_detector_window(None) (Issue #60)
+* Fix image cropping not working properly in Calibration.set_detector_window() if the requested window is bigger than the original calibration.
+
 
 Minor Release 2.5.0 (22 Jul 2020)
 ---------------------------------
