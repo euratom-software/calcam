@@ -254,6 +254,11 @@ class FittingCalib(CalcamGUIWindow):
             self.comparison_overlay_checkbox.setChecked(True)
 
 
+    def on_close(self):
+        self.qvtkwidget_2d.close()
+        self.qvtkwidget_3d.close()
+
+
     def reset(self,keep_cadmodel=False):
 
         self.fit_initted = False
@@ -632,7 +637,7 @@ class FittingCalib(CalcamGUIWindow):
             options_layout = qt.QGridLayout()
 
             # Selection of model
-            widgetlist = [qt.QRadioButton('Perspective Model'),qt.QRadioButton('Fisheye Model')]
+            widgetlist = [qt.QRadioButton('Rectilinear Lens'),qt.QRadioButton('Fisheye Lens')]
 
             if int(cv2.__version__[0]) < 3:
                 widgetlist[1].setEnabled(False)

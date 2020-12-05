@@ -316,7 +316,9 @@ class ImageAnalyser(CalcamGUIWindow):
                     self.update_from_3d(raydata.ray_end_coords[0,:])
                     return
 
-
+    def on_close(self):
+        self.qvtkwidget_3d.close()
+        self.qvtkwidget_2d.close()
 
 
     def load_calib(self):

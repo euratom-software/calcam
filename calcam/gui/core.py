@@ -1169,8 +1169,6 @@ class CalcamGUIWindow(qt.QMainWindow):
 
     def closeEvent(self,event):
 
-        self.on_close()
-
         if self.unsaved_changes:
             dialog = qt.QMessageBox(self)
             dialog.setStandardButtons(qt.QMessageBox.Save|qt.QMessageBox.Discard|qt.QMessageBox.Cancel)
@@ -1194,6 +1192,9 @@ class CalcamGUIWindow(qt.QMainWindow):
 
         self.config.mouse_sensitivity = self.control_sensitivity_slider.value()
         self.config.save()
+
+        self.on_close()
+
         sys.excepthook = sys.__excepthook__
 
 

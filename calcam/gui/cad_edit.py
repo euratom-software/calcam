@@ -186,6 +186,9 @@ class CADEdit(CalcamGUIWindow):
 
         self.unsaved_changes = True
 
+    def on_close(self):
+        self.qvtkwidget_3d.close()
+
 
     def change_default_view(self):
         selected_view = str(self.viewlist.selectedItems()[0].text(0)).replace('*','')

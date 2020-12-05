@@ -228,6 +228,10 @@ class Viewer(CalcamGUIWindow):
             self.lines_appearance_box.setEnabled(False)
 
 
+    def on_close(self):
+        self.qvtkwidget_3d.close()
+
+
     def set_projection(self):
 
         if self.proj_perspective.isChecked():

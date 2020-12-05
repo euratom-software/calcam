@@ -170,6 +170,8 @@ class AlignmentCalib(CalcamGUIWindow):
             self.tabWidget.setTabEnabled(2,True)
         self.update_intrinsics()
 
+    def on_close(self):
+        self.qvtkwidget_3d.close()
 
     def reset(self,keep_cadmodel=False):
 

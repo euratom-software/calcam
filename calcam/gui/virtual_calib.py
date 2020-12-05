@@ -129,6 +129,10 @@ class VirtualCalib(CalcamGUIWindow):
             self.focal_length_box.setValue(f)
 
 
+    def on_close(self):
+        self.qvtkwidget_3d.close()
+        
+
     def update_intrinsics(self):
 
         if self.sender() is self.load_intrinsics_button:

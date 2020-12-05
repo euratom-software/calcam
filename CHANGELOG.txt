@@ -6,6 +6,7 @@ Master branch changes since 2.5.0
 
 New & Enhancements:
 * Enable direct opening of .ccc files by passing the filename to the Calcam GUI executable.
+* Change references to "perspective" lens model to "rectilinear"
 
 Fixes:
 * Roll back changes to render_cam_view() made in v2.5.0 because they break rendering for images with multiple sub-views.
@@ -16,7 +17,7 @@ Fixes:
 * Fix bug in CoordTransformer.original_to_display_shape() and display_to_original_shape() where the pixel aspect ratio was ignored.
 * Fix a bug which raised an exception and prevented loading saved geometry matrices with newer versions of NumPy.
 * Replace exception raised when saving an empty alignment calibration with a friendlier dialog box.
-
+* Fix pop-up of VTK error window when closing Calcam GUI on Windows.
 
 Minor Release 2.5.0 (22 Jul 2020)
 ---------------------------------
