@@ -579,10 +579,10 @@ class Calibration():
             if self.image is not None:
                 self.native_image = copy.deepcopy(self.image)
 
+                orig_shape = self.geometry.get_original_shape()
+
                 # Case where the requested crop has parts outside the original image
                 if window[0] < self.geometry.offset[0] or window[1] < self.geometry.offset[1] or window[0] + window[2] > self.geometry.offset[0] + orig_shape[0] or window[1] + window[3] > self.geometry.offset[1] + orig_shape[1]:
-
-                    orig_shape = self.geometry.get_original_shape()
 
                     xstart_newim = max(0,self.geometry.offset[0] - window[0])
                     ystart_newim = max(0,self.geometry.offset[1] - window[1])
