@@ -46,13 +46,18 @@ def update_prompt_string(queue):
 
   try:
 
+    # Get full version strings of current version and latest release tag from GitHub
     response = request.urlopen('https://api.github.com/repos/euratom-software/calcam/tags',timeout=0.5)
     data = json.loads(response.read().decode('utf-8'))
-    latest_version = data[0]['name'].replace('v','')
-    current_version = __version__.split('+')[0]
+    latest_version_str = data[0]['name'].replace('v','')
+    current_version_str = __version__.split('+')[0]
 
+    # Compare major, minor and patch version numbers to see if the one on GitHub is newer than this one.
+    is_newer = [int(a) > int(b) for a,b in zip(latest_version_str.split('.'),current_version_str.split('.'))]
+
+    # If a newer version is available, return a string to tell the user that.
     updatestring = None
-    if current_version != latest_version:
+    if any(is_newer):
         updatestring = '<b>Calcam {:} is now available! Find out what changed <a href=https://github.com/euratom-software/calcam/blob/{:s}/CHANGELOG.txt>here</a>, and/or download the source zip <a href={:s}>here</a>!</b>'.format(data[0]['name'],data[0]['commit']['sha'],data[0]['zipball_url'])
     
     queue.put(updatestring)

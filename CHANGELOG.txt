@@ -1,6 +1,14 @@
 Calcam Changelog
 ================
 
+Patch 2.6.1 (08 Dec 2020)
+-------------------------
+
+Fixes:
+* Fix exception raised by Calibration.set_detector_window() for some combinations of calibrated and set detector windows.
+* Fix spurious update notifications when using development versions.
+
+
 Minor Release 2.6.0 (05 Dec 2020)
 ---------------------------------
 
