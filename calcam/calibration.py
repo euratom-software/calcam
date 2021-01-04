@@ -557,7 +557,7 @@ class Calibration():
                     w = min(orig_shape[0] - xstart_oldmask,window[2] - xstart_newmask)
                     h = min(orig_shape[1] - ystart_oldmask,window[3] - ystart_newmask)
 
-                    new_subview_mask[ystart_newmask:ystart_newmask+h,xstart_newmask:xstart_newmask+w] = orig_subview_mask[ystart_oldmask:ystart_oldmask+h,xstart_oldmask:xstart_oldmask+h]
+                    new_subview_mask[ystart_newmask:ystart_newmask+h,xstart_newmask:xstart_newmask+w] = orig_subview_mask[ystart_oldmask:ystart_oldmask+h,xstart_oldmask:xstart_oldmask+w]
 
                 else:
                     new_subview_mask = orig_subview_mask[window[1] - self.geometry.offset[1]:window[1] - self.geometry.offset[1] + window[3],window[0] - self.geometry.offset[0]:window[0] - self.geometry.offset[0] + window[2]]

@@ -1,6 +1,13 @@
 Calcam Changelog
 ================
 
+Changes on master branch since last release
+-------------------------------------------
+
+Fixes:
+* Fix bug in Calibration.set_detector_window() which raised exceptions for calibrations with multiple sub-views
+
+
 Patch 2.6.1 (08 Dec 2020)
 -------------------------
 
