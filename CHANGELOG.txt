@@ -4,8 +4,12 @@ Calcam Changelog
 Changes on master branch since last release
 -------------------------------------------
 
+New & Enhancements:
+* Add photoshop files for logo graphics to repo.
+
 Fixes:
 * Fix bug in Calibration.set_detector_window() which raised exceptions for calibrations with multiple sub-views
+* Fix a bug in Calibration.get_fov() which could raise exceptions when calling with fullchip=True, sometimes caused errors in fitting tool
 
 
 Patch 2.6.1 (08 Dec 2020)

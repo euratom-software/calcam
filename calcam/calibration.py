@@ -1267,33 +1267,32 @@ class Calibration():
         subview_mask = self.geometry.original_to_display_image(self.subview_mask)
 
         # Calculate FOV by looking at the angle between sight lines at the image extremes
+
+        # Horizontal and vertical extent in pixels that we need the FOV for
         if fullchip:
             hsize,vsize = self.geometry.get_display_shape()
-            vcntr = vsize/2.
-            hcntr = hsize/2.
+            v_extent = np.array([0, vsize - 1])
+            h_extent = np.array([0,hsize-1])
+            vcntr = int(np.round(vsize/2.))
+            hcntr = int(np.round(hsize/2.))
         else:
             vcntr,hcntr = CoM( subview_mask == subview )
+            vcntr = int(np.round(vcntr))
+            hcntr = int(np.round(hcntr))
+            h_extent = np.argwhere(subview_mask[vcntr, :] == subview)
+            v_extent = np.argwhere(subview_mask[:, hcntr] == subview)
 
-        vcntr = int(np.round(vcntr))
-        hcntr = int(np.round(hcntr))
-
-        # Horizontal extent of sub-field
-        h_extent = np.argwhere(subview_mask[vcntr,:] == subview)
 
         # Horizontal FOV
         norm1 = self.normalise(h_extent.min()-0.5,vcntr,subview=subview)
         norm2 = self.normalise(h_extent.max()+0.5,vcntr,subview=subview)
-        fov_h = 180*(np.arctan(norm2[0]) - np.arctan(norm1[0])) / 3.141592635
+        fov_h = 180*(np.arctan(norm2[0]) - np.arctan(norm1[0])) / np.pi
 
-        if fullchip:
-            v_extent = np.array([0,vsize-1])
-        else:
-            v_extent = np.argwhere(subview_mask[:,hcntr] == subview)
 
         # Vertical field of view
         norm1 = self.normalise(hcntr,v_extent.min()-0.5,subview=subview)
         norm2 = self.normalise(hcntr,v_extent.max()+0.5,subview=subview)
-        fov_v = 180*(np.arctan(norm2[1]) - np.arctan(norm1[1])) / 3.141592635
+        fov_v = 180*(np.arctan(norm2[1]) - np.arctan(norm1[1])) / np.pi
 
         return fov_h, fov_v
 
