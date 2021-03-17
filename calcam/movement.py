@@ -524,10 +524,10 @@ class MovementCorrection:
             np.ndarray : Array of y (vertical) pixel coordinates in the reference image
         '''
 
-        x = self.matrix[0,0]*x + self.matrix[0,1]*y + self.matrix[0,2]
-        y = self.matrix[1, 0] * x + self.matrix[1, 1] * y + self.matrix[1, 2]
+        xnew = self.matrix[0,0]*x + self.matrix[0,1]*y + self.matrix[0,2]
+        ynew = self.matrix[1, 0] * x + self.matrix[1, 1] * y + self.matrix[1, 2]
 
-        return x,y
+        return xnew,ynew
 
     def ref_to_moved_coords(self,x,y):
         '''
@@ -545,10 +545,10 @@ class MovementCorrection:
 
         matrix = np.linalg.inv(self.matrix)
 
-        x = matrix[0,0]*x + matrix[0,1]*y + matrix[0,2]
-        y = matrix[1, 0] * x + matrix[1, 1] * y + matrix[1, 2]
+        xnew = matrix[0,0]*x + matrix[0,1]*y + matrix[0,2]
+        ynew = matrix[1, 0] * x + matrix[1, 1] * y + matrix[1, 2]
 
-        return x,y
+        return xnew,ynew
 
     def save(self,filename):
         '''

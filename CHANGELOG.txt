@@ -10,7 +10,7 @@ New & Enhancements:
 Fixes:
 * Fix bug in Calibration.set_detector_window() which raised exceptions for calibrations with multiple sub-views
 * Fix a bug in Calibration.get_fov() which could raise exceptions when calling with fullchip=True, sometimes caused errors in fitting tool
-
+* Fux a bug in the MovementCorrection class which caused inaccurate results when calculating coordinate transformations between moved images 
 
 Patch 2.6.1 (08 Dec 2020)
 -------------------------
