@@ -10,7 +10,8 @@ New & Enhancements:
 Fixes:
 * Fix bug in Calibration.set_detector_window() which raised exceptions for calibrations with multiple sub-views
 * Fix a bug in Calibration.get_fov() which could raise exceptions when calling with fullchip=True, sometimes caused errors in fitting tool
-* Fux a bug in the MovementCorrection class which caused inaccurate results when calculating coordinate transformations between moved images 
+* Fix a bug in the MovementCorrection class which caused inaccurate results when calculating coordinate transformations between moved images
+* Fix exception raised when deleting the default view in CAD model editor (Issue #68) 
 
 Patch 2.6.1 (08 Dec 2020)
 -------------------------

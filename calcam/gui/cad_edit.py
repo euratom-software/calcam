@@ -734,8 +734,8 @@ class CADEdit(CalcamGUIWindow):
 
 
     def remove_view(self):
-
-        selected_view = str(self.viewlist.selectedItems()[0].text(0)).replace(' (Default)','')
+        
+        selected_view = str(self.viewlist.selectedItems()[0].text(0)).replace('*','')
         dialog = AreYouSureDialog(self,'Remove preset view','Are you sure you want to remove the view "{:s}"?'.format(selected_view))
         dialog.exec_()
         if dialog.result() == 1:
