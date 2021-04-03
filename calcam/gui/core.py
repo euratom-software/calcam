@@ -135,7 +135,11 @@ class CalcamGUIWindow(qt.QMainWindow):
 
         if external and excep_type != UserWarning:
             dialog = qt.QMessageBox(self)
+            dialog.setWindowFlags(dialog.windowFlags() | qt.Qt.CustomizeWindowHint)
+            dialog.setWindowFlags(dialog.windowFlags() & ~qt.Qt.WindowCloseButtonHint)
             dialog.setStandardButtons(dialog.Save | dialog.Discard)
+            dialog.button(dialog.Save).setText('Save error report')
+            dialog.button(dialog.Discard).setText('Do not save')
             dialog.setTextFormat(qt.Qt.RichText)
             dialog.setWindowTitle('Calcam - External Code Error')
             dialog.setText('An unhandled exception has been raised by external code. This could be because of a bug in the external code or in Calcam itself.')
@@ -184,7 +188,11 @@ class CalcamGUIWindow(qt.QMainWindow):
             # otherwise it's really an unexpected exception:
             else:
                 dialog = qt.QMessageBox(self)
+                dialog.setWindowFlags(dialog.windowFlags() | qt.Qt.CustomizeWindowHint)
+                dialog.setWindowFlags(dialog.windowFlags() & ~qt.Qt.WindowCloseButtonHint)
                 dialog.setStandardButtons(dialog.Save | dialog.Discard)
+                dialog.button(dialog.Save).setText('Save error report')
+                dialog.button(dialog.Discard).setText('Do not save')
                 dialog.setTextFormat(qt.Qt.RichText)
                 dialog.setWindowTitle('Calcam - Error')
                 dialog.setText('An unhandled exception has been raised; the action you were performing may have partially or completely failed. This is probably a bug in Calcam; to report it please save an error report file and report the problem at <a href="https://github.com/euratom-software/calcam/issues">here</a> and/or consider contributing a fix!')

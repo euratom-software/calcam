@@ -6,12 +6,15 @@ Changes on master branch since last release
 
 New & Enhancements:
 * Add photoshop files for logo graphics to repo.
+* Improved wording of buttons on GUI exception dialog box
 
 Fixes:
 * Fix bug in Calibration.set_detector_window() which raised exceptions for calibrations with multiple sub-views
 * Fix a bug in Calibration.get_fov() which could raise exceptions when calling with fullchip=True, sometimes caused errors in fitting tool
 * Fix a bug in the MovementCorrection class which caused inaccurate results when calculating coordinate transformations between moved images
-* Fix exception raised when deleting the default view in CAD model editor (Issue #68) 
+* Fix exception raised when deleting the default view in CAD model editor (Issue #68)
+* Removed non-functional close button on GUI exception dialog box
+
 
 Patch 2.6.1 (08 Dec 2020)
 -------------------------
