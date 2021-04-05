@@ -23,13 +23,12 @@ import vtk
 import cv2
 from vtk.util.numpy_support import vtk_to_numpy
 import numpy as np
-import os
-import sys
 import time
 from .raycast import raycast_sightlines
 import copy
+from .misc import bin_image
 
-def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampling=1,aa=1,transparency=False,verbose=True,coords = 'Display',interpolation='Cubic'):
+def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampling=1,aa=1,transparency=False,verbose=True,coords = 'display',interpolation='cubic'):
     '''
     Render an image of a given CAD model from the point of view of a given calibration.
 
@@ -46,8 +45,7 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
         transparency (bool)                 : If true, empty areas of the image are set transparent. Otherwise they are black.
         verbose (bool)                      : Whether to print status updates while rendering.
         coords (str)                        : Either ``Display`` or ``Original``, the image orientation in which to return the image.
-        interpolation(str)                  : Either ``nearest`` or ``cubic``, inerpolation used if re-sampling of the image during \
-                                              the rendering process. Note: if set to ``nesrest``, will make aa > 1 ineffective.
+        interpolation(str)                  : Either ``nearest`` or ``cubic``, inerpolation used when applying lens distortion.
 
     Returns:
         
@@ -62,8 +60,9 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
     elif interpolation.lower() == 'cubic':
         interp_method = cv2.INTER_CUBIC
     else:
-        raise ValueError('Interpolation method must be "nearest" or "cubic".')
+        raise ValueError('Invalid interpolation method "{:s}": must be "nearest" or "cubic".'.format(interpolation))
 
+    aa = int(max(aa,1))
 
     logbase2 = np.log(oversampling) / np.log(2)
     if abs(int(logbase2) - logbase2) > 1e-5:
@@ -96,6 +95,7 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
 
     renwin = vtk.vtkRenderWindow()
     renwin.OffScreenRenderingOn()
+    renwin.SetBorders(0)
 
 
     # Set up render window for initial, un-distorted window
@@ -126,30 +126,17 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
         cy = calibration.view_models[field].cam_matrix[1,2]
         fy = calibration.view_models[field].cam_matrix[1,1]
 
-        vtk_win_im = vtk.vtkRenderLargeImage()
-        vtk_win_im.SetInput(renderer)
+        vtk_win_im = vtk.vtkWindowToImageFilter()
+        vtk_win_im.SetInput(renwin)
 
         # Width and height - initial render will be put optical centre in the window centre
-        wt = int(2*fov_factor*max(cx,x_pixels-cx))
-        ht = int(2*fov_factor*max(cy,y_pixels-cy))
+        width = int(2*fov_factor*max(cx,x_pixels-cx))
+        height = int(2*fov_factor*max(cy,y_pixels-cy))
 
-        # Make sure the intended render window will fit on the screen.
-        # This makes the (reasonable) assumption that the current display is > 640x480.
-        # Doing this is required because if the off-screen render wndow is 
-        # bigger than the current screen resolution, the image alignment comes out wrong.
-        window_factor = 1
-        if wt > 640 or ht > 480:
-            window_factor = int( max( np.ceil(float(wt)/640.) , np.ceil(float(ht)/480.) ) )
-    
-        vtk_win_im.SetMagnification(int(window_factor*aa*max(oversampling,1)))
-
-        width = int(wt/window_factor)
-        height = int(ht/window_factor)
-
-        renwin.SetSize(width,height)
+        renwin.SetSize(int(width*aa*oversampling),int(height*aa*oversampling))
 
         # Set up CAD camera
-        fov_y = 360 * np.arctan( ht / (2*fy) ) / 3.14159
+        fov_y = 360 * np.arctan( height / (2*fy) ) / 3.14159
         cam_pos = calibration.get_pupilpos(subview=field)
         cam_tar = calibration.get_los_direction(cx,cy,subview=field) + cam_pos
         upvec = -1.*calibration.get_cam_to_lab_rotation(subview=field)[:,1]
@@ -185,26 +172,34 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
             alpha[np.sum(im,axis=2) == 0] = 0
             im = np.dstack((im,alpha))
 
-        im = cv2.resize(im,(int(dims[0]/aa*min(oversampling,1)),int(dims[1]/aa*min(oversampling,1))),interpolation=interp_method)
+        #print('Before resize: {:}'.format(im.shape))
+        #factor = int(aa)
+        #print(factor)
+        #im = bin_image(im,factor=int(aa),binfunc=np.mean)
+        #im = cv2.resize(im,(int(dims[0]/factor),int(dims[1]/factor)),interpolation=interp_method)
+        #print('After resize: {:}'.format(im.shape))
 
         if verbose:
             print('[Calcam Renderer] Applying lens distortion (Sub-view {:d}/{:d})...'.format(field + 1,calibration.n_subviews))
 
         # Pixel locations we want on the final image
-        [xn,yn] = np.meshgrid(np.linspace(0,x_pixels-1,x_pixels*oversampling),np.linspace(0,y_pixels-1,y_pixels*oversampling))
+        [xn,yn] = np.meshgrid(np.linspace(0,x_pixels-1,int(x_pixels*oversampling*aa)),np.linspace(0,y_pixels-1,int(y_pixels*oversampling*aa)))
 
         xn,yn = calibration.normalise(xn,yn,field)
 
         # Transform back to pixel coords where we want to sample the un-distorted render.
         # Both x and y are divided by Fy because the initial render always has Fx = Fy.
-        xmap = ((xn * fy) + (width*window_factor)/2.) * oversampling
-        ymap = ((yn * fy) + (height*window_factor)/2.) * oversampling
+        xmap = ((xn * fy) + (width)/2.) * oversampling * aa
+        ymap = ((yn * fy) + (height)/2.) * oversampling * aa
         xmap = xmap.astype('float32')
         ymap = ymap.astype('float32')
 
-
         # Actually apply distortion
         im  = cv2.remap(im,xmap,ymap,interp_method)
+
+        # Anti-aliasing by binning
+        if aa > 1:
+            im = bin_image(im,aa,np.mean)
 
         output[fieldmask == field,:] = im[fieldmask == field,:]
 
@@ -246,17 +241,24 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
 
 
 
-def render_hires(renderer,oversampling=1,aa=1,transparency=False,interpolation='cubic'):
+def render_hires(renderer,oversampling=1,aa=1,transparency=False):
+    """
+    Render the contents of an existing vtkRenderer to an image array, if requested at higher resolution
+    than the existing renderer's current size. N.B. if calling with oversampling > 1 or aa > 1 and using
+    VTK versions > 8.2, the returned images will have a slightly smaller field of view than requested. This
+    is a known problem caused by the behaviour of VTK; I don't currently have a way to do anything about it.
 
-    if interpolation.lower() == 'nearest':
-        interp_method = cv2.INTER_NEAREST
-    elif interpolation.lower() == 'cubic':
-        interp_method = cv2.INTER_CUBIC
-    else:
-        raise ValueError('Interpolation method must be "nearest" or "cubic".')
+    Parameters:
+
+        renderer (vtk.vtkRenderer)  : Renderer from which to create the image
+        oversampling (int)          : Factor by which to enlarge the resolution
+        aa (int)                    : Factor by which to anti-alias by rendering at higher resolution then re-sizing down
+        transparency (bool)         : Whether to make black image areas transparent
+
+    """
 
     # Thicken up all the lines according to AA setting to make sure
-    # they dnon't end upp invisibly thin.
+    # they don't end upp invisibly thin.
     actorcollection = renderer.GetActors()
     actorcollection.InitTraversal()
     actor = actorcollection.GetNextItemAsObject()
@@ -276,7 +278,7 @@ def render_hires(renderer,oversampling=1,aa=1,transparency=False,interpolation='
     vtk_im_array = vtk_im.GetPointData().GetScalars()
     im = np.flipud(vtk_to_numpy(vtk_im_array).reshape(dims[1], dims[0] , 3))
 
-    # Un-mess with the line widths
+    # Put all the line widths back to normal
     actorcollection.InitTraversal()
     actor = actorcollection.GetNextItemAsObject()
     while actor is not None:
@@ -289,12 +291,10 @@ def render_hires(renderer,oversampling=1,aa=1,transparency=False,interpolation='
         alpha[np.sum(im,axis=2) == 0] = 0
         im = np.dstack((im,alpha))
 
-    im = cv2.resize(im,(int(dims[0]/aa),int(dims[1]/aa)),interpolation=interp_method)
+    # Anti-aliasing by binning
+    im = bin_image(im,aa,np.mean)
 
     return im
-
-
-
 
 
 def get_fov_actor(cadmodel,calib,actor_type='volume',resolution=None):
@@ -495,7 +495,7 @@ def get_wall_contour_actor(wall_contour,actor_type='contour',phi=None,toroidal_r
             polygons.InsertNextCell(polygon)
         
 
-        polydata = polydata = vtk.vtkPolyData()
+        polydata = vtk.vtkPolyData()
         polydata.SetPoints(points)
         polydata.SetPolys(polygons)
 
