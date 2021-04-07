@@ -130,8 +130,8 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
         vtk_win_im.SetInput(renwin)
 
         # Width and height - initial render will be put optical centre in the window centre
-        width = int(2*fov_factor*max(cx,x_pixels-cx))
-        height = int(2*fov_factor*max(cy,y_pixels-cy))
+        width = int(2 * fov_factor * max(cx, x_pixels - cx))
+        height = int(2 * fov_factor * max(cy, y_pixels - cy))
 
         renwin.SetSize(int(width*aa*oversampling),int(height*aa*oversampling))
 
@@ -172,13 +172,6 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
             alpha[np.sum(im,axis=2) == 0] = 0
             im = np.dstack((im,alpha))
 
-        #print('Before resize: {:}'.format(im.shape))
-        #factor = int(aa)
-        #print(factor)
-        #im = bin_image(im,factor=int(aa),binfunc=np.mean)
-        #im = cv2.resize(im,(int(dims[0]/factor),int(dims[1]/factor)),interpolation=interp_method)
-        #print('After resize: {:}'.format(im.shape))
-
         if verbose:
             print('[Calcam Renderer] Applying lens distortion (Sub-view {:d}/{:d})...'.format(field + 1,calibration.n_subviews))
 
@@ -189,8 +182,8 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
 
         # Transform back to pixel coords where we want to sample the un-distorted render.
         # Both x and y are divided by Fy because the initial render always has Fx = Fy.
-        xmap = ((xn * fy) + (width)/2.) * oversampling * aa
-        ymap = ((yn * fy) + (height)/2.) * oversampling * aa
+        xmap = (xn * fy * oversampling * aa) + (width * oversampling * aa - 1)/2
+        ymap = (yn * fy * oversampling * aa) + (height * oversampling * aa - 1)/2
         xmap = xmap.astype('float32')
         ymap = ymap.astype('float32')
 
