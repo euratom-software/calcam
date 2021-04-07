@@ -28,6 +28,11 @@ from .raycast import raycast_sightlines
 import copy
 from .misc import bin_image
 
+# This is the maximum image dimension which we expect VTK can succeed at rendering in a single RenderWindow.
+# Hopefully 5120 is conservative enough to be safe on most systems but also not restrict render quality too much.
+# If getting blank images when trying to render at high resolutions, try reducing this.
+max_render_dimension = 5120
+
 def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampling=1,aa=1,transparency=False,verbose=True,coords = 'display',interpolation='cubic'):
     '''
     Render an image of a given CAD model from the point of view of a given calibration.
@@ -97,11 +102,9 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
     renwin.OffScreenRenderingOn()
     renwin.SetBorders(0)
 
-
     # Set up render window for initial, un-distorted window
     renderer = vtk.vtkRenderer()
     renwin.AddRenderer(renderer)
-
     camera = renderer.GetActiveCamera()
 
     cad_linewidths = np.array(cadmodel.get_linewidth())
@@ -111,13 +114,13 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
     for actor in extra_actors:
         actor.GetProperty().SetLineWidth( actor.GetProperty().GetLineWidth() * aa)
         renderer.AddActor(actor)
-        
-
 
     # We need a field mask the same size as the output
     fieldmask = cv2.resize(calibration.get_subview_mask(coords='Display'),(int(x_pixels*oversampling),int(y_pixels*oversampling)),interpolation=cv2.INTER_NEAREST)
 
     for field in range(calibration.n_subviews):
+
+        render_shrink_factor = 1
 
         if calibration.view_models[field] is None:
             continue
@@ -133,7 +136,22 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
         width = int(2 * fov_factor * max(cx, x_pixels - cx))
         height = int(2 * fov_factor * max(cy, y_pixels - cy))
 
-        renwin.SetSize(int(width*aa*oversampling),int(height*aa*oversampling))
+        # To avoid trying to render an image larger than the available OpenGL texture buffer,
+        # check if the image will be too big and if it will, first try reducing the AA, and if
+        # that isn't enough we will render a smaller image and then resize it afterwards.
+        # Not ideal but avoids ending up with black images. What would be nicer, is if
+        # VTK could fix their large image rendering code to preserve the damn field of view properly!
+        longest_side = max(width,height)*aa*oversampling
+
+        while longest_side > max_render_dimension and aa > 1.5:
+            aa = aa / 2
+            longest_side = max(width, height) * aa * oversampling
+
+        while longest_side > max_render_dimension:
+            render_shrink_factor = render_shrink_factor * 2
+            longest_side = max(width,height)*aa*oversampling/render_shrink_factor
+
+        renwin.SetSize(int(width*aa*oversampling/render_shrink_factor),int(height*aa*oversampling/render_shrink_factor))
 
         # Set up CAD camera
         fov_y = 360 * np.arctan( height / (2*fy) ) / 3.14159
@@ -166,7 +184,12 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
         dims = vtk_image.GetDimensions()
 
         im = np.flipud(vtk_to_numpy(vtk_array).reshape(dims[1], dims[0] , 3))
-        
+
+        # If we have had to do a smaller render for graphics driver reasons, scale the render up to the resolution
+        # we really wanted.
+        if render_shrink_factor > 1:
+            im = cv2.resize(im,(im.shape[1]*render_shrink_factor,im.shape[0]*render_shrink_factor),interpolation=interp_method)
+
         if transparency:
             alpha = 255 * np.ones([np.shape(im)[0],np.shape(im)[1]],dtype='uint8')
             alpha[np.sum(im,axis=2) == 0] = 0
@@ -217,7 +240,6 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
         cv2.imwrite(filename,save_im)
         if verbose:
             print('[Calcam Renderer] Result saved as {:s}'.format(filename))
-    
 
 
     # Tidy up after ourselves!
