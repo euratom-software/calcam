@@ -14,6 +14,7 @@ Fixes:
 * Fix a bug in the MovementCorrection class which caused inaccurate results when calculating coordinate transformations between moved images
 * Fix exception raised when deleting the default view in CAD model editor (Issue #68)
 * Removed non-functional close button on GUI exception dialog box
+* Fixed various misbehaviour when loading image with incomplete metadata in to image analyser tool
 
 
 Patch 2.6.1 (08 Dec 2020)
