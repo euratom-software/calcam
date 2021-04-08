@@ -8,7 +8,7 @@ What you will need
 
 A computer with Python installed
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Calcam will work with Python on Windows, Linux or OSX. If starting from scratch and you have a choice of Python versions, it is recommended to use Python 3.7. It will work fine with earlier versions of 3.x, however 3.8 is more difficult because the the required version of VTK is not easily available for Python 3.8 (as of July 2020). You can download installers for Python 3.7 for Windows or OSX from `Python.org <https://www.python.org/downloads/release/python-378/>`_ , or get it from your favourite software repository on Linux.
+Calcam will work with Python on Windows, Linux or OSX. You can download installers for Python for Windows or OSX from `Python.org <https://www.python.org/downloads/>`_ , or get it from your favourite software repository on Linux. If starting from fresh, Python 3.8 is currently recommended, because the libraries which Calcam is built on are readily available for it.
 
 You will also need the ``pip`` package installed for the Calcam installer script to work. If you are using Python 3.4 or newer from Python.org, ``pip`` will be installed by default, and it's also probably included in most other modern Python distributions you might be using. If you don't have ``pip`` installed, the Calcam setup script will give an error message telling you so. Documentation for how to get pip can be found `here <https://pip.pypa.io/en/stable/installing/>`_ . 
 
@@ -79,9 +79,7 @@ Calcam is built upon several existing libraries, which means it requires various
 |                     |                                                                                                                                                                    |
 |                     | If running under OSX older than 10.12, versions newer than 3.2 may cause crashes on import (downgrade to versions < 3.3 to fix).                                   |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| VTK                 | OK with versions between 6.2 to 8.1.6.                                                                                                                             |
-|                     |                                                                                                                                                                    |
-|                     | Versions 8.2.0 or newer do not work properly with Calcam! (see `Issue #58 <https://github.com/euratom-software/calcam/issues/58>`_ )                               |
+| VTK                 | Tested with versions between 6.2 to 9.0                                                                                                                            |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | PyQt                | Tested up to 5.15.0                                                                                                                                                |
 |                     |                                                                                                                                                                    |
