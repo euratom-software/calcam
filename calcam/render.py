@@ -26,16 +26,22 @@ import numpy as np
 import time
 from .raycast import raycast_sightlines
 import copy
-from .misc import bin_image
+from .misc import bin_image, common_factors
 
 # This is the maximum image dimension which we expect VTK can succeed at rendering in a single RenderWindow.
 # Hopefully 5120 is conservative enough to be safe on most systems but also not restrict render quality too much.
 # If getting blank images when trying to render at high resolutions, try reducing this.
+# TODO: Add a function to this module to determine the best value for this automatically
 max_render_dimension = 5120
 
 def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampling=1,aa=1,transparency=False,verbose=True,coords = 'display',interpolation='cubic'):
     '''
     Render an image of a given CAD model from the point of view of a given calibration.
+
+    NOTE: This function uses off-screen OpenGL rendering which fails above some image dimension which depends on the system.
+    The workaround for this is that above a render dimension set by calcam.render.max_render_dimension, the image is rendered
+    at lower resolution and then scaled up using nearest-neighbour scaling. For this reason, when rendering high resolution
+    images the rendered image quality may be lower than expected.
 
     Parameters:
 
@@ -44,9 +50,10 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
         extra_actors (list of vtk.vtkActor) : List containing any additional vtkActors to add to the scene \
                                               in addition to the CAD model.
         filename (str)                      : Filename to which to save the resulting image. If not given, no file is saved.
-        oversampling (float)                : Used to render the image at higer (if > 1) or lower (if < 1) resolution than the \
-                                              calibrated camera. Must be an integer power of 2.
-        aa (int)                            : Anti-aliasing factor. 1 = no anti-aliasing.
+        oversampling (float)                : Used to render the image at higher (if > 1) or lower (if < 1) resolution than the \
+                                              calibrated camera. Must be an integer if > 1 or if <1, 1/oversampling must be a \
+                                              factor of both image width and height.
+        aa (int)                            : Anti-aliasing factor, 1 = no anti-aliasing.
         transparency (bool)                 : If true, empty areas of the image are set transparent. Otherwise they are black.
         verbose (bool)                      : Whether to print status updates while rendering.
         coords (str)                        : Either ``Display`` or ``Original``, the image orientation in which to return the image.
@@ -69,10 +76,17 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
 
     aa = int(max(aa,1))
 
-    logbase2 = np.log(oversampling) / np.log(2)
-    if abs(int(logbase2) - logbase2) > 1e-5:
-        raise ValueError('Oversampling must be a power of two!')
+    if oversampling > 1:
+        if int(oversampling) - oversampling > 1e-5:
+            raise ValueError('If using oversampling > 1, oversampling must be an integer!')
 
+    elif oversampling < 1:
+        shape = calibration.geometry.get_display_shape()
+        undersample_x = oversampling * shape[0]
+        undersample_y = oversampling * shape[1]
+
+        if abs(int(undersample_x) - undersample_x) > 1e-5 or abs(int(undersample_y) - undersample_y) > 1e-5:
+            raise ValueError('If using oversampling < 1, 1/oversampling must be a common factor of the display image width and height ({:d}x{:d})'.format(shape[0],shape[1]))
 
     if verbose:
         tstart = time.time()
@@ -143,12 +157,12 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
         # VTK could fix their large image rendering code to preserve the damn field of view properly!
         longest_side = max(width,height)*aa*oversampling
 
-        while longest_side > max_render_dimension and aa > 1.5:
-            aa = aa / 2
+        while longest_side > max_render_dimension and aa > 1:
+            aa = aa - 1
             longest_side = max(width, height) * aa * oversampling
 
         while longest_side > max_render_dimension:
-            render_shrink_factor = render_shrink_factor * 2
+            render_shrink_factor = render_shrink_factor + 1
             longest_side = max(width,height)*aa*oversampling/render_shrink_factor
 
         renwin.SetSize(int(width*aa*oversampling/render_shrink_factor),int(height*aa*oversampling/render_shrink_factor))
@@ -188,7 +202,7 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
         # If we have had to do a smaller render for graphics driver reasons, scale the render up to the resolution
         # we really wanted.
         if render_shrink_factor > 1:
-            im = cv2.resize(im,(im.shape[1]*render_shrink_factor,im.shape[0]*render_shrink_factor),interpolation=interp_method)
+            im = cv2.resize(im,(width*aa*oversampling,height*aa*oversampling),interpolation=cv2.INTER_NEAREST)
 
         if transparency:
             alpha = 255 * np.ones([np.shape(im)[0],np.shape(im)[1]],dtype='uint8')
