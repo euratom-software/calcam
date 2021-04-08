@@ -253,3 +253,35 @@ class LoopProgPrinter:
             
             
             self.end_printed = True
+
+
+def bin_image(arr, factor,binfunc=np.mean):
+    """
+    Bin an image by the given factor.
+
+    Parameters:
+
+        arr     (array)    :  Input image / array for binning
+        factor  (int)      :  Factor by which to bin, e.g. factor=2 would be 2x2 binning.
+        binfunc (callable) :  Function to bin with, Numpy ufunc-style. Default is mean.
+
+    Returns:
+
+        Array with the binned image.
+
+    """
+    factor = int(factor)
+
+    if arr.shape[0] % factor or arr.shape[1] % factor:
+        raise ValueError('The binning factor {:d} is not an integer factor of the array dimensions {:d}x{:d}!'.format(factor,arr.shape[1],arr.shape[0]))
+
+    shape = (arr.shape[0]//factor, factor,
+             arr.shape[1]//factor, factor)
+
+    if len(arr.shape) == 2:
+        return binfunc(binfunc(arr.reshape(shape), axis=-1), axis=1)
+    elif len(arr.shape) == 3:
+        out = np.zeros((arr.shape[0] // factor, arr.shape[1] // factor) + arr.shape[2:], dtype=arr.dtype)
+        for channel in range(arr.shape[2]):
+            out[:,:,channel] = bin_image(arr[:,:,channel],factor,binfunc)
+        return out

@@ -91,15 +91,12 @@ if 'install' in sys.argv or 'develop' in sys.argv:
     if check_dependency('vtk'):
         import vtk
         if vtk.vtkVersion.GetVTKMajorVersion() >= 6:
-            if vtk.vtkVersion.GetVTKMajorVersion() >= 8 and vtk.vtkVersion.GetVTKMinorVersion() > 1:
-                print('Dependency VTK: Installed version >8.1 is known to cause wrong results!')
-            else:
-                print('Dependency VTK: OK!')
-                vtk = True
+            print('Dependency VTK: OK!')
+            vtk = True
 
     if not vtk:
         print('Dependency VTK: trying to install using pip...\n')
-        if pip_install('vtk>=6,<8.2'):
+        if pip_install('vtk>=6'):
             print('\nVTK installed OK!')
             vtk = True
         else:
