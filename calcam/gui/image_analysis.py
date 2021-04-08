@@ -515,11 +515,11 @@ class ImageAnalyser(CalcamGUIWindow):
 
         self.image_load_coords = newim['coords']
 
-        self.interactor2d.set_image(self.image_geometry.original_to_display_image(self.image))
-
 
         if self.calibration is not None:
-            self.interactor2d.set_subview_lookup(self.calibration.n_subviews,self.calibration.subview_lookup)
+            self.interactor2d.set_image(self.image_geometry.original_to_display_image(self.image),n_subviews=self.calibration.n_subviews,subview_lookup=self.calibration.subview_lookup)
+        else:
+            self.interactor2d.set_image(self.image_geometry.original_to_display_image(self.image))
 
         self.image_settings.show()
 
