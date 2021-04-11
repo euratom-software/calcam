@@ -311,11 +311,16 @@ class ImageAnalyser(CalcamGUIWindow):
     def update_from_2d(self,coords_2d):
 
         if self.calibration is not None and self.image is not None and self.cadmodel is not None:
+
             for i,coords in enumerate(coords_2d):
-                if coords is not None and np.any(coords != self.coords_2d[i]):
-                    raydata = raycast_sightlines(self.calibration,self.cadmodel,coords[0],coords[1],coords='Display')
-                    self.update_from_3d(raydata.ray_end_coords[0,:])
-                    return
+                if coords is not None:
+                    if self.calibration.subview_lookup(*coords) == -1:
+                        raise UserWarning('The clicked position is outside the calibrated field of view.')
+                    elif np.any(coords != self.coords_2d[i]):
+                        raydata = raycast_sightlines(self.calibration,self.cadmodel,coords[0],coords[1],coords='Display')
+                        self.update_from_3d(raydata.ray_end_coords[0,:])
+                        return
+
 
     def on_close(self):
         self.qvtkwidget_3d.close()
@@ -483,27 +488,21 @@ class ImageAnalyser(CalcamGUIWindow):
         newim_geometry.set_transform_actions(newim['transform_actions'])
 
         if self.calibration is not None:
-            adjust_crop = False
-            if newim['coords'].lower() == 'display':
 
-                if newim_geometry.get_display_shape() != self.calibration.geometry.get_display_shape() or newim_geometry.offset != self.calibration.geometry.offset:
-                    adjust_crop = True
-                    osize = self.calibration.geometry.display_to_original_shape(newim_geometry.get_display_shape())
-                    self.calibration.set_detector_window((newim_geometry.offset[0],newim_geometry.offset[1],osize[0],osize[1]))
+            if newim_geometry.get_display_shape() != self.calibration.geometry.get_display_shape() or newim_geometry.offset != self.calibration.geometry.offset:
+                new_geom = copy.deepcopy(self.calibration.geometry)
+                new_geom.set_image_shape(*newim_geometry.get_display_shape(),coords='Display')
+                osize = new_geom.get_original_shape()
 
-            else:
-                if newim_geometry.get_original_shape() != self.calibration.geometry.get_original_shape() or newim_geometry.offset != self.calibration.geometry.offset:
-                    adjust_crop = True
-                    osize = newim_geometry.get_original_shape()
-                    self.calibration.set_detector_window((newim_geometry.offset[0],newim_geometry.offset[1],osize[0],osize[1]))
+                self.calibration.geometry.set_pixel_aspect(new_geom.pixel_aspectratio,relative_to='original')
+                self.calibration.set_detector_window((newim_geometry.offset[0],newim_geometry.offset[1],osize[0],osize[1]))
 
-            self.image_geometry = self.calibration.geometry
-
-            if adjust_crop:
                 self.overlay = None
                 if self.overlay_checkbox.isChecked():
                     self.overlay_checkbox.setChecked(False)
                     self.overlay_checkbox.setChecked(True)
+
+            self.image_geometry = self.calibration.geometry
 
         else:
             self.image_geometry = newim_geometry

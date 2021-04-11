@@ -474,7 +474,9 @@ class Calibration():
         Parameters:
 
             window (sequence)      : A 4-element sequence of integers defining the \
-                                     detector window coordinates (Left,Top,Width,Height)
+                                     detector window coordinates (Left,Top,Width,Height). This MUST \
+                                     be specified in 'original' detector coordinates (i.e. before any \
+                                     image rotation, flips etc).
 
             bounds_error (str)     : How to handle the case for calibrations with multiple \
                                      sub-views if the requested detector region goes outside \
@@ -613,9 +615,8 @@ class Calibration():
 
             # Change the image shape that the coord transformer is expecting
             self.native_geometry = (self.geometry.x_pixels,self.geometry.y_pixels,self.geometry.offset)
-            self.geometry.x_pixels = window[2]
-            self.geometry.y_pixels = window[3]
-            self.geometry.offset = (window[0],window[1])
+            self.geometry.set_offset(window[0],window[1])
+            self.geometry.set_image_shape(window[2],window[3],coords='Original')
 
             if self.pointpairs is not None:
                 self.pointpairs = self.geometry.original_to_display_pointpairs(pp_before)

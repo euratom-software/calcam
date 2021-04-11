@@ -80,18 +80,35 @@ class CoordTransformer:
             h (int)      : Image height in pixels
             coords (str) : 'Original' or 'Display', whether the specified with and height are the display or original shape
         """
-        shape = [w,h]
-        
         if coords.lower() == 'display':
-            for action in self.transform_actions:
-                if action.lower() in ['rotate_clockwise_90','rotate_clockwise_270']:
-                    shape = list(reversed(shape))
-            shape[1] = np.round(shape[1] / self.pixel_aspectratio)
-            self.pixel_aspectratio = h/shape[1]
-            
+
+            shape = list(self.display_to_original_shape([w,h]))
+
+            if self._is_sideways():
+                self.pixel_aspectratio = w/shape[1]
+            else:
+                self.pixel_aspectratio = h/shape[1]
+
+        else:
+            shape = [w, h]
+            self.pixel_aspectratio = np.round(h * self.pixel_aspectratio) / shape[1]
+
         self.x_pixels = int(shape[0])
         self.y_pixels = int(shape[1])
-            
+
+
+
+    def _is_sideways(self):
+        """
+        Returns true if the image is rotated by 90 or 270 degrees compared to the
+        raw sensor image, otherwise returns false
+        """
+        sideways = False
+        for action in self.transform_actions:
+            if action.lower() in ['rotate_clockwise_90', 'rotate_clockwise_270']:
+                sideways = not sideways
+
+        return sideways
 
 
     def set_offset(self,x_offset,y_offset):
@@ -167,12 +184,8 @@ class CoordTransformer:
         if relative_to.lower() == 'original':
             self.pixel_aspectratio = pixel_aspect * ref_aspect
         else:
-            sideways = False
-            for action in self.transform_actions:
-                if action.lower() in ['rotate_clockwise_90','rotate_clockwise_270']:
-                    sideways = not sideways
             
-            if sideways:
+            if self._is_sideways():
                 self.pixel_aspectratio = ref_aspect/pixel_aspect
             else:
                 self.pixel_aspectratio = ref_aspect*pixel_aspect
@@ -195,9 +208,8 @@ class CoordTransformer:
         shape = np.array(shape,dtype=np.float32)
         shape[1] = shape[1] * self.pixel_aspectratio
 
-        for action in self.transform_actions:
-            if action.lower() in ['rotate_clockwise_90','rotate_clockwise_270']:
-                shape = shape[::-1]
+        if self._is_sideways():
+            shape = shape[::-1]
 
         return tuple(np.round(shape).astype(int))
 
@@ -217,11 +229,11 @@ class CoordTransformer:
            Tuple : 2-element tuple specifying the original image (width,height).
         """
         shape = np.array(shape,dtype=np.float32)
-        shape[1] = shape[1] / self.pixel_aspectratio
 
-        for action in self.transform_actions:
-            if action.lower() in ['rotate_clockwise_90','rotate_clockwise_270']:
-                shape = shape[::-1]
+        if self._is_sideways():
+            shape = shape[::-1]
+
+        shape[1] = shape[1] / self.pixel_aspectratio
 
         return tuple(np.round(shape).astype(int))
 
@@ -466,6 +478,7 @@ class CoordTransformer:
 
             Tuple specifying the (width,height) of the image in display orientation
         """
+
         display_shape = [self.x_pixels,int(np.round(self.y_pixels*self.pixel_aspectratio))]
 
         for action in self.transform_actions:
