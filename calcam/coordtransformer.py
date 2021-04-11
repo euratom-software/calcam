@@ -87,6 +87,7 @@ class CoordTransformer:
                 if action.lower() in ['rotate_clockwise_90','rotate_clockwise_270']:
                     shape = list(reversed(shape))
             shape[1] = np.round(shape[1] / self.pixel_aspectratio)
+            self.pixel_aspectratio = h/shape[1]
             
         self.x_pixels = int(shape[0])
         self.y_pixels = int(shape[1])

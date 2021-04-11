@@ -357,10 +357,11 @@ class ImageAnalyser(CalcamGUIWindow):
         self.reset_view_button.setEnabled(True)
         self.overlay = None
 
-        if self.enhance_checkbox.isChecked():
-            self.interactor2d.set_image(enhance_image(self.image_geometry.original_to_display_image(self.image)))
-        else:
-            self.interactor2d.set_image(self.image_geometry.original_to_display_image(self.image))
+        if self.image is not None:
+            if self.enhance_checkbox.isChecked():
+                self.interactor2d.set_image(enhance_image(self.image_geometry.original_to_display_image(self.image)))
+            else:
+                self.interactor2d.set_image(self.image_geometry.original_to_display_image(self.image))
 
         self.interactor2d.set_subview_lookup(self.calibration.n_subviews,self.calibration.subview_lookup)
 
@@ -506,7 +507,6 @@ class ImageAnalyser(CalcamGUIWindow):
 
         else:
             self.image_geometry = newim_geometry
-
 
         if newim['coords'].lower() == 'display':
             self.image = self.image_geometry.display_to_original_image(image)
