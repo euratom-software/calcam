@@ -489,9 +489,18 @@ class ImageAnalyser(CalcamGUIWindow):
 
         if self.calibration is not None:
 
-            if newim_geometry.get_display_shape() != self.calibration.geometry.get_display_shape() or newim_geometry.offset != self.calibration.geometry.offset:
+            if newim['coords'].lower() == 'original':
+                size_mismatch = newim_geometry.get_original_shape() != self.calibration.geometry.get_original_shape()
+            else:
+                size_mismatch = newim_geometry.get_display_shape() != self.calibration.geometry.get_display_shape()
+
+            size_mismatch = size_mismatch | (newim_geometry.offset[0] != self.calibration.geometry.offset[0]) | (newim_geometry.offset[1] != self.calibration.geometry.offset[1])
+
+            if  size_mismatch:
+
                 new_geom = copy.deepcopy(self.calibration.geometry)
-                new_geom.set_image_shape(*newim_geometry.get_display_shape(),coords='Display')
+                new_geom.set_image_shape(image.shape[1],image.shape[0],coords=newim['coords'])
+                new_geom.set_offset(*newim_geometry.offset)
                 osize = new_geom.get_original_shape()
 
                 self.calibration.geometry.set_pixel_aspect(new_geom.pixel_aspectratio,relative_to='original')
@@ -526,6 +535,11 @@ class ImageAnalyser(CalcamGUIWindow):
             self.enhance_checkbox.setChecked(False)
             self.enhance_checkbox.setChecked(True)
 
+        try:
+            coords3d = self.interactor3d.get_cursor_coords(self.cursor_ids['3d'])
+            self.update_from_3d(coords3d)
+        except KeyError as e:
+            pass
 
         self.update_image_info_string(self.image,self.image_geometry)
         self.app.restoreOverrideCursor()
