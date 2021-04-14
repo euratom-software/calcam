@@ -1,5 +1,5 @@
 '''
-* Copyright 2015-2018 European Atomic Energy Community (EURATOM)
+* Copyright 2015-2021 European Atomic Energy Community (EURATOM)
 *
 * Licensed under the EUPL, Version 1.1 or - as soon they
   will be approved by the European Commission - subsequent
@@ -25,10 +25,10 @@ import json
 import sys
 import glob
 import traceback
-import imp
 import multiprocessing
 
 from .io import ZipSaveFile
+from .misc import import_source, unload_source
 
 
 # Number of CPUs to use for multiprocessing enabled
@@ -156,9 +156,7 @@ class CalcamConfig():
 
             trylist = []
             for f in filelist:
-                if os.path.isdir(f) and os.path.isfile(os.path.join(f,'__init__.py')):
-                    trylist.append(os.path.join(f,'__init__.py'))
-                elif f.endswith('.py'):
+                if (os.path.isdir(f) and os.path.isfile(os.path.join(f,'__init__.py'))) or f.endswith('.py'):
                     trylist.append(f)
 
             for fname in trylist:
@@ -166,10 +164,34 @@ class CalcamConfig():
                     tidy_name = os.sep.join(fname.split(os.sep)[-3:-1])
                 else:
                     tidy_name = os.sep.join(fname.split(os.sep)[-2:])
+
                 try:
-                    usermodule = imp.load_source(tidy_name,fname)
-                    usermodule.get_image_function
-                    usermodule.get_image_arguments
+                    # Import the module, check it has the right attributes and add its info to the metadata table
+                    usermodule = import_source(fname)
+
+                    try:
+                        if not callable(usermodule.get_image_function):
+                            raise ImportError()
+                    except Exception:
+                        meta.append([tidy_name, fname, 'Not a valid image source definition:\nDoes not contain required function "get_image_function(..)"'])
+                        continue
+
+                    try:
+                        if type(usermodule.get_image_arguments) is not list:
+                            raise ImportError
+                    except Exception:
+                        meta.append([tidy_name, fname, 'Not a valid image source definition:\nDoes not contain required list attribute "get_image_arguments"'])
+                        continue
+
+                    try:
+                        if type(usermodule.display_name) is not str:
+                            raise ImportError
+                    except Exception:
+                        meta.append([tidy_name, fname, 'Not a valid image source definition:\nDoes not contain required string attribute  "display_name"'])
+                        continue
+
+
+                    # Make sure the imported modules have unique display names
                     if usermodule.display_name in displaynames:
                         old_ind = displaynames.index(usermodule.display_name)
                         for i,metadata in enumerate(meta):
@@ -185,18 +207,25 @@ class CalcamConfig():
                             tidyname = os.sep.join(other_path.split(os.sep)[-2:])
                         image_sources[old_ind].display_name = image_sources[old_ind].display_name + ' [{:s}]'.format(tidyname)
                         meta[old_meta_ind][0] = image_sources[old_ind].display_name
+
                     displaynames.append(usermodule.display_name)
                     image_sources.append(usermodule)
                     meta.append([usermodule.display_name,fname,None])
-                except:
-                    meta.append([tidy_name,fname,''.join(traceback.format_exception_only(sys.exc_info()[0],sys.exc_info()[1]))])
+                except Exception:
+                    # If it won't import or doesn't have the right attributes, show this in the metadata
+                    tb_info = ''.join(traceback.format_exception(*sys.exc_info(), limit=-1))
+                    meta.append([tidy_name,fname,'Cannot be imported:\n{:s}'.format(tb_info)])
                     continue
+
+                # Built-in image sources get special metadata
                 if path == builtin_imsource_path:
                     meta[-1][1] = None
-                else:
-                    meta[-1][1] = meta[-1][1].replace('__init__.py','')
+
 
         if meta_only:
+            for module_meta in meta:
+                if module_meta[-1] is None and module_meta[1] is not None:
+                    unload_source(module_meta[1])
             return meta
         else:
             return image_sources

@@ -1,5 +1,5 @@
 '''
-* Copyright 2015-2018 European Atomic Energy Community (EURATOM)
+* Copyright 2015-2021 European Atomic Energy Community (EURATOM)
 *
 * Licensed under the EUPL, Version 1.1 or - as soon they
   will be approved by the European Commission - subsequent
@@ -29,6 +29,9 @@ import time
 import getpass
 import datetime
 import socket
+import importlib
+import os
+import sys
 
 import numpy as np
 
@@ -140,8 +143,8 @@ class ColourCycle():
 class DodgyDict():
     '''
     Custom dictionary-like storage class.
-    Behaves more-or-less like a dictionary but without the requirement
-    that the keys are hashable. Needed so I can do things like use
+    Behaves more-or-less like a dictionary to the user but without the requirement
+    that the keys are hashable. This is a bodge so I can do things like use
     QTreeWidgetItems as keys.
     '''
     def __init__(self):
@@ -285,3 +288,84 @@ def bin_image(arr, factor,binfunc=np.mean):
         for channel in range(arr.shape[2]):
             out[:,:,channel] = bin_image(arr[:,:,channel],factor,binfunc)
         return out
+
+
+def import_source(source_path):
+    """
+    Import a python module from specified python source file,
+    and return a reference to the imported module. Closely based
+    on the importlib documentation.
+
+    Parameters:
+        source_path (str)   : Path to the source to be imported.
+
+    Returns:
+
+        python module
+
+    """
+    unload_source(source_path)
+
+    if os.path.isdir(source_path) and os.path.isfile(os.path.join(source_path, '__init__.py')):
+        path_elements = source_path.split(os.path.sep)
+        try:
+            path_elements.remove('')
+        except ValueError:
+            pass
+        modname = path_elements[-1]
+        source_path = os.path.join(source_path, '__init__.py')
+    elif source_path.endswith('.py'):
+        modname = os.path.split(source_path)[-1][:-3]
+    else:
+        raise FileNotFoundError('Specified path "{:s}" is not a python source file or package directory.'.format(source_path))
+
+    # Check we're not going to create a name clash
+    modlist = sys.modules.keys()
+    modname_ = modname
+    i = 0
+    while modname_ in modlist:
+        i += 1
+        modname_ = modname + '_{:d}'.format(i)
+
+
+    spec = importlib.util.spec_from_file_location(modname_, source_path)
+    module = importlib.util.module_from_spec(spec)
+
+    sys.modules[modname_] = module
+    try:
+        spec.loader.exec_module(module)
+    except Exception:
+        del sys.modules[modname_]
+        raise
+
+    return module
+
+
+def unload_source(source_path):
+    """
+    Kill any references held by sys.modules for a module with a given source path.
+    """
+    # Derive what module name import_source would have given it
+    if os.path.isdir(source_path) and os.path.isfile(os.path.join(source_path, '__init__.py')):
+        path_elements = source_path.split(os.path.sep)
+        try:
+            path_elements.remove('')
+        except ValueError:
+            pass
+        modname = path_elements[-1]
+    elif source_path.endswith('.py'):
+        modname = os.path.split(source_path)[-1][:-3]
+    else:
+        return
+
+    # Find a list of modules it could be
+    matching_modules = [mod for mod in sys.modules.keys() if modname in mod]
+
+    # Only remove references to ones which really have the right source path
+    for module in matching_modules:
+        try:
+            if sys.modules[module].__path__[0] == source_path:
+                del sys.modules[module]
+        except AttributeError:
+            if source_path in sys.modules[module].__file__:
+                del sys.modules[module]

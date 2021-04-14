@@ -1,5 +1,5 @@
 '''
-* Copyright 2015-2018 European Atomic Energy Community (EURATOM)
+* Copyright 2015-2021 European Atomic Energy Community (EURATOM)
 *
 * Licensed under the EUPL, Version 1.1 or - as soon they
   will be approved by the European Commission - subsequent
@@ -403,7 +403,7 @@ def get_fov_actor(cadmodel,calib,actor_type='volume',resolution=None):
                 line.GetPointIds().SetId(1,point_ind)
                 lines.InsertNextCell(line)
 
-        polydata = polydata = vtk.vtkPolyData()
+        polydata = vtk.vtkPolyData()
         polydata.SetPoints(points)
         polydata.SetLines(lines)
 

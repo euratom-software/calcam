@@ -1,5 +1,5 @@
 '''
-* Copyright 2015-2020 European Atomic Energy Community (EURATOM)
+* Copyright 2015-2021 European Atomic Energy Community (EURATOM)
 *
 * Licensed under the EUPL, Version 1.1 or - as soon they
   will be approved by the European Commission - subsequent
@@ -19,19 +19,16 @@
   permissions and limitations under the Licence.
 '''
 
-import cv2
 import json
-import traceback
-import imp
 import inspect
 import copy
-import numpy as np
 
 from .core import *
 from .vtkinteractorstyles import CalcamInteractorStyle3D
 from .. import render
 from ..cadmodel import CADModel,ModelFeature
 from ..io import ZipSaveFile
+from ..misc import import_source
 import webbrowser
 
 # CAD viewer window.
@@ -255,7 +252,7 @@ class CADEdit(CalcamGUIWindow):
             self.show_contour_checkbox.setChecked(False)
             self.show_contour_checkbox.setEnabled(False)
             self.wall_contour = None
-            se;f.contour_description.setText('No wall contour.')
+            self.contour_description.setText('No wall contour.')
 
 
 
@@ -551,7 +548,7 @@ class CADEdit(CalcamGUIWindow):
         self.cadmodel.add_to_renderer(self.renderer_3d)
         self.update_model_views(show_default=True)
 
-        self.coord_formatter = [self.cadmodel,None,None,False]
+        self.coord_formatter = [None,False]
         self.formatter_info.setText('Coordinate formatter: Built-in default')
         self.remove_formatter_button.setEnabled(False)
         self.refresh_formatter_button.setEnabled(False)
@@ -693,13 +690,13 @@ class CADEdit(CalcamGUIWindow):
             self.load_formatter_button.setText('Load Custom...')
             self.refresh_formatter_button.setEnabled(False)
             self.remove_formatter_button.setEnabled(False)
-            self.coord_formatter = [self.cadmodel,None,None,False]
+            self.coord_formatter = [None,False]
         else:
             self.formatter_info.setText('Coordinate formatter: Model Specific')
             self.load_formatter_button.setText('Edit...')
             self.refresh_formatter_button.setEnabled(True)
             self.remove_formatter_button.setEnabled(True)
-            self.coord_formatter = [self.cadmodel.usermodule,self.cadmodel.def_file.get_temp_path(),'usercode',True]
+            self.coord_formatter = [self.cadmodel.usermodule,True]
 
         if self.cadmodel.wall_contour is not None:
             self.contour_description.setText('Stored in model: {:d} points'.format(self.cadmodel.wall_contour.shape[0]))
@@ -749,29 +746,33 @@ class CADEdit(CalcamGUIWindow):
 
     def refresh_formatter(self):
 
-        self.coord_formatter[3] = False
+        self.coord_formatter[1] = False
+        self.coord_info.setText('')
 
         try:
-            sys.path.insert(0,self.coord_formatter[1])
-            recursive_reload(self.coord_formatter[0])
-            sys.path.pop(0)
-        except Exception as e:
-            sys.path.pop(0)
-            self.show_msgbox('Error while re-importing coordinate formatter:',traceback.format_exc())
-            return
+            codepath = self.coord_formatter[0].__path__
+        except AttributeError:
+            codepath = self.coord_formatter[0].__file__
 
+        try:
+            self.coord_formatter[0] = import_source(codepath)
+        except Exception:
+            tb_info = ''.join(traceback.format_exception(*sys.exc_info(), limit=3))
+            raise UserWarning('Error while re-importing coordinate formatter: ',tb_info.replace('\n','<br>'))
 
         self.validate_formatter(self.coord_formatter[0])
+        self.coord_formatter[1] = True
+
         if self.cursor is not None:
             self.update_cursor_position(0,self.interactor3d.get_cursor_coords(self.cursor))
 
-        self.coord_formatter[3] = True
+
 
 
     def remove_formatter(self):
 
         self.cadmodel.usermodule = None
-        self.coord_formatter = [self.cadmodel,None,None,False]
+        self.coord_formatter = [None,False]
         self.formatter_info.setText('Coordinate formatter: Built-in default')
         self.remove_formatter_button.setEnabled(False)
         self.refresh_formatter_button.setEnabled(False)
@@ -782,11 +783,15 @@ class CADEdit(CalcamGUIWindow):
 
     def load_formatter(self):
 
-        if self.coord_formatter[1] is not None:
-            edit_path = os.path.join(self.coord_formatter[1],self.coord_formatter[2])
-            if not os.path.isdir(edit_path):
-                edit_path = edit_path + '.py'
+        # If we already have a formatter and the user clicks the button to edit:
+        if self.coord_formatter[0] is not None:
+            try:
+                edit_path = self.coord_formatter[0].__path__
+            except AttributeError:
+                edit_path = self.coord_formatter[0].__file__
             webbrowser.open('file://{:s}'.format(edit_path))
+
+        # Or if we have no formatter loaded and we want to load one:
         else:
             filedialog = qt.QFileDialog(self)
             filedialog.setAcceptMode(0)
@@ -797,26 +802,21 @@ class CADEdit(CalcamGUIWindow):
             filedialog.exec_()
 
             if len(filedialog.selectedFiles()) == 1:
-                path = str(filedialog.selectedFiles()[0])
-                if os.path.isfile( os.path.join( os.path.split(path)[0] , '__init__.py') ):
-                    codename = path.split('/')[-2]
-                    codepath = os.sep.join(path.split('/')[:-2])
-                else:
-                    codepath,codename = os.path.split(path)
-                    codename = codename[:-3]
+                source_path = str(filedialog.selectedFiles()[0])
 
-                sys.path.insert(0,codepath)
                 try:
-                    usermodule = __import__(codename)
-                    sys.path.pop(0)
+                    usermodule = import_source(source_path)
                 except Exception:
-                    self.show_msgbox('Error while importing coordinate formatter:',traceback.format_exc())
-                    sys.path.pop(0)
-                    return
+                    tb_info = ''.join(traceback.format_exception(*sys.exc_info(), limit=3))
+                    raise UserWarning('Error while importing coordinate formatter:',tb_info.replace('\n','<br>'))
 
                 if self.validate_formatter(usermodule):
-                    self.coord_formatter = [usermodule,codepath,codename,True]
-                    self.formatter_info.setText('Coordinate formatter: loaded from module "{:s}"'.format(codename))
+                    self.coord_formatter = [usermodule,True]
+                    try:
+                        self.formatter_info.setText('Coordinate formatter: loaded from "{:s}"'.format(usermodule.__path__))
+                    except AttributeError:
+                        self.formatter_info.setText('Coordinate formatter: loaded from "{:s}"'.format(usermodule.__file__))
+
                     self.remove_formatter_button.setEnabled(True)
                     self.refresh_formatter_button.setEnabled(True)
                     self.load_formatter_button.setText('Edit...')
@@ -831,12 +831,13 @@ class CADEdit(CalcamGUIWindow):
         if callable(usermodule.format_coord):
             try:
                 test_out = usermodule.format_coord( (0.1,0.1,0.1) )
-                if type(test_out) == str or type(test_out) == unicode:
+                if type(test_out) == str:
                     return True
                 else:
                     raise UserWarning('Loaded format_coord() function must return a string; the loaded function returned type "{:s}"'.format(type(test_out)))
-            except Exception as e:
-                raise UserWarning('Exception when testing custom format_coord():<br>'+traceback.format_exc())
+            except Exception:
+                tb_info = ''.join(traceback.format_exception(*sys.exc_info(), limit=3))
+                raise UserWarning('Exception when testing custom format_coord() function:<br>{:s}'.format(tb_info.replace('\n','<br>')))
         else:
             raise UserWarning('No "format_coord()" function was found in the selected python module.')
 
@@ -1038,8 +1039,15 @@ class CADEdit(CalcamGUIWindow):
 
 
     def update_cursor_position(self,cursor_id,position):
-        
-        self.coord_info.setText(self.coord_formatter[0].format_coord(position))
+
+        if self.coord_formatter[0] is not None:
+            if self.coord_formatter[1]:
+                self.coord_info.setText(self.coord_formatter[0].format_coord(position))
+            else:
+                self.coord_info.setText('Custom coordinate formatter is not functional!')
+        else:
+            self.coord_info.setText(self.cadmodel.format_coord(position))
+
         if self.wall_contour is not None:
             self.show_contour_checkbox.setEnabled(True)
             if self.show_contour_checkbox.isChecked():
@@ -1101,7 +1109,7 @@ class CADEdit(CalcamGUIWindow):
         if self.cadmodel.initial_view is None:
             raise UserWarning('No default viewport has been set up. You must set a default view on the "Viewports" tab before saving the model definition.')
 
-        if self.coord_formatter[1] is not None and self.coord_formatter[3] == False:
+        if self.coord_formatter[0] is not None and self.coord_formatter[1] == False:
             raise UserWarning('The current user-defined 3D coordinate formatting function appears to be broken. You must fix and refresh this code or remove it (In the "Additional Information" tab) before saving.')
 
 
@@ -1170,14 +1178,19 @@ class CADEdit(CalcamGUIWindow):
 
                 # Where the mesh file currently is
                 current_path = self.model_features[variant][feature]['mesh_file'].replace(os.sep,'/')
-                fname = os.path.split(current_path)[1]
+
 
                 # If the file isn't already in the zip file, add it and set the mesh location
                 # to the new copy.
                 if tmp_path not in current_path:
+                    fname = os.path.split(current_path)[1]
                     rel_mesh_path = os.path.join(model_def_dict['mesh_path_roots'][variant],fname)
                     self.cadmodel.def_file.add(current_path,rel_mesh_path,replace=True)
                     self.model_features[variant][feature]['mesh_file'] = os.path.join(tmp_path,rel_mesh_path)
+                else:
+                    fname = current_path.replace(os.path.join(tmp_path,model_def_dict['mesh_path_roots'][variant]).replace(os.sep,'/'),'')
+                    if fname.startswith('/'):
+                        fname = fname[1:]
 
                 # Just the filename will be written to the mesh_path field.
                 model_def_dict['features'][variant][feature]['mesh_file'] = fname
@@ -1189,12 +1202,14 @@ class CADEdit(CalcamGUIWindow):
         model_def_dict['initial_view'] = self.cadmodel.initial_view
 
 
-        if self.coord_formatter[1] is not None:
-            full_path = os.path.join(self.coord_formatter[1],self.coord_formatter[2])
-            if os.path.join(self.cadmodel.def_file.get_temp_path(),'usercode') not in full_path:
-                if not os.path.isdir(full_path):
-                    full_path = full_path + '.py'
-                self.cadmodel.def_file.add_usercode(full_path,replace=True)
+        if self.coord_formatter[0] is not None:
+            try:
+                codepath = self.coord_formatter[0].__path__
+            except AttributeError:
+                codepath = self.coord_formatter[0].__file__
+
+            if self.cadmodel.def_file.get_temp_path() not in codepath:
+                self.cadmodel.def_file.add_usercode(codepath,replace=True)
         else:
             self.cadmodel.def_file.clear_usercode()
 
@@ -1219,22 +1234,3 @@ class CADEdit(CalcamGUIWindow):
             if dialog.result() == 1:
                 self.config.cad_def_paths.append(add_path_prompt)
                 self.config.save()
-
-
-
-
-def recursive_reload(module,loaded=None):
-
-    if loaded is None:
-        loaded = set([np])
-    for name in dir(module):
-        member = getattr(module, name)
-        if inspect.ismodule(member) and member not in loaded:
-            try:
-                member.__file__
-                recursive_reload(member, loaded)
-            except AttributeError:
-                continue
-
-        loaded.add(module)
-    imp.reload(module)

@@ -1,5 +1,5 @@
 '''
-* Copyright 2015-2019 European Atomic Energy Community (EURATOM)
+* Copyright 2015-2021 European Atomic Energy Community (EURATOM)
 *
 * Licensed under the EUPL, Version 1.1 or - as soon they
   will be approved by the European Commission - subsequent
@@ -25,7 +25,7 @@ CalCam package.
 """
 
 # Calcam version
-__version__ = '2.6.1+dev-master'
+__version__ = '2.7.0b1'
 
 try:
     import vtk

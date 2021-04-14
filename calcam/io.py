@@ -1,5 +1,5 @@
 '''
-* Copyright 2015-2018 European Atomic Energy Community (EURATOM)
+* Copyright 2015-2021 European Atomic Energy Community (EURATOM)
 *
 * Licensed under the EUPL, Version 1.1 or - as soon they
   will be approved by the European Commission - subsequent
@@ -27,6 +27,8 @@ import shutil
 import hashlib
 import atexit
 import inspect
+
+from .misc import import_source,unload_source
 
 # Get a list of directory contents, including sub-directories.
 # Returned list has absolute paths.
@@ -160,7 +162,10 @@ class ZipSaveFile():
                 self.update()
 
             # Make sure we properly unload any user code
-            self.unload_usercode()
+            try:
+                unload_source(os.path.join(self.tempdir,'usercode'))
+            except FileNotFoundError:
+                pass
 
             self.is_open = False
             
@@ -207,17 +212,12 @@ class ZipSaveFile():
         if 'r' not in self.mode or not self.is_open:
             raise IOError('File not open in read mode!')
 
-        if self.usermodule is None and (os.path.join('usercode','__init__.py') in self.list_contents() or 'usercode.py' in self.list_contents()):
-
-            sys.path.insert(0,self.tempdir)
-            try:
-                self.usermodule = __import__('usercode')
-            except:
-                self.usermodule = None
-                sys.path.remove(self.tempdir)
-                raise
-
-        return self.usermodule
+        if os.path.join('usercode','__init__.py') in self.list_contents():
+            return import_source(os.path.join(self.tempdir,'usercode'))
+        elif 'usercode.py' in self.list_contents():
+            return import_source(os.path.join(self.tempdir, 'usercode.py'))
+        else:
+            return None
 
 
 
@@ -302,6 +302,8 @@ class ZipSaveFile():
         if 'w' not in self.mode:
             raise IOError('File is open in read-only mode!')
 
+        unload_source(os.path.join(self.tempdir,'usercode'))
+
         try:
             self.remove('usercode')
         except IOError:
@@ -317,7 +319,6 @@ class ZipSaveFile():
 
         if 'w' not in self.mode:
             raise IOError('File is open in read-only mode!')
-
 
         fullpath = os.path.join(self.tempdir, fname)
 
@@ -361,29 +362,3 @@ class ZipSaveFile():
     # temp files get cleaned up.
     def __del__(self):
         self.close()
-
-
-    # Function to fully un-load any loaded user-code.
-    def unload_usercode(self,module=None,unloaded=None):
-
-        if unloaded is None:
-            if self.usermodule is None:
-                return
-            unloaded = set()
-            module = self.usermodule
-            if self.tempdir in sys.path:
-                sys.path.remove(self.tempdir)
-
-        for name in dir(module):
-            member = getattr(module, name)
-            if inspect.ismodule(member) and member not in unloaded and self.tempdir in member.__file__:
-                try:
-                    self.unload_usercode(member, unloaded)
-                except AttributeError:
-                    continue
-            unloaded.add(module)
-            
-        for key in sys.modules.keys():
-            if sys.modules[key] == module:
-                del sys.modules[key]
-                break
