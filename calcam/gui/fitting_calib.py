@@ -1,5 +1,5 @@
 '''
-* Copyright 2015-2018 European Atomic Energy Community (EURATOM)
+* Copyright 2015-2021 European Atomic Energy Community (EURATOM)
 *
 * Licensed under the EUPL, Version 1.1 or - as soon they
 will be approved by the European Commission - subsequent
@@ -1538,6 +1538,7 @@ class FittingCalib(CalcamGUIWindow):
         dialog = ChessboardDialog(self)
         dialog.exec_()
 
+
         if dialog.results != []:
             self.chessboard_pointpairs = dialog.results
             point_history = ['Auto-detected corners of {:d}x{:d} square chessboard pattern with {:.1f}mm squares.'.format(dialog.chessboard_squares_x.value(),dialog.chessboard_squares_y.value(),dialog.chessboard_square_size.value()),None]
@@ -1546,7 +1547,11 @@ class FittingCalib(CalcamGUIWindow):
                 self.chessboard_checkbox.setChecked(False)
             self.chessboard_checkbox.setChecked(True)
 
-        del dialog
+        # Resizing the window + 1 pixel then immediately back again after the chessboard dialog is closed
+        # is a workaround for Issue #65, the root cause of which is a mystery to me. I shake my fist at VTK.
+        size = self.size()
+        self.resize(size.width(),size.height()+1)
+        self.resize(size.width(),size.height())
 
 
     def toggle_chessboard_constraints(self,on):
