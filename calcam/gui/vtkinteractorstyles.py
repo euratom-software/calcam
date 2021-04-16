@@ -852,6 +852,7 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
 
         if overlay_image is not None:
             self.overlay_actor = get_image_actor(overlay_image)
+            self.overlay_actor.SetPosition(0,0,0.01)
             self.renderer.AddActor2D(self.overlay_actor)
 
         if self.refresh_callback is not None:
