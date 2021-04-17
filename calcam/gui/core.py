@@ -23,7 +23,6 @@
 import sys
 import os
 import traceback
-import webbrowser
 
 # External module imports
 import numpy as np
@@ -39,7 +38,7 @@ from ..calibration import Calibration,Fitter
 from ..pointpairs import PointPairs
 from .vtkinteractorstyles import CalcamInteractorStyle2D
 from . import qt_wrapper as qt
-from ..misc import ColourCycle,DodgyDict
+from ..misc import ColourCycle,DodgyDict, open_file
 
 guipath = os.path.split(os.path.abspath(__file__))[0]
 
@@ -135,7 +134,11 @@ class CalcamGUIWindow(qt.QMainWindow):
 
         if external and excep_type != UserWarning:
             dialog = qt.QMessageBox(self)
+            dialog.setWindowFlags(dialog.windowFlags() | qt.Qt.CustomizeWindowHint)
+            dialog.setWindowFlags(dialog.windowFlags() & ~qt.Qt.WindowCloseButtonHint)
             dialog.setStandardButtons(dialog.Save | dialog.Discard)
+            dialog.button(dialog.Save).setText('Save error report')
+            dialog.button(dialog.Discard).setText('Do not save')
             dialog.setTextFormat(qt.Qt.RichText)
             dialog.setWindowTitle('Calcam - External Code Error')
             dialog.setText('An unhandled exception has been raised by external code. This could be because of a bug in the external code or in Calcam itself.')
@@ -168,7 +171,7 @@ class CalcamGUIWindow(qt.QMainWindow):
                         for line in traceback_lines:
                             dumpfile.write(line)
 
-                    webbrowser.open('file://{:s}'.format(fname))
+                    open_file(fname)
         else:
 
             # I'm using user warnings for information boxes which need to be raised:
@@ -184,7 +187,11 @@ class CalcamGUIWindow(qt.QMainWindow):
             # otherwise it's really an unexpected exception:
             else:
                 dialog = qt.QMessageBox(self)
+                dialog.setWindowFlags(dialog.windowFlags() | qt.Qt.CustomizeWindowHint)
+                dialog.setWindowFlags(dialog.windowFlags() & ~qt.Qt.WindowCloseButtonHint)
                 dialog.setStandardButtons(dialog.Save | dialog.Discard)
+                dialog.button(dialog.Save).setText('Save error report')
+                dialog.button(dialog.Discard).setText('Do not save')
                 dialog.setTextFormat(qt.Qt.RichText)
                 dialog.setWindowTitle('Calcam - Error')
                 dialog.setText('An unhandled exception has been raised; the action you were performing may have partially or completely failed. This is probably a bug in Calcam; to report it please save an error report file and report the problem at <a href="https://github.com/euratom-software/calcam/issues">here</a> and/or consider contributing a fix!')
@@ -216,7 +223,7 @@ class CalcamGUIWindow(qt.QMainWindow):
                             for line in traceback_lines:
                                 dumpfile.write(line)
 
-                        webbrowser.open('file://{:s}'.format(fname))
+                        open_file(fname)
 
 
     def show_calib_info(self):

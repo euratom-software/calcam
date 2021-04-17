@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                Version 2.6
+                Version 2.7
               </div>
             
           
@@ -120,7 +120,6 @@
 <li class="toctree-l1"><a class="reference internal" href="dev_imsources.html">Image Sources</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">3D Coordinate Formatters</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#example">Example</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#note-on-sub-module-and-function-names">Note on sub-module and function names</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#adding-to-a-cad-model">Adding to a CAD model</a></li>
 </ul>
 </li>
@@ -189,10 +188,10 @@
             
   <div class="section" id="d-coordinate-formatters">
 <h1>3D Coordinate Formatters<a class="headerlink" href="#d-coordinate-formatters" title="Permalink to this headline">¶</a></h1>
-<p>Custom 3D coordinate formatters are used to change the format of information displayed by Calcam about a point in 3D on the CAD model. A custom coordinate formatter takes the form of a python module or package. The module or package is required to have a function at its top level called <code class="xref py py-func docutils literal notranslate"><span class="pre">format_coord()</span></code> which takes as its input argument a 3 element sequence containing <span class="math notranslate nohighlight">\(X,Y,Z\)</span> coordinates in metres. The function must return a single string containing the information to be displayed in the Calcam GUI. It is highly recommended that different elements of information should be separated by newline characters i.e. <cite>n</cite>.</p>
+<p>Custom 3D coordinate formatters are used to change the format of information displayed by Calcam about a point in 3D on the CAD model. A custom coordinate formatter takes the form of a python module or package. The module or package is required to have a function at its top level called <code class="xref py py-func docutils literal notranslate"><span class="pre">format_coord()</span></code> which takes as its input argument a 3 element sequence containing <span class="math notranslate nohighlight">\(X,Y,Z\)</span> coordinates in metres. The function must return a single string containing the information to be displayed in the Calcam GUI. It is highly recommended that for clarity, different elements of information should be separated by newline characters i.e. <code class="docutils literal notranslate"><span class="pre">\n</span></code>.</p>
 <div class="section" id="example">
 <h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
-<p>Below is a simple example of a coordinate formatter</p>
+<p>Below is a simple example of a coordinate formatter, which will display the position in cartesian and cylindircal coordinates, and which vacuum vessel segment a point is in:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="c1"># MAST coordinate formatter, includes sector number.</span>
@@ -215,17 +214,6 @@
     <span class="n">formatted_coord</span> <span class="o">=</span> <span class="n">formatted_coord</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Sector </span><span class="si">{:.0f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sector</span><span class="p">)</span>
 
     <span class="k">return</span>  <span class="n">formatted_coord</span>
-</pre></div>
-</div>
-</div>
-<div class="section" id="note-on-sub-module-and-function-names">
-<h2>Note on sub-module and function names<a class="headerlink" href="#note-on-sub-module-and-function-names" title="Permalink to this headline">¶</a></h2>
-<p>If the custom coordinate formatter takes the form of a package (i.e. a folder containing <code class="docutils literal notranslate"><span class="pre">__init__.py</span></code> along with other python files), some care should be taken not to import from a sub-module anything with the same name as that sub-module. This can cause problems if the coordinate formatter has to be re-loaded e.g. re-loading the CAD model or using the <span class="guilabel">Refresh</span> button in the CAD model editor, due to the way Calcam re-loads coordinate formatter code.  For example, doing the following in <code class="docutils literal notranslate"><span class="pre">__init__.py</span></code> :</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">.do_something</span> <span class="kn">import</span> <span class="n">do_something</span>
-</pre></div>
-</div>
-<p>Would mean that if the coordinate formatting code is re-loaded, the <code class="docutils literal notranslate"><span class="pre">do_something</span></code> module would not be re-loaded with the rest of the code, which may or may not cause problems when the code is executed (depending on the contents of the <code class="docutils literal notranslate"><span class="pre">do_something</span></code> module). To avoid this issue, ensure functions (or any other object) imported in the coordinate formatting code do not have the same name as their parent modules. For instance, the above example could be fixed by renaming the <code class="docutils literal notranslate"><span class="pre">do_something</span></code> module so that the same line looks like:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">.DoSomething</span> <span class="kn">import</span> <span class="n">do_something</span>
 </pre></div>
 </div>
 </div>

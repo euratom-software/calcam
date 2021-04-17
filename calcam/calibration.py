@@ -1,5 +1,5 @@
 '''
-* Copyright 2015-2020 European Atomic Energy Community (EURATOM)
+* Copyright 2015-2021 European Atomic Energy Community (EURATOM)
 *
 * Licensed under the EUPL, Version 1.1 or - as soon they
   will be approved by the European Commission - subsequent
@@ -474,7 +474,9 @@ class Calibration():
         Parameters:
 
             window (sequence)      : A 4-element sequence of integers defining the \
-                                     detector window coordinates (Left,Top,Width,Height)
+                                     detector window coordinates (Left,Top,Width,Height). This MUST \
+                                     be specified in 'original' detector coordinates (i.e. before any \
+                                     image rotation, flips etc).
 
             bounds_error (str)     : How to handle the case for calibrations with multiple \
                                      sub-views if the requested detector region goes outside \
@@ -557,7 +559,7 @@ class Calibration():
                     w = min(orig_shape[0] - xstart_oldmask,window[2] - xstart_newmask)
                     h = min(orig_shape[1] - ystart_oldmask,window[3] - ystart_newmask)
 
-                    new_subview_mask[ystart_newmask:ystart_newmask+h,xstart_newmask:xstart_newmask+w] = orig_subview_mask[ystart_oldmask:ystart_oldmask+h,xstart_oldmask:xstart_oldmask+h]
+                    new_subview_mask[ystart_newmask:ystart_newmask+h,xstart_newmask:xstart_newmask+w] = orig_subview_mask[ystart_oldmask:ystart_oldmask+h,xstart_oldmask:xstart_oldmask+w]
 
                 else:
                     new_subview_mask = orig_subview_mask[window[1] - self.geometry.offset[1]:window[1] - self.geometry.offset[1] + window[3],window[0] - self.geometry.offset[0]:window[0] - self.geometry.offset[0] + window[2]]
@@ -613,9 +615,8 @@ class Calibration():
 
             # Change the image shape that the coord transformer is expecting
             self.native_geometry = (self.geometry.x_pixels,self.geometry.y_pixels,self.geometry.offset)
-            self.geometry.x_pixels = window[2]
-            self.geometry.y_pixels = window[3]
-            self.geometry.offset = (window[0],window[1])
+            self.geometry.set_offset(window[0],window[1])
+            self.geometry.set_image_shape(window[2],window[3],coords='Original')
 
             if self.pointpairs is not None:
                 self.pointpairs = self.geometry.original_to_display_pointpairs(pp_before)
@@ -1267,33 +1268,32 @@ class Calibration():
         subview_mask = self.geometry.original_to_display_image(self.subview_mask)
 
         # Calculate FOV by looking at the angle between sight lines at the image extremes
+
+        # Horizontal and vertical extent in pixels that we need the FOV for
         if fullchip:
             hsize,vsize = self.geometry.get_display_shape()
-            vcntr = vsize/2.
-            hcntr = hsize/2.
+            v_extent = np.array([0, vsize - 1])
+            h_extent = np.array([0,hsize-1])
+            vcntr = int(np.round(vsize/2.))
+            hcntr = int(np.round(hsize/2.))
         else:
             vcntr,hcntr = CoM( subview_mask == subview )
+            vcntr = int(np.round(vcntr))
+            hcntr = int(np.round(hcntr))
+            h_extent = np.argwhere(subview_mask[vcntr, :] == subview)
+            v_extent = np.argwhere(subview_mask[:, hcntr] == subview)
 
-        vcntr = int(np.round(vcntr))
-        hcntr = int(np.round(hcntr))
-
-        # Horizontal extent of sub-field
-        h_extent = np.argwhere(subview_mask[vcntr,:] == subview)
 
         # Horizontal FOV
         norm1 = self.normalise(h_extent.min()-0.5,vcntr,subview=subview)
         norm2 = self.normalise(h_extent.max()+0.5,vcntr,subview=subview)
-        fov_h = 180*(np.arctan(norm2[0]) - np.arctan(norm1[0])) / 3.141592635
+        fov_h = 180*(np.arctan(norm2[0]) - np.arctan(norm1[0])) / np.pi
 
-        if fullchip:
-            v_extent = np.array([0,vsize-1])
-        else:
-            v_extent = np.argwhere(subview_mask[:,hcntr] == subview)
 
         # Vertical field of view
         norm1 = self.normalise(hcntr,v_extent.min()-0.5,subview=subview)
         norm2 = self.normalise(hcntr,v_extent.max()+0.5,subview=subview)
-        fov_v = 180*(np.arctan(norm2[1]) - np.arctan(norm1[1])) / 3.141592635
+        fov_v = 180*(np.arctan(norm2[1]) - np.arctan(norm1[1])) / np.pi
 
         return fov_h, fov_v
 

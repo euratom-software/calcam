@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                Version 2.6
+                Version 2.7
               </div>
             
           
@@ -195,16 +195,23 @@
 <h2>What you will need<a class="headerlink" href="#what-you-will-need" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="a-computer-with-python-installed">
 <h3>A computer with Python installed<a class="headerlink" href="#a-computer-with-python-installed" title="Permalink to this headline">¶</a></h3>
-<p>Calcam will work with Python on Windows, Linux or OSX. If starting from scratch and you have a choice of Python versions, it is recommended to use Python 3.7. It will work fine with earlier versions of 3.x, however 3.8 is more difficult because the the required version of VTK is not easily available for Python 3.8 (as of July 2020). You can download installers for Python 3.7 for Windows or OSX from <a class="reference external" href="https://www.python.org/downloads/release/python-378/">Python.org</a> , or get it from your favourite software repository on Linux.</p>
-<p>You will also need the <code class="docutils literal notranslate"><span class="pre">pip</span></code> package installed for the Calcam installer script to work. If you are using Python 3.4 or newer from Python.org, <code class="docutils literal notranslate"><span class="pre">pip</span></code> will be installed by default, and it’s also probably included in most other modern Python distributions you might be using. If you don’t have <code class="docutils literal notranslate"><span class="pre">pip</span></code> installed, the Calcam setup script will give an error message telling you so. Documentation for how to get pip can be found <a class="reference external" href="https://pip.pypa.io/en/stable/installing/">here</a> .</p>
+<p>Calcam works with Python 3.5 or newer on Windows, Linux or OSX. You can download Python installers for Windows or OSX from <a class="reference external" href="https://www.python.org/downloads/">Python.org</a> , or get it from your favourite software repository on Linux.</p>
+<p>As of April 2021, VTK (one of Calcam’s major dependencies) is not available from PyPi for Python versions newer than 3.8, so it currently it is much easier to install Calcam in Python 3.8 than anything newer (for newer versions you will have to install VTK and its Python bindings yourself, which can be quite involved).</p>
+<p>You will also need the <code class="docutils literal notranslate"><span class="pre">pip</span></code> package installed for the Calcam installer script to work. <code class="docutils literal notranslate"><span class="pre">pip</span></code> is usually installed with Python by default so it’s unlikely you’ll have to worry about this, but you don’t have <code class="docutils literal notranslate"><span class="pre">pip</span></code> installed, the Calcam setup script will give an error message telling you so. Documentation for how to get pip can be found <a class="reference external" href="https://pip.pypa.io/en/stable/installing/">here</a> .</p>
 </div>
 <div class="section" id="a-copy-of-the-calcam-source-code">
 <h3>A copy of the Calcam source code<a class="headerlink" href="#a-copy-of-the-calcam-source-code" title="Permalink to this headline">¶</a></h3>
 <p>The latest release version of the Calcam source can be downloaded from the <a class="reference external" href="https://github.com/euratom-software/calcam/releases">Releases page on GitHub</a>.</p>
-<p>Alternatively, the “cutting edge” development version can be downloaded using the green <span class="guilabel">Code</span> button on the <a class="reference external" href="https://github.com/euratom-software/calcam">GitHub repository page</a>. If you want to use Git, which is recommended if you want to do any development on Calcam, the source can be cloned from the GitHub reporepository with the command:</p>
+<p>Alternatively, the “cutting edge” live development version (which is not guaranteed to be in a fully working state at all times) can be downloaded using the green <span class="guilabel">Code</span> button on the <a class="reference external" href="https://github.com/euratom-software/calcam">GitHub repository page</a>.</p>
+<p>If you prefer to use Git, which is recommended if you want to do any development on Calcam, the source can be cloned from the GitHub reporepository with the command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="o">-</span><span class="n">b</span> <span class="n">release</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">euratom</span><span class="o">-</span><span class="n">software</span><span class="o">/</span><span class="n">calcam</span><span class="o">.</span><span class="n">git</span>
+</pre></div>
+</div>
+<p>for the latest release version, or:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">euratom</span><span class="o">-</span><span class="n">software</span><span class="o">/</span><span class="n">calcam</span><span class="o">.</span><span class="n">git</span>
 </pre></div>
 </div>
+<p>for the development version.</p>
 </div>
 </div>
 <div class="section" id="installation">
@@ -241,7 +248,9 @@
 </div>
 <div class="section" id="errors-related-to-dependencies">
 <h3>Errors related to  dependencies<a class="headerlink" href="#errors-related-to-dependencies" title="Permalink to this headline">¶</a></h3>
-<p>Calcam is built upon several existing libraries, which means it requires various other Python modules to be installed for it to work. The setup script will try to install the other Python pcakegs required by Calcam automatically. On some combinations of operating system and Python versions this may not always work properly. In this case, the setup script will give an error or warning specifying which dependency could not be installed, and what the effects are (either the Calcam installation will not be completed or there will be a warning that the Calcam GUI will not work). In other cases, the install my complete fine but then you get error messages when first trying to import Calcam or start the GUI. When tourbleshooting installation or first run problems, it is recommeneded to first check if each of the Python modules Calcam depends on are installed and working correctly on their own (and if they are, Calcam should work). The table below gives details of Calcam’s dependencies and known issues with certain versions:</p>
+<p>Calcam is built upon several existing libraries, which means it requires various other Python modules to be installed for it to work. The setup script will try to install the other Python pcakegs required by Calcam automatically.</p>
+<p>On some combinations of operating system and Python versions this may not always work properly. In this case, the setup script will give an error or warning specifying which dependency could not be installed, and what the effects are (either the Calcam installation will not be completed or there will be a warning that the Calcam GUI will not work).</p>
+<p>In other cases, the install my complete fine but then you get error messages when first trying to import Calcam or start the GUI. When tourbleshooting installation or first run problems, it is recommeneded to first check if each of the Python modules Calcam depends on are installed and working correctly on their own (and if they are, Calcam should work). The table below gives details of Calcam’s dependencies and known issues with certain versions:</p>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 11%" />
@@ -254,28 +263,26 @@
 </thead>
 <tbody>
 <tr class="row-even"><td><p>SciPy</p></td>
-<td><p>Up to 1.5.1</p></td>
+<td><p>Up to 1.5.2</p></td>
 </tr>
 <tr class="row-odd"><td><p>NumPy</p></td>
-<td><p>Up to 1.19.0</p></td>
+<td><p>Up to 1.19.1</p></td>
 </tr>
 <tr class="row-even"><td><p>MatPlotLib</p></td>
 <td><p>Up to 3.3.0</p></td>
 </tr>
 <tr class="row-odd"><td><p>OpenCV (a.k.a. cv2)</p></td>
-<td><p>Tested with versions between 2.4 to 4.3.0</p>
+<td><p>Tested up to to 4.5.1</p>
 <p>Fisheye camera model only available if using 3.x or newer.</p>
-<p>If running under OSX older than 10.12, versions newer than 3.2 may cause crashes on import (downgrade to versions &lt; 3.3 to fix).</p>
+<p>If running under OSX older than 10.12, versions of OpenCV newer than 3.2 may cause crashes on import (downgrade to OpenCV &lt; 3.3 to fix).</p>
 </td>
 </tr>
 <tr class="row-even"><td><p>VTK</p></td>
-<td><p>OK with versions between 6.2 to 8.1.6.</p>
-<p>Versions 8.2.0 or newer do not work properly with Calcam! (see <a class="reference external" href="https://github.com/euratom-software/calcam/issues/58">Issue #58</a> )</p>
-</td>
+<td><p>Up to 9.0.1</p></td>
 </tr>
 <tr class="row-odd"><td><p>PyQt</p></td>
 <td><p>Tested up to 5.15.0</p>
-<p>Versions 5.11 and older known to cause unreadable text on OSX when using dark theme</p>
+<p>Versions 5.11 and older known to cause unreadable text in the GUI on OSX when using dark theme</p>
 </td>
 </tr>
 </tbody>

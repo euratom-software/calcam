@@ -153,7 +153,7 @@ default     string      | Default value.
 Example
 -------
 
-Below is a minimal example: the build-in Calcam image source for loading images from standard format image files.
+Below is a minimal example: an image source for loading images from standard format image files (this is a previous version of the image source built-in to Calcam).
 
 .. code-block:: python
 
@@ -202,6 +202,7 @@ Below is a minimal example: the build-in Calcam image source for loading images 
    get_image_function = get_image
 
    # Description of input parameters to get_image
+   # In this example the only input is the file path of the image to be loaded.
    get_image_arguments =  [
                                {
                                'arg_name':'filename',

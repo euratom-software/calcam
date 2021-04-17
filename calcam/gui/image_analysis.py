@@ -65,6 +65,7 @@ class ImageAnalyser(CalcamGUIWindow):
         self.camera_2d = self.renderer_2d.GetActiveCamera()
 
         self.image_geometry = None
+        self.image_load_coords = None
 
         self.coords_3d = None
 
@@ -310,11 +311,16 @@ class ImageAnalyser(CalcamGUIWindow):
     def update_from_2d(self,coords_2d):
 
         if self.calibration is not None and self.image is not None and self.cadmodel is not None:
+
             for i,coords in enumerate(coords_2d):
-                if coords is not None and np.any(coords != self.coords_2d[i]):
-                    raydata = raycast_sightlines(self.calibration,self.cadmodel,coords[0],coords[1],coords='Display')
-                    self.update_from_3d(raydata.ray_end_coords[0,:])
-                    return
+                if coords is not None:
+                    if self.calibration.subview_lookup(*coords) == -1:
+                        raise UserWarning('The clicked position is outside the calibrated field of view.')
+                    elif np.any(coords != self.coords_2d[i]):
+                        raydata = raycast_sightlines(self.calibration,self.cadmodel,coords[0],coords[1],coords='Display')
+                        self.update_from_3d(raydata.ray_end_coords[0,:])
+                        return
+
 
     def on_close(self):
         self.qvtkwidget_3d.close()
@@ -325,81 +331,94 @@ class ImageAnalyser(CalcamGUIWindow):
 
         opened_calib = self.object_from_file('calibration')
 
-        if opened_calib is not None:
-            if None in opened_calib.view_models:
-                raise UserWarning('The selected calibration file does not contain a full set of calibration parameters. Only calibration files containing all calibration parameters can be used.')
+        # If we get no calibration from the above call it means the user has cancelled
+        if opened_calib is None:
+            return
 
-            if self.image is not None:
+        if None in opened_calib.view_models:
+            raise UserWarning('The selected calibration file does not contain a full set of calibration parameters. Only calibration files containing all calibration parameters can be used.')
 
-                ioshape = self.image_geometry.get_original_shape()
-                opened_calib.set_detector_window( (self.image_geometry.offset[0],self.image_geometry.offset[1],ioshape[0],ioshape[1]) )
+        if self.image is not None:
+            if self.image_load_coords.lower() == 'display':
 
-                if self.enhance_checkbox.isChecked():
-                    self.interactor2d.set_image(enhance_image(opened_calib.geometry.original_to_display_image(self.image)))
-                else:
-                    self.interactor2d.set_image(opened_calib.geometry.original_to_display_image(self.image))
+                if self.image_geometry.get_display_shape() != opened_calib.geometry.get_display_shape() or self.image_geometry.offset != opened_calib.geometry.offset:
+                    osize = opened_calib.geometry.display_to_original_shape(self.image_geometry.get_display_shape())
+                    opened_calib.set_detector_window((self.image_geometry.offset[0],self.image_geometry.offset[1],osize[0],osize[1]))
 
-            self.calibration = opened_calib
-            self.calib_name.setText(os.path.split(self.calibration.filename)[1].replace('.ccc',''))
-            self.cal_props_button.setEnabled(True)
+                if self.image_geometry.transform_actions == []:
+                    self.image = opened_calib.geometry.display_to_original_image(self.image)
 
-            self.overlay_checkbox.setEnabled(True)
-            self.reset_view_button.setEnabled(True)
-            self.overlay = None
+            else:
+                if self.image_geometry.get_original_shape() != opened_calib.geometry.get_original_shape() or self.image_geometry.offset != opened_calib.geometry.offset:
+                    osize = self.image_geometry.get_original_shape()
+                    opened_calib.set_detector_window((self.image_geometry.offset[0],self.image_geometry.offset[1],osize[0],osize[1]))
 
+        self.calibration = opened_calib
+        self.image_geometry = self.calibration.geometry
+        self.calib_name.setText(os.path.split(self.calibration.filename)[1].replace('.ccc',''))
+        self.cal_props_button.setEnabled(True)
 
+        self.overlay_checkbox.setEnabled(True)
+        self.reset_view_button.setEnabled(True)
+        self.overlay = None
 
-            self.interactor2d.set_subview_lookup(self.calibration.n_subviews,self.calibration.subview_lookup)
+        if self.image is not None:
+            if self.enhance_checkbox.isChecked():
+                self.interactor2d.set_image(enhance_image(self.image_geometry.original_to_display_image(self.image)))
+            else:
+                self.interactor2d.set_image(self.image_geometry.original_to_display_image(self.image))
 
-            if opened_calib.cad_config is not None:
+        self.interactor2d.set_subview_lookup(self.calibration.n_subviews,self.calibration.subview_lookup)
+
+        if opened_calib.cad_config is not None:
+            cconfig = opened_calib.cad_config
+            if self.cadmodel is not None and self.cadmodel.machine_name == cconfig['model_name'] and self.cadmodel.model_variant == cconfig['model_variant']:
+                keep_model = True
+            else:
+                keep_model = False
+
+            if keep_model:
+                try:
+                    self.cadmodel.enable_only(cconfig['enabled_features'])
+                except Exception as e:
+                    if 'Unknown feature' not in str(e):
+                        raise
+                self.update_feature_tree_checks()
+            else:
                 cconfig = opened_calib.cad_config
-                if self.cadmodel is not None and self.cadmodel.machine_name == cconfig['model_name'] and self.cadmodel.model_variant == cconfig['model_variant']:
-                    keep_model = True
-                else:
-                    keep_model = False
+                load_model = True
+                try:
+                    name_index = sorted(self.model_list.keys()).index(cconfig['model_name'])
+                    self.model_name.setCurrentIndex(name_index)
+                    variant_index = self.model_list[ cconfig['model_name'] ][1].index(cconfig['model_variant'])
+                    self.model_variant.setCurrentIndex(variant_index)
+                except ValueError:
+                    self.model_name.setCurrentIndex(-1)
+                    load_model=False
 
-                if keep_model:
+
+                if load_model:
                     try:
-                        self.cadmodel.enable_only(cconfig['enabled_features'])
+                        self.load_model(featurelist=cconfig['enabled_features'])
                     except Exception as e:
+                        self.cadmodel = None
                         if 'Unknown feature' not in str(e):
                             raise
-                    self.update_feature_tree_checks()
-                else:
-                    cconfig = opened_calib.cad_config
-                    load_model = True
-                    try:
-                        name_index = sorted(self.model_list.keys()).index(cconfig['model_name'])
-                        self.model_name.setCurrentIndex(name_index)
-                        variant_index = self.model_list[ cconfig['model_name'] ][1].index(cconfig['model_variant'])
-                        self.model_variant.setCurrentIndex(variant_index)
-                    except ValueError:
-                        self.model_name.setCurrentIndex(-1)
-                        load_model=False
 
+                # I'm not sure why I have to call this twice to get it to work properly.
+                # On the first call it almost works, but not quite accurately. Then
+                # on the second call onwards it's fine. Should be investigated further.
+                self.set_view_from_calib(self.calibration,0)
+                self.set_view_from_calib(self.calibration,0)
 
-                    if load_model:
-                        try:
-                            self.load_model(featurelist=cconfig['enabled_features'])
-                        except Exception as e:
-                            self.cadmodel = None
-                            if 'Unknown feature' not in str(e):
-                                raise
+        if self.overlay_checkbox.isChecked():
+            self.overlay_checkbox.setChecked(False)
+            self.overlay_checkbox.setChecked(True)
 
-                    # I'm not sure why I have to call this twice to get it to work properly.
-                    # On the first call it almost works, but not quite accurately. Then
-                    # on the second call onwards it's fine. Should be investigated further.
-                    self.set_view_from_calib(self.calibration,0)
-                    self.set_view_from_calib(self.calibration,0)
-
-            if self.overlay_checkbox.isChecked():
-                self.overlay_checkbox.setChecked(False)
-                self.overlay_checkbox.setChecked(True)
-
-            if self.cursor_ids['3d'] is not None:
-                self.update_from_3d(self.coords_3d)
-            else:
-                self.coords_2d = [None] * self.calibration.n_subviews
+        if self.cursor_ids['3d'] is not None:
+            self.update_from_3d(self.coords_3d)
+        else:
+            self.coords_2d = [None] * self.calibration.n_subviews
 
 
 
@@ -464,40 +483,51 @@ class ImageAnalyser(CalcamGUIWindow):
 
         image = scale_to_8bit(newim['image_data'])
 
-        self.image_geometry = CoordTransformer(offset=newim['image_offset'],paspect=newim['pixel_aspect'])
-        self.image_geometry.set_image_shape(newim['image_data'].shape[1],newim['image_data'].shape[0],coords=newim['coords'])
-        self.image_geometry.set_transform_actions(newim['transform_actions'])
+        newim_geometry = CoordTransformer(offset=newim['image_offset'],paspect=newim['pixel_aspect'])
+        newim_geometry.set_image_shape(newim['image_data'].shape[1],newim['image_data'].shape[0],coords=newim['coords'])
+        newim_geometry.set_transform_actions(newim['transform_actions'])
 
         if self.calibration is not None:
 
-            ioshape = self.image_geometry.get_original_shape()
-            newcrop = (self.image_geometry.offset[0],self.image_geometry.offset[1],ioshape[0],ioshape[1])
-            if self.calibration.crop != newcrop:
-                self.calibration.set_detector_window( (self.image_geometry.offset[0],self.image_geometry.offset[1],ioshape[0],ioshape[1]) )
+            if newim['coords'].lower() == 'original':
+                size_mismatch = newim_geometry.get_original_shape() != self.calibration.geometry.get_original_shape()
+            else:
+                size_mismatch = newim_geometry.get_display_shape() != self.calibration.geometry.get_display_shape()
+
+            size_mismatch = size_mismatch | (newim_geometry.offset[0] != self.calibration.geometry.offset[0]) | (newim_geometry.offset[1] != self.calibration.geometry.offset[1])
+
+            if  size_mismatch:
+
+                new_geom = copy.deepcopy(self.calibration.geometry)
+                new_geom.set_image_shape(image.shape[1],image.shape[0],coords=newim['coords'])
+                new_geom.set_offset(*newim_geometry.offset)
+                osize = new_geom.get_original_shape()
+
+                self.calibration.geometry.set_pixel_aspect(new_geom.pixel_aspectratio,relative_to='original')
+                self.calibration.set_detector_window((newim_geometry.offset[0],newim_geometry.offset[1],osize[0],osize[1]))
+
                 self.overlay = None
                 if self.overlay_checkbox.isChecked():
                     self.overlay_checkbox.setChecked(False)
                     self.overlay_checkbox.setChecked(True)
 
+            self.image_geometry = self.calibration.geometry
 
-        if newim['coords'].lower() == 'original':
-            self.image = image
-        elif self.calibration is not None:
-            self.image = self.calibration.geometry.display_to_original_image(image)
         else:
+            self.image_geometry = newim_geometry
+
+        if newim['coords'].lower() == 'display':
             self.image = self.image_geometry.display_to_original_image(image)
+        else:
+            self.image = image
 
-        try:
-            transformer = self.calibration.geometry
-        except AttributeError:
-            transformer = self.image_geometry
-
-
-        self.interactor2d.set_image(transformer.original_to_display_image(self.image))
+        self.image_load_coords = newim['coords']
 
 
         if self.calibration is not None:
-            self.interactor2d.set_subview_lookup(self.calibration.n_subviews,self.calibration.subview_lookup)
+            self.interactor2d.set_image(self.image_geometry.original_to_display_image(self.image),n_subviews=self.calibration.n_subviews,subview_lookup=self.calibration.subview_lookup)
+        else:
+            self.interactor2d.set_image(self.image_geometry.original_to_display_image(self.image))
 
         self.image_settings.show()
 
@@ -505,8 +535,13 @@ class ImageAnalyser(CalcamGUIWindow):
             self.enhance_checkbox.setChecked(False)
             self.enhance_checkbox.setChecked(True)
 
+        try:
+            coords3d = self.interactor3d.get_cursor_coords(self.cursor_ids['3d'])
+            self.update_from_3d(coords3d)
+        except KeyError as e:
+            pass
 
-        self.update_image_info_string(self.image,transformer)
+        self.update_image_info_string(self.image,self.image_geometry)
         self.app.restoreOverrideCursor()
         self.statusbar.clearMessage()
 
@@ -516,7 +551,6 @@ class ImageAnalyser(CalcamGUIWindow):
         if self.overlay_checkbox.isChecked():
             self.overlay_checkbox.setChecked(False)
             self.overlay_checkbox.setChecked(True)
-
 
 
     def toggle_overlay(self,show=None):

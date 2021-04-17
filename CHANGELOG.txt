@@ -1,6 +1,32 @@
 Calcam Changelog
 ================
 
+Minor Release 2.7.0 (17 Apr 2021)
+---------------------------------
+
+Compatibility Updates:
+* Now compatible with VTK versions newer than 8.1 (tested up to 9.0.1) (Closes iussues #58 and #65)
+* Should now be ready to work with Python 3.10 (removed dependency on deprecated standard library module "imp") (Closes issue #27)
+* Due to the above changes, from this version on, Calcam will not work with versions of Python older than 3.5
+
+New & Enhancements:
+* Improved wording of buttons on GUI exception dialog box
+* Improved rendering quality when using anti-aliasing
+* Improved display of exceptions in user plugin code
+* Uses an improved method for opening files outside Calcam wherever this is used
+* Add photoshop files for logo graphics to repo.
+
+Fixes:
+* Fix bug in Calibration.set_detector_window() which raised exceptions for calibrations with multiple sub-views
+* Fix a bug in Calibration.get_fov() which could raise exceptions when calling with fullchip=True, sometimes caused errors in fitting tool
+* Fix a bug in the MovementCorrection class which caused inaccurate results when calculating coordinate transformations between moved images
+* Fix exception raised when deleting the default view in CAD model editor (Issue #68)
+* Fix various other bugs in CAD model editor, including one which could break some old CAD model definition files!
+* Removed non-functional close button on GUI exception dialog box
+* Fix various bugs which related to image metadata and detector windowing in analyser tool
+* Fix a bug which caused minor inaccuracy in results of render_cam_view()
+
+
 Patch 2.6.1 (08 Dec 2020)
 -------------------------
 
