@@ -1,7 +1,7 @@
 Calcam Changelog
 ================
 
-Minor Release 2.7.0 (soon!)
+Minor Release 2.7.0 (17 Apr 2021)
 ---------------------------------
 
 Compatibility Updates:
@@ -10,10 +10,11 @@ Compatibility Updates:
 * Due to the above changes, from this version on, Calcam will not work with versions of Python older than 3.5
 
 New & Enhancements:
-* Add photoshop files for logo graphics to repo.
 * Improved wording of buttons on GUI exception dialog box
 * Improved rendering quality when using anti-aliasing
 * Improved display of exceptions in user plugin code
+* Uses an improved method for opening files outside Calcam wherever this is used
+* Add photoshop files for logo graphics to repo.
 
 Fixes:
 * Fix bug in Calibration.set_detector_window() which raised exceptions for calibrations with multiple sub-views

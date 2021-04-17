@@ -23,7 +23,6 @@
 import sys
 import os
 import traceback
-import webbrowser
 
 # External module imports
 import numpy as np
@@ -39,7 +38,7 @@ from ..calibration import Calibration,Fitter
 from ..pointpairs import PointPairs
 from .vtkinteractorstyles import CalcamInteractorStyle2D
 from . import qt_wrapper as qt
-from ..misc import ColourCycle,DodgyDict
+from ..misc import ColourCycle,DodgyDict, open_file
 
 guipath = os.path.split(os.path.abspath(__file__))[0]
 
@@ -172,7 +171,7 @@ class CalcamGUIWindow(qt.QMainWindow):
                         for line in traceback_lines:
                             dumpfile.write(line)
 
-                    webbrowser.open('file://{:s}'.format(fname))
+                    open_file(fname)
         else:
 
             # I'm using user warnings for information boxes which need to be raised:
@@ -224,7 +223,7 @@ class CalcamGUIWindow(qt.QMainWindow):
                             for line in traceback_lines:
                                 dumpfile.write(line)
 
-                        webbrowser.open('file://{:s}'.format(fname))
+                        open_file(fname)
 
 
     def show_calib_info(self):

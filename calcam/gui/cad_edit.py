@@ -20,7 +20,6 @@
 '''
 
 import json
-import inspect
 import copy
 
 from .core import *
@@ -28,8 +27,7 @@ from .vtkinteractorstyles import CalcamInteractorStyle3D
 from .. import render
 from ..cadmodel import CADModel,ModelFeature
 from ..io import ZipSaveFile
-from ..misc import import_source
-import webbrowser
+from ..misc import import_source, open_file
 
 # CAD viewer window.
 # This allows viewing of the CAD model and overlaying raycasted sight-lines, etc.
@@ -750,7 +748,7 @@ class CADEdit(CalcamGUIWindow):
         self.coord_info.setText('')
 
         try:
-            codepath = self.coord_formatter[0].__path__
+            codepath = self.coord_formatter[0].__path__[0]
         except AttributeError:
             codepath = self.coord_formatter[0].__file__
 
@@ -786,10 +784,10 @@ class CADEdit(CalcamGUIWindow):
         # If we already have a formatter and the user clicks the button to edit:
         if self.coord_formatter[0] is not None:
             try:
-                edit_path = self.coord_formatter[0].__path__
+                edit_path = self.coord_formatter[0].__path__[0]
             except AttributeError:
                 edit_path = self.coord_formatter[0].__file__
-            webbrowser.open('file://{:s}'.format(edit_path))
+            open_file(edit_path)
 
         # Or if we have no formatter loaded and we want to load one:
         else:
@@ -802,7 +800,11 @@ class CADEdit(CalcamGUIWindow):
             filedialog.exec_()
 
             if len(filedialog.selectedFiles()) == 1:
+
                 source_path = str(filedialog.selectedFiles()[0])
+
+                if os.path.split(source_path)[1].lower() == '__init__.py':
+                    source_path = os.path.split(source_path)[0]
 
                 try:
                     usermodule = import_source(source_path)
@@ -813,7 +815,7 @@ class CADEdit(CalcamGUIWindow):
                 if self.validate_formatter(usermodule):
                     self.coord_formatter = [usermodule,True]
                     try:
-                        self.formatter_info.setText('Coordinate formatter: loaded from "{:s}"'.format(usermodule.__path__))
+                        self.formatter_info.setText('Coordinate formatter: loaded from "{:s}"'.format(usermodule.__path__[0]))
                     except AttributeError:
                         self.formatter_info.setText('Coordinate formatter: loaded from "{:s}"'.format(usermodule.__file__))
 
@@ -1204,7 +1206,7 @@ class CADEdit(CalcamGUIWindow):
 
         if self.coord_formatter[0] is not None:
             try:
-                codepath = self.coord_formatter[0].__path__
+                codepath = self.coord_formatter[0].__path__[0]
             except AttributeError:
                 codepath = self.coord_formatter[0].__file__
 

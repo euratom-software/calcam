@@ -162,6 +162,7 @@ class CalcamConfig():
             for fname in trylist:
                 if fname.endswith('__init__.py'):
                     tidy_name = os.sep.join(fname.split(os.sep)[-3:-1])
+                    fname = os.path.split(fname)[0]
                 else:
                     tidy_name = os.sep.join(fname.split(os.sep)[-2:])
 

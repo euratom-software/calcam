@@ -22,11 +22,10 @@
 import os
 import sys
 import cv2
-import webbrowser
 
 from .. import __version__, vtk
 from .core import guipath
-from ..misc import DodgyDict
+from ..misc import DodgyDict, open_file
 from ..config import CalcamConfig
 from . import qt_wrapper as qt
 from .launcher import launch
@@ -81,7 +80,7 @@ class Settings(qt.QMainWindow):
 
     def edit_imsource(self):
         path = self.imsource_paths[self.imsource_list.selectedItems()[0]]
-        webbrowser.open('file://{:s}'.format(path))
+        open_file(path)
 
 
     def remove_cad_path(self):

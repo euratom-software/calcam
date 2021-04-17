@@ -2,12 +2,12 @@
 3D Coordinate Formatters
 ===============================
 
-Custom 3D coordinate formatters are used to change the format of information displayed by Calcam about a point in 3D on the CAD model. A custom coordinate formatter takes the form of a python module or package. The module or package is required to have a function at its top level called :func:`format_coord` which takes as its input argument a 3 element sequence containing :math:`X,Y,Z` coordinates in metres. The function must return a single string containing the information to be displayed in the Calcam GUI. It is highly recommended that different elements of information should be separated by newline characters i.e. `\n`.
+Custom 3D coordinate formatters are used to change the format of information displayed by Calcam about a point in 3D on the CAD model. A custom coordinate formatter takes the form of a python module or package. The module or package is required to have a function at its top level called :func:`format_coord` which takes as its input argument a 3 element sequence containing :math:`X,Y,Z` coordinates in metres. The function must return a single string containing the information to be displayed in the Calcam GUI. It is highly recommended that for clarity, different elements of information should be separated by newline characters i.e. ``\n``.
 
 
 Example
 -------
-Below is a simple example of a coordinate formatter
+Below is a simple example of a coordinate formatter, which will display the position in cartesian and cylindircal coordinates, and which vacuum vessel segment a point is in:
 
 .. code-block:: python
 
@@ -33,21 +33,6 @@ Below is a simple example of a coordinate formatter
       formatted_coord = formatted_coord + '\nSector {:.0f}'.format(sector)
 
       return  formatted_coord
-
-Note on sub-module and function names
--------------------------------------
-If the custom coordinate formatter takes the form of a package (i.e. a folder containing ``__init__.py`` along with other python files), some care should be taken not to import from a sub-module anything with the same name as that sub-module. This can cause problems if the coordinate formatter has to be re-loaded e.g. re-loading the CAD model or using the :guilabel:`Refresh` button in the CAD model editor, due to the way Calcam re-loads coordinate formatter code.  For example, doing the following in ``__init__.py`` :
-
-.. code-block:: python
-
-  from .do_something import do_something
-
-Would mean that if the coordinate formatting code is re-loaded, the ``do_something`` module would not be re-loaded with the rest of the code, which may or may not cause problems when the code is executed (depending on the contents of the ``do_something`` module). To avoid this issue, ensure functions (or any other object) imported in the coordinate formatting code do not have the same name as their parent modules. For instance, the above example could be fixed by renaming the ``do_something`` module so that the same line looks like:
-
-.. code-block:: python
-
-  from .DoSomething import do_something
-
 
 Adding to a CAD model
 ----------------------

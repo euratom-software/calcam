@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                Version 2.6
+                Version 2.7
               </div>
             
           
@@ -433,7 +433,7 @@ left,top,width and height of the detector window.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>window</strong> (<em>sequence</em>) – A 4-element sequence of integers defining the                                      detector window coordinates (Left,Top,Width,Height)</p></li>
+<li><p><strong>window</strong> (<em>sequence</em>) – A 4-element sequence of integers defining the                                      detector window coordinates (Left,Top,Width,Height). This MUST                                      be specified in ‘original’ detector coordinates (i.e. before any                                      image rotation, flips etc).</p></li>
 <li><p><strong>bounds_error</strong> (<em>str</em>) – How to handle the case for calibrations with multiple                                      sub-views if the requested detector region goes outside                                      the original calibration i.e. the outside the defined sub-view                                      map. ‘except’ will raise an exception, ‘warn’ will raise a warning                                      and ‘silent’ will not alert the user at all. If ‘warn’ or ‘silent’,                                      only pixels within the original calibrated area will be usable. Default is ‘warn’.</p></li>
 </ul>
 </dd>
@@ -489,8 +489,12 @@ where N is the number of colour channels.</p></li>
 <p>Calcam can be used to render images of a CAD model from the calibrated camera’s point of view. The render includes all lens distortion in the camera model, so should match exactly with a well calibrated real camera image.</p>
 <dl class="py function">
 <dt id="calcam.render_cam_view">
-<code class="sig-prename descclassname">calcam.</code><code class="sig-name descname">render_cam_view</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cadmodel</span></em>, <em class="sig-param"><span class="n">calibration</span></em>, <em class="sig-param"><span class="n">extra_actors</span><span class="o">=</span><span class="default_value">[]</span></em>, <em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">oversampling</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">aa</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">transparency</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">coords</span><span class="o">=</span><span class="default_value">'Display'</span></em>, <em class="sig-param"><span class="n">interpolation</span><span class="o">=</span><span class="default_value">'Cubic'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.render_cam_view" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">calcam.</code><code class="sig-name descname">render_cam_view</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cadmodel</span></em>, <em class="sig-param"><span class="n">calibration</span></em>, <em class="sig-param"><span class="n">extra_actors</span><span class="o">=</span><span class="default_value">[]</span></em>, <em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">oversampling</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">aa</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">transparency</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">coords</span><span class="o">=</span><span class="default_value">'display'</span></em>, <em class="sig-param"><span class="n">interpolation</span><span class="o">=</span><span class="default_value">'cubic'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.render_cam_view" title="Permalink to this definition">¶</a></dt>
 <dd><p>Render an image of a given CAD model from the point of view of a given calibration.</p>
+<p>NOTE: This function uses off-screen OpenGL rendering which fails above some image dimension which depends on the system.
+The workaround for this is that above a render dimension set by calcam.render.max_render_dimension, the image is rendered
+at lower resolution and then scaled up using nearest-neighbour scaling. For this reason, when rendering high resolution
+images the rendered image quality may be lower than expected.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -498,12 +502,12 @@ where N is the number of colour channels.</p></li>
 <li><p><strong>calibration</strong> (<a class="reference internal" href="#calcam.Calibration" title="calcam.Calibration"><em>calcam.Calibration</em></a>) – Calibration whose point-of-view to render from.</p></li>
 <li><p><strong>extra_actors</strong> (<em>list of vtk.vtkActor</em>) – List containing any additional vtkActors to add to the scene                                               in addition to the CAD model.</p></li>
 <li><p><strong>filename</strong> (<em>str</em>) – Filename to which to save the resulting image. If not given, no file is saved.</p></li>
-<li><p><strong>oversampling</strong> (<em>float</em>) – Used to render the image at higer (if &gt; 1) or lower (if &lt; 1) resolution than the                                               calibrated camera. Must be an integer power of 2.</p></li>
-<li><p><strong>aa</strong> (<em>int</em>) – Anti-aliasing factor. 1 = no anti-aliasing.</p></li>
+<li><p><strong>oversampling</strong> (<em>float</em>) – Used to render the image at higher (if &gt; 1) or lower (if &lt; 1) resolution than the                                               calibrated camera. Must be an integer if &gt; 1 or if &lt;1, 1/oversampling must be a                                               factor of both image width and height.</p></li>
+<li><p><strong>aa</strong> (<em>int</em>) – Anti-aliasing factor, 1 = no anti-aliasing.</p></li>
 <li><p><strong>transparency</strong> (<em>bool</em>) – If true, empty areas of the image are set transparent. Otherwise they are black.</p></li>
 <li><p><strong>verbose</strong> (<em>bool</em>) – Whether to print status updates while rendering.</p></li>
 <li><p><strong>coords</strong> (<em>str</em>) – Either <code class="docutils literal notranslate"><span class="pre">Display</span></code> or <code class="docutils literal notranslate"><span class="pre">Original</span></code>, the image orientation in which to return the image.</p></li>
-<li><p><strong>interpolation</strong> (<em>str</em>) – Either <code class="docutils literal notranslate"><span class="pre">nearest</span></code> or <code class="docutils literal notranslate"><span class="pre">cubic</span></code>, inerpolation used if re-sampling of the image during                                               the rendering process. Note: if set to <code class="docutils literal notranslate"><span class="pre">nesrest</span></code>, will make aa &gt; 1 ineffective.</p></li>
+<li><p><strong>interpolation</strong> (<em>str</em>) – Either <code class="docutils literal notranslate"><span class="pre">nearest</span></code> or <code class="docutils literal notranslate"><span class="pre">cubic</span></code>, inerpolation used when applying lens distortion.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>

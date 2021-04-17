@@ -1538,6 +1538,13 @@ class FittingCalib(CalcamGUIWindow):
         dialog = ChessboardDialog(self)
         dialog.exec_()
 
+        # Resizing the window + 1 pixel then immediately back again after the chessboard dialog is closed
+        # is a workaround for Issue #65, the root cause of which is a mystery to me. I shake my fist at VTK.
+        size = self.size()
+        self.resize(size.width(),size.height()+1)
+        self.app.processEvents()
+        self.resize(size.width(),size.height())
+        self.app.processEvents()
 
         if dialog.results != []:
             self.chessboard_pointpairs = dialog.results
@@ -1547,11 +1554,7 @@ class FittingCalib(CalcamGUIWindow):
                 self.chessboard_checkbox.setChecked(False)
             self.chessboard_checkbox.setChecked(True)
 
-        # Resizing the window + 1 pixel then immediately back again after the chessboard dialog is closed
-        # is a workaround for Issue #65, the root cause of which is a mystery to me. I shake my fist at VTK.
-        size = self.size()
-        self.resize(size.width(),size.height()+1)
-        self.resize(size.width(),size.height())
+
 
 
     def toggle_chessboard_constraints(self,on):

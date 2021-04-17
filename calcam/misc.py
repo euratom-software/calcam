@@ -32,6 +32,7 @@ import socket
 import importlib
 import os
 import sys
+import subprocess
 
 import numpy as np
 
@@ -369,3 +370,15 @@ def unload_source(source_path):
         except AttributeError:
             if source_path in sys.modules[module].__file__:
                 del sys.modules[module]
+
+
+def open_file(path):
+    """
+    Cross-platform opening of a path in the OS's default way.
+    From https://stackoverflow.com/questions/17317219/is-there-an-platform-independent-equivalent-of-os-startfile
+    """
+    if sys.platform == "win32":
+        os.startfile(path)
+    else:
+        opener = "open" if sys.platform == "darwin" else "xdg-open"
+        subprocess.call([opener, path])
