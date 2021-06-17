@@ -15,7 +15,7 @@ Starting the launcher
 
 From the command line
 ~~~~~~~~~~~~~~~~~~~~~
-At installation, the setup script will create a launcher for the Calcam GUI in your Python environment's script directory. If this directory is in your OS's ``PATH`` environment variable, this enables the Clacam GUI to be started directly from a terminal or command prompt simply by typing::
+At installation, the setup script will create a launcher for the Calcam GUI in your Python environment's script directory. If this directory is in your OS's ``PATH`` environment variable, this enables the Calcam GUI to be started directly from a terminal or command prompt simply by typing::
 
 	calcam
 
