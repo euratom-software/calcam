@@ -1,6 +1,13 @@
 Calcam Changelog
 ================
 
+Changes at 2.7.0+dev-master
+----------------------------
+
+Fixes:
+* Fixed bug in Image analyser which could cause exceptions when loading images in display orientation.
+
+
 Minor Release 2.7.0 (17 Apr 2021)
 ---------------------------------
 

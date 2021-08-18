@@ -484,8 +484,9 @@ class ImageAnalyser(CalcamGUIWindow):
         image = scale_to_8bit(newim['image_data'])
 
         newim_geometry = CoordTransformer(offset=newim['image_offset'],paspect=newim['pixel_aspect'])
-        newim_geometry.set_image_shape(newim['image_data'].shape[1],newim['image_data'].shape[0],coords=newim['coords'])
         newim_geometry.set_transform_actions(newim['transform_actions'])
+        newim_geometry.set_image_shape(newim['image_data'].shape[1],newim['image_data'].shape[0],coords=newim['coords'])
+
 
         if self.calibration is not None:
 
