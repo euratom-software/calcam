@@ -863,7 +863,7 @@ def get_lines_actor(coords):
     return actor
 
 
-def render_unfolded_wall(cadmodel,calibrations=[],w=None,theta_start=90,phi_start=0,progress_callback=LoopProgPrinter().update,cancel=False,theta_steps=64,phi_steps=256,filename=None):
+def render_unfolded_wall(cadmodel,calibrations=[],w=None,theta_start=90,phi_start=0,progress_callback=LoopProgPrinter().update,cancel=False,theta_steps=18,phi_steps=360,r_equiscale=None,filename=None):
     """
     Render an image of the tokamak wall "flattened" out. Creates an image where the horizontal direction is the toroidal direction and
     vertical direction is poloidal.
@@ -888,6 +888,10 @@ def render_unfolded_wall(cadmodel,calibrations=[],w=None,theta_start=90,phi_star
                                                       to change this. Effects the calculation time linearly.
         phi_steps (int)                             : Number of tiles to use in the toroidal direction. The default is optimised for image quality so it is advised not \
                                                       to change this. Effects the calculation time linearly.
+        r_equiscale (float)                         : Due to the unwrapping of the torus to a rectangle, objects will appear stretched or compressed depending on their major \
+                                                      radius. This parameter sets at what major radius objects appear at their correct shape. If not specified, the \
+                                                      centre of the wall contour is used so objects on the inboard side appear "fatter" than in real life and objects on the \
+                                                      outboard side will be "skinnier".
         filename (string)                           : If provided, the result will be saved to an image file with this name in addition to being returned as an array. \
                                                       Must include file extension.
     Returns:
@@ -920,6 +924,9 @@ def render_unfolded_wall(cadmodel,calibrations=[],w=None,theta_start=90,phi_star
         tor_len = 2*np.pi*r_mid
         w = int(tor_len/2e-3)
 
+    if r_equiscale is None:
+        r_equiscale = r_mid
+
     # Maximum line length which will be used for wall contour intersection tests.
     linelength = np.sqrt((r_max - r_min)**2 + (z_max - z_min)**2)
 
@@ -941,7 +948,7 @@ def render_unfolded_wall(cadmodel,calibrations=[],w=None,theta_start=90,phi_star
     camera.SetViewAngle(theta_step/np.pi * 180)
     renderer.Render()
     light = renderer.GetLights().GetItemAsObject(0)
-    light.SetPositional(False)
+    light.SetPositional(True)
 
     # Width of each tile in the horizontal direction
     xsz = int(w/phi_steps)
@@ -980,16 +987,11 @@ def render_unfolded_wall(cadmodel,calibrations=[],w=None,theta_start=90,phi_star
         # Camera upvec
         view_up_rz = [np.cos(theta + np.pi/2), np.sin(theta + np.pi/2)]
 
-        # Figure out what height this strip of image should be by seeing how much distance along the wall contour
-        # is included in this view angle, and maintain the same scale to physical distance around the whole wall.
-        theta_low = theta - theta_step/2
-        line_end = [linelength * np.cos(theta_low) + r_mid, linelength * np.sin(theta_low) + z_mid]
-        r1, z1 = get_contour_intersection(cadmodel.wall_contour, [r_mid, z_mid], line_end)
-        theta_up = theta + theta_step/2
-        line_end = [linelength * np.cos(theta_up) + r_mid, linelength * np.sin(theta_up) + z_mid]
-        r2, z2 = get_contour_intersection(cadmodel.wall_contour, [r_mid, z_mid], line_end)
-        dr = np.sqrt((r2 - r1)**2 + (z2 - z1)**2)
-        height = int(dr/(r_mid*2*np.pi/w))
+        # Figure out what height this strip of image should be by normalising it with distance
+        # from the camera to the wall in that direction.
+        dr = theta_step*r
+
+        height = int(dr/(r_equiscale*2*np.pi/w))
 
         # This will be our horizontal strip of image corresponding to this poloidal angle
         row = np.empty((height, 0, 3), dtype=np.uint8)
@@ -1006,7 +1008,6 @@ def render_unfolded_wall(cadmodel,calibrations=[],w=None,theta_start=90,phi_star
             upvec = [np.cos(phi)*view_up_rz[0],np.sin(phi)*view_up_rz[0],view_up_rz[1]]
             camera.SetViewUp(upvec)
             camera.SetFocalPoint(rtarg*np.cos(phi),rtarg*np.sin(phi),ztarg)
-            light.SetFocalPoint(rtarg*np.cos(phi),rtarg*np.sin(phi),ztarg)
 
             # Render the image tile
             renwin.Render()
