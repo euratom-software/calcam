@@ -75,7 +75,7 @@
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <property name="elideMode">
        <enum>Qt::ElideNone</enum>
@@ -1210,7 +1210,14 @@
               <item>
                <widget class="QRadioButton" name="sightline_type_lines">
                 <property name="text">
-                 <string>Sight Lines</string>
+                 <string>Line Fan</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QRadioButton" name="sightline_type_wallcoverage">
+                <property name="text">
+                 <string>Wall coverage</string>
                 </property>
                </widget>
               </item>

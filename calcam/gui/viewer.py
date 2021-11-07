@@ -191,7 +191,11 @@ class Viewer(CalcamGUIWindow):
 
                         # Add it to the lines list
                         listitem = qt.QListWidgetItem(lines_name)
-                        self.line_actors[listitem] = render.get_lines_actor(coords)
+
+                        if coords_dialog.show_lines.isChecked():
+                            self.line_actors[listitem] = render.get_lines_actor(coords)
+                        elif coords_dialog.show_points.isChecked():
+                            self.line_actors[listitem] = render.get_markers_actor(coords[:,0],coords[:,1],coords[:,2])
 
                         listitem.setFlags(listitem.flags() | qt.Qt.ItemIsEditable | qt.Qt.ItemIsSelectable)
                         listitem.setToolTip(lines_name)
@@ -212,10 +216,26 @@ class Viewer(CalcamGUIWindow):
 
         elif self.sender() is self.pick_lines_colour and len(self.lines_3d_list.selectedItems()) > 0:
 
-            picked_colour = self.pick_colour(self.line_actors[self.lines_3d_list.selectedItems()[0]].GetProperty().GetColor())
+            try:
+                current_colour = self.line_actors[self.lines_3d_list.selectedItems()[0]].GetProperty().GetColor()
+            except AttributeError:
+                actors = self.line_actors[self.lines_3d_list.selectedItems()[0]].GetParts()
+                actors.InitTraversal()
+                current_colour = actors.GetNextProp().GetProperty().GetColor()
+
+            picked_colour = self.pick_colour(current_colour)
             if picked_colour is not None:
                 for item in self.lines_3d_list.selectedItems():
-                    self.line_actors[item].GetProperty().SetColor( picked_colour )
+                    try:
+                        self.line_actors[item].GetProperty().SetColor( picked_colour )
+                    except AttributeError:
+                        actors = self.line_actors[item].GetParts()
+                        actors.InitTraversal()
+                        while True:
+                            try:
+                                actors.GetNextProp().GetProperty().SetColor( picked_colour )
+                            except AttributeError:
+                                break
 
 
     def update_selected_lines(self):
@@ -695,4 +715,4 @@ class CoordsDialog(qt.QDialog):
         if coords_shape[1] == 6:
             self.lines_label.setText('Importing coordinates for {:d} 3D lines from file.'.format(coords_shape[0]))
         elif coords_shape[1] == 3:
-            self.lines_label.setText('Importing 3D line containing {:d} points from file.'.format(coords_shape[0]))
+            self.lines_label.setText('Importing a sequence of {:d} points from file.'.format(coords_shape[0]))

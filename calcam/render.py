@@ -24,9 +24,11 @@ import cv2
 from vtk.util.numpy_support import vtk_to_numpy
 import numpy as np
 import time
-from .raycast import raycast_sightlines
+from .raycast import raycast_sightlines, RayData
 import copy
 from .misc import bin_image
+from .calibration import Calibration
+from matplotlib.cm import get_cmap
 
 # This is the maximum image dimension which we expect VTK can succeed at rendering in a single RenderWindow.
 # Hopefully 5120 is conservative enough to be safe on most systems but also not restrict render quality too much.
@@ -420,6 +422,189 @@ def get_fov_actor(cadmodel,calib,actor_type='volume',resolution=None):
 
     return actor
 
+
+def get_wall_coverage_actor(cal,cadmodel=None,image=None,imagecoords='Original',clim=None,lower_transparent=True,cmap='jet',clearance=2e-3):
+    """
+    Get a VTK actor representing the wall area coverage of a given camera.
+    Optionally, pass an image to colour the actor according to the image (e.g. to map data to the wall for visualisation)
+
+    Parameters:
+        cal                        : Calcam calibration to use - can be an instance of calcam.Calibration or calcam.RayData
+        cadmodel (calcam.CADModel) : Calcam CAD model to use for wall. Must be given if 'cal' is calcam.Calibration
+        image (np.ndarray)         : Data image to use for colouring. Can be EITHER a h*w size array of any type \
+                                     which will be colour mapped, or an 8-bit RGB image for colour data.
+        imagecoords (str)          : If passing an image, whether that image is in display or original orientation
+        clim (2 element sequence)  : If passing data toe colour mapped, the colour limits. Default is full range of data.
+        lower_transparent (bool)   : For colour mapped images, whether to make pixels below the lower colour limit \
+                                     transparent (don't show them) or give them the lowest colour in the colour map.
+        cmap                       : For colour mapped data, the name of the matplotlib colour map to use.
+        clearance (float)          : A distance in metres, the returned actor will be slightly in front of the wall surface by \
+                                     this much, in the direction towards the camera. Used to ensure this actor does not get buried \
+                                     inside the CAD geometry.
+
+    Returns:
+
+        vtkActor for a wall-hugging surface showing the camera coverage and/or image.
+
+    """
+
+    # If an image is supplied, check & organise it
+    if image is not None:
+
+        fr = np.array(image).copy().astype(np.float32)
+
+
+        if len(image.shape) < 3:
+            # Single channel image: will be colour mapped so normalise to CLIM and load colour map
+            if clim is None:
+                clim = [np.nanmin(image), np.nanmax(image)]
+
+            if lower_transparent:
+                fr[fr < clim[0]] = np.nan
+            else:
+                fr[fr < clim[0]] = clim[0]
+
+            fr[fr > clim[1]] = clim[1]
+
+            fr = (fr - clim[0]) / (clim[1] - clim[0])
+
+            cmap = get_cmap(cmap)
+
+        else:
+            # > single channel, assume 8-bit RGB: ensure correct datatype and throw away any extra channels
+            fr = fr[:,:,:3].astype(np.uint8)
+
+
+    if isinstance(cal,Calibration):
+        # If we're given a calcam calibration, ray cast to get the wall coords
+        if cadmodel is None:
+            raise Exception('If passing a Calcam calibration object, a CAD model must also be given!')
+        if imagecoords.lower() == 'display':
+            w,h = cal.geometry.get_display_shape()
+        elif imagecoords.lower() == 'original':
+            w, h = cal.geometry.get_original_shape()
+        x = np.linspace(- 0.5, w - 0.5, w  + 1)
+        y = np.linspace(- 0.5, h - 0.5, h + 1)
+        x,y = np.meshgrid(x,y)
+        rd = raycast_sightlines(cal,cadmodel,x=x,y=y,coords=imagecoords)
+        
+    elif isinstance(cal,RayData):
+        # If already given a raydata object, just use that!
+        rd = cal
+
+    ray_start = rd.get_ray_start()
+    ray_dir = rd.get_ray_directions()
+    ray_len = rd.get_ray_lengths()
+
+    # Ray end coordinates at the wall: put them 2mm in front of the wall to make sure the resulting actor
+    # is not part buried in the CAD model
+    ray_end = ray_start + (np.tile(ray_len[:,:,np.newaxis],(1,1,3)) - clearance) * ray_dir
+
+
+
+    # VTK objects with coordinates of each pixel corner.
+    # Which index in the VTK array corresponds to which pixel is tracked in pointinds
+    verts = vtk.vtkPoints()
+    pointinds = np.zeros((ray_end.shape[0],ray_end.shape[1]),dtype=int)
+    ci = 0
+    for i in range(ray_end.shape[0]):
+        for j in range(ray_end.shape[1]):
+            verts.InsertNextPoint(*ray_end[i,j,:])
+            pointinds[i,j] = ci
+            ci += 1
+
+    # Create VTK polygon array
+    polys  = vtk.vtkCellArray()
+
+    # If we're mapping an image, create the array of colours for each polygon
+    if image is not None:
+        colours = vtk.vtkUnsignedCharArray()
+        colours.SetNumberOfComponents(3)
+
+
+    # Go through the image
+    for xi in range(ray_end.shape[1]-1):
+        for yi in range(ray_end.shape[0] - 1):
+
+            # Don't map any pixels which are NaN
+            if image is not None:
+                if np.isnan(fr[yi,xi]):
+                    continue
+
+            # Coordinates and indices of corners for this pixel
+            polycoords = ray_end[yi:yi+2,xi:xi+2,:]
+            inds = pointinds[yi:yi+2,xi:xi+2]
+
+            # Check if a pixel is "torn" in real space by the ratio of its
+            # longest and shortest sides. If it's >4, don't show the pixel.
+            deltas = np.zeros((6,3))
+            deltas[0,:] = polycoords[0,1,:] - polycoords[0,0,:]
+            deltas[1,:] = polycoords[1,1,:] - polycoords[0,1,:]
+            deltas[2,:] = polycoords[1,0,:] - polycoords[1,1,:]
+            deltas[3,:] = polycoords[0,0,:] - polycoords[1,0,:]
+            deltas[4,:] = polycoords[0,0,:] - polycoords[1,1,:]
+            deltas[5, :] = polycoords[0,1,:] - polycoords[1,0,:]
+
+            dr = np.sqrt(np.sum(deltas**2,axis=1))
+
+            if dr.max() > 5*dr.min():
+                continue
+
+            # Create a quad representing the pixel
+            poly = vtk.vtkPolygon()
+            poly.GetPointIds().SetNumberOfIds(4)
+            poly.GetPointIds().SetId(0,inds[0,0])
+            poly.GetPointIds().SetId(1, inds[1, 0])
+            poly.GetPointIds().SetId(2, inds[1, 1])
+            poly.GetPointIds().SetId(3, inds[0, 1])
+            polys.InsertNextCell(poly)
+
+            # If we're mapping an image, colour the quad according to the image data
+            if image is not None:
+                if len(image.shape) < 3:
+                    rgb = (np.array(cmap(fr[yi,xi]))[:-1] * 255).astype(np.uint8)
+                    colours.InsertNextTypedTuple(rgb)
+                else:
+                    colours.InsertNextTypedTuple(fr[yi,xi,:])
+
+    # Put it all togetehr in a vtkPolyDataActor
+    polydata = vtk.vtkPolyData()
+    polydata.SetPoints(verts)
+    polydata.SetPolys(polys)
+
+    if image is not None:
+        polydata.GetCellData().SetScalars(colours)
+
+    mapper = vtk.vtkPolyDataMapper()
+    mapper.SetInputData(polydata)
+
+    if image is not None:
+        mapper.SetColorModeToDirectScalars()
+
+    actor = vtk.vtkActor()
+    actor.SetMapper(mapper)
+
+    return actor
+
+def get_markers_actor(x,y,z,size=1e-2,colour=(1,1,1),flat_shading=True,resolution=12):
+
+    markers = vtk.vtkAssembly()
+    for x_,y_,z_ in zip(x,y,z):
+        sphere = vtk.vtkSphereSource()
+        sphere.SetCenter(x_,y_,z_)
+        sphere.SetRadius(size/2)
+        sphere.SetPhiResolution(resolution)
+        sphere.SetThetaResolution(resolution)
+        mapper = vtk.vtkPolyDataMapper()
+        mapper.SetInputConnection(sphere.GetOutputPort())
+        actor = vtk.vtkActor()
+        actor.SetMapper(mapper)
+        actor.GetProperty().SetColor(colour)
+        if flat_shading:
+            actor.GetProperty().LightingOff()
+        markers.AddPart(actor)
+
+    return markers
 
 
 def get_wall_contour_actor(wall_contour,actor_type='contour',phi=None,toroidal_res=128):
