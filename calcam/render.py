@@ -26,7 +26,7 @@ import numpy as np
 import time
 from .raycast import raycast_sightlines, RayData
 import copy
-from .misc import bin_image
+from .misc import bin_image, get_contour_intersection, LoopProgPrinter, ColourCycle
 from .calibration import Calibration
 from matplotlib.cm import get_cmap
 
@@ -861,3 +861,197 @@ def get_lines_actor(coords):
     actor.GetProperty().SetLineWidth(2)
 
     return actor
+
+
+def render_unfolded_wall(cadmodel,calibrations=[],w=None,theta_start=90,phi_start=0,progress_callback=LoopProgPrinter().update,cancel=False,theta_steps=64,phi_steps=256,filename=None):
+    """
+    Render an image of the tokamak wall "flattened" out. Creates an image where the horizontal direction is the toroidal direction and
+    vertical direction is poloidal.
+
+    Parameters:
+
+        cadmodel (calcam.CADModel)                  : CAD Model to render. The CAD model must have an R, Z wall contour embedded in it (this is \
+                                                      ued in the wall flattening calculations), which can be added in the CAD model editor.
+        calibrations (list of calcam.Calibration)   : List of camera calibrations to visualise on the wall. If provided, each camera calibration \
+                                                      will be shown on the image as a colour shaded area on the wall indicating which parts of the wall \
+                                                      the camera can see.
+        w (int)                                     : Desired approximate width of the rendered image in pixels. If not given, the image width will be chosen \
+                                                      to give a scale of about 2mm/pixel.
+        theta_start (float)                         : Poloidal angle in degrees to "split" the image i.e. this angle will be at the top and bottom of the image. \
+                                                      0 corresponds to the outboard midplane. Default is 90 degrees i.e. the top of the machine.
+        phi_start (float)                           : Toroidal angle in degrees to "split" the image i.e. this angle will be at the left and right of the image.
+        progress_callback (callable)                : Used for GUI integration - a callable which will be called with the fraction of the render completed. \
+                                                      Default is to print an estimate of how long the render will take.
+        cancel (ref to bool)                        : Used for GUI integration - a booleam which starts False, and if set to True during the calculation, the function \
+                                                      will stop and return.
+        theta_steps (int)                           : Number of tiles to use in the poloidal direction. The default is optimised for image quality so it is advised not \
+                                                      to change this. Effects the calculation time linearly.
+        phi_steps (int)                             : Number of tiles to use in the toroidal direction. The default is optimised for image quality so it is advised not \
+                                                      to change this. Effects the calculation time linearly.
+        filename (string)                           : If provided, the result will be saved to an image file with this name in addition to being returned as an array. \
+                                                      Must include file extension.
+    Returns:
+
+        A NumPy array of size ( h * w * 3 ) and dtype uint8 containing the RGB image result.
+    """
+    if cadmodel.wall_contour is None:
+        raise Exception('This CAD model does not have a wall contour included. This function can only be used with CAD models which have wall contours.')
+
+    cal_actors = []
+    if len(calibrations) > 0:
+        ccycle = ColourCycle()
+        for calib in calibrations:
+            actor = get_wall_coverage_actor(calib,cadmodel,clearance=1e-2)
+            actor.GetProperty().SetOpacity(0.75)
+            actor.GetProperty().SetColor(next(ccycle))
+            cal_actors.append(actor)
+
+
+    # The camera will be placed in the centre of the R, Z wall contour
+    r_min = cadmodel.wall_contour[:,0].min()
+    r_max = cadmodel.wall_contour[:,0].max()
+    z_min = cadmodel.wall_contour[:,1].min()
+    z_max = cadmodel.wall_contour[:,1].max()
+    r_mid = (r_max + r_min) / 2
+    z_mid = (z_max + z_min) / 2
+
+    # Calculate image width for ~2mm / pixel if none is given
+    if w is None:
+        tor_len = 2*np.pi*r_mid
+        w = int(tor_len/2e-3)
+
+    # Maximum line length which will be used for wall contour intersection tests.
+    linelength = np.sqrt((r_max - r_min)**2 + (z_max - z_min)**2)
+
+    # Theta and phi steps in radians
+    theta_step = 2*np.pi/theta_steps
+    phi_step = 2*np.pi/phi_steps
+
+    # Convert starting angles to radians
+    theta_start = theta_start / 180 * np.pi
+    phi_start = phi_start / 180 * np.pi
+
+    # Set up a VTK off screen window to do the image rendering
+    renwin = vtk.vtkRenderWindow()
+    renwin.OffScreenRenderingOn()
+    renwin.SetBorders(0)
+    renderer = vtk.vtkRenderer()
+    renwin.AddRenderer(renderer)
+    camera = renderer.GetActiveCamera()
+    camera.SetViewAngle(theta_step/np.pi * 180)
+    renderer.Render()
+    light = renderer.GetLights().GetItemAsObject(0)
+    light.SetPositional(False)
+
+    # Width of each tile in the horizontal direction
+    xsz = int(w/phi_steps)
+    w = phi_steps * xsz
+
+    cadmodel.add_to_renderer(renderer)
+
+    for actor in cal_actors:
+        renderer.AddActor(actor)
+
+    # Initialise an array for the output image.
+    out_im = np.empty((0,w,3),dtype=np.uint8)
+
+    # Update status callback if present
+    if callable(progress_callback):
+        try:
+            progress_callback('[render_wall] Rendering wall image')
+        except Exception:
+            pass
+        progress_callback(0.)
+        n = 0
+
+    # Outer loop over poloidal angle
+    for theta in np.linspace(theta_start + theta_step/2,theta_start + 2*np.pi - theta_step/2,theta_steps):
+
+        # See where a line from the camera position at this poloidal angle hits the wall contour
+        line_end = [linelength*np.cos(theta) + r_mid,linelength*np.sin(theta)+z_mid]
+        rtarg,ztarg = get_contour_intersection(cadmodel.wall_contour,[r_mid,z_mid],line_end)
+
+        # What aspect ratio the render window needs to be to cover the correct poloidal and toroidal angles
+        r = np.sqrt((rtarg - r_mid)**2 + (ztarg - z_mid)**2)
+        xangle = phi_step * rtarg / r
+        aspect = theta_step / xangle
+        ysz = int(xsz * aspect)
+
+        # Camera upvec
+        view_up_rz = [np.cos(theta + np.pi/2), np.sin(theta + np.pi/2)]
+
+        # Figure out what height this strip of image should be by seeing how much distance along the wall contour
+        # is included in this view angle, and maintain the same scale to physical distance around the whole wall.
+        theta_low = theta - theta_step/2
+        line_end = [linelength * np.cos(theta_low) + r_mid, linelength * np.sin(theta_low) + z_mid]
+        r1, z1 = get_contour_intersection(cadmodel.wall_contour, [r_mid, z_mid], line_end)
+        theta_up = theta + theta_step/2
+        line_end = [linelength * np.cos(theta_up) + r_mid, linelength * np.sin(theta_up) + z_mid]
+        r2, z2 = get_contour_intersection(cadmodel.wall_contour, [r_mid, z_mid], line_end)
+        dr = np.sqrt((r2 - r1)**2 + (z2 - z1)**2)
+        height = int(dr/(r_mid*2*np.pi/w))
+
+        # This will be our horizontal strip of image corresponding to this poloidal angle
+        row = np.empty((height, 0, 3), dtype=np.uint8)
+
+        # Set the render window size
+        renwin.SetSize(xsz,ysz)
+
+        # Inner loop is over toroidal angle
+        for phi in np.linspace(phi_start + phi_step/2,phi_start + 2*np.pi - phi_step/2,phi_steps):
+
+            # Shuffle the camera and light around toroidally and point them at the right place on the wall
+            camera.SetPosition(r_mid*np.cos(phi),r_mid*np.sin(phi),z_mid)
+            light.SetPosition(r_mid*np.cos(phi),r_mid*np.sin(phi),z_mid)
+            upvec = [np.cos(phi)*view_up_rz[0],np.sin(phi)*view_up_rz[0],view_up_rz[1]]
+            camera.SetViewUp(upvec)
+            camera.SetFocalPoint(rtarg*np.cos(phi),rtarg*np.sin(phi),ztarg)
+            light.SetFocalPoint(rtarg*np.cos(phi),rtarg*np.sin(phi),ztarg)
+
+            # Render the image tile
+            renwin.Render()
+            vtk_win_im = vtk.vtkWindowToImageFilter()
+            vtk_win_im.SetInput(renwin)
+            vtk_win_im.Update()
+            vtk_image = vtk_win_im.GetOutput()
+            vtk_array = vtk_image.GetPointData().GetScalars()
+            dims = vtk_image.GetDimensions()
+            im = np.flipud(vtk_to_numpy(vtk_array).reshape(dims[1], dims[0] , 3))
+
+            # Squash or stretch it vertically to get the poloidal scale right, as calculated earlier.
+            im = cv2.resize(im,(xsz,height))
+
+            # Glue it on to the output
+            row = np.hstack((im,row))
+
+            # Update the status callback, if present
+            if callable(progress_callback):
+                n += 1
+                progress_callback(n/(theta_steps*phi_steps))
+
+            # Stop if cancellation has been requested
+            if cancel:
+                break
+
+        # Stick this image strip on to the output.
+        out_im = np.vstack((row,out_im))
+
+        if cancel:
+            break
+
+    if callable(progress_callback):
+        progress_callback(1.)
+
+    cadmodel.remove_from_renderer(renderer)
+    renwin.Finalize()
+
+    # Save the image if given a filename
+    if filename is not None:
+
+        # Re-shuffle the colour channels for saving (openCV needs BGR / BGRA)
+        save_im = copy.copy(out_im)
+        save_im[:,:,:3] = save_im[:,:,2::-1]
+        cv2.imwrite(filename,save_im)
+        print('[render_wall] Result saved as {:s}'.format(filename))
+
+    return out_im
