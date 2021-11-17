@@ -423,7 +423,7 @@ def get_fov_actor(cadmodel,calib,actor_type='volume',resolution=None):
     return actor
 
 
-def get_wall_coverage_actor(cal,cadmodel=None,image=None,imagecoords='Original',clim=None,lower_transparent=True,cmap='jet',clearance=2e-3):
+def get_wall_coverage_actor(cal,cadmodel=None,image=None,imagecoords='Original',clim=None,lower_transparent=True,cmap='jet',clearance=5e-3,resolution=None):
     """
     Get a VTK actor representing the wall area coverage of a given camera.
     Optionally, pass an image to colour the actor according to the image (e.g. to map data to the wall for visualisation)
@@ -439,8 +439,9 @@ def get_wall_coverage_actor(cal,cadmodel=None,image=None,imagecoords='Original',
                                      transparent (don't show them) or give them the lowest colour in the colour map.
         cmap                       : For colour mapped data, the name of the matplotlib colour map to use.
         clearance (float)          : A distance in metres, the returned actor will be slightly in front of the wall surface by \
-                                     this much, in the direction towards the camera. Used to ensure this actor does not get buried \
-                                     inside the CAD geometry.
+                                     this much. Used to ensure this actor does not get buried inside the CAD geometry.
+        resolution (int)           : Maximum side length in pixels for the ray casting. Smaller values result in faster calculation \
+                                     but uglier result. Default will calculate the full resolution of the camera. Ignored if an image is provided.
 
     Returns:
 
@@ -452,7 +453,6 @@ def get_wall_coverage_actor(cal,cadmodel=None,image=None,imagecoords='Original',
     if image is not None:
 
         fr = np.array(image).copy().astype(np.float32)
-
 
         if len(image.shape) < 3:
             # Single channel image: will be colour mapped so normalise to CLIM and load colour map
@@ -474,19 +474,27 @@ def get_wall_coverage_actor(cal,cadmodel=None,image=None,imagecoords='Original',
             # > single channel, assume 8-bit RGB: ensure correct datatype and throw away any extra channels
             fr = fr[:,:,:3].astype(np.uint8)
 
+        factor = image.shape[1::-1] / cal.geometry.get_image_shape(imagecoords)
+        if factor[0] != factor[1]:
+            raise ValueError('Image size ({:d}x{:d} px) does not match expected ({:s} image shape for this calibration ({:d}x{:d} px)'.format(image.shape[1],image.shape[0],imagecoords,cal.geometry.get_image_shape(imagecoords)[0],cal.geometry.get_image_shape(imagecoords)[1]))
+        binning = factor[0]
+
+    else:
+        if resolution is None:
+            binning = 1
+        else:
+            binning = max(cal.geometry.get_display_shape()) / resolution
 
     if isinstance(cal,Calibration):
         # If we're given a calcam calibration, ray cast to get the wall coords
         if cadmodel is None:
             raise Exception('If passing a Calcam calibration object, a CAD model must also be given!')
-        if imagecoords.lower() == 'display':
-            w,h = cal.geometry.get_display_shape()
-        elif imagecoords.lower() == 'original':
-            w, h = cal.geometry.get_original_shape()
-        x = np.linspace(- 0.5, w - 0.5, w  + 1)
-        y = np.linspace(- 0.5, h - 0.5, h + 1)
+
+        w, h = cal.geometry.get_image_shape(imagecoords)
+        x = np.linspace(- 0.5, w - 0.5, int(w/binning) + 1)
+        y = np.linspace(- 0.5, h - 0.5, int(h/binning) + 1)
         x,y = np.meshgrid(x,y)
-        rd = raycast_sightlines(cal,cadmodel,x=x,y=y,coords=imagecoords)
+        rd = raycast_sightlines(cal,cadmodel,x=x,y=y,coords=imagecoords,calc_normals=True)
         
     elif isinstance(cal,RayData):
         # If already given a raydata object, just use that!
@@ -495,12 +503,12 @@ def get_wall_coverage_actor(cal,cadmodel=None,image=None,imagecoords='Original',
     ray_start = rd.get_ray_start()
     ray_dir = rd.get_ray_directions()
     ray_len = rd.get_ray_lengths()
+    normals = rd.get_model_normals()
+
 
     # Ray end coordinates at the wall: put them 2mm in front of the wall to make sure the resulting actor
     # is not part buried in the CAD model
-    ray_end = ray_start + (np.tile(ray_len[:,:,np.newaxis],(1,1,3)) - clearance) * ray_dir
-
-
+    ray_end = ray_start + np.tile(ray_len[:,:,np.newaxis],(1,1,3)) * ray_dir + normals * clearance
 
     # VTK objects with coordinates of each pixel corner.
     # Which index in the VTK array corresponds to which pixel is tracked in pointinds
@@ -512,6 +520,8 @@ def get_wall_coverage_actor(cal,cadmodel=None,image=None,imagecoords='Original',
             verts.InsertNextPoint(*ray_end[i,j,:])
             pointinds[i,j] = ci
             ci += 1
+
+    ray_end = ray_end - normals * clearance
 
     # Create VTK polygon array
     polys  = vtk.vtkCellArray()
@@ -533,21 +543,29 @@ def get_wall_coverage_actor(cal,cadmodel=None,image=None,imagecoords='Original',
 
             # Coordinates and indices of corners for this pixel
             polycoords = ray_end[yi:yi+2,xi:xi+2,:]
+            losdirs = ray_dir[yi:yi+2,xi:xi+2,:]
+            pixel_dir = np.array( [losdirs[:,:,0].mean(),losdirs[:,:,1].mean(),losdirs[:,:,2].mean()])
+            pixel_dir = pixel_dir / np.sqrt(np.sum(pixel_dir**2))
+
             inds = pointinds[yi:yi+2,xi:xi+2]
 
-            # Check if a pixel is "torn" in real space by the ratio of its
-            # longest and shortest sides. If it's >4, don't show the pixel.
-            deltas = np.zeros((6,3))
-            deltas[0,:] = polycoords[0,1,:] - polycoords[0,0,:]
-            deltas[1,:] = polycoords[1,1,:] - polycoords[0,1,:]
-            deltas[2,:] = polycoords[1,0,:] - polycoords[1,1,:]
-            deltas[3,:] = polycoords[0,0,:] - polycoords[1,0,:]
-            deltas[4,:] = polycoords[0,0,:] - polycoords[1,1,:]
-            deltas[5, :] = polycoords[0,1,:] - polycoords[1,0,:]
 
-            dr = np.sqrt(np.sum(deltas**2,axis=1))
+            # Check if a pixel is "torn" in real space by checking if any of its sides
+            # are very close to parallel with the camera sight lines. If so, skip it.
+            sides = np.zeros((6,3))
+            sides[0,:] = polycoords[0,1,:] - polycoords[0,0,:]
+            sides[1,:] = polycoords[1,1,:] - polycoords[0,1,:]
+            sides[2,:] = polycoords[1,0,:] - polycoords[1,1,:]
+            sides[3,:] = polycoords[0,0,:] - polycoords[1,0,:]
+            sides[4,:] = polycoords[0, 0,:] - polycoords[1, 1,:]
+            sides[5,:] = polycoords[0, 1,:] - polycoords[1, 0,:]
 
-            if dr.max() > 5*dr.min():
+            side_lengths = np.sqrt(np.sum(sides**2,axis=1))
+            sides = sides / np.tile(side_lengths[:,np.newaxis],(1,3))
+
+            dot_prods = [ np.dot(pixel_dir,sides[i,:]) for i in range(4) ]
+
+            if max(dot_prods) > 0.98:
                 continue
 
             # Create a quad representing the pixel
@@ -583,8 +601,10 @@ def get_wall_coverage_actor(cal,cadmodel=None,image=None,imagecoords='Original',
 
     actor = vtk.vtkActor()
     actor.SetMapper(mapper)
+    actor.GetProperty().LightingOff()
 
     return actor
+
 
 def get_markers_actor(x,y,z,size=1e-2,colour=(1,1,1),flat_shading=True,resolution=12):
 
@@ -863,7 +883,7 @@ def get_lines_actor(coords):
     return actor
 
 
-def render_unfolded_wall(cadmodel,calibrations=[],w=None,theta_start=90,phi_start=0,progress_callback=LoopProgPrinter().update,cancel=False,theta_steps=18,phi_steps=360,r_equiscale=None,filename=None):
+def render_unfolded_wall(cadmodel,calibrations=[],labels = [],w=None,theta_start=90,phi_start=0,progress_callback=LoopProgPrinter().update,cancel=False,theta_steps=18,phi_steps=360,r_equiscale=None,filename=None):
     """
     Render an image of the tokamak wall "flattened" out. Creates an image where the horizontal direction is the toroidal direction and
     vertical direction is poloidal.
@@ -875,6 +895,8 @@ def render_unfolded_wall(cadmodel,calibrations=[],w=None,theta_start=90,phi_star
         calibrations (list of calcam.Calibration)   : List of camera calibrations to visualise on the wall. If provided, each camera calibration \
                                                       will be shown on the image as a colour shaded area on the wall indicating which parts of the wall \
                                                       the camera can see.
+        labels (list of strings)                    : List of strings containing legend text for the calibrations. If not provided, no legend will be added \
+                                                      to the image. If provided, must be the same length as the list of calibrations.
         w (int)                                     : Desired approximate width of the rendered image in pixels. If not given, the image width will be chosen \
                                                       to give a scale of about 2mm/pixel.
         theta_start (float)                         : Poloidal angle in degrees to "split" the image i.e. this angle will be at the top and bottom of the image. \
@@ -902,13 +924,21 @@ def render_unfolded_wall(cadmodel,calibrations=[],w=None,theta_start=90,phi_star
         raise Exception('This CAD model does not have a wall contour included. This function can only be used with CAD models which have wall contours.')
 
     cal_actors = []
+    legend_items = []
     if len(calibrations) > 0:
+        if len(labels) > 0:
+            if len(labels) != len(calibrations):
+                raise ValueError('Length of labels list different from number of calibrations given!')
+
         ccycle = ColourCycle()
-        for calib in calibrations:
-            actor = get_wall_coverage_actor(calib,cadmodel,clearance=1e-2)
-            actor.GetProperty().SetOpacity(0.75)
-            actor.GetProperty().SetColor(next(ccycle))
+        for i,calib in enumerate(calibrations):
+            actor = get_wall_coverage_actor(calib,cadmodel,clearance=2e-2)
+            actor.GetProperty().SetOpacity(0.7)
+            col = next(ccycle)
+            actor.GetProperty().SetColor(col)
             cal_actors.append(actor)
+            if len(labels) > 0:
+                legend_items.append((labels[i], col))
 
 
     # The camera will be placed in the centre of the R, Z wall contour
@@ -1044,7 +1074,53 @@ def render_unfolded_wall(cadmodel,calibrations=[],w=None,theta_start=90,phi_star
         progress_callback(1.)
 
     cadmodel.remove_from_renderer(renderer)
+
+    if len(legend_items) > 0:
+
+        longest_name = max([len(item[0]) for item in legend_items])
+
+        legend = vtk.vtkLegendBoxActor()
+        legend.SetNumberOfEntries(len(legend_items))
+
+        for i, entry in enumerate(legend_items):
+            legend.SetEntryString(i, entry[0])
+            legend.SetEntryColor(i, entry[1])
+
+        legend.UseBackgroundOn()
+        legend.SetBackgroundColor((0.1, 0.1, 0.1))
+        legend.SetPadding(9)
+
+        legend_scale = 0.03
+
+        abs_height = int(legend_scale * out_im.shape[0])
+        width_per_char = abs_height * 0.5
+        legend_width =  int(width_per_char * longest_name)
+
+        legend.GetPosition2Coordinate().SetCoordinateSystemToDisplay()
+        legend.GetPositionCoordinate().SetCoordinateSystemToDisplay()
+
+        legend.GetPosition2Coordinate().SetValue(legend_width, abs_height)
+        legend.GetPositionCoordinate().SetValue(0,0)
+
+        renderer.AddActor(legend)
+        renwin.SetSize(legend_width,abs_height)
+        renwin.Render()
+        vtk_win_im = vtk.vtkWindowToImageFilter()
+        vtk_win_im.SetInput(renwin)
+        vtk_win_im.Update()
+        vtk_image = vtk_win_im.GetOutput()
+        vtk_array = vtk_image.GetPointData().GetScalars()
+        dims = vtk_image.GetDimensions()
+        legend_im = np.flipud(vtk_to_numpy(vtk_array).reshape(dims[1], dims[0], 3))
+
+        x_offs = out_im.shape[1] - legend_im.shape[1] - 20
+        y_offs = out_im.shape[0] - legend_im.shape[0] - 20
+
+        out_im[y_offs:y_offs + legend_im.shape[0],x_offs:x_offs + legend_im.shape[1],:] = out_im[y_offs:y_offs + legend_im.shape[0],x_offs:x_offs + legend_im.shape[1],:] * 0.2 + 0.8 * legend_im
+
     renwin.Finalize()
+
+
 
     # Save the image if given a filename
     if filename is not None:

@@ -44,8 +44,7 @@ from . import misc
 from . import __version__ as calcam_version
 
 
-def raycast_sightlines(calibration,cadmodel,x=None,y=None,exclusion_radius=0.0,binning=1,coords='Display',verbose=True,intersecting_only=False,
-                       force_subview=None,status_callback=None):
+def raycast_sightlines(calibration,cadmodel,x=None,y=None,exclusion_radius=0.0,binning=1,coords='Display',verbose=True,intersecting_only=False, force_subview=None,status_callback=None,calc_normals=False):
     '''
     Ray cast camera sight-lines to determine where they intersect the given CAD model.
 
@@ -91,6 +90,10 @@ def raycast_sightlines(calibration,cadmodel,x=None,y=None,exclusion_radius=0.0,b
                                            if set to None but verbose is set to True, status_callback will be set such that status updates \
                                            go to stdout.
 
+        calc_normals (bool)              : Whether to calculate the normal vectors of the CAD model where the sight-lines intersect it. \
+                                           Not turned on by default because it seems to add around 80% extra calculation time, so best used \
+                                           only if actyally needed.
+
     Returns:
 
         calcam.RayData                   : Object containing the results.
@@ -119,7 +122,6 @@ def raycast_sightlines(calibration,cadmodel,x=None,y=None,exclusion_radius=0.0,b
 
     # Get the CAD model's octree
     cell_locator = cadmodel.get_cell_locator()
-
 
     # If no pixels are specified, do the whole chip at the specified binning level.
     fullchip = False
@@ -180,6 +182,7 @@ def raycast_sightlines(calibration,cadmodel,x=None,y=None,exclusion_radius=0.0,b
 
 
     results.ray_end_coords = np.ndarray([np.size(x),3])
+    results.model_normals = np.ndarray([np.size(x),3]) + np.nan
 
     # Line of sight directions
     LOSDir = calibration.get_los_direction(results.x,results.y,coords='Display',subview=force_subview)
@@ -198,6 +201,8 @@ def raycast_sightlines(calibration,cadmodel,x=None,y=None,exclusion_radius=0.0,b
     pos = np.zeros(3)
     coords_ = np.zeros(3)
     subid = vtk.mutable(0)
+    cellid = vtk.mutable(0)
+    cell = vtk.vtkGenericCell()
 
     last_status_update = 0.
     n_done = 0
@@ -218,12 +223,21 @@ def raycast_sightlines(calibration,cadmodel,x=None,y=None,exclusion_radius=0.0,b
         raystart = results.ray_start_coords[ind] + exclusion_radius * LOSDir[ind]
         rayend = results.ray_start_coords[ind] + max_ray_length * LOSDir[ind]
 
-        retval = cell_locator.IntersectWithLine(raystart,rayend,1.e-6,t,pos,coords_,subid)
+        retval = cell_locator.IntersectWithLine(raystart,rayend,1.e-6,t,pos,coords_,subid,cellid,cell)
 
         if abs(retval) > 0:
             results.ray_end_coords[ind,:] = pos[:]
+            if calc_normals:
+                v0 = np.array(cell.GetPoints().GetPoint(2)) - np.array(cell.GetPoints().GetPoint(0))
+                v1 = np.array(cell.GetPoints().GetPoint(2)) - np.array(cell.GetPoints().GetPoint(1))
+                n = np.cross(v0,v1)
+                n = n / np.sqrt(np.sum(n**2))
+                if np.dot(LOSDir[ind],n) > 0:
+                    n = -n
+                results.model_normals[ind,:] = n
+
         elif intersecting_only:
-        	results.ray_end_coords[ind,:] = np.nan
+            results.ray_end_coords[ind,:] = np.nan
         else:
             results.ray_end_coords[ind,:] = rayend
 
@@ -241,6 +255,11 @@ def raycast_sightlines(calibration,cadmodel,x=None,y=None,exclusion_radius=0.0,b
 
     results.ray_end_coords = np.reshape(results.ray_end_coords,orig_shape + (3,),order='F')
     results.ray_start_coords = np.reshape(results.ray_start_coords,orig_shape + (3,),order='F')
+    if calc_normals:
+        results.model_normals = np.reshape(results.model_normals, orig_shape + (3,), order='F')
+    else:
+        results.model_normals = None
+
     results.x = np.reshape(results.x,orig_shape,order='F')
     results.y = np.reshape(results.y,orig_shape,order='F')
 
@@ -283,6 +302,7 @@ class RayData:
         self.y = None
         self.filename = None
         self.crop = None
+        self.model_normals = None
         
         if filename is not None:
             self._load(filename)
@@ -302,39 +322,48 @@ class RayData:
 
         current_crop = self.crop
         self.set_detector_window(None)
-			
+
         f = netcdf_file(filename,'w')
         f.title = 'Calcam v{:s} RayData (ray cast results) file.'.format(calcam_version)
         f.history = self.history
         f.image_transform_actions = "['" + "','".join(self.transform.transform_actions) + "']"
         f.fullchip = self.fullchip
 
-        pointdim = f.createDimension('pointdim',3)
+        f.createDimension('pointdim',3)
 
         if len(self.x.shape) == 2:
-            udim = f.createDimension('udim',self.x.shape[1])
-            vdim = f.createDimension('vdim',self.x.shape[0])
+            f.createDimension('udim',self.x.shape[1])
+            f.createDimension('vdim',self.x.shape[0])
             rayhit = f.createVariable('RayEndCoords','f4',('vdim','udim','pointdim'))
             raystart = f.createVariable('RayStartCoords','f4',('vdim','udim','pointdim'))
             x = f.createVariable('PixelXLocation','i4',('vdim','udim'))
             y = f.createVariable('PixelYLocation','i4',('vdim','udim'))
+            if self.model_normals is not None:
+                normals = f.createVariable('ModelNormals', 'f4', ('vdim', 'udim', 'pointdim'))
             
             rayhit[:,:,:] = self.ray_end_coords
             raystart[:,:,:] = self.ray_start_coords
             x[:,:] = self.x
             y[:,:] = self.y
+            if self.model_normals is not None:
+                normals[:,:,:] = self.model_normals
+
         elif len(self.x.shape) == 1:
-            udim = f.createDimension('udim',self.x.size)
+            f.createDimension('udim',self.x.size)
             rayhit = f.createVariable('RayEndCoords','f4',('udim','pointdim'))
             raystart = f.createVariable('RayStartCoords','f4',('udim','pointdim'))
+            if self.model_normals is not None:
+                normals = f.createVariable('ModelNormals','f4',('udim','pointdim'))
+
             x = f.createVariable('PixelXLocation','i4',('udim',))
             y = f.createVariable('PixelYLocation','i4',('udim',))
 
             rayhit[:,:] = self.ray_end_coords
             raystart[:,:] = self.ray_start_coords
-
             x[:] = self.x
             y[:] = self.y
+            if self.model_normals is not None:
+                normals[:,:] = self.model_normals
         else:
             raise Exception('Cannot save RayData with >2D x and y arrays!')
 
@@ -393,6 +422,10 @@ class RayData:
         except KeyError:
             pass
 
+        try:
+            self.model_normals = f.variables['ModelNormals'].data
+        except KeyError:
+            self.model_normals = None
 
         try:
             self.history = f.history.decode('utf-8')
@@ -667,6 +700,92 @@ class RayData:
                 return np.reshape(out,oldshape + (3,),order='F')
 
 
+    def get_model_normals(self,x=None,y=None,im_position_tol = 1,coords='Display'):
+        '''
+        Get the 3D unit normal vectors of the CAD model surface where the camera sight-lines hit the model.
+        Only available if calc_normals = True was given when running raycast_sightlines().
+
+        Note: it is advised to use this function rather than accessing the `model_normals`
+        attribute of the object directly because this function will respect any image cropping
+        applied using the set_detector_window() method.
+
+        Parameters:
+
+            x,y (array-like)        : Image pixel coordinates at which to get the model normals.\
+                                      If not specified, the end coordinates of all casted sight lines will be returned.
+            im_position_tol (float) : If x and y are specified but no sight-line was cast at exactly the \
+                                      input coordinates, the nearest casted sight-line will be returned \
+                                      instead provided the pixel coordinates wre within this many pixels of \
+                                      the requested coordinates.
+            coords (str)            : Either ``Display`` or ``Coords``, specifies what orientation the input x \
+                                      and y correspond to or orientation of the returned array.
+
+        Returns:
+
+            np.ndarray              : An array containing the normal vectors of the CAD model surface where\
+                                      each sight line intersects the CAD model. If x and y coordinates were \
+                                      given either to this function or to calcam.raycast_sightlines(), the shape of \
+                                      this array is the same as the input x and y arrays with an additional \
+                                      dimension added which contains the  [X,Y,Z] components of the normals. Otherwise the shape\
+                                      is (h x w x 3) where w and h are the image width and height (in display coords).
+
+        '''
+
+        if self.model_normals is None:
+            return Exception('Model normals were not calculated when doing the ray-cast. To use this function you must use raycast_sightlines() with calc_normals=True.')
+
+        if x is None and y is None:
+            if self.fullchip:
+                if coords.lower() == 'display':
+                    if self.crop is None:
+                        return self.model_normals
+                    else:
+                        return self.model_normals[self.crop_inds[0],:,:][:,self.crop_inds[1],:]
+                else:
+                    if self.crop is None:
+                        return self.transform.display_to_original_image(self.model_normals)
+                    else:
+                        return self.transform.display_to_original_image(self.model_normals[self.crop_inds[0],:,:][:, self.crop_inds[1],:])
+            else:
+                if self.crop is None:
+                    return self.model_normals
+                else:
+                    return self.model_normals[self.crop_inds[0],:][self.crop_inds[1],:]
+        else:
+            if self.x is None or self.y is None:
+                raise Exception('This ray data does not have x and y pixel indices!')
+            if np.shape(x) != np.shape(y):
+                raise ValueError('x and y arrays must be the same shape!')
+            else:
+
+                if coords.lower() == 'original':
+                    x,y = self.transform.original_to_display_coords(x,y)
+
+                oldshape = np.shape(x)
+                x = np.reshape(x,np.size(x),order='F')
+                y = np.reshape(y,np.size(y),order='F')
+                [norm_X,norm_Y,norm_Z] = np.split(self.model_normals,3,-1)
+                norm_X = norm_X.flatten()
+                norm_Y = norm_Y.flatten()
+                norm_Z = norm_Z.flatten()
+                xflat = self.x.flatten()
+                yflat = self.y.flatten()
+                Xout = np.zeros(np.shape(x))
+                Yout = np.zeros(np.shape(x))
+                Zout = np.zeros(np.shape(x))
+                for pointno in range(x.size):
+                    deltaX = xflat - x[pointno]
+                    deltaY = yflat - y[pointno]
+                    deltaR = np.sqrt(deltaX**2 + deltaY**2)
+                    if np.min(deltaR) <= im_position_tol:
+                        Xout[pointno] = norm_X[np.argmin(deltaR)]
+                        Yout[pointno] = norm_Y[np.argmin(deltaR)]
+                        Zout[pointno] = norm_Z[np.argmin(deltaR)]
+                    else:
+                        raise Exception('No ray-traced pixel within im_position_tol of requested pixel!')
+                out = np.hstack([Xout,Yout,Zout])
+
+                return np.reshape(out,oldshape + (3,),order='F')
 
     def get_ray_lengths(self,x=None,y=None,im_position_tol = 1,coords='Display'):
         '''

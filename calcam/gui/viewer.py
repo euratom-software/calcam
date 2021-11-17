@@ -73,7 +73,9 @@ class Viewer(CalcamGUIWindow):
         self.sightlines_load_button.clicked.connect(self.update_sightlines)
         self.pick_sightlines_colour.clicked.connect(self.update_sightlines)
         self.sightlines_list.itemSelectionChanged.connect(self.update_selected_sightlines)
-        self.sightline_type_volume.toggled.connect(self.update_sightlines)
+        self.sightline_type_volume.clicked.connect(self.update_sightlines)
+        self.sightline_type_lines.clicked.connect(self.update_sightlines)
+        self.sightline_type_wallcoverage.clicked.connect(self.update_sightlines)
         self.sightlines_legend_checkbox.toggled.connect(self.update_sightlines)
         self.render_button.clicked.connect(self.do_render)
         self.render_cam_view.toggled.connect(self.change_render_type)
@@ -595,6 +597,8 @@ class Viewer(CalcamGUIWindow):
                     actor_type = 'volume'
                 elif self.sightline_type_lines.isChecked():
                     actor_type = 'lines'
+                elif self.sightine_type_wallcoverage.isChecked():
+                    actor_type = 'wall_coverage'
                 self.sightlines[listitem] = [cal,None,actor_type]
                 listitem.setCheckState(qt.Qt.Checked)
                 self.sightlines_list.setCurrentItem(listitem)
@@ -615,7 +619,11 @@ class Viewer(CalcamGUIWindow):
                 if self.sightlines[data][1] is None:
                     self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
                     self.statusbar.showMessage('Ray casting camera sight lines...')
-                    actor = render.get_fov_actor(self.cadmodel,self.sightlines[data][0],self.sightlines[data][2])
+                    self.app.processEvents()
+                    if self.sightlines[data][2] == 'wall_coverage':
+                        actor = render.get_wall_coverage_actor(self.sightlines[data][0],self.cadmodel,resolution=320)
+                    else:
+                        actor = render.get_fov_actor(self.cadmodel,self.sightlines[data][0],self.sightlines[data][2])
                     self.statusbar.clearMessage()
                     actor.GetProperty().SetColor(next(self.colourcycle))
                     actor.GetProperty().SetOpacity(100.**(self.sightline_opacity_slider.value()/100.)/100.)
@@ -652,7 +660,7 @@ class Viewer(CalcamGUIWindow):
                 for item in self.sightlines_list.selectedItems():
                     self.sightlines[item][1].GetProperty().SetColor( picked_colour )
 
-        elif self.sender() is self.sightline_type_volume:
+        elif self.sender() in [self.sightline_type_volume,self.sightline_type_lines,self.sightline_type_wallcoverage]:
 
             for item in self.sightlines_list.selectedItems():
                 item.setCheckState(qt.Qt.Unchecked)
@@ -663,6 +671,8 @@ class Viewer(CalcamGUIWindow):
                     self.sightlines[item][2] = 'volume'
                 elif self.sightline_type_lines.isChecked():
                     self.sightlines[item][2] = 'lines'
+                elif self.sightline_type_wallcoverage.isChecked():
+                    self.sightlines[item][2] = 'wall_coverage'
 
                 item.setCheckState(qt.Qt.Checked)
 
