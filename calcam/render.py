@@ -494,7 +494,7 @@ def get_wall_coverage_actor(cal,cadmodel=None,image=None,imagecoords='Original',
         x = np.linspace(- 0.5, w - 0.5, int(w/binning) + 1)
         y = np.linspace(- 0.5, h - 0.5, int(h/binning) + 1)
         x,y = np.meshgrid(x,y)
-        rd = raycast_sightlines(cal,cadmodel,x=x,y=y,coords=imagecoords,calc_normals=True)
+        rd = raycast_sightlines(cal,cadmodel,x=x,y=y,coords=imagecoords,calc_normals=True,verbose=False)
         
     elif isinstance(cal,RayData):
         # If already given a raydata object, just use that!
@@ -921,17 +921,18 @@ def render_unfolded_wall(cadmodel,calibrations=[],labels = [],w=None,theta_start
         A NumPy array of size ( h * w * 3 ) and dtype uint8 containing the RGB image result.
     """
     if cadmodel.wall_contour is None:
-        raise Exception('This CAD model does not have a wall contour included. This function can only be used with CAD models which have wall contours.')
+        raise Exception('[render_unfolded_wall] This CAD model does not have a wall contour included. This function can only be used with CAD models which have wall contours.')
 
     cal_actors = []
     legend_items = []
     if len(calibrations) > 0:
         if len(labels) > 0:
             if len(labels) != len(calibrations):
-                raise ValueError('Length of labels list different from number of calibrations given!')
+                raise ValueError('[render_unfolded_wall] Length of labels list different from number of calibrations given!')
 
         ccycle = ColourCycle()
         for i,calib in enumerate(calibrations):
+            print('[render_unfolded_wall] Calculating wall coverage for calibration {:s}'.format(labels[i] if len(labels) > 0 else '...{:s}'.format(calib.filename[-16:])))
             actor = get_wall_coverage_actor(calib,cadmodel,clearance=2e-2)
             actor.GetProperty().SetOpacity(0.7)
             col = next(ccycle)
@@ -995,7 +996,7 @@ def render_unfolded_wall(cadmodel,calibrations=[],labels = [],w=None,theta_start
     # Update status callback if present
     if callable(progress_callback):
         try:
-            progress_callback('[render_wall] Rendering wall image')
+            progress_callback('[render_unfolded_wall] Rendering wall image')
         except Exception:
             pass
         progress_callback(0.)
@@ -1074,6 +1075,8 @@ def render_unfolded_wall(cadmodel,calibrations=[],labels = [],w=None,theta_start
         progress_callback(1.)
 
     cadmodel.remove_from_renderer(renderer)
+    for cal_actor in cal_actors:
+        renderer.RemoveActor(cal_actor)
 
     if len(legend_items) > 0:
 
@@ -1092,14 +1095,15 @@ def render_unfolded_wall(cadmodel,calibrations=[],labels = [],w=None,theta_start
 
         legend_scale = 0.03
 
-        abs_height = int(legend_scale * out_im.shape[0])
-        width_per_char = abs_height * 0.5
+        abs_height = int(legend_scale * len(legend_items) * out_im.shape[0])
+        width_per_char = legend_scale * out_im.shape[0] * 0.5
         legend_width =  int(width_per_char * longest_name)
 
         legend.GetPosition2Coordinate().SetCoordinateSystemToDisplay()
         legend.GetPositionCoordinate().SetCoordinateSystemToDisplay()
 
         legend.GetPosition2Coordinate().SetValue(legend_width, abs_height)
+
         legend.GetPositionCoordinate().SetValue(0,0)
 
         renderer.AddActor(legend)
@@ -1112,11 +1116,12 @@ def render_unfolded_wall(cadmodel,calibrations=[],labels = [],w=None,theta_start
         vtk_array = vtk_image.GetPointData().GetScalars()
         dims = vtk_image.GetDimensions()
         legend_im = np.flipud(vtk_to_numpy(vtk_array).reshape(dims[1], dims[0], 3))
+        alpha = np.tile( (0.8 * (legend_im.sum(axis=2) > 0))[:,:,np.newaxis],(1,1,3))
 
         x_offs = out_im.shape[1] - legend_im.shape[1] - 20
         y_offs = out_im.shape[0] - legend_im.shape[0] - 20
 
-        out_im[y_offs:y_offs + legend_im.shape[0],x_offs:x_offs + legend_im.shape[1],:] = out_im[y_offs:y_offs + legend_im.shape[0],x_offs:x_offs + legend_im.shape[1],:] * 0.2 + 0.8 * legend_im
+        out_im[y_offs:y_offs + legend_im.shape[0],x_offs:x_offs + legend_im.shape[1],:] = out_im[y_offs:y_offs + legend_im.shape[0],x_offs:x_offs + legend_im.shape[1],:] * (1-alpha) + alpha * legend_im
 
     renwin.Finalize()
 
@@ -1129,6 +1134,6 @@ def render_unfolded_wall(cadmodel,calibrations=[],labels = [],w=None,theta_start
         save_im = copy.copy(out_im)
         save_im[:,:,:3] = save_im[:,:,2::-1]
         cv2.imwrite(filename,save_im)
-        print('[render_wall] Result saved as {:s}'.format(filename))
+        print('[render_unfolded_wall] Result saved as {:s}'.format(filename))
 
     return out_im
