@@ -474,7 +474,7 @@ def get_wall_coverage_actor(cal,cadmodel=None,image=None,imagecoords='Original',
             # > single channel, assume 8-bit RGB: ensure correct datatype and throw away any extra channels
             fr = fr[:,:,:3].astype(np.uint8)
 
-        factor = image.shape[1::-1] / cal.geometry.get_image_shape(imagecoords)
+        factor = np.array(image.shape[1::-1]) / np.array(cal.geometry.get_image_shape(imagecoords))
         if factor[0] != factor[1]:
             raise ValueError('Image size ({:d}x{:d} px) does not match expected ({:s} image shape for this calibration ({:d}x{:d} px)'.format(image.shape[1],image.shape[0],imagecoords,cal.geometry.get_image_shape(imagecoords)[0],cal.geometry.get_image_shape(imagecoords)[1]))
         binning = factor[0]
@@ -538,7 +538,12 @@ def get_wall_coverage_actor(cal,cadmodel=None,image=None,imagecoords='Original',
 
             # Don't map any pixels which are NaN
             if image is not None:
-                if np.isnan(fr[yi,xi]):
+                if len(image.shape) < 3:
+                    isnan = np.isnan(fr[yi,xi])
+                else:
+                    isnan = np.isnan(fr[yi,xi,:].sum())
+
+                if isnan:
                     continue
 
             # Coordinates and indices of corners for this pixel
@@ -883,7 +888,7 @@ def get_lines_actor(coords):
     return actor
 
 
-def render_unfolded_wall(cadmodel,calibrations=[],labels = [],w=None,theta_start=90,phi_start=0,progress_callback=LoopProgPrinter().update,cancel=False,theta_steps=18,phi_steps=360,r_equiscale=None,filename=None):
+def render_unfolded_wall(cadmodel,calibrations=[],labels = [],w=None,theta_start=90,phi_start=0,progress_callback=LoopProgPrinter().update,cancel=False,theta_steps=18,phi_steps=360,r_equiscale=None,extra_actors=[],filename=None):
     """
     Render an image of the tokamak wall "flattened" out. Creates an image where the horizontal direction is the toroidal direction and
     vertical direction is poloidal.
@@ -987,6 +992,9 @@ def render_unfolded_wall(cadmodel,calibrations=[],labels = [],w=None,theta_start
 
     cadmodel.add_to_renderer(renderer)
 
+    for actor in extra_actors:
+        renderer.AddActor(actor)
+
     for actor in cal_actors:
         renderer.AddActor(actor)
 
@@ -1077,6 +1085,9 @@ def render_unfolded_wall(cadmodel,calibrations=[],labels = [],w=None,theta_start
     cadmodel.remove_from_renderer(renderer)
     for cal_actor in cal_actors:
         renderer.RemoveActor(cal_actor)
+
+    for actor in extra_actors:
+        renderer.RemoveActor(actor)
 
     if len(legend_items) > 0:
 
