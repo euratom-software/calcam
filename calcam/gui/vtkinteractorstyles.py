@@ -521,7 +521,7 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
             legend_scale = 0.03
 
             legend_offset_x = legend_offset_y*vtk_size[1] / vtk_size[0]
-            legend_pad_y = 20./vtk_size[1]
+            legend_pad_y = 30./vtk_size[1]
             legend_pad_x = 20./vtk_size[0]
 
             legend_height = legend_pad_y + legend_scale * self.n_legend_items
@@ -1063,8 +1063,6 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
             winaspect = float(vtksize[0])/float(vtksize[1])
 
             bounds = self.image_actor.GetBounds()
-            xc = bounds[0] + bounds[1] / 2
-            yc = bounds[2] + bounds[3] / 2
             ye = bounds[3] - bounds[2]
             xe = bounds[1] - bounds[0]
 

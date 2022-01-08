@@ -162,7 +162,7 @@ class DodgyDict():
         for i,ikey in enumerate(self.keylist):
             if key == ikey:
                 return self.itemlist[i]
-        raise KeyError('No such item "{:s}"'.format(key))
+        raise KeyError('No item with key "{:}"'.format(key))
 
     def __setitem__(self,key,value):
 
@@ -173,6 +173,13 @@ class DodgyDict():
 
         self.keylist.append(key)
         self.itemlist.append(value)
+
+    def __delitem__(self,key):
+        for i,ikey in enumerate(self.keylist):
+            if key == ikey:
+                self.itemlist.remove(self.itemlist[i])
+                self.keylist.remove(key)
+                return
 
     def __iter__(self):
         self.iter_index = 0

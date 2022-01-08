@@ -36,6 +36,126 @@ from matplotlib.cm import get_cmap
 # TODO: Add a function to this module to determine the best value for this automatically
 max_render_dimension = 5120
 
+
+class CoordsActor(vtk.vtkAssembly):
+
+    def __init__(self,coords,lines=True,markers=False,markersize=1e-2,marker_flat_shading=True,linewidth=2):
+        super().__init__()
+        self.coords = coords
+        self.markersize = markersize
+        self.linewidth = linewidth
+        self.marker_flat_shading = marker_flat_shading
+        self.line_actors = []
+        self.marker_actors = []
+        self.colour = (1,1,1)
+
+        self.lines = False
+        self.markers = False
+
+        self.set_lines(lines)
+        self.set_markers(markers)
+
+
+    def set_colour(self,colour):
+        for actor in self.line_actors + self.marker_actors:
+            actor.GetProperty().SetColor(colour)
+        self.colour = colour
+
+    def set_lines(self,enable):
+
+        if enable and not self.lines:
+            # Create an actor for the lines
+            points = vtk.vtkPoints()
+            lines = vtk.vtkCellArray()
+            point_ind = -1
+            if self.coords.shape[1] == 6:
+
+                for lineseg in range(self.coords.shape[0]):
+                    points.InsertNextPoint(self.coords[lineseg, :3])
+                    points.InsertNextPoint(self.coords[lineseg, 3:])
+                    point_ind = point_ind + 2
+                    line = vtk.vtkLine()
+                    line.GetPointIds().SetId(0, point_ind - 1)
+                    line.GetPointIds().SetId(1, point_ind)
+                    lines.InsertNextCell(line)
+
+            elif self.coords.shape[1] == 3:
+
+                for pointind in range(self.coords.shape[0]):
+
+                    points.InsertNextPoint(self.coords[pointind, :])
+                    point_ind = point_ind + 1
+
+                    if point_ind > 0:
+                        line = vtk.vtkLine()
+                        line.GetPointIds().SetId(0, point_ind - 1)
+                        line.GetPointIds().SetId(1, point_ind)
+                        lines.InsertNextCell(line)
+
+            polydata = vtk.vtkPolyData()
+            polydata.SetPoints(points)
+            polydata.SetLines(lines)
+
+            mapper = vtk.vtkPolyDataMapper()
+            mapper.SetInputData(polydata)
+
+            actor = vtk.vtkActor()
+            actor.SetMapper(mapper)
+
+            actor.GetProperty().SetLineWidth(self.linewidth)
+            actor.GetProperty().SetColor(self.colour)
+
+            self.line_actors.append(actor)
+            self.AddPart(actor)
+
+        elif not enable and self.lines:
+            # Remove line actors
+            for actor in self.line_actors:
+                self.RemovePart(actor)
+            self.line_actors = []
+
+        self.lines = enable
+
+
+    def set_markers(self,enable):
+
+        if enable and not self.markers:
+            if self.coords.shape[1] == 6:
+                x = np.concatenate((self.coords[:, 0], self.coords[:, 3]))
+                y = np.concatenate((self.coords[:, 1], self.coords[:, 4]))
+                z = np.concatenate((self.coords[:, 2], self.coords[:, 5]))
+            elif self.coords.shape[1] == 3:
+                x = self.coords[:, 0]
+                y = self.coords[:, 1]
+                z = self.coords[:, 2]
+
+            for x_, y_, z_ in zip(x, y, z):
+                sphere = vtk.vtkSphereSource()
+                sphere.SetCenter(x_, y_, z_)
+                sphere.SetRadius(self.markersize / 2)
+                sphere.SetPhiResolution(12)
+                sphere.SetThetaResolution(12)
+                mapper = vtk.vtkPolyDataMapper()
+                mapper.SetInputConnection(sphere.GetOutputPort())
+                actor = vtk.vtkActor()
+                actor.SetMapper(mapper)
+                actor.GetProperty().SetColor(self.colour)
+                if self.marker_flat_shading:
+                    actor.GetProperty().LightingOff()
+                self.marker_actors.append(actor)
+                self.AddPart(actor)
+
+        elif not enable and self.markers:
+
+            for actor in self.marker_actors:
+                self.RemovePart(actor)
+            self.marker_actors = []
+
+        self.markers = enable
+
+
+
+
 def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampling=1,aa=1,transparency=False,verbose=True,coords = 'display',interpolation='cubic'):
     '''
     Render an image of a given CAD model from the point of view of a given calibration.
@@ -328,8 +448,7 @@ def render_hires(renderer,oversampling=1,aa=1,transparency=False):
     return im
 
 
-def get_fov_actor(cadmodel,calib,actor_type='volume',resolution=None):
-
+def get_fov_actor(cadmodel,calib,actor_type='volume',resolution=None,subview=None):
 
     if actor_type.lower() == 'volume':
 
@@ -358,17 +477,21 @@ def get_fov_actor(cadmodel,calib,actor_type='volume',resolution=None):
         x_vert,y_vert = np.meshgrid( np.arange(raydata.ray_start_coords.shape[1]), np.arange(raydata.ray_start_coords.shape[0]-1))
         x_vert = x_vert.flatten()
         y_vert = y_vert.flatten()
-        
-        polygons = vtk.vtkCellArray()
 
         for n in range(len(x_horiz)):
             if np.abs(raydata.ray_start_coords[y_horiz[n],x_horiz[n],:] - raydata.ray_start_coords[y_horiz[n],x_horiz[n]+1,:]).max() < 1e-3:
+                if subview is not None:
+                    if calib.subview_lookup(raydata.x[y_horiz[n],x_horiz[n]],raydata.y[y_horiz[n],x_horiz[n]]) != subview:
+                        continue
                 points.InsertNextPoint(raydata.ray_start_coords[y_horiz[n],x_horiz[n],:])
                 points.InsertNextPoint(raydata.ray_end_coords[y_horiz[n],x_horiz[n],:])
                 points.InsertNextPoint(raydata.ray_end_coords[y_horiz[n],x_horiz[n]+1,:])
 
         for n in range(len(x_vert)):
             if np.abs( raydata.ray_start_coords[y_vert[n],x_vert[n],:] - raydata.ray_start_coords[y_vert[n]+1,x_vert[n],:] ).max() < 1e-3:
+                if subview is not None:
+                    if calib.subview_lookup(raydata.x[y_vert[n],x_vert[n]],raydata.y[y_vert[n],x_vert[n]]) != subview:
+                        continue
                 points.InsertNextPoint(raydata.ray_start_coords[y_vert[n],x_vert[n],:])
                 points.InsertNextPoint(raydata.ray_end_coords[y_vert[n],x_vert[n],:])
                 points.InsertNextPoint(raydata.ray_end_coords[y_vert[n]+1,x_vert[n],:])
@@ -396,6 +519,10 @@ def get_fov_actor(cadmodel,calib,actor_type='volume',resolution=None):
         point_ind = -1
         for i in range(raydata.ray_end_coords.shape[0]):
             for j in range(raydata.ray_end_coords.shape[1]):
+                if subview is not None:
+                    if calib.subview_lookup(raydata.x[i,j],raydata.y[i,j]) != subview:
+                        continue
+
                 points.InsertNextPoint(raydata.ray_end_coords[i,j,:])
                 points.InsertNextPoint(raydata.ray_start_coords[i,j,:])
                 point_ind = point_ind + 2
@@ -423,7 +550,7 @@ def get_fov_actor(cadmodel,calib,actor_type='volume',resolution=None):
     return actor
 
 
-def get_wall_coverage_actor(cal,cadmodel=None,image=None,imagecoords='Original',clim=None,lower_transparent=True,cmap='jet',clearance=5e-3,resolution=None):
+def get_wall_coverage_actor(cal,cadmodel=None,image=None,imagecoords='Original',clim=None,lower_transparent=True,cmap='jet',clearance=5e-3,resolution=None,subview=None):
     """
     Get a VTK actor representing the wall area coverage of a given camera.
     Optionally, pass an image to colour the actor according to the image (e.g. to map data to the wall for visualisation)
@@ -442,6 +569,7 @@ def get_wall_coverage_actor(cal,cadmodel=None,image=None,imagecoords='Original',
                                      this much. Used to ensure this actor does not get buried inside the CAD geometry.
         resolution (int)           : Maximum side length in pixels for the ray casting. Smaller values result in faster calculation \
                                      but uglier result. Default will calculate the full resolution of the camera. Ignored if an image is provided.
+        subview (int)              : If given, the actor will only include the given subview index.
 
     Returns:
 
@@ -546,6 +674,10 @@ def get_wall_coverage_actor(cal,cadmodel=None,image=None,imagecoords='Original',
                 if isnan:
                     continue
 
+            if subview is not None:
+                if np.any(cal.subview_lookup(rd.x[yi:yi+2,xi:xi+2],rd.y[yi:yi+2,xi:xi+2]) != subview):
+                    continue
+
             # Coordinates and indices of corners for this pixel
             polycoords = ray_end[yi:yi+2,xi:xi+2,:]
             losdirs = ray_dir[yi:yi+2,xi:xi+2,:]
@@ -611,25 +743,7 @@ def get_wall_coverage_actor(cal,cadmodel=None,image=None,imagecoords='Original',
     return actor
 
 
-def get_markers_actor(x,y,z,size=1e-2,colour=(1,1,1),flat_shading=True,resolution=12):
 
-    markers = vtk.vtkAssembly()
-    for x_,y_,z_ in zip(x,y,z):
-        sphere = vtk.vtkSphereSource()
-        sphere.SetCenter(x_,y_,z_)
-        sphere.SetRadius(size/2)
-        sphere.SetPhiResolution(resolution)
-        sphere.SetThetaResolution(resolution)
-        mapper = vtk.vtkPolyDataMapper()
-        mapper.SetInputConnection(sphere.GetOutputPort())
-        actor = vtk.vtkActor()
-        actor.SetMapper(mapper)
-        actor.GetProperty().SetColor(colour)
-        if flat_shading:
-            actor.GetProperty().LightingOff()
-        markers.AddPart(actor)
-
-    return markers
 
 
 def get_wall_contour_actor(wall_contour,actor_type='contour',phi=None,toroidal_res=128):
@@ -843,52 +957,7 @@ def get_image_actor(image_array,clim=None,actortype='vtkImageActor'):
 
 
 
-# Get a VTK actor of 3D lines based on a set of 3D point coordinates.
-def get_lines_actor(coords):
-
-    points = vtk.vtkPoints()
-    lines = vtk.vtkCellArray()
-    point_ind = -1
-    if coords.shape[1] == 6:
-
-        for lineseg in range(coords.shape[0]):
-            points.InsertNextPoint(coords[lineseg,:3])
-            points.InsertNextPoint(coords[lineseg,3:])
-            point_ind = point_ind + 2
-            line = vtk.vtkLine()
-            line.GetPointIds().SetId(0,point_ind - 1)
-            line.GetPointIds().SetId(1,point_ind)
-            lines.InsertNextCell(line)
-
-    elif coords.shape[1] == 3:
-
-        for pointind in range(coords.shape[0]):
-
-            points.InsertNextPoint(coords[pointind,:])
-            point_ind = point_ind + 1
-
-            if point_ind > 0:
-                line = vtk.vtkLine()
-                line.GetPointIds().SetId(0,point_ind - 1)
-                line.GetPointIds().SetId(1,point_ind)
-                lines.InsertNextCell(line)
-
-    polydata = polydata = vtk.vtkPolyData()
-    polydata.SetPoints(points)
-    polydata.SetLines(lines)
-
-    mapper = vtk.vtkPolyDataMapper()
-    mapper.SetInputData(polydata)
-
-    actor = vtk.vtkActor()
-    actor.SetMapper(mapper)
-
-    actor.GetProperty().SetLineWidth(2)
-
-    return actor
-
-
-def render_unfolded_wall(cadmodel,calibrations=[],labels = [],w=None,theta_start=90,phi_start=0,progress_callback=LoopProgPrinter().update,cancel=False,theta_steps=18,phi_steps=360,r_equiscale=None,extra_actors=[],filename=None):
+def render_unfolded_wall(cadmodel,calibrations=[],labels = [],w=None,theta_start=90,phi_start=0,progress_callback=LoopProgPrinter().update,cancel=lambda : False,theta_steps=18,phi_steps=360,r_equiscale=None,extra_actors=[],filename=None):
     """
     Render an image of the tokamak wall "flattened" out. Creates an image where the horizontal direction is the toroidal direction and
     vertical direction is poloidal.
@@ -937,7 +1006,10 @@ def render_unfolded_wall(cadmodel,calibrations=[],labels = [],w=None,theta_start
 
         ccycle = ColourCycle()
         for i,calib in enumerate(calibrations):
-            print('[render_unfolded_wall] Calculating wall coverage for calibration {:s}'.format(labels[i] if len(labels) > 0 else '...{:s}'.format(calib.filename[-16:])))
+            try:
+                progress_callback('Calculating high-res wall coverage for calibration {:s}'.format(labels[i] if len(labels) > 0 else '...{:s}'.format(calib.filename[-16:])))
+            except Exception:
+                print('Calculating high-res wall coverage for calibration {:s}'.format(labels[i] if len(labels) > 0 else '...{:s}'.format(calib.filename[-16:])))
             actor = get_wall_coverage_actor(calib,cadmodel,clearance=2e-2)
             actor.GetProperty().SetOpacity(0.7)
             col = next(ccycle)
@@ -1004,9 +1076,9 @@ def render_unfolded_wall(cadmodel,calibrations=[],labels = [],w=None,theta_start
     # Update status callback if present
     if callable(progress_callback):
         try:
-            progress_callback('[render_unfolded_wall] Rendering wall image')
+            progress_callback('Rendering un-folded wall image ({:d} pixels width)...'.format(w))
         except Exception:
-            pass
+            print('Rendering un-folded wall image ({:d} pixels width)...'.format(w))
         progress_callback(0.)
         n = 0
 
@@ -1068,16 +1140,16 @@ def render_unfolded_wall(cadmodel,calibrations=[],labels = [],w=None,theta_start
             if callable(progress_callback):
                 n += 1
                 progress_callback(n/(theta_steps*phi_steps))
-
             # Stop if cancellation has been requested
-            if cancel:
+            if cancel():
                 break
+
+        if cancel():
+            break
 
         # Stick this image strip on to the output.
         out_im = np.vstack((row,out_im))
 
-        if cancel:
-            break
 
     if callable(progress_callback):
         progress_callback(1.)
@@ -1089,7 +1161,7 @@ def render_unfolded_wall(cadmodel,calibrations=[],labels = [],w=None,theta_start
     for actor in extra_actors:
         renderer.RemoveActor(actor)
 
-    if len(legend_items) > 0:
+    if len(legend_items) > 0 and not cancel():
 
         longest_name = max([len(item[0]) for item in legend_items])
 
@@ -1139,12 +1211,15 @@ def render_unfolded_wall(cadmodel,calibrations=[],labels = [],w=None,theta_start
 
 
     # Save the image if given a filename
-    if filename is not None:
+    if filename is not None and not cancel():
 
         # Re-shuffle the colour channels for saving (openCV needs BGR / BGRA)
         save_im = copy.copy(out_im)
         save_im[:,:,:3] = save_im[:,:,2::-1]
         cv2.imwrite(filename,save_im)
-        print('[render_unfolded_wall] Result saved as {:s}'.format(filename))
+        try:
+            progress_callback('Result saved as {:s}'.format(filename))
+        except Exception:
+            print('Result saved as {:s}'.format(filename))
 
     return out_im
