@@ -225,7 +225,7 @@ def manual_movement(ref,moved,correction=None):
     if retcode == gui.qt.QDialog.Accepted:
         return dialog.transform
     else:
-        return None
+        return correction
 
 
 def phase_correlation_movement(ref_im,moved_im):

@@ -727,6 +727,8 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
         self.image_actor = None
         self.overlay_actor = None
 
+        self.overlay_alpha = 1
+
 
     def link_with(self,interactor):
         self.linked_interactors.append(interactor)
@@ -749,7 +751,7 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
 
     # Use this image object
     def set_image(self,image,n_subviews=1,subview_lookup=lambda x,y: 0,hold_position=False):
-        
+
         # Remove current image, if any
         if self.image_actor is not None:
 
@@ -829,6 +831,12 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
             self.refresh_callback()
 
 
+    def get_image(self):
+        if self.image_actor is None:
+            return None
+        else:
+            return self.image_actor.image
+
     def set_subview_lookup(self,n_subviews,subview_lookup):
         self.n_subviews = n_subviews
         self.subview_lookup = subview_lookup
@@ -853,12 +861,19 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
         if overlay_image is not None:
             self.overlay_actor = get_image_actor(overlay_image)
             self.overlay_actor.SetPosition(0,0,0.01)
+            self.overlay_actor.GetProperty().SetOpacity(self.overlay_alpha)
             self.renderer.AddActor2D(self.overlay_actor)
 
         if self.refresh_callback is not None:
             self.refresh_callback()
 
 
+    def set_overlay_alpha(self,alpha):
+        self.overlay_alpha = alpha
+        if self.overlay_actor is not None:
+            self.overlay_actor.GetProperty().SetOpacity(alpha)
+        if self.refresh_callback is not None:
+            self.refresh_callback()
 
     # Left click to move a point or add a new point
     def on_left_click(self,obj,event):

@@ -28,6 +28,7 @@ from .vtkinteractorstyles import CalcamInteractorStyle2D
 from . import qt_wrapper as qt
 from .. import movement, misc
 from ..image_enhancement import enhance_image
+from ..config import CalcamConfig
 
 guipath = os.path.split(os.path.abspath(__file__))[0]
 
@@ -37,7 +38,6 @@ class ImageAlignDialog(qt.QDialog):
     def __init__(self,app,parent,ref_image,new_image,correction=None):
 
         # GUI initialisation
-
         if parent is None:
             if app is None:
                 raise ValueError('Either parent or app must be provided!')
@@ -89,9 +89,11 @@ class ImageAlignDialog(qt.QDialog):
         self.overlay_button.released.connect(lambda: self.toggle_overlay(False))
         self.clear_button.clicked.connect(self.remove_all_points)
         self.auto_points_button.clicked.connect(self.find_points)
+        self.clear_transform_button.clicked.connect(lambda : self.set_correction(None))
+        self.save_button.clicked.connect(self.save)
+        self.load_button.clicked.connect(self.open)
 
         # State initialisation
-        self.buttonbox.button(qt.QDialogButtonBox.Ok).setEnabled(False)
         self.point_pairings = []
         self.overlay_cursors = [[],[]]
         self.selected_pointpair = None
@@ -121,6 +123,8 @@ class ImageAlignDialog(qt.QDialog):
         sc = qt.QShortcut(qt.QKeySequence("Del"),self)
         sc.setContext(qt.Qt.ApplicationShortcut)
         sc.activated.connect(self.remove_current_point)
+
+        self.config = CalcamConfig()
 
         self.show()
 
@@ -178,28 +182,24 @@ class ImageAlignDialog(qt.QDialog):
 
         ref_points,new_points = movement.find_pointpairs(self.ref_image,self.new_image)
 
+        self.app.restoreOverrideCursor()
+
         if ref_points.shape[0] > 0:
 
             for npair in range(ref_points.shape[0]):
                 self.new_point('ref',ref_points[npair,:])
                 self.new_point('new',new_points[npair,:])
 
-            self.app.restoreOverrideCursor()
-            self.get_transform()
-
-            if self.transform.get_ddscore(self.ref_image,self.new_image) < 0:
-                self.remove_all_points()
-
-        if self.transform is None:
-            self.app.restoreOverrideCursor()
+        else:
             dialog = qt.QMessageBox(self)
             dialog.setStandardButtons(dialog.Ok)
             dialog.setTextFormat(qt.Qt.RichText)
             dialog.setWindowTitle('Could not auto-detect points')
-            dialog.setText('Could not auto-detect a good set of matching points in these two images.')
+            dialog.setText('Could not auto-detect corresponding points in these two images.')
             dialog.setInformativeText('You will have to identify points manually')
-            dialog.setIcon(qt.QMessageBox.Warning)
+            dialog.setIcon(qt.QMessageBox.Information)
             dialog.exec_()
+
 
     def remove_current_point(self):
 
@@ -217,14 +217,10 @@ class ImageAlignDialog(qt.QDialog):
             else:
                 self.selected_pointpair = None
 
-            self.transform = None
-            self.fitted_points_checkbox.setChecked(False)
-            self.fitted_points_checkbox.setEnabled(False)
-            self.buttonbox.button(qt.QDialogButtonBox.Ok).setEnabled(False)
-            self.transform_params.hide()
-
             if len(self.point_pairings) < 3:
                 self.update_homography_button.setEnabled(False)
+
+            self.set_correction(None)
 
 
     def remove_all_points(self):
@@ -281,7 +277,6 @@ class ImageAlignDialog(qt.QDialog):
         if m[0,0] is None:
             self.transform = None
             self.fitted_points_checkbox.setEnabled(False)
-            self.buttonbox.button(qt.QDialogButtonBox.Ok).setEnabled(False)
             self.transform_params.hide()
             dialog = qt.QMessageBox(self)
             dialog.setStandardButtons(dialog.Ok)
@@ -297,32 +292,48 @@ class ImageAlignDialog(qt.QDialog):
 
 
 
+
     def set_correction(self,correction,include_points=False):
 
-        if include_points:
-            self.remove_all_points()
-            for i in range(correction.ref_points.shape[0]):
-                self.new_point('ref',correction.ref_points[i,:])
-                self.new_point('new',correction.moved_points[i, :])
+        if correction is None:
 
-        self.transform = correction
+            if include_points:
+                self.remove_all_points()
 
-        ddscore = self.transform.get_ddscore(self.ref_image,self.new_image)
+            self.transform = None
+            self.transform_params.hide()
+            self.fitted_points_checkbox.setChecked(False)
+            self.fitted_points_checkbox.setEnabled(False)
+            self.clear_transform_button.setEnabled(False)
+            self.save_button.setEnabled(False)
 
-        desc = ' ( {:.1f} , {:.1f} ) pixels<br>'.format(*self.transform.translation)
-        desc = desc + ' {:.2f} degrees<br>'.format(self.transform.rotation)
-        desc = desc + ' {:.2f}<br>'.format(self.transform.scale)
-        if ddscore >= 0:
-            desc = desc + ' {:.2f}'.format(ddscore)
+
         else:
-            desc = desc + ' <font color="#ff0000">{:.2f}</font>'.format(ddscore)
+            if include_points:
+                self.remove_all_points()
+                for i in range(correction.ref_points.shape[0]):
+                    self.new_point('ref',correction.ref_points[i,:])
+                    self.new_point('new',correction.moved_points[i, :])
 
-        self.transform_params.setText(desc)
-        self.transform_params.show()
+            self.transform = correction
 
-        self.fitted_points_checkbox.setEnabled(True)
-        self.buttonbox.button(qt.QDialogButtonBox.Ok).setEnabled(True)
-        self.fitted_points_checkbox.setChecked(True)
+            ddscore = self.transform.get_ddscore(self.ref_image,self.new_image)
+
+            desc = ' ( {:.1f} , {:.1f} ) pixels<br>'.format(*self.transform.translation)
+            desc = desc + ' {:.2f}\u00b0<br>'.format(self.transform.rotation)
+            desc = desc + ' {:.3f}<br>'.format(self.transform.scale)
+            if ddscore >= 0:
+                desc = desc + ' <font color="#006400">{:.2f}</font>'.format(ddscore)
+            else:
+                desc = desc + ' <font color="#ff0000">{:.2f}</font>'.format(ddscore)
+
+            self.transform_params.setText(desc)
+            self.transform_params.show()
+
+            self.fitted_points_checkbox.setEnabled(True)
+            self.fitted_points_checkbox.setChecked(True)
+            self.clear_transform_button.setEnabled(True)
+            self.save_button.setEnabled(True)
 
 
     def count_pointpairs(self):
@@ -374,3 +385,62 @@ class ImageAlignDialog(qt.QDialog):
             self.interactor_new.set_overlay_image(None)
 
         self.refresh()
+
+
+    def save(self):
+
+        filename_filter = self.config.filename_filters['movement']
+        fext = filename_filter.split('(*')[1].split(')')[0]
+
+        filedialog = qt.QFileDialog(self)
+        filedialog.setAcceptMode(1)
+
+        try:
+            filedialog.setDirectory(self.config.file_dirs['movement'])
+        except KeyError:
+            filedialog.setDirectory(os.path.expanduser('~'))
+
+        filedialog.setFileMode(0)
+
+        filedialog.setWindowTitle('Save As...')
+        filedialog.setNameFilter(filename_filter)
+        filedialog.exec_()
+        if filedialog.result() == 1:
+            selected_path = str(filedialog.selectedFiles()[0])
+            self.config.file_dirs['movement'] = os.path.split(selected_path)[0]
+            self.config.save()
+            if not selected_path.endswith(fext):
+                selected_path = selected_path + fext
+
+            self.transform.save(selected_path)
+
+
+    def open(self):
+
+        filename_filter = self.config.filename_filters['movement']
+
+        filedialog = qt.QFileDialog(self)
+        filedialog.setAcceptMode(0)
+
+        try:
+            filedialog.setDirectory(self.config.file_dirs['movement'])
+        except KeyError:
+            filedialog.setDirectory(os.path.expanduser('~'))
+        filedialog.setFileMode(1)
+
+
+        filedialog.setWindowTitle('Open...')
+        filedialog.setNameFilter(filename_filter)
+        filedialog.exec_()
+
+        if filedialog.result() == 1:
+            selected_file = filedialog.selectedFiles()[0]
+            self.config.file_dirs['movement'] = os.path.split(selected_file)[0]
+            self.config.save()
+
+            try:
+                correction = movement.MovementCorrection.load(selected_file)
+            except Exception as e:
+                return
+
+            self.set_correction(correction,include_points=True)

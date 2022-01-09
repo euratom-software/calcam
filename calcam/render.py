@@ -575,6 +575,8 @@ def get_wall_coverage_actor(cal,cadmodel=None,image=None,imagecoords='Original',
 
         vtkActor for a wall-hugging surface showing the camera coverage and/or image.
 
+        if return_raydata is True, returns the calcam.RayData object containing the geometry info.
+
     """
 
     # If an image is supplied, check & organise it
@@ -602,15 +604,24 @@ def get_wall_coverage_actor(cal,cadmodel=None,image=None,imagecoords='Original',
             # > single channel, assume 8-bit RGB: ensure correct datatype and throw away any extra channels
             fr = fr[:,:,:3].astype(np.uint8)
 
-        factor = np.array(image.shape[1::-1]) / np.array(cal.geometry.get_image_shape(imagecoords))
+        if isinstance(cal,Calibration):
+            expected_shape = cal.geometry.get_image_shape(imagecoords)
+        else:
+            expected_shape = np.array(cal.x.shape[::-1]) - 1
+
+        factor = np.array(image.shape[1::-1]) / expected_shape
+
         if factor[0] != factor[1]:
-            raise ValueError('Image size ({:d}x{:d} px) does not match expected ({:s} image shape for this calibration ({:d}x{:d} px)'.format(image.shape[1],image.shape[0],imagecoords,cal.geometry.get_image_shape(imagecoords)[0],cal.geometry.get_image_shape(imagecoords)[1]))
+            raise ValueError('Image size ({:d}x{:d} px) does not match expected ({:s} image shape for this calibration ({:d}x{:d} px)'.format(image.shape[1],image.shape[0],imagecoords,expected_shape[0],expected_shape[1]))
         binning = factor[0]
+
+        if binning != 1 and isinstance(cal,RayData):
+            image = cv2.resize(image,tuple(expected_shape))
 
     else:
         if resolution is None:
             binning = 1
-        else:
+        elif isinstance(cal, Calibration):
             binning = max(cal.geometry.get_display_shape()) / resolution
 
     if isinstance(cal,Calibration):
@@ -658,21 +669,22 @@ def get_wall_coverage_actor(cal,cadmodel=None,image=None,imagecoords='Original',
     if image is not None:
         colours = vtk.vtkUnsignedCharArray()
         colours.SetNumberOfComponents(3)
+        im_inds = []
 
+    # If we have an image, map of where the NaNs are
+    if image is not None:
+        if len(image.shape) < 3:
+            isnan = np.isnan(image)
+        else:
+            isnan = np.isnan(image.sum(axis=2))
 
     # Go through the image
     for xi in range(ray_end.shape[1]-1):
         for yi in range(ray_end.shape[0] - 1):
 
             # Don't map any pixels which are NaN
-            if image is not None:
-                if len(image.shape) < 3:
-                    isnan = np.isnan(fr[yi,xi])
-                else:
-                    isnan = np.isnan(fr[yi,xi,:].sum())
-
-                if isnan:
-                    continue
+            if isnan[yi,xi]:
+                continue
 
             if subview is not None:
                 if np.any(cal.subview_lookup(rd.x[yi:yi+2,xi:xi+2],rd.y[yi:yi+2,xi:xi+2]) != subview):
@@ -716,6 +728,7 @@ def get_wall_coverage_actor(cal,cadmodel=None,image=None,imagecoords='Original',
 
             # If we're mapping an image, colour the quad according to the image data
             if image is not None:
+                im_inds.append((yi,xi))
                 if len(image.shape) < 3:
                     rgb = (np.array(cmap(fr[yi,xi]))[:-1] * 255).astype(np.uint8)
                     colours.InsertNextTypedTuple(rgb)
@@ -735,15 +748,67 @@ def get_wall_coverage_actor(cal,cadmodel=None,image=None,imagecoords='Original',
 
     if image is not None:
         mapper.SetColorModeToDirectScalars()
+        actor = MappedImageActor()
+        actor.image_inds = im_inds
+        actor.nanmap = isnan
+        actor.celldata = polydata.GetCellData()
+    else:
+        actor = vtk.vtkActor()
 
-    actor = vtk.vtkActor()
     actor.SetMapper(mapper)
     actor.GetProperty().LightingOff()
 
     return actor
 
 
+class MappedImageActor(vtk.vtkActor):
 
+    def update_image(self,new_image,clim=None,lower_transparent=True,cmap='jet'):
+
+        if new_image.shape[:2] != self.nanmap.shape:
+            raise ValueError('New image is not the same shape as the original one!')
+
+        if len(new_image.shape) < 3:
+            isnan = np.isnan(new_image)
+        else:
+            isnan = np.isnan(new_image.sum(axis=2))
+
+        if np.not_equal(isnan,self.nanmap).sum() > 0:
+            raise ValueError('New image conatins NaNs at different positions to the original! You must build a new actor with get_wall_coverage_actor() instead.')
+
+        fr = np.array(new_image).copy().astype(np.float32)
+
+        if len(fr.shape) < 3:
+            # Single channel image: will be colour mapped so normalise to CLIM and load colour map
+            if clim is None:
+                clim = [np.nanmin(fr), np.nanmax(fr)]
+
+            if lower_transparent:
+                fr[fr < clim[0]] = np.nan
+            else:
+                fr[fr < clim[0]] = clim[0]
+
+            fr[fr > clim[1]] = clim[1]
+
+            fr = (fr - clim[0]) / (clim[1] - clim[0])
+
+            cmap = get_cmap(cmap)
+
+        else:
+            # > single channel, assume 8-bit RGB: ensure correct datatype and throw away any extra channels
+            fr = fr[:,:,:3].astype(np.uint8)
+
+        colours = vtk.vtkUnsignedCharArray()
+        colours.SetNumberOfComponents(3)
+
+        for yi,xi in self.image_inds:
+            if len(fr.shape) < 3:
+                rgb = (np.array(cmap(fr[yi, xi]))[:-1] * 255).astype(np.uint8)
+                colours.InsertNextTypedTuple(rgb)
+            else:
+                colours.InsertNextTypedTuple(fr[yi, xi, :])
+
+        self.celldata.SetScalars(colours)
 
 
 def get_wall_contour_actor(wall_contour,actor_type='contour',phi=None,toroidal_res=128):
@@ -932,6 +997,7 @@ def get_image_actor(image_array,clim=None,actortype='vtkImageActor'):
         actor.InterpolateOff()
         mapper = actor.GetMapper()
         mapper.SetInputConnection(vtk_im_importer.GetOutputPort())
+        actor.image = np.flipud(image)
 
         return actor
 
@@ -950,6 +1016,8 @@ def get_image_actor(image_array,clim=None,actortype='vtkImageActor'):
         actor = vtk.vtkActor2D()
         actor.SetMapper(mapper)
         actor.GetProperty().SetDisplayLocationToForeground()
+
+        actor.image = np.flipud(image)
 
         return actor,resizer
 
