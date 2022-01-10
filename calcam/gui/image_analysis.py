@@ -724,6 +724,10 @@ class ImageAnalyser(CalcamGUIWindow):
             self.overlay_checkbox.setChecked(False)
             self.overlay_checkbox.setChecked(True)
 
+        if self.cmap_checkbox.isChecked():
+            self.update_cmap()
+
+
     def update_image_info_string(self, im_array, geometry):
 
         if np.any(np.array(geometry.get_display_shape()) != np.array(geometry.get_original_shape())):
@@ -768,6 +772,7 @@ class ImageAnalyser(CalcamGUIWindow):
                 self.cmap_checkbox.setToolTip('')
             else:
                 info_str = info_str + 'RGB Colour'
+                self.cmap_checkbox.setChecked(False)
                 self.cmap_checkbox.setEnabled(False)
                 self.cmap_checkbox.setToolTip('Colour mapping can only be applied to monochrome images.')
             if im_array.shape[2] == 4:
