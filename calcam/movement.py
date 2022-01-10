@@ -174,7 +174,7 @@ def detect_movement(ref,moved):
         raise DetectionFailedError('Could not determine image movement automatically. Consider using manual movement correction instead.')
 
 
-def manual_movement(ref,moved,correction=None):
+def manual_movement(ref,moved,correction=None,parent_window=None):
     '''
     Determine camera movement (semi-)manually using a GUI tool.
     See the :doc:`gui_movement` GUI doc page for the GUI user guide.
@@ -191,11 +191,13 @@ def manual_movement(ref,moved,correction=None):
 
         correction (MovementCorrection)           : Existing movement correction object to start from.
 
+        parent_window (QWidget)                   : If being called from a QT GUI window class, a reference to \
+                                                    the parent window must be passed. If it is not, the parent \
+                                                    window might irrecoverably freeze when the movement dialog is closed.
+
     Returns:
 
-        MovementCorrection or NoneType : If the :guilabel:`OK` button is clicked in the GUI, returns a movement correction \
-                             object representing the movement correction. If the GUI is closed by clicking \
-                             :guilabel:`Cancel`, returns ``None``.
+        MovementCorrection or NoneType : Either the image transofmration, or None is the user does not define one.
 
     '''
 
@@ -220,7 +222,11 @@ def manual_movement(ref,moved,correction=None):
     if correction is not None:
         correction.warp_moved_to_ref(moved_im)
 
-    retcode,dialog = gui.open_window(gui.ImageAlignDialog,ref_im,moved_im,correction)
+    if parent_window is None:
+        retcode,dialog = gui.open_window(gui.ImageAlignDialog,ref_im,moved_im,correction)
+    else:
+        dialog = gui.ImageAlignDialog(None,parent_window,ref_im,moved_im,correction)
+        retcode = dialog.exec_()
 
     if retcode == gui.qt.QDialog.Accepted:
         return dialog.transform

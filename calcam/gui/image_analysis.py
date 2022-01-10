@@ -251,7 +251,7 @@ class ImageAnalyser(CalcamGUIWindow):
         else:
             transformer = self.image_geometry
 
-        self.mov_correction = manual_movement(self.calibration,transformer.original_to_display_image(self.image),self.mov_correction)
+        self.mov_correction = manual_movement(self.calibration,transformer.original_to_display_image(self.image),self.mov_correction,parent_window=self)
 
         if self.coords_3d is not None:
             self.update_from_3d(self.coords_3d)

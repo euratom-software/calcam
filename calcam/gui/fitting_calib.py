@@ -555,7 +555,7 @@ class FittingCalib(CalcamGUIWindow):
                 self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
                 pos_lim = np.array(self.calibration.geometry.get_display_shape()) - 0.5
                 pp_to_remove = []
-                movement = manual_movement(old_image,self.calibration.get_image(coords='Display'))
+                movement = manual_movement(old_image,self.calibration.get_image(coords='Display'),parent_window=self)
                 if movement is not None:
                     for _,cid in self.point_pairings:
                         orig_coords = self.interactor2d.get_cursor_coords(cid)
