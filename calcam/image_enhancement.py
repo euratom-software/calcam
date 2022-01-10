@@ -33,7 +33,7 @@ from scipy.optimize import curve_fit
 
 
 
-def scale_to_8bit(image):
+def scale_to_8bit(image,cutoff=0.99):
 
     # If we have a multi-channel image
     if len(image.shape) == 3:
@@ -50,10 +50,13 @@ def scale_to_8bit(image):
     # overflows or quantisation problems.
     image = image.astype(np.float32)
 
-    # Scale the image to its max & min
-    image = image - image.min()
-    image = image / image.max()
+    sorted = np.sort(image.flatten())
+    maxval = sorted[int(sorted.size * cutoff)]
+    minval = sorted[int(sorted.size * (1 - cutoff))]
 
+    # Scale the image to its max & min
+    image = np.maximum(0,image - minval)
+    image = np.minimum(1,image / maxval)
     # Final 8 bit output
     return np.uint8(255 * image)
 
@@ -84,8 +87,7 @@ def enhance_image(image,target_msb=25,target_noise=500,tiles=(20,20),downsample=
 
     # Make sure we have an 8-bit unisnged int image.
     if image.dtype != np.uint8:
-        image = 255 * image.astype(np.float32) / image.max()
-        image = image.astype(np.uint8)
+        image = scale_to_8bit(image)
 
 
     if len(image.shape) > 2:

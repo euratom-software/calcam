@@ -28,7 +28,7 @@ from ..pointpairs import PointPairs
 from ..render import render_cam_view
 from .. import misc
 from ..image_enhancement import enhance_image, scale_to_8bit
-from ..movement import detect_movement, DetectionFailedError
+from ..movement import manual_movement
 
 # Main calcam window class for actually creating calibrations.
 class FittingCalib(CalcamGUIWindow):
@@ -545,18 +545,18 @@ class FittingCalib(CalcamGUIWindow):
             self.app.restoreOverrideCursor()
             dialog = qt.QMessageBox(self)
             dialog.setStandardButtons(qt.QMessageBox.Yes | qt.QMessageBox.No)
-            dialog.setWindowTitle('Auto-Adjust Point Positions?')
+            dialog.setWindowTitle('Adjust points all at once?')
             dialog.setTextFormat(qt.Qt.RichText)
-            dialog.setText('Would you like Calcam to try to automatically adjust the image point positions for the new image?')
+            dialog.setText('Would you like to open the image movement tool to adjust the calibration points all at once?')
             dialog.setIcon(qt.QMessageBox.Question)
             retcode = dialog.exec_()
 
             if retcode == dialog.Yes:
-                self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
                 pos_lim = np.array(self.calibration.geometry.get_display_shape()) - 0.5
                 pp_to_remove = []
-                try:
-                    movement = detect_movement(old_image,self.calibration.get_image(coords='Display'))
+                movement = manual_movement(old_image,self.calibration.get_image(coords='Display'),parent_window=self)
+                if movement is not None:
+                    self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
                     for _,cid in self.point_pairings:
                         orig_coords = self.interactor2d.get_cursor_coords(cid)
                         new_coords = [None] * len(orig_coords)
@@ -569,26 +569,8 @@ class FittingCalib(CalcamGUIWindow):
                                     new_coords[subview] = None
                         if all(p is None for p in new_coords):
                             pp_to_remove.append(cid)
-
-                    for i in reversed(range(len(self.point_pairings))):
-                        if self.point_pairings[i][1] in pp_to_remove:
-                            self.interactor2d.remove_active_cursor(self.point_pairings[i][1])
-                            if self.point_pairings[i][0] is not None:
-                                self.interactor3d.remove_cursor(self.point_pairings[i][0])
-                            self.point_pairings.remove(self.point_pairings[i])
-
-                    self.init_fitting()
-
-                except DetectionFailedError:
                     self.app.restoreOverrideCursor()
-                    dialog = qt.QMessageBox(self)
-                    dialog.setStandardButtons(qt.QMessageBox.Ok)
-                    dialog.setWindowTitle('Auto-Adjust Failed')
-                    dialog.setTextFormat(qt.Qt.RichText)
-                    dialog.setText('Could not auto-detect image point movement for the new image.')
-                    dialog.setInformativeText('No changes to the current points have been made.')
-                    dialog.setIcon(qt.QMessageBox.Information)
-                    dialog.exec_()
+                    self.init_fitting()
 
 
     def change_fit_params(self,fun,state):
@@ -1484,11 +1466,11 @@ class FittingCalib(CalcamGUIWindow):
 
     def edit_split_field(self):
 
-        dialog = SplitFieldDialog(self,self.calibration.get_image(coords='Display'))
+        dialog = SplitFieldDialog(self,self.interactor2d.get_image())
         result = dialog.exec_()
         if result == 1:
             self.calibration.set_subview_mask(dialog.fieldmask,subview_names=dialog.field_names,coords='Display')
-            self.interactor2d.set_image(self.calibration.get_image(coords='display'),n_subviews = self.calibration.n_subviews,subview_lookup=self.calibration.subview_lookup,hold_position=True)
+            self.interactor2d.set_subview_lookup(self.calibration.n_subviews,self.calibration.subview_lookup)
             self.init_fitting()
             self.unsaved_changes = True
             self.update_n_points()

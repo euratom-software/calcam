@@ -68,6 +68,20 @@ class CoordTransformer:
         """
         return copy.copy(self.transform_actions)
 
+    def get_image_shape(self,coords):
+        """
+        A convenience function to return the image shape depending on a string input for the coords.
+
+        Params:
+            coords (str) : 'Original' or 'Display' , whether to return the original or display coords
+
+        Returns:
+            Tuple with (width, height) image shape in pixels
+        """
+        if coords.lower() == 'original':
+            return self.get_original_shape()
+        elif coords.lower() == 'display':
+            return self.get_display_shape()
 
 
     def set_image_shape(self,w,h,coords='Original'):
@@ -75,7 +89,6 @@ class CoordTransformer:
         Set the shape of the image to be transformed.
 
         Parameters:
-
             w (int)      : Image witdh in pixels
             h (int)      : Image height in pixels
             coords (str) : 'Original' or 'Display', whether the specified with and height are the display or original shape
