@@ -1,11 +1,33 @@
 Calcam Changelog
 ================
 
-Changes at 2.7.0+dev-master
-----------------------------
+Changes on master branch since last release (i.e. on 2.7.0+dev-master)
+----------------------------------------------------------------------
+
+New & Enhancements:
+* Added ability to render un-folded image of tokamak interior on to a rectangular image (render.render_unfolded_wall() and available through 3D Viewer GUI)
+* Added ability for ray-casting to calculate the CAD model surface normal vectors where sight-lines intersect the CAD model, these are now stored in RayData objects.
+* Added option to show camera fields of view as shading of the CAD model in the 3D Viewer GUI
+* When loading calibrations with multiple sub-views in to the 3D Viewer GUI, the appearance of the field of view for each sub-view can now be changed independently.
+* Much more flexibility in the apperance of 3D coordinate data loaded in to the 3D viewer GUI (showing as lines / points, line width & marker size adjustment, legend support)
+* Layout of the movement correction GUI has been re-organised.
+* Image analyser GUI can now show an image mapped on to the CAD model surface in its 3D view.
+* Image analyser GUI can now apply colour-maps to loaded gresycale images.
+* Image analyser GUI now supports applying movement correction to a loaded image for more accurate results.
+* Layout of displayed position information in the image analyser GUI has been improved
+* Image analyser GUI now supports saving images.
+* When loading a new image in the fitting calibration tool, there is now a prompt to use the movement correction tool to quickly adjust all calibration points at once.
+* In the fitting calibration tool, image enhancement options in the main window are now also applied in the sub-view definition editing dialog.
 
 Fixes:
 * Fixed bug in Image analyser which could cause exceptions when loading images in display orientation.
+* Fixed bug where image enhancement was unexpectedly turned off (but the checkbox stayed checked) when editing sub-view definitions in the fitting calibration tool
+
+To Do before next point release:
+* Update documentation for new features
+* Undo feature in fitting calibration tool (#75)
+* Option to render wireframe at higher resolution in fitting tool (#74)
+* Maybe change opencv install in setup.py to opencv-python-headless (#72)
 
 
 Minor Release 2.7.0 (17 Apr 2021)
