@@ -75,6 +75,7 @@ class ImageAnalyser(CalcamGUIWindow):
         self.camera_2d = self.renderer_2d.GetActiveCamera()
 
         self.image_geometry = None
+        self.image_assumptions = []
         self.image_load_coords = None
         self.mov_correction = None
         self.im_projection = None
@@ -489,7 +490,7 @@ class ImageAnalyser(CalcamGUIWindow):
         if self.image is not None:
             if self.image_load_coords.lower() == 'display':
 
-                if self.image_geometry.get_display_shape() != opened_calib.geometry.get_display_shape() or self.image_geometry.offset != opened_calib.geometry.offset:
+                if self.image_geometry.get_display_shape() != opened_calib.geometry.get_display_shape() or (self.image_geometry.offset != opened_calib.geometry.offset and 'image_offset' not in self.image_assumptions):
                     osize = opened_calib.geometry.display_to_original_shape(self.image_geometry.get_display_shape())
                     opened_calib.set_detector_window((self.image_geometry.offset[0],self.image_geometry.offset[1],osize[0],osize[1]))
 
@@ -497,7 +498,7 @@ class ImageAnalyser(CalcamGUIWindow):
                     self.image = opened_calib.geometry.display_to_original_image(self.image)
 
             else:
-                if self.image_geometry.get_original_shape() != opened_calib.geometry.get_original_shape() or self.image_geometry.offset != opened_calib.geometry.offset:
+                if self.image_geometry.get_original_shape() != opened_calib.geometry.get_original_shape() or (self.image_geometry.offset != opened_calib.geometry.offset and 'image_offset' not in self.image_assumptions):
                     osize = self.image_geometry.get_original_shape()
                     opened_calib.set_detector_window((self.image_geometry.offset[0],self.image_geometry.offset[1],osize[0],osize[1]))
 
@@ -652,7 +653,6 @@ class ImageAnalyser(CalcamGUIWindow):
         newim_geometry.set_transform_actions(newim['transform_actions'])
         newim_geometry.set_image_shape(newim['image_data'].shape[1],newim['image_data'].shape[0],coords=newim['coords'])
 
-
         if self.calibration is not None:
 
             if newim['coords'].lower() == 'original':
@@ -660,9 +660,16 @@ class ImageAnalyser(CalcamGUIWindow):
             else:
                 size_mismatch = newim_geometry.get_display_shape() != self.calibration.geometry.get_display_shape()
 
-            size_mismatch = size_mismatch | (newim_geometry.offset[0] != self.calibration.geometry.offset[0]) | (newim_geometry.offset[1] != self.calibration.geometry.offset[1])
+            if 'image_offset' not in newim['assumptions']:
+                size_mismatch = size_mismatch | (newim_geometry.offset[0] != self.calibration.geometry.offset[0]) | (newim_geometry.offset[1] != self.calibration.geometry.offset[1])
 
             if  size_mismatch:
+
+                if 'coords' in newim['assumptions']:
+
+                    if newim_geometry.get_display_shape() == self.calibration.geometry.get_original_shape():
+                        newim_geometry = self.calibration.geometry
+                        newim['coords'] = 'original'
 
                 new_geom = copy.deepcopy(self.calibration.geometry)
                 new_geom.set_image_shape(image.shape[1],image.shape[0],coords=newim['coords'])
@@ -693,6 +700,7 @@ class ImageAnalyser(CalcamGUIWindow):
         else:
             self.image = image
 
+        self.image_assumptions = newim['assumptions']
         self.image_load_coords = newim['coords']
 
 

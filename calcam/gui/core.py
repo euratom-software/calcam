@@ -429,27 +429,35 @@ class CalcamGUIWindow(qt.QMainWindow):
             newim = self.imsource.get_image_function(**imload_options)
             self.config.default_image_source = self.imsource.display_name
 
+        # Keep a list of which parameters we have filled in with assumptions,
+        # because sometimes we want to know later.
+        newim['assumptions'] = []
 
         if 'subview_mask' not in newim:
             newim['subview_mask'] = np.zeros(newim['image_data'].shape[:2],dtype=np.uint8)
+            newim['assumptions'].append('subview_mask')
 
         if 'subview_names' not in newim:
             newim['subview_names'] = []
 
         if 'transform_actions' not in newim:
             newim['transform_actions'] = []
+            newim['assumptions'].append('transform_actions')
 
         if 'pixel_size' not in newim:
             newim['pixel_size'] = None
 
         if 'coords' not in newim:
             newim['coords'] = 'display'
+            newim['assumptions'].append('coords')
             
         if 'pixel_aspect' not in newim:
             newim['pixel_aspect'] = 1.
+            newim['assumptions'].append('pixel_aspect')
 
         if 'image_offset' not in newim:
             newim['image_offset'] = (0.,0.)
+            newim['assumptions'].append('image_offset')
 
         self.on_load_image(newim)
         self.statusbar.clearMessage()
