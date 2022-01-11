@@ -837,9 +837,30 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
         else:
             return self.image_actor.image
 
+
     def set_subview_lookup(self,n_subviews,subview_lookup):
         self.n_subviews = n_subviews
         self.subview_lookup = subview_lookup
+
+        # Re-shuffle cursors into different sub-views if needed.
+        for cursor_id in self.active_cursors.keys():
+            coords = self.get_cursor_coords(cursor_id)
+            new_actor_list = [None] * self.n_subviews
+            new_cursor3d_list = [None] * self.n_subviews
+            for n_old in range(len(coords)):
+                if coords[n_old] is not None:
+                    new_subview = self.subview_lookup(coords[n_old][0],coords[n_old][1])
+                    new_actor_list[new_subview] = self.active_cursors[cursor_id]['actors'][n_old]
+                    self.renderer.RemoveActor(new_actor_list[new_subview])
+                    new_cursor3d_list[new_subview] = self.active_cursors[cursor_id]['cursor3ds'][n_old]
+            self.active_cursors[cursor_id] = {'cursor3ds':new_cursor3d_list,'actors':new_actor_list}
+
+        # Finish re-adding active cursors
+        for active_cursor in self.active_cursors.values():
+            for actor in active_cursor['actors']:
+                if actor is not None:
+                    self.renderer.AddActor(actor)
+
 
     def get_n_cursors(self):
         return ( len(self.active_cursors) , len(self.passive_cursors) )

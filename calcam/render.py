@@ -683,8 +683,9 @@ def get_wall_coverage_actor(cal,cadmodel=None,image=None,imagecoords='Original',
         for yi in range(ray_end.shape[0] - 1):
 
             # Don't map any pixels which are NaN
-            if isnan[yi,xi]:
-                continue
+            if image is not None:
+                if isnan[yi,xi]:
+                    continue
 
             if subview is not None:
                 if np.any(cal.subview_lookup(rd.x[yi:yi+2,xi:xi+2],rd.y[yi:yi+2,xi:xi+2]) != subview):
@@ -1025,7 +1026,7 @@ def get_image_actor(image_array,clim=None,actortype='vtkImageActor'):
 
 
 
-def render_unfolded_wall(cadmodel,calibrations=[],labels = [],w=None,theta_start=90,phi_start=0,progress_callback=LoopProgPrinter().update,cancel=lambda : False,theta_steps=18,phi_steps=360,r_equiscale=None,extra_actors=[],filename=None):
+def render_unfolded_wall(cadmodel,calibrations=[],labels = [],colours=None,cal_opacity=0.7,w=None,theta_start=90,phi_start=0,progress_callback=LoopProgPrinter().update,cancel=lambda : False,theta_steps=18,phi_steps=360,r_equiscale=None,extra_actors=[],filename=None):
     """
     Render an image of the tokamak wall "flattened" out. Creates an image where the horizontal direction is the toroidal direction and
     vertical direction is poloidal.
@@ -1039,6 +1040,10 @@ def render_unfolded_wall(cadmodel,calibrations=[],labels = [],w=None,theta_start
                                                       the camera can see.
         labels (list of strings)                    : List of strings containing legend text for the calibrations. If not provided, no legend will be added \
                                                       to the image. If provided, must be the same length as the list of calibrations.
+        colours (list of tuple)                     : List of 3-element tuples specifying the colours to use for the displayed calibrations. Each element of the \
+                                                      list must have the format (R, G, B) where 0 <= R, G and B <= 1.
+        cal_opcity (float)                          : How opaque to make the wall shading when showing calibrations. 0 = completely invisible, 1 = complete opaque. \
+                                                      Default is 0.7.
         w (int)                                     : Desired approximate width of the rendered image in pixels. If not given, the image width will be chosen \
                                                       to give a scale of about 2mm/pixel.
         theta_start (float)                         : Poloidal angle in degrees to "split" the image i.e. this angle will be at the top and bottom of the image. \
@@ -1071,16 +1076,23 @@ def render_unfolded_wall(cadmodel,calibrations=[],labels = [],w=None,theta_start
         if len(labels) > 0:
             if len(labels) != len(calibrations):
                 raise ValueError('[render_unfolded_wall] Length of labels list different from number of calibrations given!')
+        if colours is not None:
+            if len(colours) != len(calibrations):
+                raise ValueError('[render_unfolded_wall] Length of colours list different from number of calibrations given!')
+        else:
+            ccycle = ColourCycle()
 
-        ccycle = ColourCycle()
         for i,calib in enumerate(calibrations):
             try:
                 progress_callback('Calculating high-res wall coverage for calibration {:s}'.format(labels[i] if len(labels) > 0 else '...{:s}'.format(calib.filename[-16:])))
             except Exception:
                 print('Calculating high-res wall coverage for calibration {:s}'.format(labels[i] if len(labels) > 0 else '...{:s}'.format(calib.filename[-16:])))
             actor = get_wall_coverage_actor(calib,cadmodel,clearance=2e-2)
-            actor.GetProperty().SetOpacity(0.7)
-            col = next(ccycle)
+            actor.GetProperty().SetOpacity(cal_opacity)
+            if colours is not None:
+                col = colours[i]
+            else:
+                col = next(ccycle)
             actor.GetProperty().SetColor(col)
             cal_actors.append(actor)
             if len(labels) > 0:

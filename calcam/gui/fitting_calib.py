@@ -552,11 +552,11 @@ class FittingCalib(CalcamGUIWindow):
             retcode = dialog.exec_()
 
             if retcode == dialog.Yes:
-                self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
                 pos_lim = np.array(self.calibration.geometry.get_display_shape()) - 0.5
                 pp_to_remove = []
                 movement = manual_movement(old_image,self.calibration.get_image(coords='Display'),parent_window=self)
                 if movement is not None:
+                    self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
                     for _,cid in self.point_pairings:
                         orig_coords = self.interactor2d.get_cursor_coords(cid)
                         new_coords = [None] * len(orig_coords)
@@ -569,7 +569,7 @@ class FittingCalib(CalcamGUIWindow):
                                     new_coords[subview] = None
                         if all(p is None for p in new_coords):
                             pp_to_remove.append(cid)
-
+                    self.app.restoreOverrideCursor()
                     self.init_fitting()
 
 
@@ -1466,11 +1466,11 @@ class FittingCalib(CalcamGUIWindow):
 
     def edit_split_field(self):
 
-        dialog = SplitFieldDialog(self,self.calibration.get_image(coords='Display'))
+        dialog = SplitFieldDialog(self,self.interactor2d.get_image())
         result = dialog.exec_()
         if result == 1:
             self.calibration.set_subview_mask(dialog.fieldmask,subview_names=dialog.field_names,coords='Display')
-            self.interactor2d.set_image(self.calibration.get_image(coords='display'),n_subviews = self.calibration.n_subviews,subview_lookup=self.calibration.subview_lookup,hold_position=True)
+            self.interactor2d.set_subview_lookup(self.calibration.n_subviews,self.calibration.subview_lookup)
             self.init_fitting()
             self.unsaved_changes = True
             self.update_n_points()
