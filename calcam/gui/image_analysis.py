@@ -360,6 +360,8 @@ class ImageAnalyser(CalcamGUIWindow):
                         self.sightline_actors.append(actor)
                         self.interactor3d.add_extra_actor(actor)
 
+
+
                 else:
                     if self.cursor_ids['2d']['hidden'] is None:
                         self.cursor_ids['2d']['hidden'] = self.interactor2d.add_active_cursor(image_pos_nocheck[i][0,:])
@@ -994,7 +996,7 @@ class ImageAnalyser(CalcamGUIWindow):
                     sightline_info_string = sightline_info_string + 'Sight line does not inersect CAD model.'
                     cadinfo_str = 'Sight line does not intersect CAD model.'
             else:
-                sightline_info_string = sightline_info_string + 'No line-of-sight to cursor<br>'
+                sightline_info_string = sightline_info_string + 'No line-of-sight to cursor'
 
         if self.calibration.n_subviews > 1:
             self.impos_fieldnames.setText(impos_fieldnames_str)

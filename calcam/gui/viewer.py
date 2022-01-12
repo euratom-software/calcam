@@ -183,7 +183,6 @@ class Viewer(CalcamGUIWindow):
             filedialog.setAcceptMode(0)
             filedialog.setFileMode(1)
 
-
             filedialog.setWindowTitle('Open...')
             filedialog.setNameFilter(filename_filter)
             filedialog.exec_()
@@ -201,11 +200,10 @@ class Viewer(CalcamGUIWindow):
                     except ValueError:
                         continue
 
-                if coords is None:
+                if coords is None or len(coords.shape) != 2 or coords.shape[1] not in [3,6]:
                     raise UserWarning('Could not load coordinates from the file. Please ensure the file is formatted as N rows, 3 or 6 columns and is tab, space or comma delimited.')
 
-                elif coords.shape[1] in [3,6]:
-
+                else:
                     coords_dialog = CoordsDialog(self,coords.shape)
                     coords_dialog.exec_()
                     if coords_dialog.result() == 1:
@@ -999,6 +997,11 @@ class CoordsDialog(qt.QDialog):
             self.lines_label.setText('Importing coordinates for {:d} 3D lines from file.'.format(coords_shape[0]))
         elif coords_shape[1] == 3:
             self.lines_label.setText('Importing a sequence of {:d} points from file.'.format(coords_shape[0]))
+
+        if coords_shape[0] == 1:
+            self.show_lines.setChecked(False)
+            self.show_lines.setEnabled(False)
+            self.show_points.setChecked(True)
 
 
 class RenderUnfoldedDialog(qt.QDialog):

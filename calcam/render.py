@@ -248,7 +248,17 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
     cadmodel.add_to_renderer(renderer)
 
     for actor in extra_actors:
-        actor.GetProperty().SetLineWidth( actor.GetProperty().GetLineWidth() * aa)
+        if isinstance(actor,vtk.vtkAssembly):
+            actors = actor.GetParts()
+            while True:
+                part = actors.GetNextProp3D()
+                if part is not None:
+                    part.GetProperty().SetLineWidth( actor.GetProperty().GetLineWidth() * aa)
+                else:
+                    break
+        else:
+            actor.GetProperty().SetLineWidth( actor.GetProperty().GetLineWidth() * aa)
+
         renderer.AddActor(actor)
 
     # We need a field mask the same size as the output
@@ -383,7 +393,16 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
     cadmodel.remove_from_renderer(renderer)
 
     for actor in extra_actors:
-        actor.GetProperty().SetLineWidth( actor.GetProperty().GetLineWidth() / aa ) 
+        if isinstance(actor,vtk.vtkAssembly):
+            actors = actor.GetParts()
+            while True:
+                part = actors.GetNextProp3D()
+                if part is not None:
+                    part.GetProperty().SetLineWidth( actor.GetProperty().GetLineWidth() / aa )
+                else:
+                    break
+        else:
+            actor.GetProperty().SetLineWidth( actor.GetProperty().GetLineWidth() / aa )
         renderer.RemoveActor(actor)
 
     renwin.Finalize()
