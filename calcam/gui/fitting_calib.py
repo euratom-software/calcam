@@ -19,6 +19,8 @@ express or implied.
 permissions and limitations under the Licence.
 '''
 
+from collections import deque
+
 from scipy.ndimage.measurements import center_of_mass as CoM
 
 from .core import *
@@ -29,6 +31,8 @@ from ..render import render_cam_view
 from .. import misc
 from ..image_enhancement import enhance_image, scale_to_8bit
 from ..movement import manual_movement
+
+max_undo_depth = 20
 
 # Main calcam window class for actually creating calibrations.
 class FittingCalib(CalcamGUIWindow):
@@ -128,6 +132,8 @@ class FittingCalib(CalcamGUIWindow):
         self.del_pp_button.clicked.connect(self.remove_current_pointpair)
         self.clear_points_button.clicked.connect(self.clear_pointpairs)
 
+        self.points_undo_button.clicked.connect(self.pointpairs_undo)
+
         # Set up some keyboard shortcuts
         # It is done this way in 3 lines per shortcut to avoid segfaults on some configurations
         sc = qt.QShortcut(qt.QKeySequence("Del"),self)
@@ -141,6 +147,10 @@ class FittingCalib(CalcamGUIWindow):
         sc = qt.QShortcut(qt.QKeySequence("Ctrl+P"),self)
         sc.setContext(qt.Qt.ApplicationShortcut)
         sc.activated.connect(self.toggle_reprojected)
+
+        sc = qt.QShortcut(qt.QKeySequence("Ctrl+Z"),self)
+        sc.setContext(qt.Qt.ApplicationShortcut)
+        sc.activated.connect(self.pointpairs_undo)
 
         # Odds & sods
         self.pixel_size_box.setSuffix(u' \u00B5m')
@@ -178,6 +188,8 @@ class FittingCalib(CalcamGUIWindow):
         self.filename = None
 
         self.waiting_pointpairs = None
+
+        self.pointpairs_history = deque(maxlen=max_undo_depth)
 
         self.n_points = [ [0,0] ] # One list per sub-field, which is [extrinsics_data, intrinsics_data]
 
@@ -350,6 +362,9 @@ class FittingCalib(CalcamGUIWindow):
 
 
     def update_cursor_position(self,cursor_id,position):
+
+        self.pointpairs_history.append((self.calibration.pointpairs,self.calibration.history['pointpairs']))
+        self.points_undo_button.setEnabled(True)
         self.unsaved_changes = True
         self.update_cursor_info()
         self.update_pointpairs()
@@ -357,6 +372,8 @@ class FittingCalib(CalcamGUIWindow):
 
     def new_point_2d(self,im_coords):
 
+        self.pointpairs_history.append((self.calibration.pointpairs,self.calibration.history['pointpairs']))
+        self.points_undo_button.setEnabled(True)
         if self.selected_pointpair is not None:
             if self.point_pairings[self.selected_pointpair][1] is None:
                 self.point_pairings[self.selected_pointpair][1] = self.interactor2d.add_active_cursor(im_coords)
@@ -376,6 +393,8 @@ class FittingCalib(CalcamGUIWindow):
 
     def new_point_3d(self,coords):
 
+        self.pointpairs_history.append((self.calibration.pointpairs,self.calibration.history['pointpairs']))
+        self.points_undo_button.setEnabled(True)
         if self.selected_pointpair is not None:
             if self.point_pairings[self.selected_pointpair][0] is None:
                 self.point_pairings[self.selected_pointpair][0] = self.interactor3d.add_cursor(coords)
@@ -817,7 +836,11 @@ class FittingCalib(CalcamGUIWindow):
         self.unsaved_changes = True
 
 
-    def load_pointpairs(self,data=None,pointpairs=None,src=None,history=None,force_clear=None,clear_fit=True):
+    def load_pointpairs(self,data=None,pointpairs=None,src=None,history=None,force_clear=None,clear_fit=True,include_in_undo=True):
+
+        if include_in_undo:
+            self.pointpairs_history.append((self.calibration.pointpairs,self.calibration.history['pointpairs']))
+            self.points_undo_button.setEnabled(True)
 
         if pointpairs is None:
             pointpairs = self.object_from_file('pointpairs')
@@ -844,10 +867,9 @@ class FittingCalib(CalcamGUIWindow):
             self.overlay_checkbox.setChecked(False)
 
             if (self.pointpairs_clear_before_load.isChecked() or force_clear) and force_clear != False:
-                self.clear_pointpairs()
+                self.clear_pointpairs(include_in_undo=False)
 
             for i in range(len(pointpairs.object_points)):
-
 
                 cursorid_2d = None
                 for j in range(len(pointpairs.image_points[i])):
@@ -891,6 +913,9 @@ class FittingCalib(CalcamGUIWindow):
 
         if self.selected_pointpair is not None:
 
+            self.pointpairs_history.append((self.calibration.pointpairs,self.calibration.history['pointpairs']))
+            self.points_undo_button.setEnabled(True)
+
             pp_to_remove = self.point_pairings.pop(self.selected_pointpair)
 
             if len(self.point_pairings) > 0:
@@ -911,8 +936,23 @@ class FittingCalib(CalcamGUIWindow):
             self.update_pointpairs()
             self.update_n_points()
 
+    def pointpairs_undo(self):
 
-    def clear_pointpairs(self):
+        try:
+            prev_pointpairs,pp_history = self.pointpairs_history.pop()
+            if len(self.pointpairs_history) == 0:
+                self.points_undo_button.setEnabled(False)
+        except IndexError:
+            raise UserWarning('Reached the end of undo history - nothing more to undo.')
+
+        self.load_pointpairs(pointpairs=prev_pointpairs,history=pp_history,force_clear=True,include_in_undo=False)
+
+
+    def clear_pointpairs(self,include_in_undo=True):
+
+        if include_in_undo:
+            self.pointpairs_history.append((self.calibration.pointpairs,self.calibration.history['pointpairs']))
+            self.points_undo_button.setEnabled(True)
 
         self.interactor3d.set_cursor_focus(None)
         self.interactor2d.set_cursor_focus(None)
@@ -1441,6 +1481,8 @@ class FittingCalib(CalcamGUIWindow):
 
         self.update_n_points()
         self.update_fit_results()
+        self.pointpairs_history.clear()
+        self.points_undo_button.setEnabled(False)
         self.app.restoreOverrideCursor()
         self.unsaved_changes = False
 
@@ -1475,6 +1517,8 @@ class FittingCalib(CalcamGUIWindow):
             self.unsaved_changes = True
             self.update_n_points()
             self.reset_fit()
+            self.pointpairs_history.clear()
+            self.points_undo_button.setEnabled(False)
 
         del dialog
 
