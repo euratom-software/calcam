@@ -73,7 +73,7 @@ if 'install' in sys.argv or 'develop' in sys.argv:
     # find a suitably portable way to do it more automatically)
 
     # Essential dependencies
-    for prettyname,pkgname,importname in [ ('SciPy','scipy','scipy') ,('MatPlobLib','matplotlib','matplotlib'),('OpenCV','opencv-python','cv2')]:
+    for prettyname,pkgname,importname in [ ('SciPy','scipy','scipy') ,('MatPlobLib','matplotlib','matplotlib'),('OpenCV','opencv-python-headless','cv2')]:
 
         if check_dependency(importname):
             print('Dependency {:s}: OK!'.format(prettyname))
@@ -125,7 +125,7 @@ if 'install' in sys.argv or 'develop' in sys.argv:
 # Actually do the requested setup actions
 s = setup(
           name='Calcam',
-          version='2.7.0+dev-master',
+          version='2.8.0-rc',
           url='https://euratom-software.github.io/calcam/',
           license='European Union Public License 1.1',
           author='Scott Silburn et.al.',

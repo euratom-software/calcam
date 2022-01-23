@@ -948,57 +948,67 @@ def get_wall_contour_actor(wall_contour,actor_type='contour',phi=None,toroidal_r
 
 
 # Return VTK image actor and VTK image reiszer objects for this image.
-def get_image_actor(image_array,clim=None,actortype='vtkImageActor'):
+def get_image_actor(image_array,clim=None,actortype='vtkImageActor',scaling=1):
 
-    image = image_array.copy()
+    # VTK image arrays work up-down flipped compared to usual.
+    image = np.flipud(image_array.copy())
 
-    if clim is None:
-        if image.min() != image.max():
-            clim = [image.min(),image.max()]
-        else:
-            clim = [0,255]
+    if len(image.shape) > 2 and image.dtype == np.uint8:
+        scale_image = False
+    else:
+        scale_image = True
 
-    clim = np.array(clim)
 
-    # If the array isn't already 8-bit int, make it 8-bit int...
-    if image.dtype != np.uint8:
-        # If we're given a higher bit-depth integer, it's easy to downcast it.
-        if image.dtype == np.uint16 or image.dtype == np.int16:
-            image = np.uint8(image/2**8)
-            clim = np.uint8(clim/2**8)
-        elif image.dtype == np.uint32 or image.dtype == np.int32:
-            image = np.uint8(image/2**24)
-            clim = np.uint8(clim/2**24)
-        elif image.dtype == np.uint64 or image.dtype == np.int64:
-            image = np.uint8(image/2**56)
-            clim = np.uint8(clim/2**24)
-        # Otherwise, scale it in a floating point way to its own max & min
-        # and strip out any transparency info (since we can't be sure of the scale used for transparency)
-        else:
+    if scale_image:
 
-            if image.min() < 0:
-                image = image - image.min()
-                clim = clim - image.min()
+        if clim is None:
+            if image.min() != image.max():
+                clim = [image.min(),image.max()]
+            else:
+                clim = [0,255]
 
-            if len(image.shape) == 3:
-                if image.shape[2] == 4:
-                    image = image[:,:,:-1]
+        clim = np.array(clim)
 
-            image = np.uint8(255.*(image - image.min())/(image.max() - image.min()))
+        # If the array isn't already 8-bit int, make it 8-bit int...
+        if image.dtype != np.uint8:
+            # If we're given a higher bit-depth integer, it's easy to downcast it.
+            if image.dtype == np.uint16 or image.dtype == np.int16:
+                image = np.uint8(image/2**8)
+                clim = np.uint8(clim/2**8)
+            elif image.dtype == np.uint32 or image.dtype == np.int32:
+                image = np.uint8(image/2**24)
+                clim = np.uint8(clim/2**24)
+            elif image.dtype == np.uint64 or image.dtype == np.int64:
+                image = np.uint8(image/2**56)
+                clim = np.uint8(clim/2**24)
+            # Otherwise, scale it in a floating point way to its own max & min
+            # and strip out any transparency info (since we can't be sure of the scale used for transparency)
+            else:
+
+                if image.min() < 0:
+                    image = image - image.min()
+                    clim = clim - image.min()
+
+                if len(image.shape) == 3:
+                    if image.shape[2] == 4:
+                        image = image[:,:,:-1]
+
+                image = np.uint8(255.*(image - image.min())/(image.max() - image.min()))
 
 
     vtk_im_importer = vtk.vtkImageImport()
-    
-    # Create a temporary floating point copy of the data, for scaling.
-    # Also flip the data (vtk addresses y from bottom right) and put in display coords.
-    image = np.float32(np.flipud(image))
-    clim = np.float32(clim)
 
-    # Scale to colour limits and convert to uint8 for displaying.
-    image -= clim[0]
-    image /= (clim[1]-clim[0])
-    image *= 255.
-    image = np.uint8(image)
+    if scale_image:
+        # Create a temporary floating point copy of the data, for scaling.
+        # Also flip the data (vtk addresses y from bottom right) and put in display coords.
+        image = np.float32(image)
+        clim = np.float32(clim)
+
+        # Scale to colour limits and convert to uint8 for displaying.
+        image -= clim[0]
+        image /= (clim[1]-clim[0])
+        image *= 255.
+        image = np.uint8(image)
 
     im_data_string = image.tostring()
     vtk_im_importer.CopyImportVoidPointer(im_data_string,len(im_data_string))
@@ -1010,6 +1020,7 @@ def get_image_actor(image_array,clim=None,actortype='vtkImageActor'):
         vtk_im_importer.SetNumberOfScalarComponents(image.shape[2])
 
     vtk_im_importer.SetDataExtent(0,image.shape[1]-1,0,image.shape[0]-1,0,0)
+    vtk_im_importer.SetDataSpacing(scaling,scaling,scaling)
     vtk_im_importer.SetWholeExtent(0,image.shape[1]-1,0,image.shape[0]-1,0,0)
 
     if actortype == 'vtkImageActor':

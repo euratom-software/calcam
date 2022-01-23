@@ -320,9 +320,9 @@ class CalcamGUIWindow(qt.QMainWindow):
         new_col = qt.QColorDialog.getColor(qt.QColor(col_init[0],col_init[1],col_init[2],alpha_init),self,'Choose Colour...',qt.QColorDialog.ColorDialogOptions(qt.QColorDialog.ShowAlphaChannel*pick_alpha))
 
         if new_col.isValid():
-            ret_col = ( new_col.red() / 255. , new_col.green() / 255. , new_col.blue() / 255.)
+            ret_col = [ new_col.red() / 255. , new_col.green() / 255. , new_col.blue() / 255.]
             if pick_alpha:
-                ret_col = ret_col + ( (new_col.alpha() / 255.), )
+                ret_col = ret_col + [ new_col.alpha() / 255. ]
         else:
             ret_col = None
 

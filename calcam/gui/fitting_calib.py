@@ -101,7 +101,7 @@ class FittingCalib(CalcamGUIWindow):
         self.load_pointpairs_button.clicked.connect(self.load_pointpairs)
         #self.fit_button.clicked.connect(self.do_fit)
         self.fitted_points_checkbox.toggled.connect(self.toggle_reprojected)
-        self.overlay_checkbox.toggled.connect(self.toggle_overlay)
+        self.overlay_checkbox.toggled.connect(self.update_overlay)
         #self.save_fit_button.clicked.connect(self.save_fit)
         #self.save_points_button.clicked.connect(self.save_points)
         self.enhance_checkbox.stateChanged.connect(self.toggle_enhancement)
@@ -123,7 +123,10 @@ class FittingCalib(CalcamGUIWindow):
         self.overlay_colour_button.clicked.connect(self.change_overlay_colour)
         self.comparison_overlay_colour_button.clicked.connect(self.change_comparison_colour)
         self.open_comparison_calib.clicked.connect(self.select_comparison_calib)
-        self.comparison_overlay_checkbox.toggled.connect(self.toggle_overlay)
+        self.comparison_overlay_checkbox.toggled.connect(self.update_overlay)
+        self.overlay_type.currentIndexChanged.connect(self.update_overlay)
+        self.comparison_overlay_type.currentIndexChanged.connect(self.update_overlay)
+        self.comparison_overlay_opacity_slider.valueChanged.connect(self.change_comparison_colour)
 
         self.control_sensitivity_slider.valueChanged.connect(lambda x: self.interactor3d.set_control_sensitivity(x*0.01))
         self.rmb_rotate.toggled.connect(self.interactor3d.set_rmb_rotate)
@@ -133,6 +136,8 @@ class FittingCalib(CalcamGUIWindow):
         self.clear_points_button.clicked.connect(self.clear_pointpairs)
 
         self.points_undo_button.clicked.connect(self.pointpairs_undo)
+
+        self.overlay_opacity_slider.valueChanged.connect(self.change_overlay_colour)
 
         # Set up some keyboard shortcuts
         # It is done this way in 3 lines per shortcut to avoid segfaults on some configurations
@@ -197,6 +202,10 @@ class FittingCalib(CalcamGUIWindow):
 
         self.fit_initted = False
 
+        self.overlay_opacity_slider.setValue(self.config.main_overlay_colour[3]*100)
+        self.overlay_appearance_controls.hide()
+        self.comparison_overlay_appearance.hide()
+
         # Start the GUI!
         self.show()
         self.interactor2d.init()
@@ -247,16 +256,30 @@ class FittingCalib(CalcamGUIWindow):
             if curr_shape != comp_shape:
                 raise UserWarning('The selected calibration has different image dimensions ({:d} x {:d}) to the current calibration ({:d} x {:d}), so cannot be used to compare!'.format(comp_shape[0],comp_shape[1],curr_shape[0],curr_shape[1]))
 
+            self.comp_calib = cal
+            self.comparison_overlay_checkbox.setEnabled(True)
+            self.comparison_overlay_checkbox.setChecked(True)
+            self.comparison_name.setText(('...' + cal.filename[-25:]) if len(cal.filename) > 28 else cal.filename)
+
+        elif self.comp_calib is None:
+            self.comparison_overlay_checkbox.setChecked(False)
+            self.comparison_overlay_checkbox.setEnabled(False)
+
+
+
+            oversampling = int(np.ceil(min(1000 / np.array(self.calibration.geometry.get_display_shape()))))
+
             fname = cal.filename
-            self.comparison_name.setText( ('...' + fname[-25:]) if len(fname) > 28 else fname )
+
             self.statusbar.showMessage('Rendering wireframe overlay...')
             self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
             self.app.processEvents()
 
             orig_colours = self.cadmodel.get_colour()
-            self.cadmodel.set_wireframe(True)
+            if self.comparison_overlay_type.currentIndex() == 0:
+                self.cadmodel.set_wireframe(True)
             self.cadmodel.set_colour((1,1,1))
-            self.comp_overlay = render_cam_view(self.cadmodel,cal,transparency=True,verbose=False,aa=2)
+            self.comp_overlay = render_cam_view(self.cadmodel,cal,transparency=True,verbose=False,aa=2,oversampling=oversampling)
             self.cadmodel.set_colour(orig_colours)
             self.cadmodel.set_wireframe(False)
 
@@ -316,30 +339,36 @@ class FittingCalib(CalcamGUIWindow):
 
     def change_overlay_colour(self):
 
-        old_colour = self.config.main_overlay_colour
+        if self.sender() is self.overlay_opacity_slider:
+            new_colour = self.config.main_overlay_colour[:3]
 
-        new_colour = self.pick_colour(init_colour=old_colour,pick_alpha=True)
+        else:
+            old_colour = self.config.main_overlay_colour
+            new_colour = self.pick_colour(init_colour=old_colour)
 
         if new_colour is not None:
 
+            new_colour = new_colour + [self.overlay_opacity_slider.value() / 100]
             self.config.main_overlay_colour = new_colour
 
-            if self.overlay_checkbox.isChecked():
-                self.overlay_checkbox.setChecked(False)
-                self.overlay_checkbox.setChecked(True)
+            self.update_overlay()
 
 
     def change_comparison_colour(self):
 
-        old_colour = self.config.second_overlay_colour
-        new_colour = self.pick_colour(init_colour=old_colour,pick_alpha=True)
+        if self.sender() is self.comparison_overlay_opacity_slider:
+            new_colour = self.config.second_overlay_colour[:3]
+
+        else:
+            old_colour = self.config.second_overlay_colour
+            new_colour = self.pick_colour(init_colour=old_colour)
 
         if new_colour is not None:
+
+            new_colour = new_colour + [self.comparison_overlay_opacity_slider.value()/100]
             self.config.second_overlay_colour = new_colour
 
-            if self.comparison_overlay_checkbox.isChecked():
-                self.comparison_overlay_checkbox.setChecked(False)
-                self.comparison_overlay_checkbox.setChecked(True)
+            self.update_overlay()
 
 
     def reset_fit(self,subview=None):
@@ -363,17 +392,29 @@ class FittingCalib(CalcamGUIWindow):
 
     def update_cursor_position(self,cursor_id,position):
 
-        self.pointpairs_history.append((self.calibration.pointpairs,self.calibration.history['pointpairs']))
-        self.points_undo_button.setEnabled(True)
+        self.record_undo_state()
         self.unsaved_changes = True
         self.update_cursor_info()
         self.update_pointpairs()
 
 
+    def record_undo_state(self):
+
+        pp = self.calibration.pointpairs
+        hist = self.calibration.history['pointpairs']
+        try:
+            coords3d = self.interactor3d.get_cursor_coords(self.point_pairings[self.selected_pointpair][0])
+        except Exception:
+            coords3d = None
+
+        self.pointpairs_history.append((pp,hist,coords3d))
+        self.points_undo_button.setEnabled(True)
+
+
     def new_point_2d(self,im_coords):
 
-        self.pointpairs_history.append((self.calibration.pointpairs,self.calibration.history['pointpairs']))
-        self.points_undo_button.setEnabled(True)
+        self.record_undo_state()
+
         if self.selected_pointpair is not None:
             if self.point_pairings[self.selected_pointpair][1] is None:
                 self.point_pairings[self.selected_pointpair][1] = self.interactor2d.add_active_cursor(im_coords)
@@ -393,8 +434,7 @@ class FittingCalib(CalcamGUIWindow):
 
     def new_point_3d(self,coords):
 
-        self.pointpairs_history.append((self.calibration.pointpairs,self.calibration.history['pointpairs']))
-        self.points_undo_button.setEnabled(True)
+        self.record_undo_state()
         if self.selected_pointpair is not None:
             if self.point_pairings[self.selected_pointpair][0] is None:
                 self.point_pairings[self.selected_pointpair][0] = self.interactor3d.add_cursor(coords)
@@ -787,6 +827,9 @@ class FittingCalib(CalcamGUIWindow):
         # First, back up the point pair locations in original coordinates.
         orig_pointpairs = self.calibration.geometry.display_to_original_pointpairs(self.calibration.pointpairs)
 
+        self.pointpairs_history.clear()
+        self.points_unfo_buton.setEnabled(False)
+
         for i in range(len(self.chessboard_pointpairs)):
             self.chessboard_pointpairs[i][0] = self.calibration.geometry.display_to_original_image(self.chessboard_pointpairs[i][0])
             self.chessboard_pointpairs[i][1] = self.calibration.geometry.display_to_original_pointpairs(self.chessboard_pointpairs[i][1])
@@ -839,8 +882,7 @@ class FittingCalib(CalcamGUIWindow):
     def load_pointpairs(self,data=None,pointpairs=None,src=None,history=None,force_clear=None,clear_fit=True,include_in_undo=True):
 
         if include_in_undo:
-            self.pointpairs_history.append((self.calibration.pointpairs,self.calibration.history['pointpairs']))
-            self.points_undo_button.setEnabled(True)
+            self.record_undo_state()
 
         if pointpairs is None:
             pointpairs = self.object_from_file('pointpairs')
@@ -913,8 +955,7 @@ class FittingCalib(CalcamGUIWindow):
 
         if self.selected_pointpair is not None:
 
-            self.pointpairs_history.append((self.calibration.pointpairs,self.calibration.history['pointpairs']))
-            self.points_undo_button.setEnabled(True)
+            self.record_undo_state()
 
             pp_to_remove = self.point_pairings.pop(self.selected_pointpair)
 
@@ -939,7 +980,7 @@ class FittingCalib(CalcamGUIWindow):
     def pointpairs_undo(self):
 
         try:
-            prev_pointpairs,pp_history = self.pointpairs_history.pop()
+            prev_pointpairs,pp_history,selected_coords = self.pointpairs_history.pop()
             if len(self.pointpairs_history) == 0:
                 self.points_undo_button.setEnabled(False)
         except IndexError:
@@ -947,12 +988,16 @@ class FittingCalib(CalcamGUIWindow):
 
         self.load_pointpairs(pointpairs=prev_pointpairs,history=pp_history,force_clear=True,include_in_undo=False)
 
+        for cid in self.interactor3d.cursors.keys():
+            if self.interactor3d.get_cursor_coords(cid) == selected_coords:
+                self.interactor3d.set_cursor_focus(cid)
+                self.change_point_focus('3d',cid)
+                break
 
     def clear_pointpairs(self,include_in_undo=True):
 
         if include_in_undo:
-            self.pointpairs_history.append((self.calibration.pointpairs,self.calibration.history['pointpairs']))
-            self.points_undo_button.setEnabled(True)
+            self.record_undo_state()
 
         self.interactor3d.set_cursor_focus(None)
         self.interactor2d.set_cursor_focus(None)
@@ -1192,59 +1237,68 @@ class FittingCalib(CalcamGUIWindow):
         self.unsaved_changes = True
 
 
-    def toggle_overlay(self):
+    def render_overlay_image(self,calibration,wireframe):
 
-        if not self.overlay_checkbox.isChecked() and not self.comparison_overlay_checkbox.isChecked():
-            self.interactor2d.set_overlay_image(None)
-            return
+        oversampling = int(np.ceil(min(1000/np.array(calibration.geometry.get_display_shape()))))
 
-        overlay_im = np.zeros(tuple(self.calibration.geometry.get_display_shape()[::-1]) + (4,),dtype=np.float16)
+        self.statusbar.showMessage('Rendering CAD image overlay...')
+        self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
+        self.app.processEvents()
+
+        orig_colours = self.cadmodel.get_colour()
+
+        self.cadmodel.set_wireframe(wireframe)
+        self.cadmodel.set_colour((1, 1, 1))
+        image = render_cam_view(self.cadmodel, calibration, transparency=True, verbose=False, aa=2,oversampling=oversampling)
+        self.cadmodel.set_colour(orig_colours)
+        self.cadmodel.set_wireframe(False)
+
+        self.statusbar.clearMessage()
+        self.app.restoreOverrideCursor()
+
+        return image
+
+
+    def update_overlay(self):
+
+        # Clear the existing overlay image to force it to re-render if the user has changed between solid / wireframe
+        if self.sender() is self.overlay_type:
+            self.fit_overlay = None
+
+        if self.sender() is self.comparison_overlay_type:
+            self.comp_overlay = None
+
+        # Show or hide extra controls depending on what overlays are enabled
+        self.overlay_appearance_controls.setVisible(self.overlay_checkbox.isChecked())
+        self.comparison_overlay_appearance.setVisible(self.comparison_overlay_checkbox.isChecked())
+
+        overlay_ims = []
 
         if self.overlay_checkbox.isChecked():
 
-            if self.fit_overlay is None:
-
-                oversampling = 1.
-                self.statusbar.showMessage('Rendering wireframe overlay...')
-                self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
-                self.app.processEvents()
-
-                orig_colours = self.cadmodel.get_colour()
-                self.cadmodel.set_wireframe(True)
-                self.cadmodel.set_colour((1,1,1))
-                self.fit_overlay = render_cam_view(self.cadmodel,self.calibration,transparency=True,verbose=False,aa=2)
-                self.cadmodel.set_colour(orig_colours)
-                self.cadmodel.set_wireframe(False)
-
-
-                if np.max(self.fit_overlay) == 0:
-                    dialog = qt.QMessageBox(self)
-                    dialog.setStandardButtons(qt.QMessageBox.Ok)
-                    dialog.setWindowTitle('Calcam - Information')
-                    dialog.setTextFormat(qt.Qt.RichText)
-                    dialog.setText('Wireframe overlay image is blank.')
-                    dialog.setInformativeText('This usually means the fit is wildly wrong.')
-                    dialog.setIcon(qt.QMessageBox.Information)
-                    dialog.exec_()
-
-                self.statusbar.clearMessage()
-                self.app.restoreOverrideCursor()
-
-
-            for channel in range(4):
-                overlay_im[:,:,channel] = overlay_im[:,:,channel] + self.fit_overlay[:,:,channel] * self.config.main_overlay_colour[channel]
-
             self.fitted_points_checkbox.setChecked(False)
 
+            if self.fit_overlay is None:
+                self.fit_overlay = self.render_overlay_image(self.calibration,self.overlay_type.currentIndex() == 0)
+
+                if np.max(self.fit_overlay) == 0:
+                    self.show_msgbox('CAD model overlay result is a blank image.','This usually means the fit is wildly wrong.')
+
+            # Apply desired colour (stored as a list in self.config.main_overlay_colour)
+            overlay_ims.append( (self.fit_overlay * np.tile(np.array(self.config.main_overlay_colour)[np.newaxis,np.newaxis,:],self.fit_overlay.shape[:2] + (1,))).astype(np.uint8) )
+
+
         if self.comparison_overlay_checkbox.isChecked():
-            for channel in range(4):
-                overlay_im[:,:,channel] = overlay_im[:,:,channel] + self.comp_overlay[:,:,channel] * self.config.second_overlay_colour[channel]
 
+            self.comparison_overlay_appearance.show()
 
-        overlay_im[:,:,3] = np.minimum(overlay_im[:,:,3],max(self.config.main_overlay_colour[3],self.config.second_overlay_colour[3]) * 255)
-        overlay_im[:,:,:2] = 255 * overlay_im[:,:,:2] / overlay_im[:,:,:2].max()
+            if self.comp_overlay is None:
+                self.comp_overlay = self.render_overlay_image(self.comp_calib,self.comparison_overlay_type.currentIndex() == 0)
 
-        self.interactor2d.set_overlay_image(overlay_im.astype(np.uint8))
+            # Apply desired colour (stored as a list in self.config.second_overlay_colour)
+            overlay_ims.append( (self.comp_overlay * np.tile(np.array(self.config.second_overlay_colour)[np.newaxis, np.newaxis, :],self.fit_overlay.shape[:2] + (1,))).astype(np.uint8) )
+
+        self.interactor2d.set_overlay_image(overlay_ims)
 
         self.refresh_2d()
 
@@ -1497,13 +1551,13 @@ class FittingCalib(CalcamGUIWindow):
 
         self.interactor2d.set_image(image,n_subviews = self.calibration.n_subviews,subview_lookup=self.calibration.subview_lookup,hold_position=True)
 
-        if self.overlay_checkbox.isChecked():
-            self.overlay_checkbox.setChecked(False)
-            self.overlay_checkbox.setChecked(True)
+        #if self.overlay_checkbox.isChecked():
+        #    self.overlay_checkbox.setChecked(False)
+        #    self.overlay_checkbox.setChecked(True)
 
-        if self.comparison_overlay_checkbox.isChecked():
-            self.comparison_overlay_checkbox.setChecked(False)
-            self.comparison_overlay_checkbox.setChecked(True)
+        #if self.comparison_overlay_checkbox.isChecked():
+        #    self.comparison_overlay_checkbox.setChecked(False)
+        #    self.comparison_overlay_checkbox.setChecked(True)
 
 
     def edit_split_field(self):

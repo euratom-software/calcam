@@ -1357,11 +1357,11 @@
               <bool>false</bool>
              </property>
              <property name="text">
-              <string>Show wireframe overlay</string>
+              <string>Show CAD overlay:</string>
              </property>
             </widget>
            </item>
-           <item row="0" column="0">
+           <item row="0" column="0" colspan="2">
             <widget class="QCheckBox" name="fitted_points_checkbox">
              <property name="enabled">
               <bool>false</bool>
@@ -1372,10 +1372,68 @@
             </widget>
            </item>
            <item row="1" column="1">
-            <widget class="QPushButton" name="overlay_colour_button">
-             <property name="text">
-              <string>Select Colour...</string>
-             </property>
+            <widget class="QComboBox" name="overlay_type">
+             <item>
+              <property name="text">
+               <string>Wireframe</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Solid model</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="2" column="0" colspan="2">
+            <widget class="QWidget" name="overlay_appearance_controls" native="true">
+             <layout class="QGridLayout" name="gridLayout_18">
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+              <item row="1" column="0">
+               <widget class="QPushButton" name="overlay_colour_button">
+                <property name="text">
+                 <string>Colour...</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QSlider" name="overlay_opacity_slider">
+                <property name="minimum">
+                 <number>10</number>
+                </property>
+                <property name="maximum">
+                 <number>100</number>
+                </property>
+                <property name="sliderPosition">
+                 <number>75</number>
+                </property>
+                <property name="tracking">
+                 <bool>false</bool>
+                </property>
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QLabel" name="label_3">
+                <property name="text">
+                 <string>Opacity:</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </widget>
            </item>
           </layout>
@@ -1397,33 +1455,23 @@
         <item row="5" column="0" colspan="2">
          <widget class="QGroupBox" name="groupBox_4">
           <property name="title">
-           <string>Compare with existing Calibration</string>
+           <string>Compare with another calibration</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_16">
+           <item row="1" column="1">
+            <widget class="QPushButton" name="open_comparison_calib">
+             <property name="text">
+              <string>Select...</string>
+             </property>
+            </widget>
+           </item>
            <item row="2" column="0">
             <widget class="QCheckBox" name="comparison_overlay_checkbox">
              <property name="enabled">
               <bool>false</bool>
              </property>
              <property name="text">
-              <string>Show wireframe  overlay </string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="1">
-            <widget class="QPushButton" name="comparison_overlay_colour_button">
-             <property name="enabled">
-              <bool>true</bool>
-             </property>
-             <property name="text">
-              <string>Select Colour...</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="1">
-            <widget class="QPushButton" name="open_comparison_calib">
-             <property name="text">
-              <string>Select...</string>
+              <string>Show CAD overlay:</string>
              </property>
             </widget>
            </item>
@@ -1432,6 +1480,71 @@
              <property name="text">
               <string>No comparison calibration loaded</string>
              </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QComboBox" name="comparison_overlay_type">
+             <item>
+              <property name="text">
+               <string>Wireframe</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Solid model</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="3" column="0" colspan="2">
+            <widget class="QWidget" name="comparison_overlay_appearance" native="true">
+             <layout class="QGridLayout" name="gridLayout_19">
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+              <item row="1" column="0">
+               <widget class="QPushButton" name="comparison_overlay_colour_button">
+                <property name="enabled">
+                 <bool>true</bool>
+                </property>
+                <property name="text">
+                 <string>Colour...</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QSlider" name="comparison_overlay_opacity_slider">
+                <property name="minimum">
+                 <number>10</number>
+                </property>
+                <property name="maximum">
+                 <number>100</number>
+                </property>
+                <property name="tracking">
+                 <bool>false</bool>
+                </property>
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QLabel" name="label_15">
+                <property name="text">
+                 <string>Opacity:</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </widget>
            </item>
           </layout>
