@@ -1016,7 +1016,7 @@ class RenderUnfoldedDialog(qt.QDialog):
     def __init__(self, parent,render_args):
 
         # GUI initialisation
-        qt.QDialog.__init__(self, parent)
+        qt.QDialog.__init__(self, parent,qt.Qt.WindowTitleHint | qt.Qt.WindowCloseButtonHint)
         qt.uic.loadUi(os.path.join(guipath,'qt_designer_files','rendering_progress.ui'), self)
 
         self.parent = parent

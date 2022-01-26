@@ -25,7 +25,7 @@ CalCam package.
 """
 
 # Calcam version
-__version__ = '2.8.0-rc'
+__version__ = '2.8.0-rc1'
 
 try:
     import vtk
