@@ -1018,7 +1018,12 @@ class CADEdit(CalcamGUIWindow):
     # the way it hooks in to Qt.
     def eventFilter(self,object,event):
 
-        if event.type() == qt.QEvent.Drop:
+        if qt.qt_ver < 6:
+            drop_event = qt.QEvent.Drop
+        else:
+            drop_event = qt.QEvent.Type.Drop
+
+        if event.type() == drop_event:
 
             if self.selected_treeitem is not None and self.selected_treeitem not in self.pending_parent_change:
                 self.pending_parent_change.append(self.selected_treeitem)
