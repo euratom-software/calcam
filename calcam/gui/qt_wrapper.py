@@ -29,6 +29,13 @@ correct backend.
 
 # Import all the Qt bits and pieces from the relevant module
 try:
+    from PyQt6.QtCore import *
+    from PyQt6.QtGui import *
+    from PyQt6.QtWidgets import *
+    from PyQt6.QtWidgets import QTreeWidgetItem as QTreeWidgetItem_class
+    from PyQt6 import uic
+    qt_ver = 6
+except Exception:
     from PyQt5.QtCore import *
     from PyQt5.QtGui import *
     from PyQt5.QtWidgets import *
@@ -43,6 +50,28 @@ except:
     qt_ver = 4
 
 
+if qt_ver == 6:
+
+    # The PyQt6 API has squirredled away a bunch of flags which used to be available
+    # in the root of Qt. So we can have code that works across Qt versions, here I
+    # expand a bunch of the ones I use back to where they were in previous Qt versions.
+    # I feel bad about this, especially the use of __members__, but not enough to do it another way, for now.
+
+    enums_to_unwrap = {
+                        Qt:[Qt.ItemFlag,Qt.CheckState,Qt.TextFormat,Qt.ShortcutContext,Qt.WindowType,Qt.AlignmentFlag],
+                        QMessageBox:[QMessageBox.StandardButton,QMessageBox.Icon],
+                        QAbstractSpinBox:[QAbstractSpinBox.ButtonSymbols],
+                        QFileDialog:[QFileDialog.FileMode,QFileDialog.AcceptMode],
+                        QSizePolicy:[QSizePolicy.Policy],
+                        QDialog:[QDialog.DialogCode],
+                       }
+
+    for parent,enums in enums_to_unwrap.items():
+        for enum in enums:
+            for item in enum.__members__.items():
+                setattr(parent,item[0],item[1])
+
+
 # Import our local version of QVTKRenderWindowInteracor.
 # This avoids a problem with the version shipped with Enthought
 # Canopy + PyQt5. Also allows me to work around an annoying rendering issue.
@@ -52,13 +81,9 @@ if QVTKRWIBase == 'QGLWidget':
 else:
     qt_opengl = False
 
-# If we're on Python 3, there is no QString class because PyQt uses 
-# python 3's native string class. But for compatibility with the rest 
-# of the code we always want there to be a string class called QString
-try:
-    QString
-except:
-    QString = str
+# Due to hangover from Python 2 code, the GUI classes  might expect to find
+# a class called QString in here, which is in fact the same as Python's string class
+QString = str
 
 # Here's a little custom constructor for QTreeWidgetItems, which will
 # work in either PyQt4 or 5. For PyQt4 we have to make string list
@@ -67,7 +92,7 @@ def QTreeWidgetItem(*args):
     if qt_ver == 4:
         for i in range(len(args)):
             if type(args[i]) == str:
-                args[i] = self.QStringList(args[i])
+                args[i] = QStringList(args[i])
 
     return QTreeWidgetItem_class(*args)
 

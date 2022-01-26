@@ -634,12 +634,12 @@ class MigrationToolWindow(qt.QMainWindow):
     def browse_for_folder(self,start_dir=None):
 
         filedialog = qt.QFileDialog(self)
-        filedialog.setAcceptMode(0)
-        filedialog.setFileMode(2)
+        filedialog.setAcceptMode(filedialog.AcceptOpen)
+        filedialog.setFileMode(filedialog.Directory)
         if start_dir is not None:
             filedialog.setDirectory(start_dir)
         filedialog.setWindowTitle('Select Directory')
-        filedialog.exec_()
+        filedialog.exec()
         if filedialog.result() == 1:
             path = str(filedialog.selectedFiles()[0])
             return path.replace('/',os.path.sep)
@@ -651,4 +651,4 @@ if __name__ == '__main__':
 
     app = qt.QApplication([])
     win = MigrationToolWindow(app,None)
-    sys.exit(app.exec_())
+    sys.exit(app.exec())

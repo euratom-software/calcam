@@ -6,6 +6,7 @@ Minor Release 2.8.0 (XXX 2022)
 ------------------------------
 
 Compatibility Updates:
+* Now compatible with PyQt6
 * Changed dependency in setup.py from opencv-python to opencv-python-headless to reduce likelihood of problems with OpenCV vs PyQt version conflicts. (#72)
 
 New & Enhancements:

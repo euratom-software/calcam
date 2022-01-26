@@ -793,12 +793,12 @@ class ImageAnalyser(CalcamGUIWindow):
     def update_cmap(self,data=None):
 
         if self.sender() is self.cmap_checkbox:
-            if data:
+            if self.cmap_checkbox.isChecked():
                 self.enhance_checkbox.setChecked(False)
                 self.cmap_options.show()
             else:
                 self.cmap_options.hide()
-                self.toggle_enhancement(False)
+                self.toggle_enhancement()
                 return
 
         self.cmap_min.blockSignals(True)
@@ -869,7 +869,7 @@ class ImageAnalyser(CalcamGUIWindow):
                         dialog.setText('Wireframe overlay image is blank.')
                         dialog.setInformativeText('This usually means the fit is wildly wrong.')
                         dialog.setIcon(qt.QMessageBox.Information)
-                        dialog.exec_()
+                        dialog.exec()
 
 
                 except:
@@ -905,7 +905,7 @@ class ImageAnalyser(CalcamGUIWindow):
     def toggle_enhancement(self,check_state):
 
         # Enable / disable adaptive histogram equalisation
-        if check_state == qt.Qt.Checked:
+        if self.enhance_checkbox.isChecked():
             self.cmap_checkbox.setChecked(False)
             image = enhance_image(self.image)
         else:

@@ -36,9 +36,9 @@ def open_window(window_class,*args):
     app = qt.QApplication([])
     win = window_class(app,None,*args)
     if qt.QDialog in window_class.__bases__:
-        return win.exec_(),win
+        return win.exec(),win
     else:
-        return app.exec_(),win
+        return app.exec(),win
 
 def start_gui():
 

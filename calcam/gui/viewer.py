@@ -180,13 +180,20 @@ class Viewer(CalcamGUIWindow):
             filename_filter = 'ASCII Data (*.txt *.csv *.dat)'
 
             filedialog = qt.QFileDialog(self)
-            filedialog.setAcceptMode(0)
-            filedialog.setFileMode(1)
+
+            filedialog.setAcceptMode(filedialog.AcceptOpen)
+            filedialog.setFileMode(filedialog.ExistingFile)
 
             filedialog.setWindowTitle('Open...')
             filedialog.setNameFilter(filename_filter)
-            filedialog.exec_()
-            if filedialog.result() == 1:
+            filedialog.exec()
+
+            if qt.qt_ver < 6:
+                accepted = filedialog.result() == 1
+            else:
+                accepted = filedialog.result() == filedialog.Accepted
+
+            if accepted:
                 fname = str(filedialog.selectedFiles()[0])
 
                 coords = None
@@ -205,7 +212,7 @@ class Viewer(CalcamGUIWindow):
 
                 else:
                     coords_dialog = CoordsDialog(self,coords.shape)
-                    coords_dialog.exec_()
+                    coords_dialog.exec()
                     if coords_dialog.result() == 1:
                         
                         # If the coordinates are in R,Z,phi, convert them to cartesian.
@@ -359,18 +366,18 @@ class Viewer(CalcamGUIWindow):
             markersize = np.mean(markersize)
 
             if lines == len(self.lines_3d_list.selectedItems()):
-                linecheckstate = 2
+                linecheckstate = qt.Qt.Checked
             elif lines == 0:
-                linecheckstate = 0
+                linecheckstate = qt.Qt.Unchecked
             elif lines < len(self.lines_3d_list.selectedItems()):
-                linecheckstate = 1
+                linecheckstate = qt.Qt.PartiallyChecked
 
             if markers == len(self.lines_3d_list.selectedItems()):
-                markercheckstate = 2
+                markercheckstate = qt.Qt.Checked
             elif markers == 0:
-                markercheckstate = 0
+                markercheckstate = qt.Qt.Unchecked
             elif markers < len(self.lines_3d_list.selectedItems()):
-                markercheckstate = 1
+                markercheckstate = qt.Qt.PartiallyChecked
 
             self.line_width_box.blockSignals(True)
             self.line_width_box.setValue(linewidth)
@@ -383,19 +390,19 @@ class Viewer(CalcamGUIWindow):
             self.enable_lines_checkbox.blockSignals(True)
             self.enable_lines_checkbox.setCheckState(linecheckstate)
             self.enable_lines_checkbox.blockSignals(False)
-            if linecheckstate > 0:
-                self.line_width_box.setEnabled(True)
-            else:
+            if linecheckstate == qt.Qt.Unchecked:
                 self.line_width_box.setEnabled(False)
+            else:
+                self.line_width_box.setEnabled(True)
 
 
             self.enable_points_checkbox.blockSignals(True)
             self.enable_points_checkbox.setCheckState(markercheckstate)
             self.enable_points_checkbox.blockSignals(False)
-            if markercheckstate > 0:
-                self.marker_diameter_box.setEnabled(True)
-            else:
+            if markercheckstate == qt.Qt.Unchecked:
                 self.marker_diameter_box.setEnabled(False)
+            else:
+                self.marker_diameter_box.setEnabled(True)
 
             self.lines_appearance_box.setEnabled(True)
             self.remove_lines_button.setEnabled(True)

@@ -142,19 +142,19 @@ class FittingCalib(CalcamGUIWindow):
         # Set up some keyboard shortcuts
         # It is done this way in 3 lines per shortcut to avoid segfaults on some configurations
         sc = qt.QShortcut(qt.QKeySequence("Del"),self)
-        sc.setContext(qt.Qt.ApplicationShortcut)
+        sc.setContext(qt.Qt.WindowShortcut)
         sc.activated.connect(self.remove_current_pointpair)
 
         sc = qt.QShortcut(qt.QKeySequence("Ctrl+F"),self)
-        sc.setContext(qt.Qt.ApplicationShortcut)
+        sc.setContext(qt.Qt.WindowShortcut)
         sc.activated.connect(self.do_fit)
 
         sc = qt.QShortcut(qt.QKeySequence("Ctrl+P"),self)
-        sc.setContext(qt.Qt.ApplicationShortcut)
+        sc.setContext(qt.Qt.WindowShortcut)
         sc.activated.connect(self.toggle_reprojected)
 
         sc = qt.QShortcut(qt.QKeySequence("Ctrl+Z"),self)
-        sc.setContext(qt.Qt.ApplicationShortcut)
+        sc.setContext(qt.Qt.WindowShortcut)
         sc.activated.connect(self.pointpairs_undo)
 
         # Odds & sods
@@ -608,7 +608,7 @@ class FittingCalib(CalcamGUIWindow):
             dialog.setTextFormat(qt.Qt.RichText)
             dialog.setText('Would you like to open the image movement tool to adjust the calibration points all at once?')
             dialog.setIcon(qt.QMessageBox.Question)
-            retcode = dialog.exec_()
+            retcode = dialog.exec()
 
             if retcode == dialog.Yes:
                 pos_lim = np.array(self.calibration.geometry.get_display_shape()) - 0.5
@@ -1232,7 +1232,7 @@ class FittingCalib(CalcamGUIWindow):
             dialog.setTextFormat(qt.Qt.RichText)
             dialog.setText(str(self.pointpicker.FitResults).replace('\n','<br>'))
             dialog.setIcon(qt.QMessageBox.Information)
-            dialog.exec_()
+            dialog.exec()
 
         self.unsaved_changes = True
 
@@ -1546,24 +1546,17 @@ class FittingCalib(CalcamGUIWindow):
         image = self.calibration.get_image(coords='display')
 
         # Enable / disable adaptive histogram equalisation
-        if check_state == qt.Qt.Checked:
+        if self.enhance_checkbox.isChecked():
             image = enhance_image(image)
 
         self.interactor2d.set_image(image,n_subviews = self.calibration.n_subviews,subview_lookup=self.calibration.subview_lookup,hold_position=True)
 
-        #if self.overlay_checkbox.isChecked():
-        #    self.overlay_checkbox.setChecked(False)
-        #    self.overlay_checkbox.setChecked(True)
-
-        #if self.comparison_overlay_checkbox.isChecked():
-        #    self.comparison_overlay_checkbox.setChecked(False)
-        #    self.comparison_overlay_checkbox.setChecked(True)
 
 
     def edit_split_field(self):
 
         dialog = SplitFieldDialog(self,self.interactor2d.get_image())
-        result = dialog.exec_()
+        result = dialog.exec()
         if result == 1:
             self.calibration.set_subview_mask(dialog.fieldmask,subview_names=dialog.field_names,coords='Display')
             self.interactor2d.set_subview_lookup(self.calibration.n_subviews,self.calibration.subview_lookup)
@@ -1616,7 +1609,7 @@ class FittingCalib(CalcamGUIWindow):
     def modify_chessboard_constraints(self):
 
         dialog = ChessboardDialog(self)
-        dialog.exec_()
+        dialog.exec()
 
         # Resizing the window + 1 pixel then immediately back again after the chessboard dialog is closed
         # is a workaround for Issue #65, the root cause of which is a mystery to me. I shake my fist at VTK.

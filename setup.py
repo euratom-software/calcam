@@ -104,21 +104,27 @@ if 'install' in sys.argv or 'develop' in sys.argv:
 
 
     pyqt = True
+    if check_dependency('PyQt6'):
+        print('Dependency PyQt: PyQt6 OK!')
     if check_dependency('PyQt5'):
         print('Dependency PyQt: PyQt5 OK!')
     elif check_dependency('PyQt4'):
         print('Dependency PyQt: PyQt4 OK!')
     else:
-        print('Dependency PyQt: trying to install PyQt5 using pip...\n')  
-        if not pip_install('PyQt5'):
-            print('\nDependency PyQt: trying to install PyQt4 using pip...\n')
-            if not pip_install('PyQt4'):
-                print('\nFailed to install PyQt :(')
-                pyqt = False
+        print('Dependency PyQt: trying to install PyQt6 using pip...\n')
+        if not pip_install('PyQt6'):
+            print('Dependency PyQt: trying to install PyQt5 using pip...\n')
+            if not pip_install('PyQt5'):
+                print('\nDependency PyQt: trying to install PyQt4 using pip...\n')
+                if not pip_install('PyQt4'):
+                    print('\nFailed to install any PyQt :(')
+                    pyqt = False
+                else:
+                    print('\nPyQt4 installed OK!')
             else:
-                print('\nPyQt4 installed OK!')
+                print('\nPyQt5 installed OK!')
         else:
-            print('\nPyQt5 installed OK!')
+            print('\nPyQt6 installed OK!')
 
 
 
