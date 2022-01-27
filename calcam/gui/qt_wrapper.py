@@ -35,19 +35,27 @@ try:
     from PyQt6.QtWidgets import QTreeWidgetItem as QTreeWidgetItem_class
     from PyQt6 import uic
     qt_ver = 6
+
 except Exception:
-    from PyQt5.QtCore import *
-    from PyQt5.QtGui import *
-    from PyQt5.QtWidgets import *
-    from PyQt5.QtWidgets import QTreeWidgetItem as QTreeWidgetItem_class
-    from PyQt5 import uic
-    qt_ver = 5
-except:
-    from PyQt4.QtCore import *
-    from PyQt4.QtGui import *
-    from PyQt4.QtGui import QTreeWidgetItem as QTreeWidgetItem_class
-    from PyQt4 import uic
-    qt_ver = 4
+
+    try:
+        from PyQt5.QtCore import *
+        from PyQt5.QtGui import *
+        from PyQt5.QtWidgets import *
+        from PyQt5.QtWidgets import QTreeWidgetItem as QTreeWidgetItem_class
+        from PyQt5 import uic
+        qt_ver = 5
+
+    except Exception:
+
+        try:
+            from PyQt4.QtCore import *
+            from PyQt4.QtGui import *
+            from PyQt4.QtGui import QTreeWidgetItem as QTreeWidgetItem_class
+            from PyQt4 import uic
+            qt_ver = 4
+        except Exception:
+            raise ImportError('Could not import either PyQt6, PyQt5 or PyQt4 module.')
 
 
 if qt_ver == 6:
