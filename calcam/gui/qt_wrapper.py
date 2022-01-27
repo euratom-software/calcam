@@ -58,12 +58,13 @@ if qt_ver == 6:
     # I feel bad about this, especially the use of __members__, but not enough to do it another way, for now.
 
     enums_to_unwrap = {
-                        Qt:[Qt.ItemFlag,Qt.CheckState,Qt.TextFormat,Qt.ShortcutContext,Qt.WindowType,Qt.AlignmentFlag],
-                        QMessageBox:[QMessageBox.StandardButton,QMessageBox.Icon],
+                        Qt:[Qt.ItemFlag,Qt.CheckState,Qt.TextFormat,Qt.ShortcutContext,Qt.WindowType,Qt.AlignmentFlag,Qt.Orientation],
+                        QMessageBox:[QMessageBox.StandardButton,QMessageBox.Icon,QMessageBox.ButtonRole],
                         QAbstractSpinBox:[QAbstractSpinBox.ButtonSymbols],
                         QFileDialog:[QFileDialog.FileMode,QFileDialog.AcceptMode],
                         QSizePolicy:[QSizePolicy.Policy],
                         QDialog:[QDialog.DialogCode],
+                        QDialogButtonBox:[QDialogButtonBox.StandardButton],
                        }
 
     for parent,enums in enums_to_unwrap.items():
