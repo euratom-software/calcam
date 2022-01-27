@@ -180,14 +180,20 @@ class Viewer(CalcamGUIWindow):
             filename_filter = 'ASCII Data (*.txt *.csv *.dat)'
 
             filedialog = qt.QFileDialog(self)
-            filedialog.setAcceptMode(0)
-            filedialog.setFileMode(1)
 
+            filedialog.setAcceptMode(filedialog.AcceptOpen)
+            filedialog.setFileMode(filedialog.ExistingFile)
 
             filedialog.setWindowTitle('Open...')
             filedialog.setNameFilter(filename_filter)
-            filedialog.exec_()
-            if filedialog.result() == 1:
+            filedialog.exec()
+
+            if qt.qt_ver < 6:
+                accepted = filedialog.result() == 1
+            else:
+                accepted = filedialog.result() == filedialog.Accepted
+
+            if accepted:
                 fname = str(filedialog.selectedFiles()[0])
 
                 coords = None
@@ -201,13 +207,12 @@ class Viewer(CalcamGUIWindow):
                     except ValueError:
                         continue
 
-                if coords is None:
+                if coords is None or len(coords.shape) != 2 or coords.shape[1] not in [3,6]:
                     raise UserWarning('Could not load coordinates from the file. Please ensure the file is formatted as N rows, 3 or 6 columns and is tab, space or comma delimited.')
 
-                elif coords.shape[1] in [3,6]:
-
+                else:
                     coords_dialog = CoordsDialog(self,coords.shape)
-                    coords_dialog.exec_()
+                    coords_dialog.exec()
                     if coords_dialog.result() == 1:
                         
                         # If the coordinates are in R,Z,phi, convert them to cartesian.
@@ -311,6 +316,24 @@ class Viewer(CalcamGUIWindow):
         return (omin + range_pos*delta_tot)/100
 
 
+    def update_unfolded_render_settings(self,enable):
+
+        if self.sender() is self.centre_at_cursor:
+            if enable:
+                self.toroidal_centre_box.setEnabled(False)
+                self.poloidal_centre_box.setEnabled(False)
+                self.toroidal_centre_box.setValue(self.cursor_angles[0])
+                self.poloidal_centre_box.setValue(self.cursor_angles[1])
+            else:
+                self.toroidal_centre_box.setEnabled(True)
+                self.poloidal_centre_box.setEnabled(True)
+
+        elif self.sender() is self.unfolded_auto_size:
+            if enable:
+                self.unfolded_w.setEnabled(False)
+            else:
+                self.unfolded_w.setEnabled(True)
+
     def set_fov_opacity(self,opacity,actor_type):
 
         omin, gamma = opacity_params[actor_type]
@@ -322,6 +345,7 @@ class Viewer(CalcamGUIWindow):
         self.sightline_opacity_slider.blockSignals(True)
         self.sightline_opacity_slider.setValue(opacity * 100)
         self.sightline_opacity_slider.blockSignals(False)
+
 
     def update_unfolded_render_settings(self,enable):
 
@@ -361,18 +385,19 @@ class Viewer(CalcamGUIWindow):
             markersize = np.mean(markersize)
 
             if lines == len(self.lines_3d_list.selectedItems()):
-                linecheckstate = 2
+
+                linecheckstate = qt.Qt.Checked
             elif lines == 0:
-                linecheckstate = 0
+                linecheckstate = qt.Qt.Unchecked
             elif lines < len(self.lines_3d_list.selectedItems()):
-                linecheckstate = 1
+                linecheckstate = qt.Qt.PartiallyChecked
 
             if markers == len(self.lines_3d_list.selectedItems()):
-                markercheckstate = 2
+                markercheckstate = qt.Qt.Checked
             elif markers == 0:
-                markercheckstate = 0
+                markercheckstate = qt.Qt.Unchecked
             elif markers < len(self.lines_3d_list.selectedItems()):
-                markercheckstate = 1
+                markercheckstate = qt.Qt.PartiallyChecked
 
             self.line_width_box.blockSignals(True)
             self.line_width_box.setValue(linewidth)
@@ -385,19 +410,20 @@ class Viewer(CalcamGUIWindow):
             self.enable_lines_checkbox.blockSignals(True)
             self.enable_lines_checkbox.setCheckState(linecheckstate)
             self.enable_lines_checkbox.blockSignals(False)
-            if linecheckstate > 0:
-                self.line_width_box.setEnabled(True)
-            else:
-                self.line_width_box.setEnabled(False)
 
+            if linecheckstate == qt.Qt.Unchecked:
+                self.line_width_box.setEnabled(False)
+            else:
+                self.line_width_box.setEnabled(True)
 
             self.enable_points_checkbox.blockSignals(True)
             self.enable_points_checkbox.setCheckState(markercheckstate)
             self.enable_points_checkbox.blockSignals(False)
-            if markercheckstate > 0:
-                self.marker_diameter_box.setEnabled(True)
-            else:
+
+            if markercheckstate == qt.Qt.Unchecked:
                 self.marker_diameter_box.setEnabled(False)
+            else:
+                self.marker_diameter_box.setEnabled(True)
 
             self.lines_appearance_box.setEnabled(True)
             self.remove_lines_button.setEnabled(True)
@@ -1000,13 +1026,19 @@ class CoordsDialog(qt.QDialog):
         elif coords_shape[1] == 3:
             self.lines_label.setText('Importing a sequence of {:d} points from file.'.format(coords_shape[0]))
 
+        if coords_shape[0] == 1:
+            self.show_lines.setChecked(False)
+            self.show_lines.setEnabled(False)
+            self.show_points.setChecked(True)
+
+
 
 class RenderUnfoldedDialog(qt.QDialog):
 
     def __init__(self, parent,render_args):
 
         # GUI initialisation
-        qt.QDialog.__init__(self, parent)
+        qt.QDialog.__init__(self, parent,qt.Qt.WindowTitleHint | qt.Qt.WindowCloseButtonHint)
         qt.uic.loadUi(os.path.join(guipath,'qt_designer_files','rendering_progress.ui'), self)
 
         self.parent = parent

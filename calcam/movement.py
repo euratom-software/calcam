@@ -226,7 +226,7 @@ def manual_movement(ref,moved,correction=None,parent_window=None):
         retcode,dialog = gui.open_window(gui.ImageAlignDialog,ref_im,moved_im,correction)
     else:
         dialog = gui.ImageAlignDialog(None,parent_window,ref_im,moved_im,correction)
-        retcode = dialog.exec_()
+        retcode = dialog.exec()
 
     if retcode == gui.qt.QDialog.Accepted:
         return dialog.transform

@@ -194,7 +194,7 @@ class CADEdit(CalcamGUIWindow):
     def add_group(self):
 
         namedialog = NameInputDialog(self,'Add new part group','Enter a name for the new part group:')
-        namedialog.exec_()
+        namedialog.exec()
 
         if namedialog.result() == 1:
 
@@ -208,12 +208,12 @@ class CADEdit(CalcamGUIWindow):
     def load_wall_contour(self):
 
         filedialog = qt.QFileDialog(self)
-        filedialog.setAcceptMode(0)
-        filedialog.setFileMode(1)
+        filedialog.setAcceptMode(filedialog.AcceptOpen)
+        filedialog.setFileMode(filedialog.ExistingFile)
 
         filedialog.setWindowTitle('Load wall contour...')
         filedialog.setNameFilter('Data files (*.txt *.csv *.npy)')
-        filedialog.exec_()
+        filedialog.exec()
 
         filename = filedialog.selectedFiles()
         if len(filename) == 1:
@@ -245,7 +245,7 @@ class CADEdit(CalcamGUIWindow):
     def remove_wall_contour(self):
 
         dialog = AreYouSureDialog('Remove wall contour?','Are you sure you want to remove the wall contour?')
-        dialog.exec_()
+        dialog.exec()
         if dialog.result() == 1:
             self.show_contour_checkbox.setChecked(False)
             self.show_contour_checkbox.setEnabled(False)
@@ -291,7 +291,7 @@ class CADEdit(CalcamGUIWindow):
 
         elif self.sender() is self.del_feature_button:
             dialog = AreYouSureDialog(self,'Confirm Delete Model Part','Are you sure you want to remove the model part "{:s}"?'.format(self.selected_feature.split('/')[-1]))
-            dialog.exec_()
+            dialog.exec()
             if dialog.result():
 
                 # Make sure any dragging & dropping is sorted.
@@ -317,7 +317,7 @@ class CADEdit(CalcamGUIWindow):
         if variant_name is None:
             dialog = NameInputDialog(self,'Add Model Variant','Enter a name for the new model variant:')
 
-            dialog.exec_()
+            dialog.exec()
             if dialog.result() == 1:
                 variant_name = str(dialog.text_input.text())
             else:
@@ -346,7 +346,7 @@ class CADEdit(CalcamGUIWindow):
             raise UserWarning('Cannot remove the only model variant!')
 
         dialog = AreYouSureDialog(self,'Remove model variant','Are you sure you want to remove the model variant "{:s}"?'.format(self.cadmodel.model_variant))
-        dialog.exec_()
+        dialog.exec()
         
         if dialog.result() == 1:
 
@@ -429,7 +429,7 @@ class CADEdit(CalcamGUIWindow):
 
         dialog = NameInputDialog(self,'Rename Model Variant','Enter a new name for the "{:s}" model variant:'.format(self.cadmodel.model_variant),init_text=self.cadmodel.model_variant)
 
-        dialog.exec_()
+        dialog.exec()
         if dialog.result() == 1:
             new_name = str(dialog.text_input.text())
         else:
@@ -526,7 +526,7 @@ class CADEdit(CalcamGUIWindow):
             dialog.setWindowTitle('Save changes?')
             dialog.setText('There are unsaved changes. Save before closing the current file?')
             dialog.setIcon(qt.QMessageBox.Information)
-            choice = dialog.exec_()
+            choice = dialog.exec()
             if choice == qt.QMessageBox.Save:
                 self.action_save.trigger()
             elif choice == qt.QMessageBox.Cancel:
@@ -597,7 +597,7 @@ class CADEdit(CalcamGUIWindow):
         if filename is None:
 
             filedialog = qt.QFileDialog(self)
-            filedialog.setAcceptMode(0)
+            filedialog.setAcceptMode(filedialog.AcceptOpen)
 
             try:
                 filedialog.setDirectory(self.config.cad_def_paths[0])
@@ -605,11 +605,11 @@ class CADEdit(CalcamGUIWindow):
                 filedialog.setDirectory(os.path.expanduser('~'))
 
 
-            filedialog.setFileMode(1)
+            filedialog.setFileMode(filedialog.ExistingFile)
 
             filedialog.setWindowTitle('Open...')
             filedialog.setNameFilter('Calcam CAD model definitions (*.ccm)')
-            filedialog.exec_()
+            filedialog.exec()
 
             if filedialog.result() == 1:
                 filename = filedialog.selectedFiles()[0]
@@ -732,7 +732,7 @@ class CADEdit(CalcamGUIWindow):
         
         selected_view = str(self.viewlist.selectedItems()[0].text(0)).replace('*','')
         dialog = AreYouSureDialog(self,'Remove preset view','Are you sure you want to remove the view "{:s}"?'.format(selected_view))
-        dialog.exec_()
+        dialog.exec()
         if dialog.result() == 1:
             self.cadmodel.views.pop(selected_view)
             if self.cadmodel.initial_view == selected_view:
@@ -792,12 +792,12 @@ class CADEdit(CalcamGUIWindow):
         # Or if we have no formatter loaded and we want to load one:
         else:
             filedialog = qt.QFileDialog(self)
-            filedialog.setAcceptMode(0)
-            filedialog.setFileMode(1)
+            filedialog.setAcceptMode(filedialog.AcceptOpen)
+            filedialog.setFileMode(filedialog.ExistingFile)
 
             filedialog.setWindowTitle('Load custom coordinate formatter...')
             filedialog.setNameFilter('Python files (*.py)')
-            filedialog.exec_()
+            filedialog.exec()
 
             if len(filedialog.selectedFiles()) == 1:
 
@@ -1018,7 +1018,12 @@ class CADEdit(CalcamGUIWindow):
     # the way it hooks in to Qt.
     def eventFilter(self,object,event):
 
-        if event.type() == qt.QEvent.Drop:
+        if qt.qt_ver < 6:
+            drop_event = qt.QEvent.Drop
+        else:
+            drop_event = qt.QEvent.Type.Drop
+
+        if event.type() == drop_event:
 
             if self.selected_treeitem is not None and self.selected_treeitem not in self.pending_parent_change:
                 self.pending_parent_change.append(self.selected_treeitem)
@@ -1059,15 +1064,15 @@ class CADEdit(CalcamGUIWindow):
     def browse_for_mesh(self,multiple=False):
 
         filedialog = qt.QFileDialog(self)
-        filedialog.setAcceptMode(0)
+        filedialog.setAcceptMode(filedialog.AcceptOpen)
         if multiple:
-            filedialog.setFileMode(3)
+            filedialog.setFileMode(filedialog.ExistingFiles)
         else:
-            filedialog.setFileMode(1)
+            filedialog.setFileMode(filedialog.ExistingFile)
 
         filedialog.setWindowTitle('Select Mesh File...')
         filedialog.setNameFilter('Supported mesh files (*.stl *.obj)')
-        filedialog.exec_()
+        filedialog.exec()
 
         if filedialog.result() == 1:
             mesh_paths = [str(path).replace(os.sep,'/') for path in filedialog.selectedFiles()]
@@ -1121,18 +1126,18 @@ class CADEdit(CalcamGUIWindow):
         if self.cadmodel.def_file is None or saveas:
 
             filedialog = qt.QFileDialog(self)
-            filedialog.setAcceptMode(1)
+            filedialog.setAcceptMode(filedialog.AcceptSave)
 
             try:
                 filedialog.setDirectory(self.config.cad_def_paths[0])
             except:
                 filedialog.setDirectory(os.path.expanduser('~'))
 
-            filedialog.setFileMode(0)
+            filedialog.setFileMode(filedialog.AnyFile)
 
             filedialog.setWindowTitle('Save As...')
             filedialog.setNameFilter('Calcam CAD model definitions (*.ccm)')
-            filedialog.exec_()
+            filedialog.exec()
 
             if filedialog.result() == 1:
                 filename = filedialog.selectedFiles()[0]
@@ -1232,7 +1237,7 @@ class CADEdit(CalcamGUIWindow):
 
         if add_path_prompt:
             dialog = AreYouSureDialog(self,'Add to calcam configuration?',"Model saved.<br><br>The folder it is saved in:<br><br> {:s}<br><br>is currently not in Calcam's cad model search path,<br>so this model will not yet be detected by Calcam.<br><br>Would you like to add this path to Calcam's<br>model search path configuration now?".format(add_path_prompt))
-            dialog.exec_()
+            dialog.exec()
             if dialog.result() == 1:
                 self.config.cad_def_paths.append(add_path_prompt)
                 self.config.save()

@@ -690,6 +690,7 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
         self.allow_focus_change = True
         self.linked_interactors = []
         self.cursor_size = 0.03
+        self.overlay_actors = []
 
     # Do various initial setup things, most of which can't be done at the time of __init__
     def init(self):
@@ -725,7 +726,9 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
         self.focus_cursor = None
 
         self.image_actor = None
-        self.overlay_actor = None
+        self.overlay_actors = []
+
+        self.overlay_alpha = 1
 
         self.overlay_alpha = 1
 
@@ -752,17 +755,17 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
     # Use this image object
     def set_image(self,image,n_subviews=1,subview_lookup=lambda x,y: 0,hold_position=False):
 
-        # Remove current image, if any
         if self.image_actor is not None:
 
+            # If removing the image entirely or changing image dimensions, remove any overlays
+            if image is None or image.shape[:2] != self.image_actor.image.shape[:2]:
+                for actor in self.overlay_actors:
+                    self.renderer.RemoveActor(actor)
+                self.overlay_actors = []
+
+            # Remove existing image
             self.renderer.RemoveActor(self.image_actor)
             self.image_actor = None
-        
-        if self.overlay_actor is not None:
-
-            self.renderer.RemoveActor(self.overlay_actor)
-            self.overlay_actor = None
-
 
         if image is not None:
 
@@ -874,25 +877,38 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
 
 
     def set_overlay_image(self,overlay_image):
-        
-        if self.overlay_actor is not None:
-            self.renderer.RemoveActor(self.overlay_actor)
-            self.overlay_actor = None
 
-        if overlay_image is not None:
-            self.overlay_actor = get_image_actor(overlay_image)
-            self.overlay_actor.SetPosition(0,0,0.01)
-            self.overlay_actor.GetProperty().SetOpacity(self.overlay_alpha)
-            self.renderer.AddActor2D(self.overlay_actor)
+        if overlay_image is None:
+            overlay_image = []
+        elif not isinstance(overlay_image,list):
+            overlay_image = [overlay_image]
+        
+        for actor in self.overlay_actors:
+            self.renderer.RemoveActor(actor)
+        self.overlay_actors = []
+
+        for i,image in enumerate(overlay_image):
+            scaling = np.array(self.image_actor.image.shape[:2]) / np.array(image.shape[:2])
+            if scaling[0] != scaling[1]:
+                raise ValueError('Provided overlay image is a different aspect ratio to the main image!')
+
+            actor = get_image_actor(image,scaling=scaling[0])
+            actor.SetPosition(0,0,0.01*(i+1))
+            actor.GetProperty().SetOpacity(self.overlay_alpha)
+            self.renderer.AddActor2D(actor)
+            self.overlay_actors.append(actor)
 
         if self.refresh_callback is not None:
             self.refresh_callback()
 
 
     def set_overlay_alpha(self,alpha):
+
         self.overlay_alpha = alpha
-        if self.overlay_actor is not None:
-            self.overlay_actor.GetProperty().SetOpacity(alpha)
+
+        for actor in self.overlay_actors:
+            actor.GetProperty().SetOpacity(alpha)
+
         if self.refresh_callback is not None:
             self.refresh_callback()
 

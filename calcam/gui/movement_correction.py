@@ -51,8 +51,10 @@ class ImageAlignDialog(qt.QDialog):
         self.setWindowIcon(qt.QIcon(os.path.join(guipath, 'icons', 'calcam.png')))
 
         # See how big the screen is and open the window at an appropriate size
-        desktopinfo = self.app.desktop()
-        available_space = desktopinfo.availableGeometry(self)
+        if qt.qt_ver < 5:
+            available_space = self.app.desktop().availableGeometry(self)
+        else:
+            available_space = self.app.primaryScreen().availableGeometry()
 
         # Open the window with same aspect ratio as the screen, and no fewer than 500px tall.
         win_height = min(780,0.75*available_space.height())
@@ -121,7 +123,7 @@ class ImageAlignDialog(qt.QDialog):
         self.interactor_new.link_with(self.interactor_ref)
 
         sc = qt.QShortcut(qt.QKeySequence("Del"),self)
-        sc.setContext(qt.Qt.ApplicationShortcut)
+        sc.setContext(qt.Qt.WindowShortcut)
         sc.activated.connect(self.remove_current_point)
 
         self.config = CalcamConfig()
@@ -198,7 +200,9 @@ class ImageAlignDialog(qt.QDialog):
             dialog.setText('Could not auto-detect corresponding points in these two images.')
             dialog.setInformativeText('You will have to identify points manually')
             dialog.setIcon(qt.QMessageBox.Information)
-            dialog.exec_()
+            dialog.exec()
+
+
 
 
     def remove_current_point(self):
@@ -284,7 +288,7 @@ class ImageAlignDialog(qt.QDialog):
             dialog.setWindowTitle('Could not determine transform')
             dialog.setText('Could not determine the image transformation. Try adjusting the points and trying again.')
             dialog.setIcon(qt.QMessageBox.Warning)
-            dialog.exec_()
+            dialog.exec()
             return
         else:
             correction = movement.MovementCorrection(m,self.ref_image.shape[:2],ref_points,new_points,'Created using GUI tool by {:s} on {:s} at {:s}'.format(misc.username,misc.hostname,misc.get_formatted_time()))
@@ -393,18 +397,20 @@ class ImageAlignDialog(qt.QDialog):
         fext = filename_filter.split('(*')[1].split(')')[0]
 
         filedialog = qt.QFileDialog(self)
-        filedialog.setAcceptMode(1)
+        filedialog.setAcceptMode(filedialog.AcceptSave)
 
         try:
             filedialog.setDirectory(self.config.file_dirs['movement'])
         except KeyError:
             filedialog.setDirectory(os.path.expanduser('~'))
 
-        filedialog.setFileMode(0)
+
+        filedialog.setFileMode(filedialog.AnyFile)
 
         filedialog.setWindowTitle('Save As...')
         filedialog.setNameFilter(filename_filter)
-        filedialog.exec_()
+        filedialog.exec()
+
         if filedialog.result() == 1:
             selected_path = str(filedialog.selectedFiles()[0])
             self.config.file_dirs['movement'] = os.path.split(selected_path)[0]
@@ -420,18 +426,20 @@ class ImageAlignDialog(qt.QDialog):
         filename_filter = self.config.filename_filters['movement']
 
         filedialog = qt.QFileDialog(self)
-        filedialog.setAcceptMode(0)
+        filedialog.setAcceptMode(filedialog.AcceptOpen)
 
         try:
             filedialog.setDirectory(self.config.file_dirs['movement'])
         except KeyError:
             filedialog.setDirectory(os.path.expanduser('~'))
-        filedialog.setFileMode(1)
 
+        filedialog.setFileMode(filedialog.ExistingFile)
 
         filedialog.setWindowTitle('Open...')
         filedialog.setNameFilter(filename_filter)
-        filedialog.exec_()
+
+        filedialog.exec()
+
 
         if filedialog.result() == 1:
             selected_file = filedialog.selectedFiles()[0]

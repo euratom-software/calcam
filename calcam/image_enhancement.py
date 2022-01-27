@@ -49,6 +49,7 @@ def scale_to_8bit(image,cutoff=0.99):
     # Do the subtraction & normalisation as float to avoid
     # overflows or quantisation problems.
     image = image.astype(np.float32)
+    image[np.isfinite(image) == False] = 0
 
     sorted = np.sort(image.flatten())
     maxval = sorted[int(sorted.size * cutoff)]
@@ -57,6 +58,7 @@ def scale_to_8bit(image,cutoff=0.99):
     # Scale the image to its max & min
     image = np.maximum(0,image - minval)
     image = np.minimum(1,image / maxval)
+
     # Final 8 bit output
     return np.uint8(255 * image)
 

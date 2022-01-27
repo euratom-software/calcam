@@ -250,10 +250,10 @@ class Settings(qt.QMainWindow):
     def browse_for_folder(self):
 
         filedialog = qt.QFileDialog(self)
-        filedialog.setAcceptMode(0)
-        filedialog.setFileMode(2)
+        filedialog.setAcceptMode(filedialog.AcceptOpen)
+        filedialog.setFileMode(filedialog.Directory)
         filedialog.setWindowTitle('Select Directory')
-        filedialog.exec_()
+        filedialog.exec()
         if filedialog.result() == 1:
             path = str(filedialog.selectedFiles()[0])
             return path.replace('/',os.path.sep)

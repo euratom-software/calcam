@@ -60,8 +60,10 @@ class CalcamGUIWindow(qt.QMainWindow):
         self.manual_exc = False
 
         # See how big the screen is and open the window at an appropriate size
-        desktopinfo = self.app.desktop()
-        available_space = desktopinfo.availableGeometry(self)
+        if qt.qt_ver < 5:
+            available_space = self.app.desktop().availableGeometry(self)
+        else:
+            available_space = self.app.primaryScreen().availableGeometry()
 
         # Open the window with same aspect ratio as the screen, and no fewer than 500px tall.
         win_height = max(500,min(780,0.75*available_space.height()))
@@ -134,6 +136,11 @@ class CalcamGUIWindow(qt.QMainWindow):
 
         if external and excep_type != UserWarning:
             dialog = qt.QMessageBox(self)
+
+            #if qt.qt_ver > 5:
+            #    dialog.Save = dialog.StandardButton.Save
+            #    dialog.Discard = dialog.StandardButton.Discard
+
             dialog.setWindowFlags(dialog.windowFlags() | qt.Qt.CustomizeWindowHint)
             dialog.setWindowFlags(dialog.windowFlags() & ~qt.Qt.WindowCloseButtonHint)
             dialog.setStandardButtons(dialog.Save | dialog.Discard)
@@ -145,16 +152,16 @@ class CalcamGUIWindow(qt.QMainWindow):
             
             dialog.setInformativeText(''.join(traceback_lines) + '\nWould you like to save an error report file?')
             dialog.setIcon(qt.QMessageBox.Warning)
-            dialog.exec_()
+            dialog.exec()
 
             if dialog.result() == dialog.Save:
 
                 filedialog = qt.QFileDialog(self)
-                filedialog.setAcceptMode(1)
-                filedialog.setFileMode(0)
+                filedialog.setAcceptMode(filedialog.AcceptSave)
+                filedialog.setFileMode(filedialog.AnyFile)
                 filedialog.setWindowTitle('Save error report')
                 filedialog.setNameFilter('Text files (*.txt)')
-                filedialog.exec_()
+                filedialog.exec()
                 if filedialog.result() == 1:
                     fname = str(filedialog.selectedFiles()[0])
                     if not fname.endswith('.txt'):
@@ -182,11 +189,15 @@ class CalcamGUIWindow(qt.QMainWindow):
                 dialog.setWindowTitle('Calcam')
                 dialog.setText(str(excep_value))
                 dialog.setIcon(qt.QMessageBox.Information)
-                dialog.exec_()
+                dialog.exec()
 
             # otherwise it's really an unexpected exception:
             else:
                 dialog = qt.QMessageBox(self)
+                if qt.qt_ver > 5:
+                    dialog.Save = dialog.StandardButton.Save
+                    dialog.Discard = dialog.StandardButton.Discard
+
                 dialog.setWindowFlags(dialog.windowFlags() | qt.Qt.CustomizeWindowHint)
                 dialog.setWindowFlags(dialog.windowFlags() & ~qt.Qt.WindowCloseButtonHint)
                 dialog.setStandardButtons(dialog.Save | dialog.Discard)
@@ -197,16 +208,16 @@ class CalcamGUIWindow(qt.QMainWindow):
                 dialog.setText('An unhandled exception has been raised; the action you were performing may have partially or completely failed. This is probably a bug in Calcam; to report it please save an error report file and report the problem at <a href="https://github.com/euratom-software/calcam/issues">here</a> and/or consider contributing a fix!')
                 dialog.setInformativeText(''.join(traceback_lines) + '\nWould you like to save an error report file?')
                 dialog.setIcon(qt.QMessageBox.Warning)
-                dialog.exec_()
+                dialog.exec()
 
                 if dialog.result() == dialog.Save:
 
                     filedialog = qt.QFileDialog(self)
-                    filedialog.setAcceptMode(1)
-                    filedialog.setFileMode(0)
+                    filedialog.setAcceptMode(filedialog.AcceptSave)
+                    filedialog.setFileMode(filedialog.AnyFile)
                     filedialog.setWindowTitle('Save error report')
                     filedialog.setNameFilter('Text files (*.txt)')
-                    filedialog.exec_()
+                    filedialog.exec()
                     if filedialog.result() == 1:
                         fname = str(filedialog.selectedFiles()[0])
                         if not fname.endswith('.txt'):
@@ -251,7 +262,7 @@ class CalcamGUIWindow(qt.QMainWindow):
             cal = None
 
         dialog = ChessboardDialog(self,modelselection=True,calibration=cal)
-        dialog.exec_()
+        dialog.exec()
 
         if dialog.results != []:
             chessboard_pointpairs = dialog.results
@@ -317,12 +328,18 @@ class CalcamGUIWindow(qt.QMainWindow):
         else:
             alpha_init = 255
 
-        new_col = qt.QColorDialog.getColor(qt.QColor(col_init[0],col_init[1],col_init[2],alpha_init),self,'Choose Colour...',qt.QColorDialog.ColorDialogOptions(qt.QColorDialog.ShowAlphaChannel*pick_alpha))
+        if pick_alpha:
+            if qt.qt_ver < 6:
+                new_col = qt.QColorDialog.getColor(qt.QColor(col_init[0], col_init[1], col_init[2], alpha_init), self,'Choose Colour...',qt.QColorDialog.ColorDialogOptions(qt.QColorDialog.ShowAlphaChannel))
+            else:
+                new_col = qt.QColorDialog.getColor(qt.QColor(col_init[0], col_init[1], col_init[2], alpha_init), self,'Choose Colour...',qt.QColorDialog.ColorDialogOption.ShowAlphaChannel)
+        else:
+            new_col = qt.QColorDialog.getColor(qt.QColor(col_init[0],col_init[1],col_init[2],alpha_init),self,'Choose Colour...')
 
         if new_col.isValid():
-            ret_col = ( new_col.red() / 255. , new_col.green() / 255. , new_col.blue() / 255.)
+            ret_col = [ new_col.red() / 255. , new_col.green() / 255. , new_col.blue() / 255.]
             if pick_alpha:
-                ret_col = ret_col + ( (new_col.alpha() / 255.), )
+                ret_col = ret_col + [ new_col.alpha() / 255. ]
         else:
             ret_col = None
 
@@ -429,27 +446,35 @@ class CalcamGUIWindow(qt.QMainWindow):
             newim = self.imsource.get_image_function(**imload_options)
             self.config.default_image_source = self.imsource.display_name
 
+        # Keep a list of which parameters we have filled in with assumptions,
+        # because sometimes we want to know later.
+        newim['assumptions'] = []
 
         if 'subview_mask' not in newim:
             newim['subview_mask'] = np.zeros(newim['image_data'].shape[:2],dtype=np.uint8)
+            newim['assumptions'].append('subview_mask')
 
         if 'subview_names' not in newim:
             newim['subview_names'] = []
 
         if 'transform_actions' not in newim:
             newim['transform_actions'] = []
+            newim['assumptions'].append('transform_actions')
 
         if 'pixel_size' not in newim:
             newim['pixel_size'] = None
 
         if 'coords' not in newim:
             newim['coords'] = 'display'
+            newim['assumptions'].append('coords')
             
         if 'pixel_aspect' not in newim:
             newim['pixel_aspect'] = 1.
+            newim['assumptions'].append('pixel_aspect')
 
         if 'image_offset' not in newim:
             newim['image_offset'] = (0.,0.)
+            newim['assumptions'].append('image_offset')
 
         self.on_load_image(newim)
         self.statusbar.clearMessage()
@@ -461,7 +486,7 @@ class CalcamGUIWindow(qt.QMainWindow):
         filename_filter = self.config.filename_filters[obj_type]
 
         filedialog = qt.QFileDialog(self)
-        filedialog.setAcceptMode(0)
+        filedialog.setAcceptMode(filedialog.AcceptOpen)
 
         try:
            filedialog.setDirectory(self.config.file_dirs[obj_type])
@@ -469,16 +494,22 @@ class CalcamGUIWindow(qt.QMainWindow):
             filedialog.setDirectory(os.path.expanduser('~'))
 
         if multiple:
-            filedialog.setFileMode(3)
+            filedialog.setFileMode(filedialog.ExistingFiles)
             empty_ret = []
         else:
-            filedialog.setFileMode(1)
+            filedialog.setFileMode(filedialog.ExistingFile)
             empty_ret = None
 
         filedialog.setWindowTitle('Open...')
         filedialog.setNameFilter(filename_filter)
-        filedialog.exec_()
-        if filedialog.result() == 1:
+        filedialog.exec()
+
+        if qt.qt_ver < 6:
+            accepted = filedialog.result() == 1
+        else:
+            accepted = filedialog.result() == filedialog.Accepted
+
+        if accepted:
             selected_paths = filedialog.selectedFiles()
         else:
             return empty_ret
@@ -551,7 +582,7 @@ class CalcamGUIWindow(qt.QMainWindow):
         fext = filename_filter.split('(*')[1].split(')')[0]
 
         filedialog = qt.QFileDialog(self)
-        filedialog.setAcceptMode(1)
+        filedialog.setAcceptMode(filedialog.AcceptSave)
 
         try:
            filedialog.setDirectory(self.config.file_dirs[obj_type])
@@ -559,11 +590,11 @@ class CalcamGUIWindow(qt.QMainWindow):
             filedialog.setDirectory(os.path.expanduser('~'))
         
 
-        filedialog.setFileMode(0)
+        filedialog.setFileMode(filedialog.AnyFile)
 
         filedialog.setWindowTitle('Save As...')
         filedialog.setNameFilter(filename_filter)
-        filedialog.exec_()
+        filedialog.exec()
         if filedialog.result() == 1:
             selected_path = str(filedialog.selectedFiles()[0])
             self.config.file_dirs[obj_type] = os.path.split(selected_path)[0]
@@ -847,12 +878,11 @@ class CalcamGUIWindow(qt.QMainWindow):
     def browse_for_file(self,name_filter,target_textbox=None):
 
         filedialog = qt.QFileDialog(self)
-        filedialog.setAcceptMode(0)
-        filedialog.setFileMode(1)
+        filedialog.setAcceptMode(filedialog.AcceptOpen)
+        filedialog.setFileMode(filedialog.ExistingFile)
         filedialog.setWindowTitle('Select File')
         filedialog.setNameFilter(name_filter)
-        filedialog.setLabelText(3,'Select')
-        filedialog.exec_()
+        filedialog.exec()
         if filedialog.result() == 1:
 
             if target_textbox is not None:
@@ -870,7 +900,8 @@ class CalcamGUIWindow(qt.QMainWindow):
         for qitem,feature in self.cad_tree_items:
 
             try:
-                qitem.setCheckState(0,self.cadmodel.get_group_enable_state(feature))
+                state = [qt.Qt.Unchecked,qt.Qt.PartiallyChecked,qt.Qt.Checked][self.cadmodel.get_group_enable_state(feature)]
+                qitem.setCheckState(0,state)
             except KeyError:
                 if feature in enabled_features:
                     qitem.setCheckState(0,qt.Qt.Checked)
@@ -1080,7 +1111,7 @@ class CalcamGUIWindow(qt.QMainWindow):
                 dialog.setText('This tool uses CAD models but you seem to have no CAD models set up in calcam.')
                 dialog.setInformativeText('You can either browse for a folder containing existing Calcam CAD definition (.ccm) files, or create a new CAD model definition.')
                 dialog.setIcon(qt.QMessageBox.Information)
-                dialog.exec_()
+                dialog.exec()
 
                 if dialog.result() == 2:
                     self.timer = qt.QTimer.singleShot(0,self.app.quit)
@@ -1088,10 +1119,10 @@ class CalcamGUIWindow(qt.QMainWindow):
                 elif dialog.result() == 0:
 
                     filedialog = qt.QFileDialog(self)
-                    filedialog.setAcceptMode(0)
-                    filedialog.setFileMode(2)
+                    filedialog.setAcceptMode(filedialog.AcceptOpen)
+                    filedialog.setFileMode(filedialog.Directory)
                     filedialog.setWindowTitle('Select CAD definition Location')
-                    filedialog.exec_()
+                    filedialog.exec()
 
                     if filedialog.result() == 1:
                         path = str(filedialog.selectedFiles()[0]).replace('/',os.path.sep)
@@ -1105,7 +1136,7 @@ class CalcamGUIWindow(qt.QMainWindow):
                             dialog.setWindowTitle('No CAD Models')
                             dialog.setText('The selected directory does not seem to contain any CAD definition files. The application will now close.')
                             dialog.setIcon(qt.QMessageBox.Information)
-                            dialog.exec_()
+                            dialog.exec()
                             self.timer = qt.QTimer.singleShot(0,self.app.quit)
                         else:                      
                             self.config.save()
@@ -1170,7 +1201,7 @@ class CalcamGUIWindow(qt.QMainWindow):
         if sub_msg is not None:
             dialog.setInformativeText(str(sub_msg))
         dialog.setIcon(qt.QMessageBox.Information)
-        dialog.exec_()
+        dialog.exec()
 
 
 
@@ -1182,7 +1213,7 @@ class CalcamGUIWindow(qt.QMainWindow):
             dialog.setWindowTitle('Save changes?')
             dialog.setText('There are unsaved changes. Save before exiting?')
             dialog.setIcon(qt.QMessageBox.Information)
-            choice = dialog.exec_()
+            choice = dialog.exec()
             if choice == qt.QMessageBox.Save:
                 if self.action_save.isEnabled():
                     self.action_save.trigger()
@@ -1309,12 +1340,11 @@ class ChessboardDialog(qt.QDialog):
     def load_images(self):
 
         filedialog = qt.QFileDialog(self)
-        filedialog.setAcceptMode(0)
-        filedialog.setFileMode(3)
+        filedialog.setAcceptMode(filedialog.AcceptOpen)
+        filedialog.setFileMode(filedialog.ExistingFiles)
         filedialog.setWindowTitle('Load chessboard images')
         filedialog.setNameFilter('Image Files (*.jpg *.jpeg *.png *.bmp *.jp2 *.tiff *.tif)')
-        filedialog.setLabelText(3,'Load')
-        filedialog.exec_()
+        filedialog.exec()
         if filedialog.result() == 1:
             self.parent.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
             self.images = []
@@ -1370,7 +1400,7 @@ class ChessboardDialog(qt.QDialog):
                 dialog.setText("The selected chessboard pattern images are the wrong dimensions for this camera calibration and have not been loaded.")
                 dialog.setInformativeText("Chessboard images of {:d} x {:d} pixels or {:d} x {:d} pixels are required for this camera image.".format(self.image_transformer.get_original_shape()[0],self.image_transformer.get_original_shape()[1],self.image_transformer.get_display_shape()[0],self.image_transformer.get_display_shape()[1]))
                 dialog.setIcon(qt.QMessageBox.Warning)
-                dialog.exec_()
+                dialog.exec()
                 self.images = []
                 self.filenames = []
                 return
@@ -1383,7 +1413,7 @@ class ChessboardDialog(qt.QDialog):
                 dialog.setText("{:d} of the selected images are the wrong size for this camera image and were not loaded:".format(np.count_nonzero(wrong_shape)))
                 dialog.setInformativeText('<br>'.join([ self.filenames[i] for i in range(len(self.filenames)) if wrong_shape[i] ]))
                 dialog.setIcon(qt.QMessageBox.Warning)
-                dialog.exec_()
+                dialog.exec()
                 for i in range(len(self.images)-1,-1,-1):
 
                     if wrong_shape[i]:
@@ -1433,7 +1463,7 @@ class ChessboardDialog(qt.QDialog):
             dialog.setText("No {:d} x {:d} square chessboard patterns were found in the images.".format(self.chessboard_squares_x.value(),self.chessboard_squares_y.value()))
             dialog.setInformativeText("Is the number of squares set correctly?")
             dialog.setIcon(qt.QMessageBox.Warning)
-            dialog.exec_()
+            dialog.exec()
         elif np.any(self.chessboard_status):
             dialog = qt.QMessageBox(self)
             dialog.setStandardButtons(qt.QMessageBox.Ok)
@@ -1442,7 +1472,7 @@ class ChessboardDialog(qt.QDialog):
             dialog.setText("A {:d} x {:d} square chessboard pattern could not be detected in the following {:d} of {:d} images, which will therefore not be included as additional chessboard constraints:".format(self.chessboard_squares_x.value(),self.chessboard_squares_y.value(),np.count_nonzero(self.chessboard_status),len(self.images)))
             dialog.setInformativeText('<br>'.join(['[#{:d}] '.format(i+1) + self.filenames[i] for i in range(len(self.filenames)) if self.chessboard_status[i] ]))
             dialog.setIcon(qt.QMessageBox.Warning)
-            dialog.exec_()                
+            dialog.exec()                
 
         self.chessboard_status = [not status for status in self.chessboard_status]
         self.detection_run = True
@@ -1739,12 +1769,11 @@ class SplitFieldDialog(qt.QDialog):
     def load_mask_image(self):
 
         filedialog = qt.QFileDialog(self)
-        filedialog.setAcceptMode(0)
-        filedialog.setFileMode(1)
+        filedialog.setAcceptMode(filedialog.AcceptOpen)
+        filedialog.setFileMode(filedialog.ExistingFile)
         filedialog.setWindowTitle('Select Mask File')
         filedialog.setNameFilter('Image Files (*.png *.bmp *.jp2 *.tiff *.tif)')
-        filedialog.setLabelText(3,'Load')
-        filedialog.exec_()
+        filedialog.exec()
         if filedialog.result() == 1:
             mask_im = cv2.imread(str(filedialog.selectedFiles()[0]))
 
