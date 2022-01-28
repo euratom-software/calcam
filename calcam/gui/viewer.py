@@ -755,7 +755,7 @@ class Viewer(CalcamGUIWindow):
 
             # For some reason having the legend completely ruins things,
             # so we turn it off.
-            if self.sightlines_legend_checkbox.isChecked():
+            if self.interactor3d.legend is not None:
                 temp_actors.append(self.interactor3d.legend)
 
             # Get rid of the cursor unless the user said not to.
