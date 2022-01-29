@@ -26,8 +26,10 @@ New & Enhancements:
 * CAD overlays in the fitting calibration tool are now always rendered at 1 megapixel or greater resolution, even for low resolution images being calibrated. (#74)
 * Added additional options to customise display of the CAD overlay image in the fitting calibration tool (can be wireframe or solid CAD; adjustable opacity).
 * Added "undo" function to fitting calibration tool which can undo up to the last 20 changes to the calibration point coordinates. (#75)
+* When saving the current view in the 3D viewier tool, any legend displayed in the window is now included in the output image.
 
 Fixes:
+* On Windows, stopped separate VTK error output window opening to show VTK warnings.
 * Fixed bug in Image analyser which could cause exceptions when loading images in display orientation.
 * Fixed bug where image enhancement was unexpectedly turned off (but the checkbox stayed checked) when editing sub-view definitions in the fitting calibration tool
 * Fixed issue where the colour used for the CAD overlay did not correctly follow the colour picked by the user.

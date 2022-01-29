@@ -755,8 +755,8 @@ class Viewer(CalcamGUIWindow):
 
             # For some reason having the legend completely ruins things,
             # so we turn it off.
-            if self.interactor3d.legend is not None:
-                temp_actors.append(self.interactor3d.legend)
+            #if self.interactor3d.legend is not None:
+            #    temp_actors.append(self.interactor3d.legend)
 
             # Get rid of the cursor unless the user said not to.
             if not self.render_include_cursor.isChecked():
@@ -768,7 +768,7 @@ class Viewer(CalcamGUIWindow):
             # -------------------------------------------------------------------------
 
             # Do the render
-            im = render.render_hires(self.renderer_3d,oversampling=oversampling,aa=aa,transparency=use_transparency)
+            im = render.render_hires(self.renderer_3d,oversampling=oversampling,aa=aa,transparency=use_transparency,legendactor=self.interactor3d.legend)
 
             # Add back the temporarily removed actors
             for actor in temp_actors:
@@ -991,23 +991,24 @@ class Viewer(CalcamGUIWindow):
             phi = phi + 2 * 3.14159
         phi = phi / 3.14159 * 180
 
-        r_min = self.cadmodel.wall_contour[:,0].min()
-        r_max = self.cadmodel.wall_contour[:,0].max()
-        z_min = self.cadmodel.wall_contour[:,1].min()
-        z_max = self.cadmodel.wall_contour[:,1].max()
-        r_mid = (r_max + r_min) / 2
-        z_mid = (z_max + z_min) / 2
+        if self.cadmodel.wall_contour is not None:
+            r_min = self.cadmodel.wall_contour[:,0].min()
+            r_max = self.cadmodel.wall_contour[:,0].max()
+            z_min = self.cadmodel.wall_contour[:,1].min()
+            z_max = self.cadmodel.wall_contour[:,1].max()
+            r_mid = (r_max + r_min) / 2
+            z_mid = (z_max + z_min) / 2
 
-        dr = np.sqrt(position[0]**2 + position[1]**2) - r_mid
-        dz = position[2] - z_mid
+            dr = np.sqrt(position[0]**2 + position[1]**2) - r_mid
+            dz = position[2] - z_mid
 
-        theta = 180*np.arctan2(dz,dr)/np.pi
+            theta = 180*np.arctan2(dz,dr)/np.pi
 
-        self.cursor_angles = (phi,theta)
+            self.cursor_angles = (phi,theta)
 
-        if self.centre_at_cursor.isChecked():
-            self.toroidal_centre_box.setValue(phi)
-            self.poloidal_centre_box.setValue(theta)
+            if self.centre_at_cursor.isChecked():
+                self.toroidal_centre_box.setValue(phi)
+                self.poloidal_centre_box.setValue(theta)
 
 
 

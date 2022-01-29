@@ -125,11 +125,13 @@ class ImageAnalyser(CalcamGUIWindow):
         self.render_button.clicked.connect(self.save_image)
         self.render_image_checkbox.toggled.connect(self.update_render_resolution)
         self.render_cad_checkbox.toggled.connect(self.update_render_resolution)
-        self.overlay_opacity_slider.valueChanged.connect(lambda x : self.interactor2d.set_overlay_alpha(x/100))
+        self.overlay_opacity_slider.valueChanged.connect(self.change_overlay_colour)
+        self.overlay_type_box.currentIndexChanged.connect(self.update_overlay)
+        self.overlay_colour_button.clicked.connect(self.change_overlay_colour)
 
         self.sightline_checkbox.toggled.connect(lambda: self.update_from_3d(self.coords_3d))
 
-        self.overlay_checkbox.toggled.connect(self.toggle_overlay)
+        self.overlay_checkbox.toggled.connect(self.update_overlay)
 
         self.enhance_checkbox.stateChanged.connect(self.toggle_enhancement)
 
@@ -137,8 +139,6 @@ class ImageAnalyser(CalcamGUIWindow):
         self.cmap_options.hide()
         self.viewport_calibs = DodgyDict()
 
-        self.overlay_opacity_slider.hide()
-        self.overlay_opacity_label.hide()
         self.mapped_im_opacity_slider.hide()
         self.mapped_im_opacity_label.hide()
 
@@ -162,6 +162,9 @@ class ImageAnalyser(CalcamGUIWindow):
 
         self.cursor_ids = {'3d':None,'2d':{'visible':None,'hidden':None}}
         self.sightline_actors = []
+        self.overlay_colour = [0,0,1,0.5]
+
+        self.overlay_settings.hide()
 
         # Start the GUI!
         self.show()
@@ -258,7 +261,7 @@ class ImageAnalyser(CalcamGUIWindow):
             self.update_from_3d(self.coords_3d)
 
         if self.overlay_checkbox.isChecked():
-            self.toggle_overlay(True)
+            self.update_overlay()
 
         self.update_mapped_image()
 
@@ -839,68 +842,74 @@ class ImageAnalyser(CalcamGUIWindow):
         self.update_mapped_image()
 
 
-    def toggle_overlay(self,show=None):
+    def update_overlay(self,data=None):
 
-        if show is None:
-            if self.overlay_checkbox.isEnabled():
-                self.overlay_checkbox.setChecked(not self.overlay_checkbox.isChecked())
+        # Clear the existing overlay image to force it to re-render if the user has changed between solid / wireframe
+        if self.sender() is self.overlay_type_box:
+            self.overlay = None
 
-        elif show:
+        # Show or hide extra controls depending on what overlays are enabled
+        self.overlay_settings.setVisible(self.overlay_checkbox.isChecked())
+
+        if self.overlay_checkbox.isChecked():
 
             if self.overlay is None:
+                self.overlay = self.render_overlay_image(self.overlay_type_box.currentIndex() == 0)
 
-                self.statusbar.showMessage('Rendering wireframe overlay...')
-                self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
-                self.app.processEvents()
-                try:
-                    orig_colours = self.cadmodel.get_colour()
-                    self.cadmodel.set_wireframe(True)
-                    self.cadmodel.set_colour((0,0,1))
-                    self.overlay = render_cam_view(self.cadmodel,self.calibration,transparency=True,verbose=False,aa=2)
-                    self.cadmodel.set_colour(orig_colours)
-                    self.cadmodel.set_wireframe(False)
-
-
-                    if np.max(self.overlay) == 0:
-                        dialog = qt.QMessageBox(self)
-                        dialog.setStandardButtons(qt.QMessageBox.Ok)
-                        dialog.setWindowTitle('Calcam - Information')
-                        dialog.setTextFormat(qt.Qt.RichText)
-                        dialog.setText('Wireframe overlay image is blank.')
-                        dialog.setInformativeText('This usually means the fit is wildly wrong.')
-                        dialog.setIcon(qt.QMessageBox.Information)
-                        dialog.exec()
-
-
-                except:
-                    self.interactor2d.set_overlay_image(None)
-                    self.statusbar.clearMessage()
-                    self.overlay_checkbox.setChecked(False)
-                    self.app.restoreOverrideCursor()
-                    raise
-
-
-                self.statusbar.clearMessage()
-                self.app.restoreOverrideCursor()
+            # Apply desired colour
+            im = (self.overlay * np.tile(np.array(self.overlay_colour)[np.newaxis, np.newaxis, :], self.overlay.shape[:2] + (1,))).astype(np.uint8)
 
             if self.mov_correction is not None:
-                self.interactor2d.set_overlay_image(self.mov_correction.warp_ref_to_moved(self.overlay)[0])
+                self.interactor2d.set_overlay_image(self.mov_correction.warp_ref_to_moved(im)[0])
             else:
-                self.interactor2d.set_overlay_image(self.overlay)
+                self.interactor2d.set_overlay_image(im)
 
-            self.refresh_2d()
-
-            self.overlay_opacity_slider.show()
-            self.overlay_opacity_label.show()
 
         else:
             self.interactor2d.set_overlay_image(None)
-            self.refresh_2d()
-            self.overlay_opacity_slider.hide()
-            self.overlay_opacity_label.hide()
 
-    def adjust_overlay_transparency(self):
-        pass
+        self.refresh_2d()
+
+
+    def change_overlay_colour(self):
+
+        if self.sender() is self.overlay_opacity_slider:
+            new_colour = self.overlay_colour[:3]
+
+        else:
+            old_colour = self.overlay_colour
+            new_colour = self.pick_colour(init_colour=old_colour)
+
+        if new_colour is not None:
+
+            new_colour = new_colour + [self.overlay_opacity_slider.value() / 100]
+            self.overlay_colour = new_colour
+
+            self.update_overlay()
+
+
+    def render_overlay_image(self,wireframe):
+
+        oversampling = int(np.ceil(min(1000/np.array(self.calibration.geometry.get_display_shape()))))
+
+        self.statusbar.showMessage('Rendering CAD image overlay...')
+        self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
+        self.app.processEvents()
+
+        orig_colours = self.cadmodel.get_colour()
+
+        self.cadmodel.set_wireframe(wireframe)
+        self.cadmodel.set_colour((1, 1, 1))
+        image = render_cam_view(self.cadmodel, self.calibration, transparency=True, verbose=False, aa=2,oversampling=oversampling)
+        self.cadmodel.set_colour(orig_colours)
+        self.cadmodel.set_wireframe(False)
+
+        self.statusbar.clearMessage()
+        self.app.restoreOverrideCursor()
+
+        return image
+
+
 
     def toggle_enhancement(self,check_state):
 
@@ -919,9 +928,6 @@ class ImageAnalyser(CalcamGUIWindow):
         self.interactor2d.set_image(transformer.original_to_display_image(image),hold_position=True)
         if self.calibration is not None:
             self.interactor2d.set_subview_lookup(self.calibration.n_subviews,self.calibration.subview_lookup)
-        if self.overlay_checkbox.isChecked():
-            self.overlay_checkbox.setChecked(False)
-            self.overlay_checkbox.setChecked(True)
 
         self.update_mapped_image()
 

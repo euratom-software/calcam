@@ -411,7 +411,7 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
 
 
 
-def render_hires(renderer,oversampling=1,aa=1,transparency=False):
+def render_hires(renderer,oversampling=1,aa=1,transparency=False,legendactor=None):
     """
     Render the contents of an existing vtkRenderer to an image array, if requested at higher resolution
     than the existing renderer's current size. N.B. if calling with oversampling > 1 or aa > 1 and using
@@ -432,6 +432,10 @@ def render_hires(renderer,oversampling=1,aa=1,transparency=False):
     actorcollection = renderer.GetActors()
     actorcollection.InitTraversal()
     actor = actorcollection.GetNextItemAsObject()
+
+    if legendactor is not None:
+        renderer.RemoveActor(legendactor)
+
     while actor is not None:
         actor.GetProperty().SetLineWidth( actor.GetProperty().GetLineWidth() * aa )
         actor = actorcollection.GetNextItemAsObject()
@@ -455,6 +459,34 @@ def render_hires(renderer,oversampling=1,aa=1,transparency=False):
         actor.GetProperty().SetLineWidth( actor.GetProperty().GetLineWidth() / aa )
         actor = actorcollection.GetNextItemAsObject()
 
+    # If we have a legend, we have to render that separately.
+    if legendactor is not None:
+
+        downscale = int(np.ceil(im.shape[1]/max_render_dimension))
+        renwin = vtk.vtkRenderWindow()
+        renwin.OffScreenRenderingOn()
+        renwin.SetBorders(0)
+        renwin.SetSize(im.shape[1]//downscale,im.shape[0]//downscale)
+        legendrenderer = vtk.vtkRenderer()
+        renwin.AddRenderer(legendrenderer)
+        legendrenderer.AddActor(legendactor)
+
+        renwin.Render()
+        vtk_win_im = vtk.vtkWindowToImageFilter()
+        vtk_win_im.SetInput(renwin)
+        vtk_win_im.Update()
+        vtk_image = vtk_win_im.GetOutput()
+        vtk_array = vtk_image.GetPointData().GetScalars()
+        dims = vtk_image.GetDimensions()
+        del vtk_win_im
+        legendrenderer.RemoveActor(legendactor)
+        renwin.Finalize()
+        legendim = np.flipud(vtk_to_numpy(vtk_array).reshape(dims[1], dims[0], 3))
+        legendim = cv2.resize(legendim,(im.shape[1],im.shape[0]))
+        legendmask = np.tile( (legendim.sum(axis=2) > 0)[:,:,np.newaxis],[1,1,3])
+        im[legendmask] = legendim[legendmask]
+
+        renderer.AddActor(legendactor)
 
     if transparency:
         alpha = 255 * np.ones([np.shape(im)[0],np.shape(im)[1]],dtype='uint8')

@@ -96,7 +96,7 @@ if 'install' in sys.argv or 'develop' in sys.argv:
 
     if not vtk:
         print('Dependency VTK: trying to install using pip...\n')
-        if pip_install('vtk>=6,<9.1'):
+        if pip_install('vtk>=6,<9.0.2'):
             print('\nVTK installed OK!')
             vtk = True
         else:
@@ -131,7 +131,7 @@ if 'install' in sys.argv or 'develop' in sys.argv:
 # Actually do the requested setup actions
 s = setup(
           name='Calcam',
-          version='2.8.0rc2',
+          version='2.8.0rc3',
           url='https://euratom-software.github.io/calcam/',
           license='European Union Public License 1.1',
           author='Scott Silburn et.al.',

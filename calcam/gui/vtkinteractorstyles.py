@@ -42,7 +42,7 @@ import time
 
 class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
  
-    def __init__(self,parent=None,viewport_callback=None,resize_callback=None,newpick_callback=None,cursor_move_callback=None,focus_changed_callback=None,refresh_callback=None):
+    def __init__(self,parent=None,viewport_callback=None,resize_callback=None,newpick_callback=None,cursor_move_callback=None,focus_changed_callback=None,refresh_callback=None,pre_move_callback=None):
         
         # Set callbacks for all the mouse controls
 
@@ -62,6 +62,7 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
         self.cursor_changed_callback = focus_changed_callback
         self.refresh_callback = refresh_callback
         self.focus_changed_callback = focus_changed_callback
+        self.pre_move_callback = pre_move_callback
         self.image_actor = None
         self.image_resizer = None
         self.force_aspect = None
@@ -74,6 +75,7 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
         self.rmb_down = False
         self.mouse_delta = np.array([0,0])
         self.allow_focus_change = True
+
 
 
     # Do various initial setup things, most of which can't be done at the time of __init__
@@ -386,6 +388,8 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
                 # of if they didn't click another cursor, move the current cursor
                 # to where they clicked
                 elif self.focus_cursor is not None:
+                    if self.pre_move_callback is not None:
+                        self.pre_move_callback()
                     self.set_cursor_coords(self.focus_cursor,pickcoords)
 
 
@@ -675,7 +679,7 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
 
 class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
  
-    def __init__(self,parent=None,newpick_callback=None,cursor_move_callback=None,focus_changed_callback=None,refresh_callback=None):
+    def __init__(self,parent=None,newpick_callback=None,cursor_move_callback=None,focus_changed_callback=None,refresh_callback=None,pre_move_callback=None):
         # Set callbacks for all the controls
         self.AddObserver("LeftButtonPressEvent",self.on_left_click)
         self.AddObserver("MiddleButtonPressEvent",self.middle_press)
@@ -687,10 +691,12 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
         self.cursor_move_callback = cursor_move_callback
         self.focus_changed_callback = focus_changed_callback
         self.refresh_callback = refresh_callback
+        self.pre_move_callback = pre_move_callback
         self.allow_focus_change = True
         self.linked_interactors = []
         self.cursor_size = 0.03
         self.overlay_actors = []
+
 
     # Do various initial setup things, most of which can't be done at the time of __init__
     def init(self):
@@ -727,8 +733,6 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
 
         self.image_actor = None
         self.overlay_actors = []
-
-        self.overlay_alpha = 1
 
         self.overlay_alpha = 1
 
@@ -971,6 +975,8 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
                 if self.active_cursors[self.focus_cursor]['cursor3ds'][view_index] is None:
                     self.add_active_cursor(pickcoords,add_to=self.focus_cursor)
                 else:
+                    if self.pre_move_callback is not None:
+                        self.pre_move_callback()
                     self.set_cursor_coords(self.focus_cursor,pickcoords,view_index)
 
                 if self.cursor_move_callback is not None:

@@ -49,7 +49,7 @@ class FittingCalib(CalcamGUIWindow):
         # Set up VTK
         self.qvtkwidget_3d = qt.QVTKRenderWindowInteractor(self.vtkframe_3d)
         self.vtkframe_3d.layout().addWidget(self.qvtkwidget_3d)
-        self.interactor3d = CalcamInteractorStyle3D(refresh_callback=self.refresh_3d,viewport_callback=self.update_viewport_info,cursor_move_callback=self.update_cursor_position,newpick_callback=self.new_point_3d,focus_changed_callback=lambda x: self.change_point_focus('3d',x),resize_callback=self.update_vtk_size)
+        self.interactor3d = CalcamInteractorStyle3D(refresh_callback=self.refresh_3d,viewport_callback=self.update_viewport_info,cursor_move_callback=self.update_cursor_position,newpick_callback=self.new_point_3d,focus_changed_callback=lambda x: self.change_point_focus('3d',x),resize_callback=self.update_vtk_size,pre_move_callback=self.record_undo_state)
         self.qvtkwidget_3d.SetInteractorStyle(self.interactor3d)
         self.renderer_3d = vtk.vtkRenderer()
         self.renderer_3d.SetBackground(0, 0, 0)
@@ -58,7 +58,7 @@ class FittingCalib(CalcamGUIWindow):
 
         self.qvtkwidget_2d = qt.QVTKRenderWindowInteractor(self.vtkframe_2d)
         self.vtkframe_2d.layout().addWidget(self.qvtkwidget_2d)
-        self.interactor2d = CalcamInteractorStyle2D(refresh_callback=self.refresh_2d,newpick_callback = self.new_point_2d,cursor_move_callback=self.update_cursor_position,focus_changed_callback=lambda x: self.change_point_focus('2d',x))
+        self.interactor2d = CalcamInteractorStyle2D(refresh_callback=self.refresh_2d,newpick_callback = self.new_point_2d,cursor_move_callback=self.update_cursor_position,focus_changed_callback=lambda x: self.change_point_focus('2d',x),pre_move_callback=self.record_undo_state)
         self.qvtkwidget_2d.SetInteractorStyle(self.interactor2d)
         self.renderer_2d = vtk.vtkRenderer()
         self.renderer_2d.SetBackground(0, 0, 0)
@@ -71,7 +71,6 @@ class FittingCalib(CalcamGUIWindow):
 
         # Disable image transform buttons if we have no image
         self.image_settings.hide()
-        #self.fit_results.hide()
 
         self.tabWidget.setTabEnabled(2,False)
         self.tabWidget.setTabEnabled(3,False)
@@ -99,17 +98,12 @@ class FittingCalib(CalcamGUIWindow):
         self.im_reset.clicked.connect(self.transform_image)
         self.im_y_stretch_button.clicked.connect(self.transform_image)
         self.load_pointpairs_button.clicked.connect(self.load_pointpairs)
-        #self.fit_button.clicked.connect(self.do_fit)
         self.fitted_points_checkbox.toggled.connect(self.toggle_reprojected)
         self.overlay_checkbox.toggled.connect(self.update_overlay)
-        #self.save_fit_button.clicked.connect(self.save_fit)
-        #self.save_points_button.clicked.connect(self.save_points)
         self.enhance_checkbox.stateChanged.connect(self.toggle_enhancement)
         self.im_define_splitFOV.clicked.connect(self.edit_split_field)
-        #self.pointpairs_load_name.currentIndexChanged.connect(self.update_load_pp_button_status)
         self.pixel_size_checkbox.toggled.connect(self.update_pixel_size)
         self.pixel_size_box.valueChanged.connect(self.update_pixel_size)
-        #self.toggle_controls_button.clicked.connect(self.toggle_controls)
         self.load_chessboard_button.clicked.connect(self.modify_chessboard_constraints)
         self.chessboard_checkbox.toggled.connect(self.toggle_chessboard_constraints)
         self.load_intrinsics_calib_button.clicked.connect(self.modify_intrinsics_calib)
@@ -159,7 +153,6 @@ class FittingCalib(CalcamGUIWindow):
 
         # Odds & sods
         self.pixel_size_box.setSuffix(u' \u00B5m')
-        #self.save_fit_button.setEnabled(False)
 
         self.viewport_calibs = DodgyDict()
         # Populate image sources list and tweak GUI layout for image loading.
@@ -390,9 +383,8 @@ class FittingCalib(CalcamGUIWindow):
         self.unsaved_changes = True
 
 
-    def update_cursor_position(self,cursor_id,position):
+    def update_cursor_position(self,cursor_id,new_position):
 
-        self.record_undo_state()
         self.unsaved_changes = True
         self.update_cursor_info()
         self.update_pointpairs()
