@@ -820,7 +820,7 @@ class FittingCalib(CalcamGUIWindow):
         orig_pointpairs = self.calibration.geometry.display_to_original_pointpairs(self.calibration.pointpairs)
 
         self.pointpairs_history.clear()
-        self.points_unfo_buton.setEnabled(False)
+        self.points_undo_button.setEnabled(False)
 
         for i in range(len(self.chessboard_pointpairs)):
             self.chessboard_pointpairs[i][0] = self.calibration.geometry.display_to_original_image(self.chessboard_pointpairs[i][0])
