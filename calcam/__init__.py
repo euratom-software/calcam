@@ -34,8 +34,9 @@ try:
     try:
         from . import gui
         from .gui import start_gui
+        from . import movement
     except Exception as e:
-        print('WARNING: calcam.gui module not available (error: {:})'.format(e))
+        print('WARNING: calcam.gui and calcam.movement module snot available (error: {:})'.format(e))
 
     from .cadmodel import CADModel
     from .raycast import raycast_sightlines
@@ -53,4 +54,3 @@ from .pointpairs import PointPairs
 
 from . import config
 from . import gm
-from . import movement
