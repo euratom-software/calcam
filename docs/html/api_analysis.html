@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                Version 2.7
+                Version 2.8
               </div>
             
           
@@ -100,23 +100,23 @@
 <p class="caption"><span class="caption-text">GUI App User Guide</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="gui_intro.html">Introduction &amp; Launcher</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui_settings.html">Calcam Settings</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_calib.html">Calibration by point fitting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_alignment_calib.html">Calibration by manual alignment</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_virtual_calib.html">“Virtual” Calibrations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_image_analyser.html">Image Analyser</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_viewer.html">3D Viewer</a></li>
-<li class="toctree-l1"><a class="reference internal" href="gui_settings.html">Calcam Settings</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_movement.html">Camera Movement Determination</a></li>
 </ul>
 <p class="caption"><span class="caption-text">API User Guide</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Using Calibration Results</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#the-calibration-class">The Calibration Class</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#rendering-images">Rendering images</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#ray-casting">Ray casting</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="api_cadmodel.html">CAD Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_rendering.html">Rendering Images</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_geom_matrix.html">Tomography Geometry Matrices</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_movement.html">Camera Movement Correction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_examples.html">Examples</a></li>
@@ -484,48 +484,12 @@ where N is the number of colour channels.</p></li>
 </dd></dl>
 
 </div>
-<div class="section" id="rendering-images">
-<h2>Rendering images<a class="headerlink" href="#rendering-images" title="Permalink to this headline">¶</a></h2>
-<p>Calcam can be used to render images of a CAD model from the calibrated camera’s point of view. The render includes all lens distortion in the camera model, so should match exactly with a well calibrated real camera image.</p>
-<dl class="py function">
-<dt id="calcam.render_cam_view">
-<code class="sig-prename descclassname">calcam.</code><code class="sig-name descname">render_cam_view</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cadmodel</span></em>, <em class="sig-param"><span class="n">calibration</span></em>, <em class="sig-param"><span class="n">extra_actors</span><span class="o">=</span><span class="default_value">[]</span></em>, <em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">oversampling</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">aa</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">transparency</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">coords</span><span class="o">=</span><span class="default_value">'display'</span></em>, <em class="sig-param"><span class="n">interpolation</span><span class="o">=</span><span class="default_value">'cubic'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.render_cam_view" title="Permalink to this definition">¶</a></dt>
-<dd><p>Render an image of a given CAD model from the point of view of a given calibration.</p>
-<p>NOTE: This function uses off-screen OpenGL rendering which fails above some image dimension which depends on the system.
-The workaround for this is that above a render dimension set by calcam.render.max_render_dimension, the image is rendered
-at lower resolution and then scaled up using nearest-neighbour scaling. For this reason, when rendering high resolution
-images the rendered image quality may be lower than expected.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>cadmodel</strong> (<a class="reference internal" href="api_cadmodel.html#calcam.CADModel" title="calcam.CADModel"><em>calcam.CADModel</em></a>) – CAD model of scene</p></li>
-<li><p><strong>calibration</strong> (<a class="reference internal" href="#calcam.Calibration" title="calcam.Calibration"><em>calcam.Calibration</em></a>) – Calibration whose point-of-view to render from.</p></li>
-<li><p><strong>extra_actors</strong> (<em>list of vtk.vtkActor</em>) – List containing any additional vtkActors to add to the scene                                               in addition to the CAD model.</p></li>
-<li><p><strong>filename</strong> (<em>str</em>) – Filename to which to save the resulting image. If not given, no file is saved.</p></li>
-<li><p><strong>oversampling</strong> (<em>float</em>) – Used to render the image at higher (if &gt; 1) or lower (if &lt; 1) resolution than the                                               calibrated camera. Must be an integer if &gt; 1 or if &lt;1, 1/oversampling must be a                                               factor of both image width and height.</p></li>
-<li><p><strong>aa</strong> (<em>int</em>) – Anti-aliasing factor, 1 = no anti-aliasing.</p></li>
-<li><p><strong>transparency</strong> (<em>bool</em>) – If true, empty areas of the image are set transparent. Otherwise they are black.</p></li>
-<li><p><strong>verbose</strong> (<em>bool</em>) – Whether to print status updates while rendering.</p></li>
-<li><p><strong>coords</strong> (<em>str</em>) – Either <code class="docutils literal notranslate"><span class="pre">Display</span></code> or <code class="docutils literal notranslate"><span class="pre">Original</span></code>, the image orientation in which to return the image.</p></li>
-<li><p><strong>interpolation</strong> (<em>str</em>) – Either <code class="docutils literal notranslate"><span class="pre">nearest</span></code> or <code class="docutils literal notranslate"><span class="pre">cubic</span></code>, inerpolation used when applying lens distortion.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Array containing the rendered 8-bit per channel RGB (h x w x 3) or RGBA (h x w x 4) image.                                              Also saves the result to disk if the filename parameter is set.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>np.ndarray</p>
-</dd>
-</dl>
-</dd></dl>
-
-</div>
 <div class="section" id="ray-casting">
 <h2>Ray casting<a class="headerlink" href="#ray-casting" title="Permalink to this headline">¶</a></h2>
 <p>The calibration class can provide line-of-sight directions for given pixel coordinates, however it is often necessary to know where these sight lines terminate at a surface in the CAD model. For example in calculation of geometry matricies for camera data inversion, the length of each camera sight line needs to be known. The function <a class="reference internal" href="#calcam.raycast_sightlines" title="calcam.raycast_sightlines"><code class="xref py py-func docutils literal notranslate"><span class="pre">calcam.raycast_sightlines()</span></code></a> is provided for this purpose; it determines the 3D coordinates where the given pixels’ sight-lines intersect the CAD model.</p>
 <dl class="py function">
 <dt id="calcam.raycast_sightlines">
-<code class="sig-prename descclassname">calcam.</code><code class="sig-name descname">raycast_sightlines</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">calibration</span></em>, <em class="sig-param"><span class="n">cadmodel</span></em>, <em class="sig-param"><span class="n">x</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">y</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">exclusion_radius</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">binning</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">coords</span><span class="o">=</span><span class="default_value">'Display'</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">intersecting_only</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">force_subview</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">status_callback</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.raycast_sightlines" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">calcam.</code><code class="sig-name descname">raycast_sightlines</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">calibration</span></em>, <em class="sig-param"><span class="n">cadmodel</span></em>, <em class="sig-param"><span class="n">x</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">y</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">exclusion_radius</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">binning</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">coords</span><span class="o">=</span><span class="default_value">'Display'</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">intersecting_only</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">force_subview</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">status_callback</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">calc_normals</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.raycast_sightlines" title="Permalink to this definition">¶</a></dt>
 <dd><p>Ray cast camera sight-lines to determine where they intersect the given CAD model.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -541,6 +505,7 @@ images the rendered image quality may be lower than expected.</p>
 <li><p><strong>force_subview</strong> (<em>int</em>) – If specified, forces use of the camera model from this index of sub-view                                            in the calibration. Otherwise, sub-views are chosen according to the                                            sub-view mask in the calibration.</p></li>
 <li><p><strong>verbose</strong> (<em>bool</em>) – Whether to print status updates during ray casting (depreciated in favour of status_callback)</p></li>
 <li><p><strong>status_callback</strong> (<em>callable</em>) – Callable which takes a single argument to be called with status updates. The argument will                                            either be a string for textual status updates or a float from 0 to 1 specifying the progress                                            of the calculation. If set to None, no status updates are issued. For backwards compatibility,                                            if set to None but verbose is set to True, status_callback will be set such that status updates                                            go to stdout.</p></li>
+<li><p><strong>calc_normals</strong> (<em>bool</em>) – Whether to calculate the normal vectors of the CAD model where the sight-lines intersect it.                                            Not turned on by default because it seems to add around 80% extra calculation time, so best used                                            only if actyally needed.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -563,6 +528,32 @@ It can also be used to save and load ray cast results to disk.</p>
 <dd class="field-odd"><p><strong>filename</strong> (<em>str</em>) – File name of netCDF file containing saved RayData to load.                           If not given, an empty RayData object is created.</p>
 </dd>
 </dl>
+<dl class="py method">
+<dt id="calcam.RayData.get_model_normals">
+<code class="sig-name descname">get_model_normals</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">y</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">im_position_tol</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">coords</span><span class="o">=</span><span class="default_value">'Display'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData.get_model_normals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the 3D unit normal vectors of the CAD model surface where the camera sight-lines hit the model.
+Only available if calc_normals = True was given when running raycast_sightlines().</p>
+<p>Note: it is advised to use this function rather than accessing the <cite>model_normals</cite>
+attribute of the object directly because this function will respect any image cropping
+applied using the set_detector_window() method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>array-like</em>) – Image pixel coordinates at which to get the model normals.                                      If not specified, the end coordinates of all casted sight lines will be returned.</p></li>
+<li><p><strong>y</strong> (<em>array-like</em>) – Image pixel coordinates at which to get the model normals.                                      If not specified, the end coordinates of all casted sight lines will be returned.</p></li>
+<li><p><strong>im_position_tol</strong> (<em>float</em>) – If x and y are specified but no sight-line was cast at exactly the                                       input coordinates, the nearest casted sight-line will be returned                                       instead provided the pixel coordinates wre within this many pixels of                                       the requested coordinates.</p></li>
+<li><p><strong>coords</strong> (<em>str</em>) – Either <code class="docutils literal notranslate"><span class="pre">Display</span></code> or <code class="docutils literal notranslate"><span class="pre">Coords</span></code>, specifies what orientation the input x                                       and y correspond to or orientation of the returned array.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>An array containing the normal vectors of the CAD model surface where                                      each sight line intersects the CAD model. If x and y coordinates were                                       given either to this function or to calcam.raycast_sightlines(), the shape of                                       this array is the same as the input x and y arrays with an additional                                       dimension added which contains the  [X,Y,Z] components of the normals. Otherwise the shape                                      is (h x w x 3) where w and h are the image width and height (in display coords).</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py method">
 <dt id="calcam.RayData.get_ray_directions">
 <code class="sig-name descname">get_ray_directions</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">y</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">im_position_tol</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">coords</span><span class="o">=</span><span class="default_value">'Display'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData.get_ray_directions" title="Permalink to this definition">¶</a></dt>

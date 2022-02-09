@@ -2,12 +2,8 @@ Calcam Changelog
 ================
 
 
-Minor Release 2.8.0 (XXX 2022)
-------------------------------
-
-Compatibility Updates:
-* Now compatible with PyQt6
-* Changed dependency in setup.py from opencv-python to opencv-python-headless to reduce likelihood of problems with OpenCV vs PyQt version conflicts. (#72)
+Minor Release 2.8.0 (10 Feb 2022)
+---------------------------------
 
 New & Enhancements:
 * Added ability to render un-folded image of tokamak interior on to a rectangular image (render.render_unfolded_wall() and available through 3D Viewer GUI)
@@ -27,6 +23,11 @@ New & Enhancements:
 * Added additional options to customise display of the CAD overlay image in the fitting calibration tool (can be wireframe or solid CAD; adjustable opacity).
 * Added "undo" function to fitting calibration tool which can undo up to the last 20 changes to the calibration point coordinates. (#75)
 * When saving the current view in the 3D viewier tool, any legend displayed in the window is now included in the output image.
+
+Compatibility Updates:
+* Now compatible with PyQt6
+* Changed dependency in setup.py from opencv-python to opencv-python-headless to reduce likelihood of problems with OpenCV vs PyQt version conflicts. (#72)
+* Restricted versions of VTK installed by setup.py to avoid issues with newer versions of VTK (see #78)
 
 Fixes:
 * On Windows, stopped separate VTK error output window opening to show VTK warnings.

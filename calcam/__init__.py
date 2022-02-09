@@ -25,7 +25,7 @@ CalCam package.
 """
 
 # Calcam version
-__version__ = '2.8.0rc3'
+__version__ = '2.8.0'
 
 try:
     import vtk
@@ -39,7 +39,7 @@ try:
 
     from .cadmodel import CADModel
     from .raycast import raycast_sightlines
-    from .render import render_cam_view
+    from .render import render_cam_view,render_unfolded_wall
 
 except:
     print('WARNING: VTK not available; calcam.gui, calcam.raycast, calcam.render and calcam.cadmodel modules will not be available.')

@@ -122,7 +122,7 @@ class ImageAlignDialog(qt.QDialog):
         self.interactor_ref.link_with(self.interactor_new)
         self.interactor_new.link_with(self.interactor_ref)
 
-        sc = qt.QShortcut(qt.QKeySequence("Del"),self)
+        sc = qt.QShortcut(qt.QKeySequence(qt.QKeySequence.Delete),self)
         sc.setContext(qt.Qt.WindowShortcut)
         sc.activated.connect(self.remove_current_point)
 

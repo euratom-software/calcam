@@ -10,7 +10,7 @@ A computer with Python installed
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Calcam works with Python 3.5 or newer on Windows, Linux or OSX. You can download Python installers for Windows or OSX from `Python.org <https://www.python.org/downloads/>`_ , or get it from your favourite software repository on Linux.
 
-As of April 2021, VTK (one of Calcam's major dependencies) is not available from PyPi for Python versions newer than 3.8, so it currently it is much easier to install Calcam in Python 3.8 than anything newer (for newer versions you will have to install VTK and its Python bindings yourself, which can be quite involved).
+As of February 2022, suitable versions of VTK (one of Calcam's major dependencies) are not available from the Python Package Index for Python versions newer than 3.8, so it currently it is much easier to install Calcam in Python 3.5 - 3.8 than anything newer (for newer versions you will have to build and install VTK and its Python bindings yourself, which can be quite involved).
 
 You will also need the ``pip`` package installed for the Calcam installer script to work. ``pip`` is usually installed with Python by default so it's unlikely you'll have to worry about this, but you don't have ``pip`` installed, the Calcam setup script will give an error message telling you so. Documentation for how to get pip can be found `here <https://pip.pypa.io/en/stable/installing/>`_ .
 
@@ -29,7 +29,7 @@ for the latest release version, or::
 
 	git clone https://github.com/euratom-software/calcam.git
 
-for the development version.
+for the development version (which may contain some bugs or incomplete features at any given time).
 
 
 Installation
@@ -69,17 +69,18 @@ If you plan to do any development on Calcam, and want to be able to edit the Cal
 In this case the copy of the code you are installing from remains the "live" version and can be used for development. Again, the ``--user`` switch can be added to install in the current user's library path rather than the system one.
 
 
-Errors related to  dependencies
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Troubleshooting dependencies
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Calcam is built upon several existing libraries, which means it requires various other Python modules to be installed for it to work. The setup script will try to install the other Python pcakegs required by Calcam automatically.
 
 On some combinations of operating system and Python versions this may not always work properly. In this case, the setup script will give an error or warning specifying which dependency could not be installed, and what the effects are (either the Calcam installation will not be completed or there will be a warning that the Calcam GUI will not work).
 
 In other cases, the install my complete fine but then you get error messages when first trying to import Calcam or start the GUI. When tourbleshooting installation or first run problems, it is recommeneded to first check if each of the Python modules Calcam depends on are installed and working correctly on their own (and if they are, Calcam should work). The table below gives details of Calcam's dependencies and known issues with certain versions:
 
+You can check which versions OpenCV, VTK and PyQt you are using in the :doc:`gui_settings` interface.
 
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Module / Library    | Versions Tested                                                                                                                                                    |
+| Module / Library    | Versions Tested / comments                                                                                                                                         |
 +=====================+====================================================================================================================================================================+
 | SciPy               | Up to 1.5.2                                                                                                                                                        |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
@@ -91,16 +92,18 @@ In other cases, the install my complete fine but then you get error messages whe
 |                     |                                                                                                                                                                    |
 |                     | Fisheye camera model only available if using 3.x or newer.                                                                                                         |
 |                     |                                                                                                                                                                    |
-|                     | If running under OSX older than 10.12, versions of OpenCV newer than 3.2 may cause crashes on import (downgrade to OpenCV < 3.3 to fix).                           |
+|                     | If running under OSX older than 10.12, versions of OpenCV newer than 3.2 may cause crashes on import (downgrade to OpenCV < 3.3 to fix this).                      |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| VTK                 | Up to 9.0.1                                                                                                                                                        |
+| VTK                 | OK up to version 9.0.1, depending on platform calcam does not work properly with versions newer than this.                                                         |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| PyQt                | Tested up to 5.15.0                                                                                                                                                |
+| PyQt                | Works with PyQt 4, PyQt5 (test up to 5.12), or PyQt6 (tested up to 6.2.2)                                                                                          |
 |                     |                                                                                                                                                                    |
 |                     | Versions 5.11 and older known to cause unreadable text in the GUI on OSX when using dark theme                                                                     |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
-
+Reporting Problems
+~~~~~~~~~~~~~~~~~~
+If you find bugs / problems, please check the `GitHub issues page <https://github.com/euratom-software/calcam/issues>`_ and report the problem there if it isn't already listed.
 
 Initial Configuration
 ---------------------

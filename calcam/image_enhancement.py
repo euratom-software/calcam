@@ -33,7 +33,11 @@ from scipy.optimize import curve_fit
 
 
 
-def scale_to_8bit(image,cutoff=0.99):
+def scale_to_8bit(image,cutoff=0.999):
+
+    # If we already have an 8-bit image, don't do anything
+    if image.dtype == np.uint8:
+        return image
 
     # If we have a multi-channel image
     if len(image.shape) == 3:

@@ -658,6 +658,8 @@ class ImageAnalyser(CalcamGUIWindow):
         newim_geometry.set_transform_actions(newim['transform_actions'])
         newim_geometry.set_image_shape(newim['image_data'].shape[1],newim['image_data'].shape[0],coords=newim['coords'])
 
+        reset_overlay = False
+
         if self.calibration is not None:
 
             if newim['coords'].lower() == 'original':
@@ -668,7 +670,7 @@ class ImageAnalyser(CalcamGUIWindow):
             if 'image_offset' not in newim['assumptions']:
                 size_mismatch = size_mismatch | (newim_geometry.offset[0] != self.calibration.geometry.offset[0]) | (newim_geometry.offset[1] != self.calibration.geometry.offset[1])
 
-            if  size_mismatch:
+            if size_mismatch:
 
                 if 'coords' in newim['assumptions']:
 
@@ -687,7 +689,7 @@ class ImageAnalyser(CalcamGUIWindow):
                 self.overlay = None
                 if self.overlay_checkbox.isChecked():
                     self.overlay_checkbox.setChecked(False)
-                    self.overlay_checkbox.setChecked(True)
+                    reset_overlay = True
 
             self.image_geometry = self.calibration.geometry
 
@@ -714,6 +716,7 @@ class ImageAnalyser(CalcamGUIWindow):
         else:
             self.interactor2d.set_image(self.image_geometry.original_to_display_image(self.image))
 
+        self.overlay_checkbox.setChecked(reset_overlay)
         self.image_settings.show()
 
         if self.enhance_checkbox.isChecked():
@@ -911,7 +914,7 @@ class ImageAnalyser(CalcamGUIWindow):
 
 
 
-    def toggle_enhancement(self,check_state):
+    def toggle_enhancement(self):
 
         # Enable / disable adaptive histogram equalisation
         if self.enhance_checkbox.isChecked():

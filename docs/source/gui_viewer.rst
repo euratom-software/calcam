@@ -59,36 +59,52 @@ Mouse Control Settings
 At the bottom of this tab are options for configuring the mouse controls for 3D navigation. The :kbd:`Right Click + Drag` behaviour can be toggled between looking around and rotating the model about a point in front of the camera, and the mouse sensitivity can be adjusted.
 
 
-Visualising camera fields of view
----------------------------------
-Calcam calibration files can be loaded by the 3D viewer to visualise the camera sight-lines / fields of view on the 3D model. This is done on the :guilabel:`Camera Sight Lines` tab. Clicking the :guilabel:`Add...` button below the list of currently loaded calibrations will open a file browsing dialog to load a calibration file. Once loaded, the calibrated camera's field of view is shown as a shaded volume in the 3D view. The sight-lines for a given calibration can be turned on or off using the tick-box next to its name. With multiple calibrations loaded, a legend showing which camera corresponds to which colour can be turned on or off using the checkbox next to the  :guilabel:`Add...` button. To change the name of a calibration in the legend, single-click the calibration name in the list box and enter the new name.
+Visualising camera fields of view from calibrations
+---------------------------------------------------
+Calcam calibration files can be loaded by the 3D viewer to visualise the camera sight-lines / fields of view on the 3D model. This is done on the :guilabel:`Calibrations` tab. Clicking the :guilabel:`Add...` button below the list of currently loaded calibrations will open a file browsing dialog to load a calibration file. Once loaded, the calibrated camera's field of view is shown as a shaded volume in the 3D view. The sight-lines for a given calibration can be turned on or off using the tick-box next to its name. With multiple calibrations loaded, a legend showing which camera corresponds to which colour can be turned on or off using the checkbox next to the  :guilabel:`Add...` button. To change the name of a calibration in the legend, single-click the calibration name in the list box to edit the name.
 
-Sight-line appearance
-~~~~~~~~~~~~~~~~~~~~~
-With one or more calibrations selected in the loaded calibration list, the appearance of the selected calibration(s) sight-lines can be adjusted with the controls in the :guilabel:`Apperance` box at the bottom of the tab. The appearance of the sight-line cone can be switched between a solid shaded volume and a sparser set of individual lines representing pixel sight-lines. The colour and level of transparency of the displayed sight-lines can also be changed using the controls in this box.
+Field-of-view appearance options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The :guilabel:`Appearance` box at the bottom of the :guilabel:`Calibrations` tab allows customisation of how the selected camera field of view is displayed. In addition to controls for the transparency and colour, there are 3 different options for how fields of view appear:
+
+* Shaded volume (default) - shows the camera field of view as a shaded cone eminating from the camera's pupil.
+* Sight-line fan - shows a 2D fan of discrete sight-lines eminating out from the camera.
+* CAD model shading (WARNING - slow to calculate!) - useful for cameras such as IR thermography cameras designed to observe objects which are part of the CAD model, this option shows the camera field of view by shading parts of the CAD model which the camera can see. Note: when turning on this option it can be quite slow to calculate since the calculation involves ray casting over the camera field of view.
 
 
-Displaying Arbitrary 3D Lines
+Displaying Arbitrary 3D Data
 -----------------------------
-In addition to showing camera sight-lines, additional arbitrary 3D lines can be added to the visualisation, e.g. representing other diagnostic sight-lines, object trajectories, magnetic fiels lines or flux surfaces. The 3D data are loaded from ASCII files with .txt, .csv or .dat extensions. 
+In addition to showing camera fields-of-view, additional arbitrary 3D points and lines can be added to the visualisation, e.g. representing other diagnostic sight-lines, trajectories, magnetic field lines, flux surfaces or other 3D coordinates of interest. Controls for this are on the :guilabel:`3D Data` tab. The 3D data are loaded from ASCII files with .txt, .csv or .dat extensions.
+
+Once loaded, data sets are added to the list in the box on the :guilabel:`3D Data` tab, with names corresponding to the file name they were loaded from. The display of each data set can be turned on and off using the checkboxes next to the dataset names. To edit the name of a data set, single click its name in the list. 
 
 Preparation of ASCII files
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
-The ASCII data to be displayed can take one of two formats, depending on whether you want to display a continuous line defined by a set of 3D points, or a collection of individual lines each with a start and end point. To display a single continuous 3D line, the file should contain a list of 3D points along the line, with each point taking up one line of the text file. Each line of the text file must therefore contain 3 numbers, which can be delimited with commas, spaces or tabs. If you wish to display a set of disconnected line segments, each line of the text file must contain 6 numbers: the 3D coordinates for the start of the 3D line segment followed by the 3D coordinates for the end of the line segment. The coordinates can be given either in cartesian coordinates :math:`X,Y,Z` or :math:`R,Z,\phi` where :math:`\phi` is the toroidal angle in radians.
+The ASCII data to be displayed can take one of two formats, depending on whether you want to display a single continuous line defined by a set of 3D points, or a collection of individual straight lines each with a start and end point. To display a single continuous 3D line, the file should contain a list of 3D coordinates along the line, with each point along the line taking up one line of the text file. Each line of the text file must therefore contain 3 numbers, which can be delimited with commas, spaces or tabs. If you wish to display a set of disconnected line segments, each line of the text file must contain 6 numbers: the 3D coordinates for the start of the 3D line segment followed by the 3D coordinates for the end of the line segment. The coordinates can be given either in cartesian coordinates :math:`X,Y,Z` or :math:`R,Z,\phi` where :math:`\phi` is the toroidal angle in radians.
+
+Appearance Options
+~~~~~~~~~~~~~~~~~~
+The 3D data can be displayed as solid lines and/or spheres at each point in the data. With a data set selected on the :guilabel:`3D Data` tab, the lines and points for that data set can be turned on and off, and their thickness, size and colour changed using the :guilabel:`Appearance` options at the bottom of the tab. Legend entries can also be shown for the loaded data sets, which can be turned on and off with the :guilabel:`Show in legend` checkbox below the list of loaded data sets. 
 
 
 Rendering and saving images
 ---------------------------
-The 3D viewer can save high resolution PNG images using the controls on the :guilabel:`Render / Save Image` tab. 
+The 3D viewer can be used to save high resolution PNG images using the controls on the :guilabel:`Render / Save Image` tab. At the top of this tab are the 3 main options for the types of image which can be saved:
 
-Render point of view
-~~~~~~~~~~~~~~~~~~~~
-If :guilabel:`Current View` is selected at the top of the :guilabel:`Render / Save Image` tab, the output image will exactly match what is currently displayed in the 3D view in the window. This can be used to prepare illustrative figures. By default the output image size in pixels will match the size of the window on the screen, however you can choose to render the output at higher resolution with the :guilabel:`Output resolution` dropdown box in the :guilabel:`Render Settings` box. Here you can also change the level of anti-aliasing to eliminate sharp edges in the rendered image, which is implemented by rendering the output at higher resolution than desired and then down-sampling again. You can also choose whether to use a black background, as in the display window, or to make any black areas of the image transparent in the output image. If there is a cursor placed in the current view, you can choose whether or not to show the cursor on the output image. Note: If there is a sight-line legend displayed, this will not be included in the output image.
+Exporting the current view
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+If :guilabel:`Current View` is selected at the top of the :guilabel:`Render / Save Image` tab, the output image will exactly match what is currently displayed in the 3D view in the window. This can be used to prepare illustrative figures. By default the output image size in pixels will match the size of the window on the screen, however you can choose to render the output at higher resolution with the :guilabel:`Output resolution` dropdown box in the :guilabel:`Render Settings` box. Here you can also change the level of anti-aliasing to eliminate sharp edges in the rendered image, which is implemented by rendering the output at higher resolution than desired and then down-sampling again. You can also choose whether to use a black background, as in the display window, or to make any black areas of the image transparent in the output image. If there is a cursor placed in the current view, you can choose whether or not to show the cursor on the output image.
 
 Rendering calibrated camera views
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 The tool can also be used to render the CAD model, in the current configuration set up in the window, from the point of view of a calibrated camera. This will exactly match the position, orientation, focal length and distortion of the calibrated camera, so the rendered image should exactly match with real camera images to within the accuracy of the calibration. 
 
 This is done by selecting :guilabel:`Calibration Result` at the top of the :guilabel:`Render / Save Image` tab. Then, click the :guilabel:`Select...` button in the :guilabel:`Render Settings` box to browse for a calibration file to use. You can then choose whether the output image should be in original or display orientation for the camera, and the output pixel resolution if you wish to render at a higher resolution than the real camera.  In the :guilabel:`Render Settings` box you can also change the level of anti-aliasing to eliminate sharp edges in the rendered image, which is implemented by rendering the output at higher resolution than desired and then down-sampling again. You can also choose whether to use a black background, as in the display window, or to make any black areas of the image transparent in the output image. If there is a cursor placed in the current view, you can choose whether or not to show the cursor on the output image. Note: If there is a sight-line legend displayed, this will not be included in the output image.
+
+Rendering an un-folded first wall view
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+It may be useful to have an overview image of the first wall of the device, showing the entire wall in a single image. This can be done using the :guilabel:`Unfolded first wall` option at the top of the :guilabel:`Render / Save Image` tab. This option is only enabled for CAD models which include an :math:`R,Z` wall contour (see :ref:`wall_contour` for how to add this to to the CAD model).
+
+The output of this type of render is an image of the first wall where toroidal angle increases along the horizontal direction of the image and poloidal angle increases in the vertical direction of the image. This can be useful e.g. for 
 
 When the above settings are set as desired, click the :guilabel:`Render Image...` button to save an image file.

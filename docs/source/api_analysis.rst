@@ -12,11 +12,6 @@ The calibration class is used to represent Calcam calibrations and provides vari
 .. autoclass:: calcam.Calibration
 	:members: get_cam_matrix,get_cam_roll,get_cam_to_lab_rotation,get_fov,get_image,get_los_direction,get_pupilpos,project_points,undistort_image,get_raysect_camera,get_undistort_coeffs,set_extrinsics,set_detector_window
 
-Rendering images
-----------------
-Calcam can be used to render images of a CAD model from the calibrated camera's point of view. The render includes all lens distortion in the camera model, so should match exactly with a well calibrated real camera image.
-
-.. autofunction:: calcam.render_cam_view
 
 Ray casting
 ------------

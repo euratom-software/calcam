@@ -135,7 +135,7 @@ class FittingCalib(CalcamGUIWindow):
 
         # Set up some keyboard shortcuts
         # It is done this way in 3 lines per shortcut to avoid segfaults on some configurations
-        sc = qt.QShortcut(qt.QKeySequence("Del"),self)
+        sc = qt.QShortcut(qt.QKeySequence(qt.QKeySequence.Delete),self)
         sc.setContext(qt.Qt.WindowShortcut)
         sc.activated.connect(self.remove_current_pointpair)
 
@@ -147,7 +147,7 @@ class FittingCalib(CalcamGUIWindow):
         sc.setContext(qt.Qt.WindowShortcut)
         sc.activated.connect(self.toggle_reprojected)
 
-        sc = qt.QShortcut(qt.QKeySequence("Ctrl+Z"),self)
+        sc = qt.QShortcut(qt.QKeySequence(qt.QKeySequence.Undo),self)
         sc.setContext(qt.Qt.WindowShortcut)
         sc.activated.connect(self.pointpairs_undo)
 

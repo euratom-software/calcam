@@ -37,8 +37,8 @@
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Camera Movement Determination" href="gui_movement.html" />
-    <link rel="prev" title="3D Viewer" href="gui_viewer.html" /> 
+    <link rel="next" title="Calibration by point fitting" href="gui_calib.html" />
+    <link rel="prev" title="Introduction &amp; Launcher" href="gui_intro.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                Version 2.7
+                Version 2.8
               </div>
             
           
@@ -100,23 +100,24 @@
 <p class="caption"><span class="caption-text">GUI App User Guide</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="gui_intro.html">Introduction &amp; Launcher</a></li>
-<li class="toctree-l1"><a class="reference internal" href="gui_calib.html">Calibration by point fitting</a></li>
-<li class="toctree-l1"><a class="reference internal" href="gui_alignment_calib.html">Calibration by manual alignment</a></li>
-<li class="toctree-l1"><a class="reference internal" href="gui_virtual_calib.html">“Virtual” Calibrations</a></li>
-<li class="toctree-l1"><a class="reference internal" href="gui_image_analyser.html">Image Analyser</a></li>
-<li class="toctree-l1"><a class="reference internal" href="gui_viewer.html">3D Viewer</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Calcam Settings</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#cad-model-definition-settings">CAD Model Definition Settings</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#image-source-settings">Image Source Settings</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#environment-information">Environment Information</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="gui_calib.html">Calibration by point fitting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui_alignment_calib.html">Calibration by manual alignment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui_virtual_calib.html">“Virtual” Calibrations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui_image_analyser.html">Image Analyser</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui_viewer.html">3D Viewer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_movement.html">Camera Movement Determination</a></li>
 </ul>
 <p class="caption"><span class="caption-text">API User Guide</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="api_analysis.html">Using Calibration Results</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_cadmodel.html">CAD Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_rendering.html">Rendering Images</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_geom_matrix.html">Tomography Geometry Matrices</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_movement.html">Camera Movement Correction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_examples.html">Examples</a></li>
@@ -235,7 +236,7 @@
 <h3>Adding Additional Information<a class="headerlink" href="#adding-additional-information" title="Permalink to this headline">¶</a></h3>
 <p>Additional information can be added to the CAD model definition using the <span class="guilabel">Additional information</span> tab:</p>
 <div class="section" id="r-z-wall-contour">
-<h4>R,Z Wall Contour<a class="headerlink" href="#r-z-wall-contour" title="Permalink to this headline">¶</a></h4>
+<span id="wall-contour"></span><h4>R,Z Wall Contour<a class="headerlink" href="#r-z-wall-contour" title="Permalink to this headline">¶</a></h4>
 <p>An R,Z wall contour can be saved as part of the model definition; currently this is only used for displaying in the 3D viewer but is intended to be used in future for geometry matrix calculation, for example. To add an R,Z wall contour to the CAD model, prepare the contour in a two-column ASCII file containing R,Z coordinates of the wall (in metres) around the poloidal cross-section, with one coordinate per line in the file. Then click <span class="guilabel">Load from file…</span> in the <span class="guilabel">R, Z Wall Contour</span> box to load the file. If a wall contour already exists in the model, its details will also be displayed in this box. If a cursor is placed on the 3D model, the current wall contour can be displayed, at the cursor position, using the <span class="guilabel">Show contour at cursor position</span> checkbox.</p>
 </div>
 <div class="section" id="d-coordinate-information">
@@ -269,10 +270,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="gui_movement.html" class="btn btn-neutral float-right" title="Camera Movement Determination" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="gui_calib.html" class="btn btn-neutral float-right" title="Calibration by point fitting" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="gui_viewer.html" class="btn btn-neutral float-left" title="3D Viewer" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="gui_intro.html" class="btn btn-neutral float-left" title="Introduction &amp; Launcher" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
