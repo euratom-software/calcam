@@ -73,6 +73,7 @@ if qt_ver == 6:
                         QSizePolicy:[QSizePolicy.Policy],
                         QDialog:[QDialog.DialogCode],
                         QDialogButtonBox:[QDialogButtonBox.StandardButton],
+                        QKeySequence:[QKeySequence.StandardKey],
                        }
 
     for parent,enums in enums_to_unwrap.items():
