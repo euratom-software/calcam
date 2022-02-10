@@ -531,6 +531,8 @@ class Calibration():
         # Apply a crop
         elif len(window) == 4:
 
+            window = (int(window[0]),int(window[1]),int(window[2]),int(window[3]))
+
             if self.crop is not None:
                 self.set_detector_window(None)
 

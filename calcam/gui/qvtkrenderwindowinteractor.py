@@ -55,14 +55,48 @@ except ImportError:
 
 if PyQtImpl is None:
     # Check what qt version we're using
-    if qt_ver == 5:
+    if qt_ver == 6:
+        PyQtImpl = "PyQt6"
+    elif qt_ver == 5:
         PyQtImpl = "PyQt5"
     elif qt_ver == 4:
         PyQtImpl = "PyQt4"
     else:
         raise ImportError("Unknown PyQt implementation")
 
-if PyQtImpl == "PyQt5":
+if PyQtImpl == "PyQt6":
+
+    try:
+        from PyQt6.QtOpenGLWidgets import QOpenGLWidget as QGLWidget
+        QVTKRWIBase = "QGLWidget"
+    except:
+        QVTKRWIBase = "QWidget"
+
+    from PyQt6.QtWidgets import QWidget
+    from PyQt6.QtWidgets import QSizePolicy
+    from PyQt6.QtWidgets import QApplication
+    from PyQt6.QtCore import Qt
+    from PyQt6.QtCore import QTimer
+    from PyQt6.QtCore import QObject
+    from PyQt6.QtCore import QSize
+    from PyQt6.QtCore import QEvent
+
+    Qt.NoButton = Qt.MouseButton.NoButton
+    Qt.LeftButton = Qt.MouseButton.LeftButton
+    Qt.RightButton = Qt.MouseButton.RightButton
+    Qt.MidButton = Qt.MouseButton.MiddleButton
+    Qt.NoModifier = Qt.KeyboardModifier.NoModifier
+    Qt.ControlModifier = Qt.KeyboardModifier.ControlModifier
+    Qt.ShiftModifier = Qt.KeyboardModifier.ShiftModifier
+    Qt.AltModifier = Qt.KeyboardModifier.AltModifier
+    Qt.WA_OpaquePaintEvent = Qt.WidgetAttribute.WA_OpaquePaintEvent
+    Qt.WA_PaintOnScreen = Qt.WidgetAttribute.WA_OpaquePaintEvent
+    Qt.WheelFocus = Qt.FocusPolicy.WheelFocus
+    Qt.WaitCursor = Qt.CursorShape.WaitCursor
+    Qt.MSWindowsOwnDC = Qt.WindowType.MSWindowsOwnDC
+    MouseButtonDblClick = Qt.MouseEventFlag.MouseEventCreatedDoubleClick
+
+elif PyQtImpl == "PyQt5":
 
     try:
         from PyQt5.QtOpenGL import QGLWidget
@@ -78,6 +112,8 @@ if PyQtImpl == "PyQt5":
     from PyQt5.QtCore import QObject
     from PyQt5.QtCore import QSize
     from PyQt5.QtCore import QEvent
+    MouseButtonDblClick = QEvent.MouseButtonDblClick
+
 elif PyQtImpl == "PyQt4":
 
     try:
@@ -94,6 +130,8 @@ elif PyQtImpl == "PyQt4":
     from PyQt4.QtCore import QObject
     from PyQt4.QtCore import QSize
     from PyQt4.QtCore import QEvent
+
+    MouseButtonDblClick = QEvent.MouseButtonDblClick
 else:
     raise ImportError("Unknown PyQt implementation " + repr(PyQtImpl))
 
@@ -175,18 +213,23 @@ class QVTKRenderWindowInteractor(QVTKRWIBaseClass):
     """
 
     # Map between VTK and Qt cursors.
+    if qt_ver > 5:
+        obj = Qt.CursorShape
+    else:
+        obj = Qt
+
     _CURSOR_MAP = {
-        0:  Qt.ArrowCursor,          # VTK_CURSOR_DEFAULT
-        1:  Qt.ArrowCursor,          # VTK_CURSOR_ARROW
-        2:  Qt.SizeBDiagCursor,      # VTK_CURSOR_SIZENE
-        3:  Qt.SizeFDiagCursor,      # VTK_CURSOR_SIZENWSE
-        4:  Qt.SizeBDiagCursor,      # VTK_CURSOR_SIZESW
-        5:  Qt.SizeFDiagCursor,      # VTK_CURSOR_SIZESE
-        6:  Qt.SizeVerCursor,        # VTK_CURSOR_SIZENS
-        7:  Qt.SizeHorCursor,        # VTK_CURSOR_SIZEWE
-        8:  Qt.SizeAllCursor,        # VTK_CURSOR_SIZEALL
-        9:  Qt.PointingHandCursor,   # VTK_CURSOR_HAND
-        10: Qt.CrossCursor,          # VTK_CURSOR_CROSSHAIR
+        0:  obj.ArrowCursor,          # VTK_CURSOR_DEFAULT
+        1:  obj.ArrowCursor,          # VTK_CURSOR_ARROW
+        2:  obj.SizeBDiagCursor,      # VTK_CURSOR_SIZENE
+        3:  obj.SizeFDiagCursor,      # VTK_CURSOR_SIZENWSE
+        4:  obj.SizeBDiagCursor,      # VTK_CURSOR_SIZESW
+        5:  obj.SizeFDiagCursor,      # VTK_CURSOR_SIZESE
+        6:  obj.SizeVerCursor,        # VTK_CURSOR_SIZENS
+        7:  obj.SizeHorCursor,        # VTK_CURSOR_SIZEWE
+        8:  obj.SizeAllCursor,        # VTK_CURSOR_SIZEALL
+        9:  obj.PointingHandCursor,   # VTK_CURSOR_HAND
+        10: obj.CrossCursor,          # VTK_CURSOR_CROSSHAIR
     }
 
     def __init__(self, parent=None, **kw):
@@ -270,7 +313,10 @@ class QVTKRenderWindowInteractor(QVTKRWIBaseClass):
         self.setAttribute(Qt.WA_PaintOnScreen)
         self.setMouseTracking(True) # get all mouse events
         self.setFocusPolicy(Qt.WheelFocus)
-        self.setSizePolicy(QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding))
+        if qt_ver < 6:
+            self.setSizePolicy(QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding))
+        else:
+            self.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding))
 
         self._Timer = QTimer(self)
         self._Timer.timeout.connect(self.TimerEvent)
@@ -381,9 +427,18 @@ class QVTKRenderWindowInteractor(QVTKRWIBaseClass):
     def mousePressEvent(self, ev):
         ctrl, shift = self._GetCtrlShift(ev)
         repeat = 0
-        if ev.type() == QEvent.MouseButtonDblClick:
+        if ev.type() == MouseButtonDblClick:
             repeat = 1
-        self._Iren.SetEventInformationFlipY(ev.x(), ev.y(),
+
+        if qt_ver < 6:
+            x = ev.x()
+            y = ev.y()
+        else:
+            pos = ev.position()
+            x = int(pos.x())
+            y = int(pos.y())
+
+        self._Iren.SetEventInformationFlipY(x, y,
                                             ctrl, shift, chr(0), repeat, None)
 
         self._ActiveButton = ev.button()
@@ -397,7 +452,15 @@ class QVTKRenderWindowInteractor(QVTKRWIBaseClass):
 
     def mouseReleaseEvent(self, ev):
         ctrl, shift = self._GetCtrlShift(ev)
-        self._Iren.SetEventInformationFlipY(ev.x(), ev.y(),
+        if qt_ver < 6:
+            x = ev.x()
+            y = ev.y()
+        else:
+            pos = ev.position()
+            x = int(pos.x())
+            y = int(pos.y())
+
+        self._Iren.SetEventInformationFlipY(x, y,
                                             ctrl, shift, chr(0), 0, None)
 
         if self._ActiveButton == Qt.LeftButton:
@@ -410,11 +473,20 @@ class QVTKRenderWindowInteractor(QVTKRWIBaseClass):
     def mouseMoveEvent(self, ev):
         self.__saveModifiers = ev.modifiers()
         self.__saveButtons = ev.buttons()
-        self.__saveX = ev.x()
-        self.__saveY = ev.y()
+
+        if qt_ver < 6:
+            x = ev.x()
+            y = ev.y()
+        else:
+            pos = ev.position()
+            x = int(pos.x())
+            y = int(pos.y())
+
+        self.__saveX = x
+        self.__saveY = y
 
         ctrl, shift = self._GetCtrlShift(ev)
-        self._Iren.SetEventInformationFlipY(ev.x(), ev.y(),
+        self._Iren.SetEventInformationFlipY(x, y,
                                             ctrl, shift, chr(0), 0, None)
         self._Iren.MouseMoveEvent()
 
@@ -495,102 +567,107 @@ def QVTKRenderWidgetConeExample():
     # show the widget
     widget.show()
     # start event processing
-    app.exec_()
+    app.exec()
 
+
+if qt_ver < 6:
+    obj = Qt
+else:
+    obj = Qt.Key
 
 _keysyms = {
-    Qt.Key_Backspace: 'BackSpace',
-    Qt.Key_Tab: 'Tab',
-    Qt.Key_Backtab: 'Tab',
+    obj.Key_Backspace: 'BackSpace',
+    obj.Key_Tab: 'Tab',
+    obj.Key_Backtab: 'Tab',
     # Qt.Key_Clear : 'Clear',
-    Qt.Key_Return: 'Return',
-    Qt.Key_Enter: 'Return',
-    Qt.Key_Shift: 'Shift_L',
-    Qt.Key_Control: 'Control_L',
-    Qt.Key_Alt: 'Alt_L',
-    Qt.Key_Pause: 'Pause',
-    Qt.Key_CapsLock: 'Caps_Lock',
-    Qt.Key_Escape: 'Escape',
-    Qt.Key_Space: 'space',
+    obj.Key_Return: 'Return',
+    obj.Key_Enter: 'Return',
+    obj.Key_Shift: 'Shift_L',
+    obj.Key_Control: 'Control_L',
+    obj.Key_Alt: 'Alt_L',
+    obj.Key_Pause: 'Pause',
+    obj.Key_CapsLock: 'Caps_Lock',
+    obj.Key_Escape: 'Escape',
+    obj.Key_Space: 'space',
     # Qt.Key_Prior : 'Prior',
     # Qt.Key_Next : 'Next',
-    Qt.Key_End: 'End',
-    Qt.Key_Home: 'Home',
-    Qt.Key_Left: 'Left',
-    Qt.Key_Up: 'Up',
-    Qt.Key_Right: 'Right',
-    Qt.Key_Down: 'Down',
-    Qt.Key_SysReq: 'Snapshot',
-    Qt.Key_Insert: 'Insert',
-    Qt.Key_Delete: 'Delete',
-    Qt.Key_Help: 'Help',
-    Qt.Key_0: '0',
-    Qt.Key_1: '1',
-    Qt.Key_2: '2',
-    Qt.Key_3: '3',
-    Qt.Key_4: '4',
-    Qt.Key_5: '5',
-    Qt.Key_6: '6',
-    Qt.Key_7: '7',
-    Qt.Key_8: '8',
-    Qt.Key_9: '9',
-    Qt.Key_A: 'a',
-    Qt.Key_B: 'b',
-    Qt.Key_C: 'c',
-    Qt.Key_D: 'd',
-    Qt.Key_E: 'e',
-    Qt.Key_F: 'f',
-    Qt.Key_G: 'g',
-    Qt.Key_H: 'h',
-    Qt.Key_I: 'i',
-    Qt.Key_J: 'j',
-    Qt.Key_K: 'k',
-    Qt.Key_L: 'l',
-    Qt.Key_M: 'm',
-    Qt.Key_N: 'n',
-    Qt.Key_O: 'o',
-    Qt.Key_P: 'p',
-    Qt.Key_Q: 'q',
-    Qt.Key_R: 'r',
-    Qt.Key_S: 's',
-    Qt.Key_T: 't',
-    Qt.Key_U: 'u',
-    Qt.Key_V: 'v',
-    Qt.Key_W: 'w',
-    Qt.Key_X: 'x',
-    Qt.Key_Y: 'y',
-    Qt.Key_Z: 'z',
-    Qt.Key_Asterisk: 'asterisk',
-    Qt.Key_Plus: 'plus',
-    Qt.Key_Minus: 'minus',
-    Qt.Key_Period: 'period',
-    Qt.Key_Slash: 'slash',
-    Qt.Key_F1: 'F1',
-    Qt.Key_F2: 'F2',
-    Qt.Key_F3: 'F3',
-    Qt.Key_F4: 'F4',
-    Qt.Key_F5: 'F5',
-    Qt.Key_F6: 'F6',
-    Qt.Key_F7: 'F7',
-    Qt.Key_F8: 'F8',
-    Qt.Key_F9: 'F9',
-    Qt.Key_F10: 'F10',
-    Qt.Key_F11: 'F11',
-    Qt.Key_F12: 'F12',
-    Qt.Key_F13: 'F13',
-    Qt.Key_F14: 'F14',
-    Qt.Key_F15: 'F15',
-    Qt.Key_F16: 'F16',
-    Qt.Key_F17: 'F17',
-    Qt.Key_F18: 'F18',
-    Qt.Key_F19: 'F19',
-    Qt.Key_F20: 'F20',
-    Qt.Key_F21: 'F21',
-    Qt.Key_F22: 'F22',
-    Qt.Key_F23: 'F23',
-    Qt.Key_F24: 'F24',
-    Qt.Key_NumLock: 'Num_Lock',
-    Qt.Key_ScrollLock: 'Scroll_Lock',
+    obj.Key_End: 'End',
+    obj.Key_Home: 'Home',
+    obj.Key_Left: 'Left',
+    obj.Key_Up: 'Up',
+    obj.Key_Right: 'Right',
+    obj.Key_Down: 'Down',
+    obj.Key_SysReq: 'Snapshot',
+    obj.Key_Insert: 'Insert',
+    obj.Key_Delete: 'Delete',
+    obj.Key_Help: 'Help',
+    obj.Key_0: '0',
+    obj.Key_1: '1',
+    obj.Key_2: '2',
+    obj.Key_3: '3',
+    obj.Key_4: '4',
+    obj.Key_5: '5',
+    obj.Key_6: '6',
+    obj.Key_7: '7',
+    obj.Key_8: '8',
+    obj.Key_9: '9',
+    obj.Key_A: 'a',
+    obj.Key_B: 'b',
+    obj.Key_C: 'c',
+    obj.Key_D: 'd',
+    obj.Key_E: 'e',
+    obj.Key_F: 'f',
+    obj.Key_G: 'g',
+    obj.Key_H: 'h',
+    obj.Key_I: 'i',
+    obj.Key_J: 'j',
+    obj.Key_K: 'k',
+    obj.Key_L: 'l',
+    obj.Key_M: 'm',
+    obj.Key_N: 'n',
+    obj.Key_O: 'o',
+    obj.Key_P: 'p',
+    obj.Key_Q: 'q',
+    obj.Key_R: 'r',
+    obj.Key_S: 's',
+    obj.Key_T: 't',
+    obj.Key_U: 'u',
+    obj.Key_V: 'v',
+    obj.Key_W: 'w',
+    obj.Key_X: 'x',
+    obj.Key_Y: 'y',
+    obj.Key_Z: 'z',
+    obj.Key_Asterisk: 'asterisk',
+    obj.Key_Plus: 'plus',
+    obj.Key_Minus: 'minus',
+    obj.Key_Period: 'period',
+    obj.Key_Slash: 'slash',
+    obj.Key_F1: 'F1',
+    obj.Key_F2: 'F2',
+    obj.Key_F3: 'F3',
+    obj.Key_F4: 'F4',
+    obj.Key_F5: 'F5',
+    obj.Key_F6: 'F6',
+    obj.Key_F7: 'F7',
+    obj.Key_F8: 'F8',
+    obj.Key_F9: 'F9',
+    obj.Key_F10: 'F10',
+    obj.Key_F11: 'F11',
+    obj.Key_F12: 'F12',
+    obj.Key_F13: 'F13',
+    obj.Key_F14: 'F14',
+    obj.Key_F15: 'F15',
+    obj.Key_F16: 'F16',
+    obj.Key_F17: 'F17',
+    obj.Key_F18: 'F18',
+    obj.Key_F19: 'F19',
+    obj.Key_F20: 'F20',
+    obj.Key_F21: 'F21',
+    obj.Key_F22: 'F22',
+    obj.Key_F23: 'F23',
+    obj.Key_F24: 'F24',
+    obj.Key_NumLock: 'Num_Lock',
+    obj.Key_ScrollLock: 'Scroll_Lock',
     }
 
 def _qt_key_to_key_sym(key):

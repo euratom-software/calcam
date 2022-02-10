@@ -101,6 +101,10 @@ class ColourCycle():
     '''
     A class to represent a colour cycle,
     used for when plotting / displaying multiple things.
+
+    Note: this uses the same colours as the MatPlotLib 2 default
+    colour cycle except with grey (C7) removed because usually grey doesn't
+    stand out well enough.
     '''
     def __init__(self):
 
@@ -111,7 +115,6 @@ class ColourCycle():
                         (0.580,0.403,0.741),
                         (0.549,0.337,0.294),
                         (0.890,0.466,0.760),
-                        (0.498,0.498,0.498),
                         (0.737,0.741,0.133),
                         (0.09,0.745,0.811),
                         ]
@@ -159,7 +162,7 @@ class DodgyDict():
         for i,ikey in enumerate(self.keylist):
             if key == ikey:
                 return self.itemlist[i]
-        raise KeyError('No such item "{:s}"'.format(key))
+        raise KeyError('No item with key "{:}"'.format(key))
 
     def __setitem__(self,key,value):
 
@@ -170,6 +173,13 @@ class DodgyDict():
 
         self.keylist.append(key)
         self.itemlist.append(value)
+
+    def __delitem__(self,key):
+        for i,ikey in enumerate(self.keylist):
+            if key == ikey:
+                self.itemlist.remove(self.itemlist[i])
+                self.keylist.remove(key)
+                return
 
     def __iter__(self):
         self.iter_index = 0
@@ -382,3 +392,81 @@ def open_file(path):
     else:
         opener = "open" if sys.platform == "darwin" else "xdg-open"
         subprocess.call([opener, path])
+
+
+def get_contour_intersection(contour,linestart,lineend,debug=False):
+    """
+    Returns the intersection of a line from the x-point to given
+    strike point, and the wall.
+
+    Parameters:
+
+        linestart (2 element array) : [R,Z] position of X-point
+        lineend (2 element array) : [R,Z] position of "strike point"
+        debug (bool) : Whether to plot positions for debugging purposes
+
+    Returns:
+
+        NaN if the line which goes through linestart and strike point does not intersect the wall
+
+        S coordinate in mm of the wall intersection if it exists.
+
+    """
+    Rs = contour[:,0]
+    Zs = contour[:,1]
+
+    Re = np.roll(Rs, 1)
+    Ze = np.roll(Zs, 1)
+
+    hs = np.hstack((Rs[:, np.newaxis], Zs[:, np.newaxis], np.ones((Rs.size, 1))))
+    he = np.hstack((Re[:, np.newaxis], Ze[:, np.newaxis], np.ones((Rs.size, 1))))
+    l_s = np.cross(hs, he)
+
+    l = np.tile( np.cross([linestart[0],linestart[1],1],[lineend[0],lineend[1],1]), (l_s.shape[0],1) )
+
+    res = np.cross(l,l_s)
+    with np.errstate(divide='ignore',invalid='ignore'):
+        Ri = res[:,0] / res[:,2]
+        Zi = res[:,1] / res[:,2]
+
+    dir_s = np.hstack((Ri[:,np.newaxis]- linestart[0],Zi[:,np.newaxis]- linestart[1]))
+    dir = np.tile((np.array(lineend) - np.array(linestart))[np.newaxis,:],(dir_s.shape[0],1))
+    dp = np.sum(dir_s * dir, axis=1)
+
+    valid = (dp >= 0) & (Ri >= np.minimum(Rs,Re)-1e-5) & (Ri <= np.maximum(Rs,Re)+1e-5) & (Zi >= np.minimum(Zs,Ze)-1e-5) & (Zi <= np.maximum(Zs,Ze)+1e-5)
+
+    if np.count_nonzero(valid) > 0:
+
+        if np.count_nonzero(valid) > 1:
+            dr = Ri[valid] - linestart[0]
+            dz = Zi[valid] - linestart[1]
+            d = np.sqrt(dr**2 + dz**2)
+            mindex = np.argmin(d)
+        else:
+            mindex = 0
+
+
+        if debug:
+            import matplotlib.pyplot as plt
+            plt.plot(Rs,Zs,'k')
+            plt.plot(linestart[0],linestart[1],'x',label='linestart',markersize=10)
+            plt.plot(Ri[valid][mindex],Zi[valid][mindex],'o',label='Detected intersection')
+            plt.plot(lineend[0],lineend[1],'s',label='lineend')
+            plt.legend()
+            plt.show()
+
+        return Ri[valid][mindex],Zi[valid][mindex]
+    else:
+
+        if debug:
+            import matplotlib.pyplot as plt
+            plt.plot(Rs,Zs,'k')
+            plt.plot(linestart[0],linestart[1],'x',markersize=10,label='linestart')
+            plt.plot(Ri,Zi,'o',label='All intersections')
+            plt.plot(lineend[0],lineend[1],'s',label='lineend')
+            plt.xlim([2.2,3.1])
+            plt.ylim([-1.8,-1.3])
+            plt.legend()
+            plt.show()
+
+        return np.nan

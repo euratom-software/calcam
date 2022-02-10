@@ -42,7 +42,7 @@ import time
 
 class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
  
-    def __init__(self,parent=None,viewport_callback=None,resize_callback=None,newpick_callback=None,cursor_move_callback=None,focus_changed_callback=None,refresh_callback=None):
+    def __init__(self,parent=None,viewport_callback=None,resize_callback=None,newpick_callback=None,cursor_move_callback=None,focus_changed_callback=None,refresh_callback=None,pre_move_callback=None):
         
         # Set callbacks for all the mouse controls
 
@@ -62,6 +62,7 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
         self.cursor_changed_callback = focus_changed_callback
         self.refresh_callback = refresh_callback
         self.focus_changed_callback = focus_changed_callback
+        self.pre_move_callback = pre_move_callback
         self.image_actor = None
         self.image_resizer = None
         self.force_aspect = None
@@ -74,6 +75,7 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
         self.rmb_down = False
         self.mouse_delta = np.array([0,0])
         self.allow_focus_change = True
+
 
 
     # Do various initial setup things, most of which can't be done at the time of __init__
@@ -386,6 +388,8 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
                 # of if they didn't click another cursor, move the current cursor
                 # to where they clicked
                 elif self.focus_cursor is not None:
+                    if self.pre_move_callback is not None:
+                        self.pre_move_callback()
                     self.set_cursor_coords(self.focus_cursor,pickcoords)
 
 
@@ -521,7 +525,7 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
             legend_scale = 0.03
 
             legend_offset_x = legend_offset_y*vtk_size[1] / vtk_size[0]
-            legend_pad_y = 20./vtk_size[1]
+            legend_pad_y = 30./vtk_size[1]
             legend_pad_x = 20./vtk_size[0]
 
             legend_height = legend_pad_y + legend_scale * self.n_legend_items
@@ -675,7 +679,7 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
 
 class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
  
-    def __init__(self,parent=None,newpick_callback=None,cursor_move_callback=None,focus_changed_callback=None,refresh_callback=None):
+    def __init__(self,parent=None,newpick_callback=None,cursor_move_callback=None,focus_changed_callback=None,refresh_callback=None,pre_move_callback=None):
         # Set callbacks for all the controls
         self.AddObserver("LeftButtonPressEvent",self.on_left_click)
         self.AddObserver("MiddleButtonPressEvent",self.middle_press)
@@ -687,9 +691,12 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
         self.cursor_move_callback = cursor_move_callback
         self.focus_changed_callback = focus_changed_callback
         self.refresh_callback = refresh_callback
+        self.pre_move_callback = pre_move_callback
         self.allow_focus_change = True
         self.linked_interactors = []
         self.cursor_size = 0.03
+        self.overlay_actors = []
+
 
     # Do various initial setup things, most of which can't be done at the time of __init__
     def init(self):
@@ -725,7 +732,9 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
         self.focus_cursor = None
 
         self.image_actor = None
-        self.overlay_actor = None
+        self.overlay_actors = []
+
+        self.overlay_alpha = 1
 
 
     def link_with(self,interactor):
@@ -749,18 +758,18 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
 
     # Use this image object
     def set_image(self,image,n_subviews=1,subview_lookup=lambda x,y: 0,hold_position=False):
-        
-        # Remove current image, if any
+
         if self.image_actor is not None:
 
+            # If removing the image entirely or changing image dimensions, remove any overlays
+            if image is None or image.shape[:2] != self.image_actor.image.shape[:2]:
+                for actor in self.overlay_actors:
+                    self.renderer.RemoveActor(actor)
+                self.overlay_actors = []
+
+            # Remove existing image
             self.renderer.RemoveActor(self.image_actor)
             self.image_actor = None
-        
-        if self.overlay_actor is not None:
-
-            self.renderer.RemoveActor(self.overlay_actor)
-            self.overlay_actor = None
-
 
         if image is not None:
 
@@ -829,9 +838,36 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
             self.refresh_callback()
 
 
+    def get_image(self):
+        if self.image_actor is None:
+            return None
+        else:
+            return self.image_actor.image
+
+
     def set_subview_lookup(self,n_subviews,subview_lookup):
         self.n_subviews = n_subviews
         self.subview_lookup = subview_lookup
+
+        # Re-shuffle cursors into different sub-views if needed.
+        for cursor_id in self.active_cursors.keys():
+            coords = self.get_cursor_coords(cursor_id)
+            new_actor_list = [None] * self.n_subviews
+            new_cursor3d_list = [None] * self.n_subviews
+            for n_old in range(len(coords)):
+                if coords[n_old] is not None:
+                    new_subview = self.subview_lookup(coords[n_old][0],coords[n_old][1])
+                    new_actor_list[new_subview] = self.active_cursors[cursor_id]['actors'][n_old]
+                    self.renderer.RemoveActor(new_actor_list[new_subview])
+                    new_cursor3d_list[new_subview] = self.active_cursors[cursor_id]['cursor3ds'][n_old]
+            self.active_cursors[cursor_id] = {'cursor3ds':new_cursor3d_list,'actors':new_actor_list}
+
+        # Finish re-adding active cursors
+        for active_cursor in self.active_cursors.values():
+            for actor in active_cursor['actors']:
+                if actor is not None:
+                    self.renderer.AddActor(actor)
+
 
     def get_n_cursors(self):
         return ( len(self.active_cursors) , len(self.passive_cursors) )
@@ -845,20 +881,40 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
 
 
     def set_overlay_image(self,overlay_image):
-        
-        if self.overlay_actor is not None:
-            self.renderer.RemoveActor(self.overlay_actor)
-            self.overlay_actor = None
 
-        if overlay_image is not None:
-            self.overlay_actor = get_image_actor(overlay_image)
-            self.overlay_actor.SetPosition(0,0,0.01)
-            self.renderer.AddActor2D(self.overlay_actor)
+        if overlay_image is None:
+            overlay_image = []
+        elif not isinstance(overlay_image,list):
+            overlay_image = [overlay_image]
+        
+        for actor in self.overlay_actors:
+            self.renderer.RemoveActor(actor)
+        self.overlay_actors = []
+
+        for i,image in enumerate(overlay_image):
+            scaling = np.array(self.image_actor.image.shape[:2]) / np.array(image.shape[:2])
+            if scaling[0] != scaling[1]:
+                raise ValueError('Provided overlay image is a different aspect ratio to the main image!')
+
+            actor = get_image_actor(image,scaling=scaling[0])
+            actor.SetPosition(0,0,0.01*(i+1))
+            actor.GetProperty().SetOpacity(self.overlay_alpha)
+            self.renderer.AddActor2D(actor)
+            self.overlay_actors.append(actor)
 
         if self.refresh_callback is not None:
             self.refresh_callback()
 
 
+    def set_overlay_alpha(self,alpha):
+
+        self.overlay_alpha = alpha
+
+        for actor in self.overlay_actors:
+            actor.GetProperty().SetOpacity(alpha)
+
+        if self.refresh_callback is not None:
+            self.refresh_callback()
 
     # Left click to move a point or add a new point
     def on_left_click(self,obj,event):
@@ -919,6 +975,8 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
                 if self.active_cursors[self.focus_cursor]['cursor3ds'][view_index] is None:
                     self.add_active_cursor(pickcoords,add_to=self.focus_cursor)
                 else:
+                    if self.pre_move_callback is not None:
+                        self.pre_move_callback()
                     self.set_cursor_coords(self.focus_cursor,pickcoords,view_index)
 
                 if self.cursor_move_callback is not None:
@@ -1063,8 +1121,6 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
             winaspect = float(vtksize[0])/float(vtksize[1])
 
             bounds = self.image_actor.GetBounds()
-            xc = bounds[0] + bounds[1] / 2
-            yc = bounds[2] + bounds[3] / 2
             ye = bounds[3] - bounds[2]
             xe = bounds[1] - bounds[0]
 

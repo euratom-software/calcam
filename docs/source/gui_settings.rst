@@ -66,6 +66,8 @@ Adding Additional Information
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Additional information can be added to the CAD model definition using the :guilabel:`Additional information` tab:
 
+.. _wall_contour:
+
 R,Z Wall Contour
 ****************
 An R,Z wall contour can be saved as part of the model definition; currently this is only used for displaying in the 3D viewer but is intended to be used in future for geometry matrix calculation, for example. To add an R,Z wall contour to the CAD model, prepare the contour in a two-column ASCII file containing R,Z coordinates of the wall (in metres) around the poloidal cross-section, with one coordinate per line in the file. Then click :guilabel:`Load from file...` in the :guilabel:`R, Z Wall Contour` box to load the file. If a wall contour already exists in the model, its details will also be displayed in this box. If a cursor is placed on the 3D model, the current wall contour can be displayed, at the cursor position, using the :guilabel:`Show contour at cursor position` checkbox.

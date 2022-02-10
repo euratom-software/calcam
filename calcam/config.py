@@ -51,7 +51,7 @@ class CalcamConfig():
     def __init__(self,cfg_file= os.path.expanduser('~/.calcam_config'),allow_create=True):
 
         self.filename = cfg_file
-        self.filename_filters = {'calibration':'Calcam Calibration (*.ccc)','image':'PNG Image (*.png)','pointpairs':'Calcam Point Pairs (*.ccc *.csv)'}
+        self.filename_filters = {'calibration':'Calcam Calibration (*.ccc)','image':'PNG Image (*.png)','pointpairs':'Calcam Point Pairs (*.ccc *.csv)','movement':'Calcam Affine Transform (*.cmc)'}
         
         try:
             self.load()

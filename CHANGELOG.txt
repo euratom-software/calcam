@@ -1,6 +1,41 @@
 Calcam Changelog
 ================
 
+
+Minor Release 2.8.0 (10 Feb 2022)
+---------------------------------
+
+New & Enhancements:
+* Added ability to render un-folded image of tokamak interior on to a rectangular image (render.render_unfolded_wall() and available through 3D Viewer GUI)
+* Added ability for ray-casting to calculate the CAD model surface normal vectors where sight-lines intersect the CAD model, these are now stored in RayData objects.
+* Added option to show camera fields of view as shading of the CAD model in the 3D Viewer GUI
+* When loading calibrations with multiple sub-views in to the 3D Viewer GUI, the appearance of the field of view for each sub-view can now be changed independently.
+* Display of 3D coordinate data loaded in to the 3D viewer GUI can now be much more customised (showing as lines / points, line width & marker size adjustment, legend support)
+* Layout of the movement correction GUI has been re-organised.
+* Image analyser GUI can now show an image mapped on to the CAD model surface in its 3D view.
+* Image analyser GUI can now apply colour-maps to loaded gresycale images.
+* Image analyser GUI now supports applying movement correction to a loaded image for more accurate results.
+* Layout of displayed position information in the image analyser GUI has been improved
+* Image analyser GUI now supports saving images.
+* When loading a new image in the fitting calibration tool, there is now a prompt to use the movement correction tool to quickly adjust all calibration points at once.
+* In the fitting calibration tool, image enhancement options in the main window are now also applied in the sub-view definition editing dialog.
+* CAD overlays in the fitting calibration tool are now always rendered at 1 megapixel or greater resolution, even for low resolution images being calibrated. (#74)
+* Added additional options to customise display of the CAD overlay image in the fitting calibration tool (can be wireframe or solid CAD; adjustable opacity).
+* Added "undo" function to fitting calibration tool which can undo up to the last 20 changes to the calibration point coordinates. (#75)
+* When saving the current view in the 3D viewier tool, any legend displayed in the window is now included in the output image.
+
+Compatibility Updates:
+* Now compatible with PyQt6
+* Changed dependency in setup.py from opencv-python to opencv-python-headless to reduce likelihood of problems with OpenCV vs PyQt version conflicts. (#72)
+* Restricted versions of VTK installed by setup.py to avoid issues with newer versions of VTK (see #78)
+
+Fixes:
+* On Windows, stopped separate VTK error output window opening to show VTK warnings.
+* Fixed bug in Image analyser which could cause exceptions when loading images in display orientation.
+* Fixed bug where image enhancement was unexpectedly turned off (but the checkbox stayed checked) when editing sub-view definitions in the fitting calibration tool
+* Fixed issue where the colour used for the CAD overlay did not correctly follow the colour picked by the user.
+
+
 Minor Release 2.7.0 (17 Apr 2021)
 ---------------------------------
 

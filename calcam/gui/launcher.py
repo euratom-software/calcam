@@ -78,7 +78,10 @@ class Launcher(qt.QDialog):
 
         self.setWindowIcon(qt.QIcon(os.path.join(guipath,'icons','calcam.png')))
         self.setWindowTitle('Calcam  v{:s}'.format(__version__))
-        self.layout().setSizeConstraint(qt.QLayout.SetFixedSize)
+        if qt.qt_ver < 6:
+            self.layout().setSizeConstraint(qt.QLayout.SetFixedSize)
+        else:
+            self.layout().setSizeConstraint(qt.QLayout.SizeConstraint.SetFixedSize)
 
         self.app = app
         

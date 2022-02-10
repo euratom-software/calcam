@@ -27,12 +27,12 @@ Welcome to the Calcam documentation index page. If you want to know what it's al
    :name: guitoc
 
    gui_intro
+   gui_settings
    gui_calib
    gui_alignment_calib
    gui_virtual_calib
    gui_image_analyser
    gui_viewer
-   gui_settings
    gui_movement
 
 .. toctree::
@@ -42,6 +42,7 @@ Welcome to the Calcam documentation index page. If you want to know what it's al
 
    api_analysis
    api_cadmodel
+   api_rendering
    api_geom_matrix
    api_movement
    api_examples

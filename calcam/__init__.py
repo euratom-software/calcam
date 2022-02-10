@@ -25,20 +25,22 @@ CalCam package.
 """
 
 # Calcam version
-__version__ = '2.7.0'
+__version__ = '2.8.0'
 
 try:
     import vtk
+    vtk.vtkObject.GlobalWarningDisplayOff()
 
     try:
         from . import gui
         from .gui import start_gui
+        from . import movement
     except Exception as e:
-        print('WARNING: calcam.gui module not available (error: {:})'.format(e))
+        print('WARNING: calcam.gui and calcam.movement module snot available (error: {:})'.format(e))
 
     from .cadmodel import CADModel
     from .raycast import raycast_sightlines
-    from .render import render_cam_view
+    from .render import render_cam_view,render_unfolded_wall
 
 except:
     print('WARNING: VTK not available; calcam.gui, calcam.raycast, calcam.render and calcam.cadmodel modules will not be available.')
@@ -52,4 +54,3 @@ from .pointpairs import PointPairs
 
 from . import config
 from . import gm
-from . import movement

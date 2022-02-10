@@ -73,7 +73,7 @@ if 'install' in sys.argv or 'develop' in sys.argv:
     # find a suitably portable way to do it more automatically)
 
     # Essential dependencies
-    for prettyname,pkgname,importname in [ ('SciPy','scipy','scipy') ,('MatPlobLib','matplotlib','matplotlib'),('OpenCV','opencv-python','cv2')]:
+    for prettyname,pkgname,importname in [ ('SciPy','scipy','scipy') ,('MatPlobLib','matplotlib','matplotlib'),('OpenCV','opencv-python-headless','cv2')]:
 
         if check_dependency(importname):
             print('Dependency {:s}: OK!'.format(prettyname))
@@ -96,7 +96,7 @@ if 'install' in sys.argv or 'develop' in sys.argv:
 
     if not vtk:
         print('Dependency VTK: trying to install using pip...\n')
-        if pip_install('vtk>=6'):
+        if pip_install('vtk>=6,<9.0.2'):
             print('\nVTK installed OK!')
             vtk = True
         else:
@@ -104,28 +104,34 @@ if 'install' in sys.argv or 'develop' in sys.argv:
 
 
     pyqt = True
+    if check_dependency('PyQt6'):
+        print('Dependency PyQt: PyQt6 OK!')
     if check_dependency('PyQt5'):
         print('Dependency PyQt: PyQt5 OK!')
     elif check_dependency('PyQt4'):
         print('Dependency PyQt: PyQt4 OK!')
     else:
-        print('Dependency PyQt: trying to install PyQt5 using pip...\n')  
-        if not pip_install('PyQt5'):
-            print('\nDependency PyQt: trying to install PyQt4 using pip...\n')
-            if not pip_install('PyQt4'):
-                print('\nFailed to install PyQt :(')
-                pyqt = False
+        print('Dependency PyQt: trying to install PyQt6 using pip...\n')
+        if not pip_install('PyQt6'):
+            print('Dependency PyQt: trying to install PyQt5 using pip...\n')
+            if not pip_install('PyQt5'):
+                print('\nDependency PyQt: trying to install PyQt4 using pip...\n')
+                if not pip_install('PyQt4'):
+                    print('\nFailed to install any PyQt :(')
+                    pyqt = False
+                else:
+                    print('\nPyQt4 installed OK!')
             else:
-                print('\nPyQt4 installed OK!')
+                print('\nPyQt5 installed OK!')
         else:
-            print('\nPyQt5 installed OK!')
+            print('\nPyQt6 installed OK!')
 
 
 
 # Actually do the requested setup actions
 s = setup(
           name='Calcam',
-          version='2.7.0',
+          version='2.8.0',
           url='https://euratom-software.github.io/calcam/',
           license='European Union Public License 1.1',
           author='Scott Silburn et.al.',

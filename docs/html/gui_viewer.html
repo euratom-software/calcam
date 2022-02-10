@@ -37,7 +37,7 @@
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Calcam Settings" href="gui_settings.html" />
+    <link rel="next" title="Camera Movement Determination" href="gui_movement.html" />
     <link rel="prev" title="Image Analyser" href="gui_image_analyser.html" /> 
 </head>
 
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                Version 2.7
+                Version 2.8
               </div>
             
           
@@ -100,6 +100,7 @@
 <p class="caption"><span class="caption-text">GUI App User Guide</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="gui_intro.html">Introduction &amp; Launcher</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui_settings.html">Calcam Settings</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_calib.html">Calibration by point fitting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_alignment_calib.html">Calibration by manual alignment</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_virtual_calib.html">“Virtual” Calibrations</a></li>
@@ -111,18 +112,18 @@
 <li class="toctree-l2"><a class="reference internal" href="#wall-contour-display">Wall contour display</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#mouse-navigation">Mouse Navigation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#d-viewport-tab">3D ViewPort Tab</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#visualising-camera-fields-of-view">Visualising camera fields of view</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#displaying-arbitrary-3d-lines">Displaying Arbitrary 3D Lines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#visualising-camera-fields-of-view-from-calibrations">Visualising camera fields of view from calibrations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#displaying-arbitrary-3d-data">Displaying Arbitrary 3D Data</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#rendering-and-saving-images">Rendering and saving images</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="gui_settings.html">Calcam Settings</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_movement.html">Camera Movement Determination</a></li>
 </ul>
 <p class="caption"><span class="caption-text">API User Guide</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="api_analysis.html">Using Calibration Results</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_cadmodel.html">CAD Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_rendering.html">Rendering Images</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_geom_matrix.html">Tomography Geometry Matrices</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_movement.html">Camera Movement Correction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_examples.html">Examples</a></li>
@@ -245,33 +246,48 @@
 <p>At the bottom of this tab are options for configuring the mouse controls for 3D navigation. The <kbd class="kbd docutils literal notranslate"><kbd class="kbd docutils literal notranslate">Right</kbd> <kbd class="kbd docutils literal notranslate">Click</kbd> <kbd class="kbd docutils literal notranslate"></kbd>+<kbd class="kbd docutils literal notranslate"></kbd> <kbd class="kbd docutils literal notranslate">Drag</kbd></kbd> behaviour can be toggled between looking around and rotating the model about a point in front of the camera, and the mouse sensitivity can be adjusted.</p>
 </div>
 </div>
-<div class="section" id="visualising-camera-fields-of-view">
-<h2>Visualising camera fields of view<a class="headerlink" href="#visualising-camera-fields-of-view" title="Permalink to this headline">¶</a></h2>
-<p>Calcam calibration files can be loaded by the 3D viewer to visualise the camera sight-lines / fields of view on the 3D model. This is done on the <span class="guilabel">Camera Sight Lines</span> tab. Clicking the <span class="guilabel">Add…</span> button below the list of currently loaded calibrations will open a file browsing dialog to load a calibration file. Once loaded, the calibrated camera’s field of view is shown as a shaded volume in the 3D view. The sight-lines for a given calibration can be turned on or off using the tick-box next to its name. With multiple calibrations loaded, a legend showing which camera corresponds to which colour can be turned on or off using the checkbox next to the  <span class="guilabel">Add…</span> button. To change the name of a calibration in the legend, single-click the calibration name in the list box and enter the new name.</p>
-<div class="section" id="sight-line-appearance">
-<h3>Sight-line appearance<a class="headerlink" href="#sight-line-appearance" title="Permalink to this headline">¶</a></h3>
-<p>With one or more calibrations selected in the loaded calibration list, the appearance of the selected calibration(s) sight-lines can be adjusted with the controls in the <span class="guilabel">Apperance</span> box at the bottom of the tab. The appearance of the sight-line cone can be switched between a solid shaded volume and a sparser set of individual lines representing pixel sight-lines. The colour and level of transparency of the displayed sight-lines can also be changed using the controls in this box.</p>
+<div class="section" id="visualising-camera-fields-of-view-from-calibrations">
+<h2>Visualising camera fields of view from calibrations<a class="headerlink" href="#visualising-camera-fields-of-view-from-calibrations" title="Permalink to this headline">¶</a></h2>
+<p>Calcam calibration files can be loaded by the 3D viewer to visualise the camera sight-lines / fields of view on the 3D model. This is done on the <span class="guilabel">Calibrations</span> tab. Clicking the <span class="guilabel">Add…</span> button below the list of currently loaded calibrations will open a file browsing dialog to load a calibration file. Once loaded, the calibrated camera’s field of view is shown as a shaded volume in the 3D view. The sight-lines for a given calibration can be turned on or off using the tick-box next to its name. With multiple calibrations loaded, a legend showing which camera corresponds to which colour can be turned on or off using the checkbox next to the  <span class="guilabel">Add…</span> button. To change the name of a calibration in the legend, single-click the calibration name in the list box to edit the name.</p>
+<div class="section" id="field-of-view-appearance-options">
+<h3>Field-of-view appearance options<a class="headerlink" href="#field-of-view-appearance-options" title="Permalink to this headline">¶</a></h3>
+<p>The <span class="guilabel">Appearance</span> box at the bottom of the <span class="guilabel">Calibrations</span> tab allows customisation of how the selected camera field of view is displayed. In addition to controls for the transparency and colour, there are 3 different options for how fields of view appear:</p>
+<ul class="simple">
+<li><p>Shaded volume (default) - shows the camera field of view as a shaded cone eminating from the camera’s pupil.</p></li>
+<li><p>Sight-line fan - shows a 2D fan of discrete sight-lines eminating out from the camera.</p></li>
+<li><p>CAD model shading (WARNING - slow to calculate!) - useful for cameras such as IR thermography cameras designed to observe objects which are part of the CAD model, this option shows the camera field of view by shading parts of the CAD model which the camera can see. Note: when turning on this option it can be quite slow to calculate since the calculation involves ray casting over the camera field of view.</p></li>
+</ul>
 </div>
 </div>
-<div class="section" id="displaying-arbitrary-3d-lines">
-<h2>Displaying Arbitrary 3D Lines<a class="headerlink" href="#displaying-arbitrary-3d-lines" title="Permalink to this headline">¶</a></h2>
-<p>In addition to showing camera sight-lines, additional arbitrary 3D lines can be added to the visualisation, e.g. representing other diagnostic sight-lines, object trajectories, magnetic fiels lines or flux surfaces. The 3D data are loaded from ASCII files with .txt, .csv or .dat extensions.</p>
+<div class="section" id="displaying-arbitrary-3d-data">
+<h2>Displaying Arbitrary 3D Data<a class="headerlink" href="#displaying-arbitrary-3d-data" title="Permalink to this headline">¶</a></h2>
+<p>In addition to showing camera fields-of-view, additional arbitrary 3D points and lines can be added to the visualisation, e.g. representing other diagnostic sight-lines, trajectories, magnetic field lines, flux surfaces or other 3D coordinates of interest. Controls for this are on the <span class="guilabel">3D Data</span> tab. The 3D data are loaded from ASCII files with .txt, .csv or .dat extensions.</p>
+<p>Once loaded, data sets are added to the list in the box on the <span class="guilabel">3D Data</span> tab, with names corresponding to the file name they were loaded from. The display of each data set can be turned on and off using the checkboxes next to the dataset names. To edit the name of a data set, single click its name in the list.</p>
 <div class="section" id="preparation-of-ascii-files">
 <h3>Preparation of ASCII files<a class="headerlink" href="#preparation-of-ascii-files" title="Permalink to this headline">¶</a></h3>
-<p>The ASCII data to be displayed can take one of two formats, depending on whether you want to display a continuous line defined by a set of 3D points, or a collection of individual lines each with a start and end point. To display a single continuous 3D line, the file should contain a list of 3D points along the line, with each point taking up one line of the text file. Each line of the text file must therefore contain 3 numbers, which can be delimited with commas, spaces or tabs. If you wish to display a set of disconnected line segments, each line of the text file must contain 6 numbers: the 3D coordinates for the start of the 3D line segment followed by the 3D coordinates for the end of the line segment. The coordinates can be given either in cartesian coordinates <span class="math notranslate nohighlight">\(X,Y,Z\)</span> or <span class="math notranslate nohighlight">\(R,Z,\phi\)</span> where <span class="math notranslate nohighlight">\(\phi\)</span> is the toroidal angle in radians.</p>
+<p>The ASCII data to be displayed can take one of two formats, depending on whether you want to display a single continuous line defined by a set of 3D points, or a collection of individual straight lines each with a start and end point. To display a single continuous 3D line, the file should contain a list of 3D coordinates along the line, with each point along the line taking up one line of the text file. Each line of the text file must therefore contain 3 numbers, which can be delimited with commas, spaces or tabs. If you wish to display a set of disconnected line segments, each line of the text file must contain 6 numbers: the 3D coordinates for the start of the 3D line segment followed by the 3D coordinates for the end of the line segment. The coordinates can be given either in cartesian coordinates <span class="math notranslate nohighlight">\(X,Y,Z\)</span> or <span class="math notranslate nohighlight">\(R,Z,\phi\)</span> where <span class="math notranslate nohighlight">\(\phi\)</span> is the toroidal angle in radians.</p>
+</div>
+<div class="section" id="appearance-options">
+<h3>Appearance Options<a class="headerlink" href="#appearance-options" title="Permalink to this headline">¶</a></h3>
+<p>The 3D data can be displayed as solid lines and/or spheres at each point in the data. With a data set selected on the <span class="guilabel">3D Data</span> tab, the lines and points for that data set can be turned on and off, and their thickness, size and colour changed using the <span class="guilabel">Appearance</span> options at the bottom of the tab. Legend entries can also be shown for the loaded data sets, which can be turned on and off with the <span class="guilabel">Show in legend</span> checkbox below the list of loaded data sets.</p>
 </div>
 </div>
 <div class="section" id="rendering-and-saving-images">
 <h2>Rendering and saving images<a class="headerlink" href="#rendering-and-saving-images" title="Permalink to this headline">¶</a></h2>
-<p>The 3D viewer can save high resolution PNG images using the controls on the <span class="guilabel">Render / Save Image</span> tab.</p>
-<div class="section" id="render-point-of-view">
-<h3>Render point of view<a class="headerlink" href="#render-point-of-view" title="Permalink to this headline">¶</a></h3>
-<p>If <span class="guilabel">Current View</span> is selected at the top of the <span class="guilabel">Render / Save Image</span> tab, the output image will exactly match what is currently displayed in the 3D view in the window. This can be used to prepare illustrative figures. By default the output image size in pixels will match the size of the window on the screen, however you can choose to render the output at higher resolution with the <span class="guilabel">Output resolution</span> dropdown box in the <span class="guilabel">Render Settings</span> box. Here you can also change the level of anti-aliasing to eliminate sharp edges in the rendered image, which is implemented by rendering the output at higher resolution than desired and then down-sampling again. You can also choose whether to use a black background, as in the display window, or to make any black areas of the image transparent in the output image. If there is a cursor placed in the current view, you can choose whether or not to show the cursor on the output image. Note: If there is a sight-line legend displayed, this will not be included in the output image.</p>
+<p>The 3D viewer can be used to save high resolution PNG images using the controls on the <span class="guilabel">Render / Save Image</span> tab. At the top of this tab are the 3 main options for the types of image which can be saved:</p>
+<div class="section" id="exporting-the-current-view">
+<h3>Exporting the current view<a class="headerlink" href="#exporting-the-current-view" title="Permalink to this headline">¶</a></h3>
+<p>If <span class="guilabel">Current View</span> is selected at the top of the <span class="guilabel">Render / Save Image</span> tab, the output image will exactly match what is currently displayed in the 3D view in the window. This can be used to prepare illustrative figures. By default the output image size in pixels will match the size of the window on the screen, however you can choose to render the output at higher resolution with the <span class="guilabel">Output resolution</span> dropdown box in the <span class="guilabel">Render Settings</span> box. Here you can also change the level of anti-aliasing to eliminate sharp edges in the rendered image, which is implemented by rendering the output at higher resolution than desired and then down-sampling again. You can also choose whether to use a black background, as in the display window, or to make any black areas of the image transparent in the output image. If there is a cursor placed in the current view, you can choose whether or not to show the cursor on the output image.</p>
 </div>
 <div class="section" id="rendering-calibrated-camera-views">
 <h3>Rendering calibrated camera views<a class="headerlink" href="#rendering-calibrated-camera-views" title="Permalink to this headline">¶</a></h3>
 <p>The tool can also be used to render the CAD model, in the current configuration set up in the window, from the point of view of a calibrated camera. This will exactly match the position, orientation, focal length and distortion of the calibrated camera, so the rendered image should exactly match with real camera images to within the accuracy of the calibration.</p>
 <p>This is done by selecting <span class="guilabel">Calibration Result</span> at the top of the <span class="guilabel">Render / Save Image</span> tab. Then, click the <span class="guilabel">Select…</span> button in the <span class="guilabel">Render Settings</span> box to browse for a calibration file to use. You can then choose whether the output image should be in original or display orientation for the camera, and the output pixel resolution if you wish to render at a higher resolution than the real camera.  In the <span class="guilabel">Render Settings</span> box you can also change the level of anti-aliasing to eliminate sharp edges in the rendered image, which is implemented by rendering the output at higher resolution than desired and then down-sampling again. You can also choose whether to use a black background, as in the display window, or to make any black areas of the image transparent in the output image. If there is a cursor placed in the current view, you can choose whether or not to show the cursor on the output image. Note: If there is a sight-line legend displayed, this will not be included in the output image.</p>
+</div>
+<div class="section" id="rendering-an-un-folded-first-wall-view">
+<h3>Rendering an un-folded first wall view<a class="headerlink" href="#rendering-an-un-folded-first-wall-view" title="Permalink to this headline">¶</a></h3>
+<p>It may be useful to have an overview image of the first wall of the device, showing the entire wall in a single image. This can be done using the <span class="guilabel">Unfolded first wall</span> option at the top of the <span class="guilabel">Render / Save Image</span> tab. This option is only enabled for CAD models which include an <span class="math notranslate nohighlight">\(R,Z\)</span> wall contour (see <a class="reference internal" href="gui_settings.html#wall-contour"><span class="std std-ref">R,Z Wall Contour</span></a> for how to add this to to the CAD model).</p>
+<p>The output of this type of render is an image of the first wall where toroidal angle increases along the horizontal direction of the image and poloidal angle increases in the vertical direction of the image. This can be useful e.g. for</p>
 <p>When the above settings are set as desired, click the <span class="guilabel">Render Image…</span> button to save an image file.</p>
 </div>
 </div>
@@ -285,7 +301,7 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="gui_settings.html" class="btn btn-neutral float-right" title="Calcam Settings" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="gui_movement.html" class="btn btn-neutral float-right" title="Camera Movement Determination" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="gui_image_analyser.html" class="btn btn-neutral float-left" title="Image Analyser" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
