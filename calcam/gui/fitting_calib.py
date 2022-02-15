@@ -608,18 +608,38 @@ class FittingCalib(CalcamGUIWindow):
                 movement = manual_movement(old_image,self.calibration.get_image(coords='Display'),parent_window=self)
                 if movement is not None:
                     self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
-                    for _,cid in self.point_pairings:
-                        orig_coords = self.interactor2d.get_cursor_coords(cid)
+                    for pp in self.point_pairings:
+                        orig_coords = self.interactor2d.get_cursor_coords(pp[1])
                         new_coords = [None] * len(orig_coords)
                         for subview in range(len(orig_coords)):
                             if orig_coords[subview] is not None:
                                 new_coords[subview] = movement.ref_to_moved_coords(*orig_coords[subview])
                                 if np.all( np.array(new_coords[subview]) >= 0) and np.all( np.array(new_coords[subview]) < pos_lim):
-                                    self.interactor2d.set_cursor_coords(cid,new_coords[subview],subview=subview)
+                                    self.interactor2d.set_cursor_coords(pp[1],new_coords[subview],subview=subview)
                                 else:
                                     new_coords[subview] = None
                         if all(p is None for p in new_coords):
-                            pp_to_remove.append(cid)
+                            pp_to_remove.append(pp)
+
+                    for pp in pp_to_remove:
+                        if pp[0] is not None:
+                            self.interactor3d.remove_cursor(pp[0])
+                        if pp[1] is not None:
+                            self.interactor2d.remove_active_cursor(pp[1])
+
+                        r_index = self.point_pairings.index(pp)
+                        if self.selected_pointpair == r_index:
+                            if len(self.point_pairings) > 1:
+                                self.selected_pointpair = (self.selected_pointpair - 1) % len(self.point_pairings)
+                                self.interactor2d.set_cursor_focus(self.point_pairings[self.selected_pointpair][1])
+                                self.interactor3d.set_cursor_focus(self.point_pairings[self.selected_pointpair][0])
+                            else:
+                                self.selected_pointpair = None
+                                self.interactor3d.set_cursor_focus(None)
+                                self.interactor2d.set_cursor_focus(None)
+
+                        self.point_pairings.remove(pp)
+
                     self.app.restoreOverrideCursor()
                     self.init_fitting()
 
