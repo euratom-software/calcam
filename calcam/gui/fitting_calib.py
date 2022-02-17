@@ -1000,6 +1000,7 @@ class FittingCalib(CalcamGUIWindow):
 
         self.load_pointpairs(pointpairs=prev_pointpairs,history=pp_history,force_clear=True,include_in_undo=False)
 
+
         for cid in self.interactor3d.cursors.keys():
             if self.interactor3d.get_cursor_coords(cid) == selected_coords:
                 self.interactor3d.set_cursor_focus(cid)
@@ -1269,6 +1270,7 @@ class FittingCalib(CalcamGUIWindow):
         self.app.restoreOverrideCursor()
 
         return image
+
 
 
     def update_overlay(self):
