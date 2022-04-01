@@ -481,7 +481,6 @@ class Viewer(CalcamGUIWindow):
         for key,item in self.sightlines:
 
             recheck = False
-            self.colourcycle.queue_colour(item[1].GetProperty().GetColor())
 
             if key.checkState() == qt.Qt.Checked:
                 recheck = True
@@ -866,7 +865,7 @@ class Viewer(CalcamGUIWindow):
                             sv = subview
                         else:
                             sv = None
-                        self.sightlines[listitem] = [cal,None,actor_type,sv]
+                        self.sightlines[listitem] = [cal,None,actor_type,sv,next(self.colourcycle)]
                         listitem.setCheckState(qt.Qt.Checked)
                         self.sightlines_list.setCurrentItem(listitem)
 
@@ -894,7 +893,7 @@ class Viewer(CalcamGUIWindow):
                     else:
                         actor = render.get_fov_actor(self.cadmodel,self.sightlines[data][0],self.sightlines[data][2],subview=self.sightlines[data][3])
                     self.statusbar.clearMessage()
-                    actor.GetProperty().SetColor(next(self.colourcycle))
+                    actor.GetProperty().SetColor(self.sightlines[data][4])
                     actor.GetProperty().SetOpacity( self.get_fov_opacity(self.sightlines[data][2]) )
                     self.sightlines[data][1] = actor
                     self.interactor3d.add_extra_actor(actor)
@@ -934,9 +933,7 @@ class Viewer(CalcamGUIWindow):
 
             for item in self.sightlines_list.selectedItems():
                 item.setCheckState(qt.Qt.Unchecked)
-                self.colourcycle.queue_colour(self.sightlines[item][1].GetProperty().GetColor())
                 self.sightlines[item][1] = None
-
                 if self.sightline_type_volume.isChecked():
                     self.sightlines[item][2] = 'volume'
                 elif self.sightline_type_lines.isChecked():

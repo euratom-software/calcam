@@ -56,7 +56,7 @@ class ImageAnalyser(CalcamGUIWindow):
         # Set up VTK
         self.qvtkwidget_3d = qt.QVTKRenderWindowInteractor(self.vtkframe_3d)
         self.vtkframe_3d.layout().addWidget(self.qvtkwidget_3d)
-        self.interactor3d = CalcamInteractorStyle3D(refresh_callback=self.refresh_3d,viewport_callback=self.update_viewport_info,resize_callback=self.update_render_resolution,newpick_callback=self.update_from_3d,cursor_move_callback=lambda cid,coords: self.update_from_3d(coords))
+        self.interactor3d = CalcamInteractorStyle3D(refresh_callback=self.refresh_3d,viewport_callback=self.update_viewport_info,resize_callback=self.update_vtk_size,newpick_callback=self.update_from_3d,cursor_move_callback=lambda cid,coords: self.update_from_3d(coords))
         self.interactor3d.allow_focus_change = False
         self.qvtkwidget_3d.SetInteractorStyle(self.interactor3d)
         self.renderer_3d = vtk.vtkRenderer()
@@ -175,10 +175,10 @@ class ImageAnalyser(CalcamGUIWindow):
         self.interactor3d.on_resize()
 
 
-    def update_render_resolution(self,vtk_size):
+    def update_render_resolution(self):
 
-        w = vtk_size[0]
-        h = vtk_size[1]
+        w = self.vtksize[0]
+        h = self.vtksize[1]
 
         if not self.render_image_checkbox.isChecked() and not self.render_cad_checkbox.isChecked():
             self.render_button.setEnabled(False)
@@ -203,7 +203,13 @@ class ImageAnalyser(CalcamGUIWindow):
         self.render_resolution.addItem('{:d} x {:d}'.format(w * 4, h * 4))
         self.render_resolution.setCurrentIndex(index)
 
-        self.update_vtk_size(vtk_size)
+
+
+    def update_vtk_size(self,vtksize):
+
+        self.vtksize = vtksize
+        self.update_render_resolution()
+
 
     def save_image(self):
 
