@@ -1,7 +1,13 @@
 Calcam Changelog
 ================
 
-Patch Release 2.8.2 (26 Mar 2022)
+Patch Release 2.8.3 (01 Apr 2022)
+---------------------------------
+
+* Fixed a bug in the 3D viewer tool which raised exceptions when enabling/disabling CAD model features with 1 or more calibrations loaded but un-checked.
+
+
+Patch 2.8.2 (26 Mar 2022)
 ---------------------------------
 
 * Fixed a bug in the image analysis tool which caused exceptions to be raised when toggling image save options in the "Position Analysis" tab.
