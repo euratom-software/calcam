@@ -742,8 +742,12 @@ def get_wall_coverage_actor(cal,cadmodel=None,image=None,imagecoords='Original',
                 if np.any(cal.subview_lookup(rd.x[yi:yi+2,xi:xi+2],rd.y[yi:yi+2,xi:xi+2]) != subview):
                     continue
 
-            # Coordinates and indices of corners for this pixel
+            # Coordinates and indices of corners for this pixel.
+            # Any coordinates == NaN indicates sight lines which did not hit the model so we skip those polys.
             polycoords = ray_end[yi:yi+2,xi:xi+2,:]
+            if np.any(np.isnan(polycoords)):
+                continue
+
             losdirs = ray_dir[yi:yi+2,xi:xi+2,:]
             pixel_dir = np.array( [losdirs[:,:,0].mean(),losdirs[:,:,1].mean(),losdirs[:,:,2].mean()])
             pixel_dir = pixel_dir / np.sqrt(np.sum(pixel_dir**2))
