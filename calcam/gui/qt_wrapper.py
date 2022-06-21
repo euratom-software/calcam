@@ -74,6 +74,7 @@ if qt_ver == 6:
                         QDialog:[QDialog.DialogCode],
                         QDialogButtonBox:[QDialogButtonBox.StandardButton],
                         QKeySequence:[QKeySequence.StandardKey],
+                        QTextBrowser:[QTextBrowser.LineWrapMode]
                        }
 
     for parent,enums in enums_to_unwrap.items():

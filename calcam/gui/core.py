@@ -1934,7 +1934,7 @@ class CalibInfoDialog(qt.QDialog):
         self.setModal(False)
 
         text_browse.setHtml('<pre>' + str(calibration) + '<pre>')
-        text_browse.setLineWrapMode(0)
+        text_browse.setLineWrapMode(text_browse.NoWrap)
         layout = qt.QVBoxLayout()
         self.setLayout(layout)
         layout.addWidget(text_browse)
