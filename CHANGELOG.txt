@@ -6,6 +6,9 @@ Changes since last relase version
 
 Fixes:
 * Fix a bug which caused invisible wall coverage shading on some platforms (#86).
+* Fix an exception raised in the CAD definition editor when deteling model variants in a new CAD model definition (#87).
+* Fix exception raised when opening calibration info box with PyQt6 (#88)
+* Fix a bug where the filename of a calibration is not updated in the calibration info after "Save As"
 * Fix a bug in the virtual calibration editor where changing intrinsics type did not enable the correct set of options.
 * Fix a bug where the virtual calibration editor would prompt to save changes even with no CAD model loaded.
 

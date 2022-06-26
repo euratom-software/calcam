@@ -1388,10 +1388,15 @@ class FittingCalib(CalcamGUIWindow):
 
     def save_calib(self,saveas=False):
 
+        if self.calibration.subview_mask is None:
+            raise UserWarning('Nothing to save! You need to load a camera image to calibrate before you can save anything in this tool.')
+
         if saveas:
+            # Back up then clear the current filename if we want to force a new filename choice.
             orig_filename = self.filename
             self.filename = None
 
+        # Save file dialog box
         if self.filename is None:
             self.filename = self.get_save_filename('calibration')
 
@@ -1416,6 +1421,7 @@ class FittingCalib(CalcamGUIWindow):
             self.app.restoreOverrideCursor()
 
         elif saveas:
+            # Restore original filename if we didn't end up finishing the Save As...
             self.filename = orig_filename
 
 

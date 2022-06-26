@@ -976,6 +976,9 @@ class Calibration():
                              be added.
         '''
 
+        if self.subview_mask is None:
+            raise Exception('Calibration is empty - nothing to save!')
+
         if not filename.endswith('.ccc'):
             filename = filename + '.ccc'
 
@@ -1048,6 +1051,8 @@ class Calibration():
 
                 with save_file.open_file(os.path.join(save_file.get_temp_path(),'intrinsics_constraints','points_{:03d}.csv'.format(i)),'w') as ppf:
                     intrinsics[1].save(ppf)
+
+        self.filename = os.path.abspath(filename)
 
         if current_crop is not None:
             self.set_detector_window(current_crop)
@@ -2038,6 +2043,10 @@ class Calibration():
             msg = msg + self.intrinsics_info_str(0)
             msg = msg + 'Extrinsics\n~~~~~~~~~~\n{:s}\n\n'.format(self.history['extrinsics'])
             msg = msg + self.extrinsics_info_str(0)        
+
+        if self.subview_mask is None:
+            msg = msg + 'New / empty Calibration.\n'
+
 
         return msg
 

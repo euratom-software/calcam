@@ -359,7 +359,8 @@ class CADEdit(CalcamGUIWindow):
             self.model_variant.removeItem(index_to_remove)
             self.cadmodel.variants.remove(variant_to_remove)
             del self.model_features[variant_to_remove]
-            del self.cadmodel.mesh_path_roots[variant_to_remove]
+            if variant_to_remove in self.cadmodel.mesh_path_roots:
+                del self.cadmodel.mesh_path_roots[variant_to_remove]
 
 
     def update_current_feature(self):
