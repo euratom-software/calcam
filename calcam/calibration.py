@@ -36,6 +36,11 @@ from . import __version__ as calcam_version
 from . import misc
 from .raycast import raycast_sightlines, RayData
 
+try:
+    cv2_version = cv2.__version__
+except AttributeError:
+    raise ImportError('There is a problem with your OpenCV (Python module "cv2") installation - it does not appear to be working properly but is required by Calcam.')
+
 
 class ImageUpsideDown(Exception):
     pass
