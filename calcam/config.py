@@ -1,5 +1,5 @@
 '''
-* Copyright 2015-2021 European Atomic Energy Community (EURATOM)
+* Copyright 2015-2022 European Atomic Energy Community (EURATOM)
 *
 * Licensed under the EUPL, Version 1.1 or - as soon they
   will be approved by the European Commission - subsequent
@@ -26,6 +26,7 @@ import sys
 import glob
 import traceback
 import multiprocessing
+import warnings
 
 from .io import ZipSaveFile
 from .misc import import_source, unload_source
@@ -39,6 +40,16 @@ n_cpus = max(1,multiprocessing.cpu_count()-1)
 # Path where the "built in" image source code lives; this is always in the calcam source directory.
 builtin_imsource_path = os.path.join(os.path.split(os.path.abspath(__file__))[0],'builtin_image_sources')
 
+# File where calcam stores the user's configuration
+user_cfg_path = os.path.expanduser('~/.calcam_config')
+
+# If the user doesn't have their own configuration, look for a default config file in the calcam install directory.
+# This can be used e.g. if installing calcam on a multi-user system where you want to provide a default config for all users.
+# But there is not one included by default with Calcam!
+default_cfg_path = os.path.join(os.path.split(os.path.abspath(__file__))[0],'default_config.cfg')
+
+# Filename filters for different types of file
+filename_filters = {'calibration':'Calcam Calibration (*.ccc)','image':'PNG Image (*.png)','pointpairs':'Calcam Point Pairs (*.ccc *.csv)','movement':'Calcam Affine Transform (*.cmc)'}
 
 class CalcamConfig():
     '''
@@ -46,75 +57,70 @@ class CalcamConfig():
     
     It is convenient to use a class for this because whenever this is
     instantiated somewhere in Calcam, we always get the most recent configuration
-    from disk. It also makes saving 
+    from disk.
     '''
-    def __init__(self,cfg_file= os.path.expanduser('~/.calcam_config'),allow_create=True):
+    def __init__(self):
 
-        self.filename = cfg_file
-        self.filename_filters = {'calibration':'Calcam Calibration (*.ccc)','image':'PNG Image (*.png)','pointpairs':'Calcam Point Pairs (*.ccc *.csv)','movement':'Calcam Affine Transform (*.cmc)'}
-        
+        # Configuration fields and their default values
+        self.fields = {'image_source_paths': [],
+                       'cad_def_paths': [],
+                       'file_dirs': {},
+                       'default_model': None,
+                       'default_image_source':'Image File',
+                       'mouse_sensitivity':75,
+                       'main_overlay_colour':(0,0,1.,0.6),
+                       'second_overlay_colour':(1.,0,0,0.6)
+                       }
+
+        # Try to load the user's own config
         try:
-            self.load()
-        except:
-            if not allow_create:
-                raise
+            with open(user_cfg_path,'r') as f:
+                user_dict = json.load(f)
+        except IOError:
+            user_dict = {}
 
-            self.file_dirs = {}
-            try:
-                self.cad_def_paths
-            except:
-                self.cad_def_paths = []
+        # Try to load the default config
+        try:
+            with open(default_cfg_path, 'r') as f:
+                defaults_dict = json.load(f)
+        except IOError:
+            defaults_dict = {}
 
-            try:
-                self.image_source_paths
-            except:
-                self.image_source_paths = []
-            
-            self.default_model = None
-            self.default_image_source = 'Image File'
-            self.mouse_sensitivity = 75
-            self.main_overlay_colour = (0,0,1.,0.6)
-            self.second_overlay_colour = (1.,0,0,0.6)
-            self.save()
+        # For each field, first try to get the user's own value,
+        # then the one from the defaults file, then fall back to the version defined above.
+        for key in self.fields:
+            if key in user_dict:
+                setattr(self,key,user_dict[key])
+            elif key in defaults_dict:
+                setattr(self,key,defaults_dict[key])
+            else:
+                setattr(self,key,self.fields[key])
 
-
-
-
-    def load(self):
-
-        with open(self.filename,'r') as f:
-            load_dict = json.load(f)
-
-        self.image_source_paths = load_dict['image_source_paths']
-        self.cad_def_paths = load_dict['cad_def_paths']
-        self.file_dirs =     load_dict['file_dirs']
-        self.default_model = load_dict['default_model']
-        self.default_image_source = load_dict['default_im_source']
-        self.mouse_sensitivity = load_dict['mouse_sensitivity']
-        self.main_overlay_colour = load_dict['main_overlay_colour']
-        self.second_overlay_colour = load_dict['second_overlay_colour']
+        self.save()
 
 
     def save(self):
+        """
+        Save the configuration to disk in the user's home directory.
+        """
+        save_dict = { key : getattr(self,key) for key in self.fields}
 
-        save_dict = {
-                        'file_dirs'     : self.file_dirs,
-                        'default_model' : self.default_model,
-                        'cad_def_paths'    : self.cad_def_paths,
-                        'image_source_paths':self.image_source_paths,
-                        'default_im_source':self.default_image_source,
-                        'mouse_sensitivity':self.mouse_sensitivity,
-                        'main_overlay_colour':self.main_overlay_colour,
-                        'second_overlay_colour':self.second_overlay_colour,
-                    }
-
-        with open(self.filename,'w') as f:
-            json.dump(save_dict,f,indent=4)
+        try:
+            with open(user_cfg_path,'w') as f:
+                json.dump(save_dict,f,indent=4)
+        except Exception as e:
+            warnings.warn('Could not save user calcam configuration to file "{:s}": {:}'.format(user_cfg_path,e))
 
 
 
     def get_cadmodels(self):
+        """
+        Get the list of available CAD models.
 
+        Returns:
+            A dictionary where the keys are human-readable names of the CAD model and the velues are a list of: \
+            [Filename of the CAD model, List of features in that CAD model, Default variant name]
+        """
         cadmodels = {}
 
         for path in self.cad_def_paths:
@@ -145,7 +151,9 @@ class CalcamConfig():
 
 
     def get_image_sources(self,meta_only=False):
-
+        """
+        Get a list of available image source providers.
+        """
         image_sources = []
         displaynames = []
         meta = []

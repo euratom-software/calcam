@@ -203,8 +203,9 @@ def manual_movement(ref,moved,correction=None,parent_window=None):
 
     try:
         from . import gui
-    except:
-        raise Exception('Calcam GUI module not available. Manual movement correction requires the GUI module!')
+    except Exception:
+        from . import no_gui_reason
+        raise Exception('Cannot start movement correction GUI because the Calcam GUI module not available - {:s}'.format(no_gui_reason))
 
     if isinstance(ref,Calibration):
         ref_im = ref.get_image(coords='Display')

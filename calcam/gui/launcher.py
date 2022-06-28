@@ -35,7 +35,7 @@ from .core import qt, guipath
 
 
 def launch(args):
-    subprocess.Popen([sys.executable,os.path.join( os.path.split(__file__)[0],'launch_script.py' )] + args,stdin=None, stdout=open(os.devnull,'wb'), stderr=open(os.devnull,'wb'))
+    subprocess.Popen([sys.executable,os.path.join( os.path.split(__file__)[0],'launch_script.py' )] + args,stdin=None)
 
 
 # Generate a rich text string prompting the user to go to the github page
@@ -50,19 +50,29 @@ def update_prompt_string(queue):
     response = request.urlopen('https://api.github.com/repos/euratom-software/calcam/tags',timeout=0.5)
     data = json.loads(response.read().decode('utf-8'))
     latest_version_str = data[0]['name'].replace('v','')
-    current_version_str = __version__.split('+')[0]
+    latest_ver_base10 = sum([(10**(i*3))*int(num) for i,num in enumerate(reversed(latest_version_str.split('.')))])
 
-    # Compare major, minor and patch version numbers to see if the one on GitHub is newer than this one.
-    is_newer = [int(a) > int(b) for a,b in zip(latest_version_str.split('.'),current_version_str.split('.'))]
+    # Strip any pre-release or dev identifier from the current version nuber.
+    this_ver_base10 = 0
+    for i,substring in enumerate(reversed(__version__.split('.'))):
+        number = None
+        while number is None and len(substring) > 0:
+            try:
+                number = int(substring)
+            except ValueError:
+                substring = substring[:-1]
+        if number is not None:
+            this_ver_base10 = this_ver_base10 + (10**(i*3))*number
 
     # If a newer version is available, return a string to tell the user that.
     updatestring = None
-    if any(is_newer):
+    if latest_ver_base10 > this_ver_base10:
         updatestring = '<b>Calcam {:} is now available! Find out what changed <a href=https://github.com/euratom-software/calcam/blob/{:s}/CHANGELOG.txt>here</a>, and/or download the source zip <a href={:s}>here</a>!</b>'.format(data[0]['name'],data[0]['commit']['sha'],data[0]['zipball_url'])
-    
+
     queue.put(updatestring)
 
-  except:
+  except Exception as e:
+      print(e)
       queue.put(None)
 
 

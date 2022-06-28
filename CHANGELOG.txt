@@ -11,11 +11,16 @@ Fixes:
 * Fix a bug where the filename of a calibration is not updated in the calibration info after "Save As"
 * Fix a bug in the virtual calibration editor where changing intrinsics type did not enable the correct set of options.
 * Fix a bug where the virtual calibration editor would prompt to save changes even with no CAD model loaded.
+* Fixed a bug where the "new version available" prompt could be shown incorrectly.
 
 New & Enhancements:
+* Make handling of missing dependencies smoother i.e. error messages more helpful (hopefully).
 * Add vertical field of view input in virtual calibration editor as an alternative to focal length (#85).
 * In the virtual calibration editor, hide pinhole model parameters if another intrinsics type is selected (otherwise could be misleading).
 * In the virtual calibration editor, when using intrinsics from an existing calibration, display the filename of that calibration.
+* Add ability to place a default configuration file in the calcam directory which will be checked for new users on multi-user systems.
+* Make setup.py suitable for building source distributions for PyPi!
+* Version number is now stored in 1 place (calcam/__version__) instead of 3 different places.
 
 
 Patch Release 2.8.3 (01 Apr 2022)

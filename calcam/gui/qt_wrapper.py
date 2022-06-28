@@ -69,7 +69,7 @@ except Exception:
                 raise ImportError('Could not import required GUI library: Python package "PyQt6" is present but seems to be broken.')
 
             if pyqt5_broken:
-                raise ImportError('Could not import required GUI library: Python package "PyQt6" is present but seems to be broken.')
+                raise ImportError('Could not import required GUI library: Python package "PyQt5" is present but seems to be broken.')
 
             raise ImportError('Could not import required GUI library: could not import either "PyQt6", "PyQt5" or "PyQt4" python packages successfully.')
 
