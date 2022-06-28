@@ -46,7 +46,7 @@ user_cfg_path = os.path.expanduser('~/.calcam_config')
 # If the user doesn't have their own configuration, look for a default config file in the calcam install directory.
 # This can be used e.g. if installing calcam on a multi-user system where you want to provide a default config for all users.
 # But there is not one included by default with Calcam!
-default_cfg_path = os.path.join(os.path.split(os.path.abspath(__file__))[0],'default_config.cfg')
+default_cfg_path = os.path.join(os.path.split(os.path.abspath(__file__))[0],'site_defaults.cfg')
 
 # Filename filters for different types of file
 filename_filters = {'calibration':'Calcam Calibration (*.ccc)','image':'PNG Image (*.png)','pointpairs':'Calcam Point Pairs (*.ccc *.csv)','movement':'Calcam Affine Transform (*.cmc)'}
