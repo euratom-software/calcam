@@ -72,6 +72,9 @@ class CalcamConfig():
                        'second_overlay_colour':(1.,0,0,0.6)
                        }
 
+        # Filename filters (which should never need to change so are defined above)
+        self.filename_filters = filename_filters
+
         # Try to load the user's own config
         try:
             with open(user_cfg_path,'r') as f:
