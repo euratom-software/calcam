@@ -1,76 +1,40 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Using Calibration Results &mdash; Calcam  documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-
-  
-  
-  
-  
-
-  
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
-        <script src="_static/language_data.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="CAD Models" href="api_cadmodel.html" />
     <link rel="prev" title="Camera Movement Determination" href="gui_movement.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="index.html">
-          
-
-          
-            
             <img src="_static/logo.png" class="logo" alt="Logo"/>
-          
           </a>
-
-          
-            
-            
               <div class="version">
-                Version 2.8
+                Version 2.9
               </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -78,26 +42,15 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
-              <p class="caption"><span class="caption-text">Introduction</span></p>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="intro_general.html">General Introduction to Calcam</a></li>
 <li class="toctree-l1"><a class="reference internal" href="intro_install_setup.html">Getting Up &amp; Running</a></li>
 <li class="toctree-l1"><a class="reference internal" href="intro_theory.html">Camera Calibration Theory</a></li>
 <li class="toctree-l1"><a class="reference internal" href="intro_conventions.html">Concepts &amp; Conventions</a></li>
 </ul>
-<p class="caption"><span class="caption-text">GUI App User Guide</span></p>
+<p class="caption" role="heading"><span class="caption-text">GUI App User Guide</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="gui_intro.html">Introduction &amp; Launcher</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_settings.html">Calcam Settings</a></li>
@@ -108,7 +61,7 @@
 <li class="toctree-l1"><a class="reference internal" href="gui_viewer.html">3D Viewer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_movement.html">Camera Movement Determination</a></li>
 </ul>
-<p class="caption"><span class="caption-text">API User Guide</span></p>
+<p class="caption" role="heading"><span class="caption-text">API User Guide</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Using Calibration Results</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#the-calibration-class">The Calibration Class</a></li>
@@ -121,83 +74,45 @@
 <li class="toctree-l1"><a class="reference internal" href="api_movement.html">Camera Movement Correction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_examples.html">Examples</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Developer Documentation</span></p>
+<p class="caption" role="heading"><span class="caption-text">Developer Documentation</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="dev_imsources.html">Image Sources</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dev_coord_formatter.html">3D Coordinate Formatters</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">Calcam</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-        
       <li>Using Calibration Results</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-            
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="using-calibration-results">
-<h1>Using Calibration Results<a class="headerlink" href="#using-calibration-results" title="Permalink to this headline">¶</a></h1>
+             
+  <section id="using-calibration-results">
+<h1>Using Calibration Results<a class="headerlink" href="#using-calibration-results" title="Permalink to this heading"></a></h1>
 <p>Once you have created calibrations using the Calcam GUI tools, you can import calcam as a Python package and use it to extract information from the calibrations and/or integrate use of the results in to your workflow in Python. This page documents the features of the Calcam API for working with calibration results.</p>
 <p>For examples of using these features, see the <a class="reference internal" href="api_examples.html"><span class="doc">Examples</span></a> page.</p>
-<div class="section" id="the-calibration-class">
-<h2>The Calibration Class<a class="headerlink" href="#the-calibration-class" title="Permalink to this headline">¶</a></h2>
+<section id="the-calibration-class">
+<h2>The Calibration Class<a class="headerlink" href="#the-calibration-class" title="Permalink to this heading"></a></h2>
 <p>The calibration class is used to represent Calcam calibrations and provides various methods for getting information about the camera viewing geometry.</p>
 <dl class="py class">
-<dt id="calcam.Calibration">
-<em class="property">class </em><code class="sig-prename descclassname">calcam.</code><code class="sig-name descname">Calibration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">load_filename</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">cal_type</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.Calibration" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="calcam.Calibration">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">calcam.</span></span><span class="sig-name descname"><span class="pre">Calibration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">load_filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cal_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.Calibration" title="Permalink to this definition"></a></dt>
 <dd><p>Class representing a camera view calibration.</p>
 <p>A complete Calibration object contains the camera
 image which was calibrated (if any), the point
@@ -216,8 +131,8 @@ empty calibration object of a specified type is created.</p>
 </dd>
 </dl>
 <dl class="py method">
-<dt id="calcam.Calibration.get_cam_matrix">
-<code class="sig-name descname">get_cam_matrix</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">subview</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.Calibration.get_cam_matrix" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="calcam.Calibration.get_cam_matrix">
+<span class="sig-name descname"><span class="pre">get_cam_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subview</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.Calibration.get_cam_matrix" title="Permalink to this definition"></a></dt>
 <dd><p>Get the camera matrix.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -233,8 +148,8 @@ empty calibration object of a specified type is created.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="calcam.Calibration.get_cam_roll">
-<code class="sig-name descname">get_cam_roll</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">subview</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.Calibration.get_cam_roll" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="calcam.Calibration.get_cam_roll">
+<span class="sig-name descname"><span class="pre">get_cam_roll</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subview</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.Calibration.get_cam_roll" title="Permalink to this definition"></a></dt>
 <dd><p>Get the camera roll. This is the angle between the lab
 +Z axis and the camera’s “view up” direction.</p>
 <dl class="field-list simple">
@@ -251,8 +166,8 @@ empty calibration object of a specified type is created.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="calcam.Calibration.get_cam_to_lab_rotation">
-<code class="sig-name descname">get_cam_to_lab_rotation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">subview</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.Calibration.get_cam_to_lab_rotation" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="calcam.Calibration.get_cam_to_lab_rotation">
+<span class="sig-name descname"><span class="pre">get_cam_to_lab_rotation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subview</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.Calibration.get_cam_to_lab_rotation" title="Permalink to this definition"></a></dt>
 <dd><p>Get a 3D rotation matrix which will rotate a point in the camera coordinate system
 (see Calcam theory documentation) in to the lab coordinate system’s orientation.</p>
 <dl class="field-list simple">
@@ -269,8 +184,8 @@ empty calibration object of a specified type is created.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="calcam.Calibration.get_fov">
-<code class="sig-name descname">get_fov</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">subview</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">fullchip</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.Calibration.get_fov" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="calcam.Calibration.get_fov">
+<span class="sig-name descname"><span class="pre">get_fov</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subview</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fullchip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.Calibration.get_fov" title="Permalink to this definition"></a></dt>
 <dd><p>Get the camera field of view.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -289,8 +204,8 @@ empty calibration object of a specified type is created.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="calcam.Calibration.get_image">
-<code class="sig-name descname">get_image</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">coords</span><span class="o">=</span><span class="default_value">'Display'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.Calibration.get_image" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="calcam.Calibration.get_image">
+<span class="sig-name descname"><span class="pre">get_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Display'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.Calibration.get_image" title="Permalink to this definition"></a></dt>
 <dd><p>Get the image which was calibrated.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -306,8 +221,8 @@ empty calibration object of a specified type is created.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="calcam.Calibration.get_los_direction">
-<code class="sig-name descname">get_los_direction</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">y</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">coords</span><span class="o">=</span><span class="default_value">'Display'</span></em>, <em class="sig-param"><span class="n">subview</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.Calibration.get_los_direction" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="calcam.Calibration.get_los_direction">
+<span class="sig-name descname"><span class="pre">get_los_direction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Display'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subview</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.Calibration.get_los_direction" title="Permalink to this definition"></a></dt>
 <dd><p>Get unit vectors representing the directions of the camera’s sight-lines in 3D space.</p>
 <p>Can be used together with <a class="reference internal" href="#calcam.Calibration.get_pupilpos" title="calcam.Calibration.get_pupilpos"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_pupilpos()</span></code></a> to obtain a full description of the camera’s sight-line geometry.</p>
 <dl class="field-list simple">
@@ -329,8 +244,8 @@ empty calibration object of a specified type is created.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="calcam.Calibration.get_pupilpos">
-<code class="sig-name descname">get_pupilpos</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">y</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">coords</span><span class="o">=</span><span class="default_value">'display'</span></em>, <em class="sig-param"><span class="n">subview</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.Calibration.get_pupilpos" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="calcam.Calibration.get_pupilpos">
+<span class="sig-name descname"><span class="pre">get_pupilpos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'display'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subview</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.Calibration.get_pupilpos" title="Permalink to this definition"></a></dt>
 <dd><p>Get the camera pupil position in 3D space.</p>
 <p>Can be used together with <a class="reference internal" href="#calcam.Calibration.get_los_direction" title="calcam.Calibration.get_los_direction"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_los_direction()</span></code></a> to obtain a full
 description of the camera’s sight line geometry.</p>
@@ -353,8 +268,8 @@ description of the camera’s sight line geometry.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="calcam.Calibration.get_raysect_camera">
-<code class="sig-name descname">get_raysect_camera</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">coords</span><span class="o">=</span><span class="default_value">'Display'</span></em>, <em class="sig-param"><span class="n">binning</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.Calibration.get_raysect_camera" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="calcam.Calibration.get_raysect_camera">
+<span class="sig-name descname"><span class="pre">get_raysect_camera</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Display'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">binning</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.Calibration.get_raysect_camera" title="Permalink to this definition"></a></dt>
 <dd><p>Get a RaySect observer corresponding to the calibrated camera.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -370,8 +285,8 @@ description of the camera’s sight line geometry.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="calcam.Calibration.get_undistort_coeffs">
-<code class="sig-name descname">get_undistort_coeffs</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">radial_terms</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">include_tangential</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">subview</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.Calibration.get_undistort_coeffs" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="calcam.Calibration.get_undistort_coeffs">
+<span class="sig-name descname"><span class="pre">get_undistort_coeffs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">radial_terms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_tangential</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subview</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.Calibration.get_undistort_coeffs" title="Permalink to this definition"></a></dt>
 <dd><p>Get a set of parameters which can be used to analytically calculate image coordinate un-distortion.
 This can be useful if you need to calculate point un-distortion faster than the usual numerical method.
 This fits a model of the form of the <a class="reference internal" href="intro_theory.html#distortion-eqn"><span class="std std-ref">perspective distortion model</span></a> but with coordinate vectors
@@ -396,8 +311,8 @@ fit. Note: this function does not work with fisheye calibrations.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="calcam.Calibration.project_points">
-<code class="sig-name descname">project_points</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">points_3d</span></em>, <em class="sig-param"><span class="n">coords</span><span class="o">=</span><span class="default_value">'display'</span></em>, <em class="sig-param"><span class="n">check_occlusion_with</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">fill_value</span><span class="o">=</span><span class="default_value">nan</span></em>, <em class="sig-param"><span class="n">occlusion_tol</span><span class="o">=</span><span class="default_value">0.001</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.Calibration.project_points" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="calcam.Calibration.project_points">
+<span class="sig-name descname"><span class="pre">project_points</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points_3d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'display'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_occlusion_with</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">nan</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">occlusion_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.Calibration.project_points" title="Permalink to this definition"></a></dt>
 <dd><p>Get the image coordinates corresponding to given real-world 3D coordinates.</p>
 <p>Optionally can also check whether the 3D points are hidden from the camera’s view by part of the CAD model being in the way.</p>
 <dl class="field-list simple">
@@ -420,8 +335,8 @@ fit. Note: this function does not work with fisheye calibrations.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="calcam.Calibration.set_detector_window">
-<code class="sig-name descname">set_detector_window</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">window</span></em>, <em class="sig-param"><span class="n">bounds_error</span><span class="o">=</span><span class="default_value">'warn'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.Calibration.set_detector_window" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="calcam.Calibration.set_detector_window">
+<span class="sig-name descname"><span class="pre">set_detector_window</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">window</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds_error</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'warn'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.Calibration.set_detector_window" title="Permalink to this definition"></a></dt>
 <dd><p>Adjust the calibration to apply to a different detector region for than was used
 to perform the calibration. Useful for example if a CMOS camera has been calibrated
 over the full frame, but you now want to use this calibration for data which
@@ -441,8 +356,8 @@ left,top,width and height of the detector window.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="calcam.Calibration.set_extrinsics">
-<code class="sig-name descname">set_extrinsics</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">campos</span></em>, <em class="sig-param"><span class="n">upvec</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">camtar</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">view_dir</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">cam_roll</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">src</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.Calibration.set_extrinsics" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="calcam.Calibration.set_extrinsics">
+<span class="sig-name descname"><span class="pre">set_extrinsics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">campos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upvec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">camtar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cam_roll</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.Calibration.set_extrinsics" title="Permalink to this definition"></a></dt>
 <dd><p>Manually set the camera extrinsic parameters.
 Only applicable for synthetic or manual alignment type calibrations.</p>
 <dl class="field-list simple">
@@ -460,8 +375,8 @@ Only applicable for synthetic or manual alignment type calibrations.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="calcam.Calibration.undistort_image">
-<code class="sig-name descname">undistort_image</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">image</span></em>, <em class="sig-param"><span class="n">coords</span><span class="o">=</span><span class="default_value">'display'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.Calibration.undistort_image" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="calcam.Calibration.undistort_image">
+<span class="sig-name descname"><span class="pre">undistort_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'display'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.Calibration.undistort_image" title="Permalink to this definition"></a></dt>
 <dd><p>Correct lens distortion a given image from the calibrated camera,
 to give an image with a pure perspective projection.</p>
 <dl class="field-list simple">
@@ -483,13 +398,13 @@ where N is the number of colour channels.</p></li>
 
 </dd></dl>
 
-</div>
-<div class="section" id="ray-casting">
-<h2>Ray casting<a class="headerlink" href="#ray-casting" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="ray-casting">
+<h2>Ray casting<a class="headerlink" href="#ray-casting" title="Permalink to this heading"></a></h2>
 <p>The calibration class can provide line-of-sight directions for given pixel coordinates, however it is often necessary to know where these sight lines terminate at a surface in the CAD model. For example in calculation of geometry matricies for camera data inversion, the length of each camera sight line needs to be known. The function <a class="reference internal" href="#calcam.raycast_sightlines" title="calcam.raycast_sightlines"><code class="xref py py-func docutils literal notranslate"><span class="pre">calcam.raycast_sightlines()</span></code></a> is provided for this purpose; it determines the 3D coordinates where the given pixels’ sight-lines intersect the CAD model.</p>
 <dl class="py function">
-<dt id="calcam.raycast_sightlines">
-<code class="sig-prename descclassname">calcam.</code><code class="sig-name descname">raycast_sightlines</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">calibration</span></em>, <em class="sig-param"><span class="n">cadmodel</span></em>, <em class="sig-param"><span class="n">x</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">y</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">exclusion_radius</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">binning</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">coords</span><span class="o">=</span><span class="default_value">'Display'</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">intersecting_only</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">force_subview</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">status_callback</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">calc_normals</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.raycast_sightlines" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="calcam.raycast_sightlines">
+<span class="sig-prename descclassname"><span class="pre">calcam.</span></span><span class="sig-name descname"><span class="pre">raycast_sightlines</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calibration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cadmodel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclusion_radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">binning</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Display'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intersecting_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_subview</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calc_normals</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.raycast_sightlines" title="Permalink to this definition"></a></dt>
 <dd><p>Ray cast camera sight-lines to determine where they intersect the given CAD model.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -518,8 +433,8 @@ where N is the number of colour channels.</p></li>
 </dd></dl>
 
 <dl class="py class">
-<dt id="calcam.RayData">
-<em class="property">class </em><code class="sig-prename descclassname">calcam.</code><code class="sig-name descname">RayData</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="calcam.RayData">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">calcam.</span></span><span class="sig-name descname"><span class="pre">RayData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData" title="Permalink to this definition"></a></dt>
 <dd><p>Class representing ray casting results.</p>
 <p>Objects of this class are returned by <a class="reference internal" href="#calcam.raycast_sightlines" title="calcam.raycast_sightlines"><code class="xref py py-func docutils literal notranslate"><span class="pre">calcam.raycast_sightlines()</span></code></a>.
 It can also be used to save and load ray cast results to disk.</p>
@@ -529,8 +444,8 @@ It can also be used to save and load ray cast results to disk.</p>
 </dd>
 </dl>
 <dl class="py method">
-<dt id="calcam.RayData.get_model_normals">
-<code class="sig-name descname">get_model_normals</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">y</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">im_position_tol</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">coords</span><span class="o">=</span><span class="default_value">'Display'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData.get_model_normals" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="calcam.RayData.get_model_normals">
+<span class="sig-name descname"><span class="pre">get_model_normals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im_position_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Display'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData.get_model_normals" title="Permalink to this definition"></a></dt>
 <dd><p>Get the 3D unit normal vectors of the CAD model surface where the camera sight-lines hit the model.
 Only available if calc_normals = True was given when running raycast_sightlines().</p>
 <p>Note: it is advised to use this function rather than accessing the <cite>model_normals</cite>
@@ -555,8 +470,8 @@ applied using the set_detector_window() method.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="calcam.RayData.get_ray_directions">
-<code class="sig-name descname">get_ray_directions</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">y</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">im_position_tol</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">coords</span><span class="o">=</span><span class="default_value">'Display'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData.get_ray_directions" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="calcam.RayData.get_ray_directions">
+<span class="sig-name descname"><span class="pre">get_ray_directions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im_position_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Display'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData.get_ray_directions" title="Permalink to this definition"></a></dt>
 <dd><p>Get unit vectors specifying the sight-line directions. Note that ray casting         is not required to get this information: see <a class="reference internal" href="#calcam.Calibration.get_los_direction" title="calcam.Calibration.get_los_direction"><code class="xref py py-func docutils literal notranslate"><span class="pre">calcam.Calibration.get_los_direction()</span></code></a>         for the same functionality, however this can be useful if you have the RayData         but not <a class="reference internal" href="#calcam.Calibration" title="calcam.Calibration"><code class="xref py py-class docutils literal notranslate"><span class="pre">calcam.Calibration</span></code></a> object loaded when doing the analysis.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -577,8 +492,8 @@ applied using the set_detector_window() method.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="calcam.RayData.get_ray_end">
-<code class="sig-name descname">get_ray_end</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">y</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">im_position_tol</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">coords</span><span class="o">=</span><span class="default_value">'Display'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData.get_ray_end" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="calcam.RayData.get_ray_end">
+<span class="sig-name descname"><span class="pre">get_ray_end</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im_position_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Display'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData.get_ray_end" title="Permalink to this definition"></a></dt>
 <dd><p>Get the 3D x,y,z coordinates where the casted rays / sightlines intersect the CAD model.</p>
 <p>Note: it is advised to use this function rather than accessing the <cite>ray_end_coords</cite>
 attribute of the object directly because this function will respect any image cropping
@@ -602,8 +517,8 @@ applied using the set_detector_window() method.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="calcam.RayData.get_ray_lengths">
-<code class="sig-name descname">get_ray_lengths</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">y</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">im_position_tol</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">coords</span><span class="o">=</span><span class="default_value">'Display'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData.get_ray_lengths" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="calcam.RayData.get_ray_lengths">
+<span class="sig-name descname"><span class="pre">get_ray_lengths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im_position_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Display'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData.get_ray_lengths" title="Permalink to this definition"></a></dt>
 <dd><p>Get the sight-line lengths either of all casted sight-lines or at the specified image coordinates.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -624,8 +539,8 @@ applied using the set_detector_window() method.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="calcam.RayData.get_ray_start">
-<code class="sig-name descname">get_ray_start</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">y</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">im_position_tol</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">coords</span><span class="o">=</span><span class="default_value">'Display'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData.get_ray_start" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="calcam.RayData.get_ray_start">
+<span class="sig-name descname"><span class="pre">get_ray_start</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im_position_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Display'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData.get_ray_start" title="Permalink to this definition"></a></dt>
 <dd><p>Get the 3D x,y,z coordinates of the “start” of the casted rays / sightlines.</p>
 <p>Note: it is advised to use this function rather than accessing the <cite>ray_start_coords</cite>
 attribute of the object directly because this function will respect any image cropping
@@ -649,8 +564,8 @@ applied using the set_detector_window() method.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="calcam.RayData.history">
-<code class="sig-name descname">history</code><a class="headerlink" href="#calcam.RayData.history" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="calcam.RayData.history">
+<span class="sig-name descname"><span class="pre">history</span></span><a class="headerlink" href="#calcam.RayData.history" title="Permalink to this definition"></a></dt>
 <dd><p>Human readable description of where the raydata came from.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -660,8 +575,8 @@ applied using the set_detector_window() method.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="calcam.RayData.save">
-<code class="sig-name descname">save</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData.save" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="calcam.RayData.save">
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData.save" title="Permalink to this definition"></a></dt>
 <dd><p>Save the RayData to a netCDF file.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -671,8 +586,8 @@ applied using the set_detector_window() method.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="calcam.RayData.set_detector_window">
-<code class="sig-name descname">set_detector_window</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">window</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData.set_detector_window" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="calcam.RayData.set_detector_window">
+<span class="sig-name descname"><span class="pre">set_detector_window</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">window</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData.set_detector_window" title="Permalink to this definition"></a></dt>
 <dd><p>Adjust the raydata to apply to a different detector region for than was used
 to perform the original raycast. Useful for example if a CMOS camera has been calibrated
 over the full frame, but you now want to use this calibration for data which
@@ -690,63 +605,38 @@ left,top,width and height of the detector window.</p>
 
 </dd></dl>
 
-</div>
-</div>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="api_cadmodel.html" class="btn btn-neutral float-right" title="CAD Models" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="gui_movement.html" class="btn btn-neutral float-left" title="Camera Movement Determination" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="gui_movement.html" class="btn btn-neutral float-left" title="Camera Movement Determination" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="api_cadmodel.html" class="btn btn-neutral float-right" title="CAD Models" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        
-        &copy; Copyright 2015-2020, European Atomic Energy Community (EURATOM)
-
-    </p>
+    <p>&#169; Copyright 2015-2022, European Atomic Energy Community (EURATOM).</p>
   </div>
-    
-    
-    
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
-    
-    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
-
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

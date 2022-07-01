@@ -3,21 +3,25 @@ Getting Up & Running
 ====================
 
 
-What you will need
-------------------
-
-A computer with Python installed
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Calcam works with Python 3.5 or newer on Windows, Linux or OSX. You can download Python installers for Windows or OSX from `Python.org <https://www.python.org/downloads/>`_ , or get it from your favourite software repository on Linux.
 
-As of February 2022, suitable versions of VTK (one of Calcam's major dependencies) are not available from the Python Package Index for Python versions newer than 3.8, so it currently it is much easier to install Calcam in Python 3.5 - 3.8 than anything newer (for newer versions you will have to build and install VTK and its Python bindings yourself, which can be quite involved).
+As of June 2022, suitable versions of VTK (one of Calcam's major dependencies) are not available from the Python Package Index for Python >3.9, so it currently it is much easier to install Calcam in Python 3.5 - 3.9 than anything newer (for newer versions you will have to build and install VTK and its Python bindings yourself, which can be quite involved).
 
-You will also need the ``pip`` package installed for the Calcam installer script to work. ``pip`` is usually installed with Python by default so it's unlikely you'll have to worry about this, but you don't have ``pip`` installed, the Calcam setup script will give an error message telling you so. Documentation for how to get pip can be found `here <https://pip.pypa.io/en/stable/installing/>`_ .
+The calcam setup script requires the ``pip`` and ``setuptools`` packages to do the installation, and will tell you if either of these are missing. Documentation for how to get pip can be found `here <https://pip.pypa.io/en/stable/installing/>`_, and you can then use ``pip`` to install ``setuptools``.
 
 
-A copy of the Calcam source code
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-The latest release version of the Calcam source can be downloaded from the `Releases page on GitHub <https://github.com/euratom-software/calcam/releases>`_.
+Installing using pip
+--------------------
+As of version 2.9, Calcam is available on the Python Package Index (PyPi), so can be installed using ``pip`` with the command::
+
+    pip install calcam
+
+
+
+Installing from source
+----------------------
+
+If you prefer to download the calcam source code manually, the latest release version can be downloaded from the `Releases page on GitHub <https://github.com/euratom-software/calcam/releases>`_.
 
 Alternatively, the "cutting edge" live development version (which is not guaranteed to be in a fully working state at all times) can be downloaded using the green :guilabel:`Code` button on the `GitHub repository page <https://github.com/euratom-software/calcam>`_.
 
@@ -32,13 +36,24 @@ for the latest release version, or::
 for the development version (which may contain some bugs or incomplete features at any given time).
 
 
-Installation
--------------
 Once you have a copy of the source files on your computer, navigate to the directory where Calcam has been unzipped or cloned and open a terminal / command prompt. To install Calcam, use the command::
 
 	python setup.py install
 
-This will check for and try to install Calcam's dependencies (see section below for gory details); copy the Calcam source to the appropriate Python library path; and create a convenient launcher executable for the Calcam GUI. If all goes well, this script should end with a message which looks something like this::
+Once the setup is complete, you can delete the downloaded source code.
+
+Installing in Development mode
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+If you plan to do any development on Calcam, and want to be able to edit the Calcam source code without having to run the setup script again to have your changes go live, you can use the below alternative command to install calcam in development mode::
+
+	python setup.py develop
+
+In this case the copy of the code you are installing from remains the "live" version and can be used for development.
+
+Troubleshooting
+---------------
+
+The calcam setup script will attempt to install the Python packages needed by Calcam, and calcam itself, in to your Python library directories. The setup should finish with a message like this::
 
 
 	***************************************************************
@@ -52,32 +67,35 @@ This will check for and try to install Calcam's dependencies (see section below 
 
 	***************************************************************
 
-For convenience it is recommended to make a shortcut to the calcam GUI executable given in the setup complete message. After the setup script is finished you can delete the downloaded calcam files, if you want.
+You should then be able to import the calcam module and start the GUI. If not, the following sections provide some guidance on fixing common problems.
 
-
-Installing without admin/root permissions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-If installing on a system where you do not have the relevant admin/root permissions to install python packages globally, the setup script may crash with an error related to permissions, permission denied or a similar error message. In this case, adding the ``--user`` option to the installation command will install the package for your user account and will not require admin/root permissions.
-
-
-Installing in Development mode
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-If you plan to do any development on Calcam, and want to be able to edit the Calcam source code without having to run the setup script again to have your changes go live, you can use the below alternative command to install calcam in development mode::
-
-	python setup.py develop
-
-In this case the copy of the code you are installing from remains the "live" version and can be used for development. Again, the ``--user`` switch can be added to install in the current user's library path rather than the system one.
+Insufficient Persmissions
+~~~~~~~~~~~~~~~~~~~~~~~~~
+By default, the setup process will try to install Calcam in the python library paths for your system. If your user account does not have permissions to write to these paths (e.g. root or admin permissions), the setup script will fail with an error about permissions. **In this case, adding the ``--user`` option to the installation command will install the package for your user account only, which does not require root or admin permissions.**
 
 
 Troubleshooting dependencies
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Calcam is built upon several existing libraries, which means it requires various other Python modules to be installed for it to work. The setup script will try to install the other Python pcakegs required by Calcam automatically.
+If you cannot import or start Calcam after installation, the most common problems are due to one or more of Calcam's dependencies not working properly. In most cases, Calcam should give an error message which makes it clear which dependency is not working properly. If this is not clear, open a python prompt and try the following import commands, which all need to work for Calcam to be able to work:
 
-On some combinations of operating system and Python versions this may not always work properly. In this case, the setup script will give an error or warning specifying which dependency could not be installed, and what the effects are (either the Calcam installation will not be completed or there will be a warning that the Calcam GUI will not work).
+.. code-block:: python
 
-In other cases, the install my complete fine but then you get error messages when first trying to import Calcam or start the GUI. When tourbleshooting installation or first run problems, it is recommeneded to first check if each of the Python modules Calcam depends on are installed and working correctly on their own (and if they are, Calcam should work). The table below gives details of Calcam's dependencies and known issues with certain versions:
+    from vtk import vtkVersion
+    from cv2 import __version__
+    from scipy import __version__
+    import matplotlib.pyplot
 
-You can check which versions OpenCV, VTK and PyQt you are using in the :doc:`gui_settings` interface.
+In addition to these, at least one of the following PyQt imports must work for the Calcam GUI to be available ( it doesn't matter which - as long as one works Calcam will be able to use it):
+
+.. code-block:: python
+
+    from PyQt6 import QtCore
+    from PyQt5 import QtCore
+    from PyQt4 import QtCore
+
+If any of the required imports fail with errors, you will need to fix the relevant Python module installation before Calcam will work (re-installing the relevant module is a good first thing to try). If all of the required imports work properly, there could be a bug or issue with Calcam.
+
+If troubleshooting dependencies or strange / broken behaviour of Calcam, the table below gives some information on known issues with some versions of Calcam's dependencies:
 
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Module / Library    | Versions Tested / comments                                                                                                                                         |
@@ -88,18 +106,23 @@ You can check which versions OpenCV, VTK and PyQt you are using in the :doc:`gui
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | MatPlotLib          | Up to 3.3.0                                                                                                                                                        |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| OpenCV (a.k.a. cv2) | Tested up to to 4.5.1                                                                                                                                              |
+| OpenCV (a.k.a. cv2) | Tested up to to 4.6                                                                                                                                                |
 |                     |                                                                                                                                                                    |
 |                     | Fisheye camera model only available if using 3.x or newer.                                                                                                         |
 |                     |                                                                                                                                                                    |
 |                     | If running under OSX older than 10.12, versions of OpenCV newer than 3.2 may cause crashes on import (downgrade to OpenCV < 3.3 to fix this).                      |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| VTK                 | OK up to version 9.0.1, depending on platform calcam does not work properly with versions newer than this.                                                         |
+| VTK                 | Requires >6, OK with versions < 9.1. With VTK 9.1, setting CAD models to wireframe can cause Python to exit unexpectedly (see GitHub issue #78)                    |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| PyQt                | Works with PyQt 4, PyQt5 (test up to 5.12), or PyQt6 (tested up to 6.2.2)                                                                                          |
+| PyQt                | Works with PyQt4, PyQt5 or PyQt6 (tested up to 6.2.2)                                                                                                              |
 |                     |                                                                                                                                                                    |
-|                     | Versions 5.11 and older known to cause unreadable text in the GUI on OSX when using dark theme                                                                     |
+|                     | PyQt5 versions 5.11 and older are known to cause unreadable text in the GUI on OSX when using dark theme.                                                          |
+|                     |                                                                                                                                                                    |
+|                     | Some versions can result in click positions being registsred wrong on OSX using High DPI mode; not clear what version ranges this affects (see GitHub issue #79)   |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+You can check which versions OpenCV, VTK and PyQt you are using in the :doc:`gui_settings` interface.
+
 
 Reporting Problems
 ~~~~~~~~~~~~~~~~~~
@@ -107,6 +130,9 @@ If you find bugs / problems, please check the `GitHub issues page <https://githu
 
 Initial Configuration
 ---------------------
+
+For convenience, it is suggested to make a shortcut to the calcam GUI executable, the path of which is given in the message at the end of setup.
+
 
 Setting up CAD Model Definitions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -119,6 +145,21 @@ As standard, Calcam can load camera images from most common image file formats. 
 File type associations (optional)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Since version 2.6, it is possible to open .ccc files directly with the Calcam GUI executable / launch script to make opening calibrations more convenient. To take advantage of this, follow your operating system's normal procedure to associate the Calcam executable with opening .ccc files. The location of the calcam executable is given at the end of the installation process (see above). 
+
+System-wide default configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+If installing Calcam on a multi-user system, it may be desirable to provide a default configuration (CAD model file locations, image sources) for users running Calcam for the first time on that system. Since version 2.9, Calcam supports this by placing a suitable default configuration file in the Calcam installation directory.
+
+The default configuration file is a json file with the same format as Calcam's normal user configuration file. Therefore the easiest way to set up a default configuration file is to configure Calcam how you want it on your own user account, then copy the configuration file ``~/.calcam_config`` (where ``~`` is your home directory e.g. ``/home/username`` on Unix or ``C:\Users\username`` on windows) to the relevant location.
+
+The place Calcam will look for the default configuration file - where you need to place it to be effective - can be checked with:
+
+.. code-block:: python
+
+    import calcam
+    print(calcam.config.default_cfg_path)
+
+In a default calcam installation this file will not exist; if you place a configuration file of your choice there, it will be picked up as the default for new users who do not yet have their own user-specific conifguration file.
 
 Upgrading from Calcam 1.x
 --------------------------

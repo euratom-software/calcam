@@ -1,76 +1,39 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Rendering Images &mdash; Calcam  documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-
-  
-  
-  
-  
-
-  
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
-        <script src="_static/language_data.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
+    <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Tomography Geometry Matrices" href="api_geom_matrix.html" />
     <link rel="prev" title="CAD Models" href="api_cadmodel.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="index.html">
-          
-
-          
-            
             <img src="_static/logo.png" class="logo" alt="Logo"/>
-          
           </a>
-
-          
-            
-            
               <div class="version">
-                Version 2.8
+                Version 2.9
               </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -78,26 +41,15 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
-              <p class="caption"><span class="caption-text">Introduction</span></p>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="intro_general.html">General Introduction to Calcam</a></li>
 <li class="toctree-l1"><a class="reference internal" href="intro_install_setup.html">Getting Up &amp; Running</a></li>
 <li class="toctree-l1"><a class="reference internal" href="intro_theory.html">Camera Calibration Theory</a></li>
 <li class="toctree-l1"><a class="reference internal" href="intro_conventions.html">Concepts &amp; Conventions</a></li>
 </ul>
-<p class="caption"><span class="caption-text">GUI App User Guide</span></p>
+<p class="caption" role="heading"><span class="caption-text">GUI App User Guide</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="gui_intro.html">Introduction &amp; Launcher</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_settings.html">Calcam Settings</a></li>
@@ -108,7 +60,7 @@
 <li class="toctree-l1"><a class="reference internal" href="gui_viewer.html">3D Viewer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_movement.html">Camera Movement Determination</a></li>
 </ul>
-<p class="caption"><span class="caption-text">API User Guide</span></p>
+<p class="caption" role="heading"><span class="caption-text">API User Guide</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="api_analysis.html">Using Calibration Results</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_cadmodel.html">CAD Models</a></li>
@@ -117,80 +69,42 @@
 <li class="toctree-l1"><a class="reference internal" href="api_movement.html">Camera Movement Correction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_examples.html">Examples</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Developer Documentation</span></p>
+<p class="caption" role="heading"><span class="caption-text">Developer Documentation</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="dev_imsources.html">Image Sources</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dev_coord_formatter.html">3D Coordinate Formatters</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">Calcam</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-        
       <li>Rendering Images</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-            
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="rendering-images">
-<h1>Rendering Images<a class="headerlink" href="#rendering-images" title="Permalink to this headline">¶</a></h1>
+             
+  <section id="rendering-images">
+<h1>Rendering Images<a class="headerlink" href="#rendering-images" title="Permalink to this heading"></a></h1>
 <p>Calcam can be used to render images of a CAD model from a calibrated camera’s point of view. This includes all lens distortion in the camera model, so for calibrated real camera images, the rendered images should match exactly with the camera images. The appearance of the CAD model (colour, wireframe, which parts are loaded etc) is configured using the features of the <a class="reference internal" href="api_cadmodel.html"><span class="doc">CAD Models</span></a> class.</p>
 <p>For examples of using these features, see the <a class="reference internal" href="api_examples.html"><span class="doc">Examples</span></a> page.</p>
 <dl class="py function">
-<dt id="calcam.render_cam_view">
-<code class="sig-prename descclassname">calcam.</code><code class="sig-name descname">render_cam_view</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cadmodel</span></em>, <em class="sig-param"><span class="n">calibration</span></em>, <em class="sig-param"><span class="n">extra_actors</span><span class="o">=</span><span class="default_value">[]</span></em>, <em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">oversampling</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">aa</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">transparency</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">coords</span><span class="o">=</span><span class="default_value">'display'</span></em>, <em class="sig-param"><span class="n">interpolation</span><span class="o">=</span><span class="default_value">'cubic'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.render_cam_view" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="calcam.render_cam_view">
+<span class="sig-prename descclassname"><span class="pre">calcam.</span></span><span class="sig-name descname"><span class="pre">render_cam_view</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cadmodel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calibration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_actors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">oversampling</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aa</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transparency</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'display'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interpolation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cubic'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.render_cam_view" title="Permalink to this definition"></a></dt>
 <dd><p>Render an image of a given CAD model from the point of view of a given calibration.</p>
 <p>NOTE: This function uses off-screen OpenGL rendering which fails above some image dimension which depends on the system.
 The workaround for this is that above a render dimension set by calcam.render.max_render_dimension, the image is rendered
@@ -221,8 +135,8 @@ images the rendered image quality may be lower than expected.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="calcam.render_unfolded_wall">
-<code class="sig-prename descclassname">calcam.</code><code class="sig-name descname">render_unfolded_wall</code><span class="sig-paren">(</span><em class="sig-param">cadmodel</em>, <em class="sig-param">calibrations=[]</em>, <em class="sig-param">labels=[]</em>, <em class="sig-param">colours=None</em>, <em class="sig-param">cal_opacity=0.7</em>, <em class="sig-param">w=None</em>, <em class="sig-param">theta_start=90</em>, <em class="sig-param">phi_start=0</em>, <em class="sig-param">progress_callback=&lt;bound method LoopProgPrinter.update of &lt;calcam.misc.LoopProgPrinter object&gt;&gt;</em>, <em class="sig-param">cancel=&lt;function &lt;lambda&gt;&gt;</em>, <em class="sig-param">theta_steps=18</em>, <em class="sig-param">phi_steps=360</em>, <em class="sig-param">r_equiscale=None</em>, <em class="sig-param">extra_actors=[]</em>, <em class="sig-param">filename=None</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.render_unfolded_wall" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="calcam.render_unfolded_wall">
+<span class="sig-prename descclassname"><span class="pre">calcam.</span></span><span class="sig-name descname"><span class="pre">render_unfolded_wall</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cadmodel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calibrations=[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels=[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colours=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cal_opacity=0.7</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta_start=90</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_start=0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress_callback=&lt;bound</span> <span class="pre">method</span> <span class="pre">LoopProgPrinter.update</span> <span class="pre">of</span> <span class="pre">&lt;calcam.misc.LoopProgPrinter</span> <span class="pre">object&gt;&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cancel=&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta_steps=18</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_steps=360</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r_equiscale=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_actors=[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename=None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.render_unfolded_wall" title="Permalink to this definition"></a></dt>
 <dd><p>Render an image of the tokamak wall “flattened” out. Creates an image where the horizontal direction is the toroidal direction and
 vertical direction is poloidal.</p>
 <dl class="field-list simple">
@@ -250,62 +164,37 @@ vertical direction is poloidal.</p>
 </dl>
 </dd></dl>
 
-</div>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="api_geom_matrix.html" class="btn btn-neutral float-right" title="Tomography Geometry Matrices" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="api_cadmodel.html" class="btn btn-neutral float-left" title="CAD Models" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="api_cadmodel.html" class="btn btn-neutral float-left" title="CAD Models" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="api_geom_matrix.html" class="btn btn-neutral float-right" title="Tomography Geometry Matrices" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        
-        &copy; Copyright 2015-2020, European Atomic Energy Community (EURATOM)
-
-    </p>
+    <p>&#169; Copyright 2015-2022, European Atomic Energy Community (EURATOM).</p>
   </div>
-    
-    
-    
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
-    
-    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
-
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

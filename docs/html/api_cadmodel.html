@@ -1,76 +1,39 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CAD Models &mdash; Calcam  documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-
-  
-  
-  
-  
-
-  
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
-        <script src="_static/language_data.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
+    <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Rendering Images" href="api_rendering.html" />
     <link rel="prev" title="Using Calibration Results" href="api_analysis.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="index.html">
-          
-
-          
-            
             <img src="_static/logo.png" class="logo" alt="Logo"/>
-          
           </a>
-
-          
-            
-            
               <div class="version">
-                Version 2.8
+                Version 2.9
               </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -78,26 +41,15 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
-              <p class="caption"><span class="caption-text">Introduction</span></p>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="intro_general.html">General Introduction to Calcam</a></li>
 <li class="toctree-l1"><a class="reference internal" href="intro_install_setup.html">Getting Up &amp; Running</a></li>
 <li class="toctree-l1"><a class="reference internal" href="intro_theory.html">Camera Calibration Theory</a></li>
 <li class="toctree-l1"><a class="reference internal" href="intro_conventions.html">Concepts &amp; Conventions</a></li>
 </ul>
-<p class="caption"><span class="caption-text">GUI App User Guide</span></p>
+<p class="caption" role="heading"><span class="caption-text">GUI App User Guide</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="gui_intro.html">Introduction &amp; Launcher</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_settings.html">Calcam Settings</a></li>
@@ -108,7 +60,7 @@
 <li class="toctree-l1"><a class="reference internal" href="gui_viewer.html">3D Viewer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_movement.html">Camera Movement Determination</a></li>
 </ul>
-<p class="caption"><span class="caption-text">API User Guide</span></p>
+<p class="caption" role="heading"><span class="caption-text">API User Guide</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="api_analysis.html">Using Calibration Results</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">CAD Models</a></li>
@@ -117,79 +69,41 @@
 <li class="toctree-l1"><a class="reference internal" href="api_movement.html">Camera Movement Correction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_examples.html">Examples</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Developer Documentation</span></p>
+<p class="caption" role="heading"><span class="caption-text">Developer Documentation</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="dev_imsources.html">Image Sources</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dev_coord_formatter.html">3D Coordinate Formatters</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">Calcam</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-        
       <li>CAD Models</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-            
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="cad-models">
-<h1>CAD Models<a class="headerlink" href="#cad-models" title="Permalink to this headline">¶</a></h1>
+             
+  <section id="cad-models">
+<h1>CAD Models<a class="headerlink" href="#cad-models" title="Permalink to this heading"></a></h1>
 <p>Using CAD models programatically, e.g. loading them for rendering images or ray casting, is done with the <a class="reference internal" href="#calcam.CADModel" title="calcam.CADModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">calcam.CADModel</span></code></a> class.</p>
 <dl class="py class">
-<dt id="calcam.CADModel">
-<em class="property">class </em><code class="sig-prename descclassname">calcam.</code><code class="sig-name descname">CADModel</code><span class="sig-paren">(</span><em class="sig-param">model_name=None</em>, <em class="sig-param">model_variant=None</em>, <em class="sig-param">status_callback=&lt;function print_status&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="calcam.CADModel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">calcam.</span></span><span class="sig-name descname"><span class="pre">CADModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_name=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_variant=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_callback=&lt;function</span> <span class="pre">print_status&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel" title="Permalink to this definition"></a></dt>
 <dd><p>Class for representing a CAD model in Calcam.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -201,8 +115,8 @@
 </dd>
 </dl>
 <dl class="py method">
-<dt id="calcam.CADModel.enable_only">
-<code class="sig-name descname">enable_only</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">features</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.enable_only" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="calcam.CADModel.enable_only">
+<span class="sig-name descname"><span class="pre">enable_only</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">features</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.enable_only" title="Permalink to this definition"></a></dt>
 <dd><p>Disable all model parts except those specified.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -212,8 +126,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="calcam.CADModel.format_coord">
-<code class="sig-name descname">format_coord</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">coords</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.format_coord" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="calcam.CADModel.format_coord">
+<span class="sig-name descname"><span class="pre">format_coord</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coords</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.format_coord" title="Permalink to this definition"></a></dt>
 <dd><p>Return a pretty string giving information about a specified 3D position.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -229,8 +143,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="calcam.CADModel.get_colour">
-<code class="sig-name descname">get_colour</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">features</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.get_colour" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="calcam.CADModel.get_colour">
+<span class="sig-name descname"><span class="pre">get_colour</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">features</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.get_colour" title="Permalink to this definition"></a></dt>
 <dd><p>Get the current colour of part or all of the CAD model.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -246,8 +160,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="calcam.CADModel.get_enabled_features">
-<code class="sig-name descname">get_enabled_features</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.get_enabled_features" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="calcam.CADModel.get_enabled_features">
+<span class="sig-name descname"><span class="pre">get_enabled_features</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.get_enabled_features" title="Permalink to this definition"></a></dt>
 <dd><p>Get a list of the currently enabled features.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -260,8 +174,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="calcam.CADModel.get_extent">
-<code class="sig-name descname">get_extent</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.get_extent" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="calcam.CADModel.get_extent">
+<span class="sig-name descname"><span class="pre">get_extent</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.get_extent" title="Permalink to this definition"></a></dt>
 <dd><p>Get the extent of the model in 3D space.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -274,8 +188,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="calcam.CADModel.get_feature_list">
-<code class="sig-name descname">get_feature_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.get_feature_list" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="calcam.CADModel.get_feature_list">
+<span class="sig-name descname"><span class="pre">get_feature_list</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.get_feature_list" title="Permalink to this definition"></a></dt>
 <dd><p>Get a list of the names of all features
 which constitute the model.</p>
 <dl class="field-list simple">
@@ -289,8 +203,8 @@ which constitute the model.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="calcam.CADModel.get_group_enable_state">
-<code class="sig-name descname">get_group_enable_state</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">group</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.get_group_enable_state" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="calcam.CADModel.get_group_enable_state">
+<span class="sig-name descname"><span class="pre">get_group_enable_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">group</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.get_group_enable_state" title="Permalink to this definition"></a></dt>
 <dd><p>Check the enable status of a named group of features.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -306,8 +220,8 @@ which constitute the model.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="calcam.CADModel.get_linewidth">
-<code class="sig-name descname">get_linewidth</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">features</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.get_linewidth" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="calcam.CADModel.get_linewidth">
+<span class="sig-name descname"><span class="pre">get_linewidth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">features</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.get_linewidth" title="Permalink to this definition"></a></dt>
 <dd><p>Get the line width used for rendering the model as wireframe.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -323,8 +237,8 @@ which constitute the model.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="calcam.CADModel.get_status_callback">
-<code class="sig-name descname">get_status_callback</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.get_status_callback" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="calcam.CADModel.get_status_callback">
+<span class="sig-name descname"><span class="pre">get_status_callback</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.get_status_callback" title="Permalink to this definition"></a></dt>
 <dd><p>Get the current callback function</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -337,8 +251,8 @@ which constitute the model.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="calcam.CADModel.reset_colour">
-<code class="sig-name descname">reset_colour</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">features</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.reset_colour" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="calcam.CADModel.reset_colour">
+<span class="sig-name descname"><span class="pre">reset_colour</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">features</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.reset_colour" title="Permalink to this definition"></a></dt>
 <dd><p>Reset the colour of part or all of the CAD model to the default(s).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -348,8 +262,8 @@ which constitute the model.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="calcam.CADModel.set_colour">
-<code class="sig-name descname">set_colour</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">colour</span></em>, <em class="sig-param"><span class="n">features</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.set_colour" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="calcam.CADModel.set_colour">
+<span class="sig-name descname"><span class="pre">set_colour</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">colour</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">features</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.set_colour" title="Permalink to this definition"></a></dt>
 <dd><p>Set the colour of part or all of the CAD model.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -362,8 +276,8 @@ which constitute the model.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="calcam.CADModel.set_features_enabled">
-<code class="sig-name descname">set_features_enabled</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">enable</span></em>, <em class="sig-param"><span class="n">features</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.set_features_enabled" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="calcam.CADModel.set_features_enabled">
+<span class="sig-name descname"><span class="pre">set_features_enabled</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">enable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">features</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.set_features_enabled" title="Permalink to this definition"></a></dt>
 <dd><p>Enable or disable parts of the CAD model.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -376,8 +290,8 @@ which constitute the model.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="calcam.CADModel.set_flat_shading">
-<code class="sig-name descname">set_flat_shading</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">flat_shading</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.set_flat_shading" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="calcam.CADModel.set_flat_shading">
+<span class="sig-name descname"><span class="pre">set_flat_shading</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flat_shading</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.set_flat_shading" title="Permalink to this definition"></a></dt>
 <dd><p>Set flat shading (no lighting applied to model rendering)
 enabled or disabled.</p>
 <dl class="field-list simple">
@@ -388,8 +302,8 @@ enabled or disabled.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="calcam.CADModel.set_linewidth">
-<code class="sig-name descname">set_linewidth</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">linewidth</span></em>, <em class="sig-param"><span class="n">features</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.set_linewidth" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="calcam.CADModel.set_linewidth">
+<span class="sig-name descname"><span class="pre">set_linewidth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">linewidth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">features</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.set_linewidth" title="Permalink to this definition"></a></dt>
 <dd><p>Set the line width used when rendering the CAD model as wireframe.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -402,8 +316,8 @@ enabled or disabled.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="calcam.CADModel.set_status_callback">
-<code class="sig-name descname">set_status_callback</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">status_callback</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.set_status_callback" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="calcam.CADModel.set_status_callback">
+<span class="sig-name descname"><span class="pre">set_status_callback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">status_callback</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.set_status_callback" title="Permalink to this definition"></a></dt>
 <dd><p>Set the status callback function.</p>
 <p>The given function will be called with a string when the CAD model
 object does something, and is called with None when the operatio is
@@ -417,8 +331,8 @@ busy doing things.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="calcam.CADModel.set_wireframe">
-<code class="sig-name descname">set_wireframe</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">wireframe</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.set_wireframe" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="calcam.CADModel.set_wireframe">
+<span class="sig-name descname"><span class="pre">set_wireframe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wireframe</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.set_wireframe" title="Permalink to this definition"></a></dt>
 <dd><p>Enable or disable rendering the model as wireframe.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -428,69 +342,44 @@ busy doing things.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="calcam.CADModel.unload">
-<code class="sig-name descname">unload</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.unload" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="calcam.CADModel.unload">
+<span class="sig-name descname"><span class="pre">unload</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel.unload" title="Permalink to this definition"></a></dt>
 <dd><p>Unloads the CAD model object.</p>
 </dd></dl>
 
 </dd></dl>
 
-</div>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="api_rendering.html" class="btn btn-neutral float-right" title="Rendering Images" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="api_analysis.html" class="btn btn-neutral float-left" title="Using Calibration Results" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="api_analysis.html" class="btn btn-neutral float-left" title="Using Calibration Results" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="api_rendering.html" class="btn btn-neutral float-right" title="Rendering Images" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        
-        &copy; Copyright 2015-2020, European Atomic Energy Community (EURATOM)
-
-    </p>
+    <p>&#169; Copyright 2015-2022, European Atomic Energy Community (EURATOM).</p>
   </div>
-    
-    
-    
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
-    
-    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
-
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>
