@@ -130,11 +130,17 @@ class ViewModel():
 
 
 
-    def get_cam_roll(self):
+    def get_cam_roll(self,x=None,y=None):
         
         # Get the projection of the lab +z axis on to the detector plane
-        z_camframe = np.squeeze( self.get_cam_to_lab_rotation().transpose()[:,2] )
-        viewdir = np.matrix([0,0,1])    # In the camera frame, +z is the view direction.
+        z_camframe = np.squeeze( self.get_cam_to_lab_rotation().T[:,2] )
+
+        if x is None or y is None:
+            viewdir = np.matrix([0,0,1])    # In the camera frame, +z is the view direction.
+        else:
+            xn,yn = self.normalise(x,y)
+            viewdir = np.matrix([xn.item(),yn.item(),1])
+
         z_proj = np.cross(viewdir, np.cross(z_camframe,viewdir) )
         z_proj = z_proj / np.sqrt(np.sum(z_proj**2))
 
@@ -146,7 +152,7 @@ class ViewModel():
         else:
             sign = 1
             
-        return sign * 180 * np.arccos( -z_proj[0][1] ) / 3.14159
+        return sign * 180 * np.arccos( -z_proj[0][1] ) / np.pi
 
 
 # Class representing a perspective camera model.
@@ -544,17 +550,17 @@ class Calibration():
             # Save the original sub-view mask so we can put it back later.
             self.native_subview_mask = self.get_subview_mask(coords='Original')
 
-            if self.n_subviews == 1:
-                new_subview_mask = np.zeros((window[3],window[2]),dtype='uint8')
+            if self.n_subviews == 1 and self.get_subview_mask().min() == 0:
+                new_subview_mask = np.zeros((window[3],window[2]),dtype=np.int8)
             else:
                 orig_shape = self.geometry.get_original_shape()
                 orig_subview_mask = self.get_subview_mask(coords='Original')
 
                 if window[0] < self.geometry.offset[0] or window[1] < self.geometry.offset[1] or window[0] + window[2] > self.geometry.offset[0] + orig_shape[0] or window[1] + window[3] > self.geometry.offset[1] + orig_shape[1]:
                     if bounds_error.lower() == 'except':
-                        raise Exception('Requested calibration crop of {:d}x{:d} at offset {:d}x{:d} exceeds the bounds of the original calibration ({:d}x{:d} at offset {:d}x{:d}). This is not possible for calibrations with multiple sub-views.'.format(window[2],window[3],window[0],window[1],self.geometry.x_pixels,self.geometry.y_pixels,self.geometry.offset[0],self.geometry.offset[1]))
+                        raise Exception('Requested calibration crop of {:d}x{:d} at offset {:d}x{:d} exceeds the bounds of the original calibration ({:d}x{:d} at offset {:d}x{:d}).'.format(window[2],window[3],window[0],window[1],self.geometry.x_pixels,self.geometry.y_pixels,self.geometry.offset[0],self.geometry.offset[1]))
                     elif bounds_error.lower() == 'warn':
-                        warnings.warn('Requested calibration crop of {:d}x{:d} at offset {:d}x{:d} exceeds the bounds of the original calibration ({:d}x{:d} at offset {:d}x{:d}). Only pixels within the original area will be usable.'.format(window[2],window[3],window[0],window[1],self.geometry.x_pixels,self.geometry.y_pixels,self.geometry.offset[0],self.geometry.offset[1]))
+                        warnings.warn('Requested calibration crop of {:d}x{:d} at offset {:d}x{:d} exceeds the bounds of the original calibration ({:d}x{:d} at offset {:d}x{:d}). All pixels outside the originally calibrated area will be assumed to contain no image.'.format(window[2],window[3],window[0],window[1],self.geometry.x_pixels,self.geometry.y_pixels,self.geometry.offset[0],self.geometry.offset[1]))
 
                     new_subview_mask = np.zeros((window[3],window[2]),dtype=np.int8) - 1
 
@@ -702,7 +708,7 @@ class Calibration():
                 raise IOError('"{:s}" does not appear to be a Calcam calibration file!'.format(filename))
 
             # Load the field mask and set up geometry object
-            subview_mask = cv2.imread(os.path.join(save_file.get_temp_path(),'subview_mask.png'))[:,:,0]
+            subview_mask = cv2.imread(os.path.join(save_file.get_temp_path(),'subview_mask.png'))[:,:,0].astype(np.int8)
 
             if 'image_offset' not in meta:
                 meta['image_offset'] = (0,0)
@@ -864,7 +870,7 @@ class Calibration():
             self.image = self.geometry.display_to_original_image(image)
 
         if subview_mask is None:
-            subview_mask = np.zeros(image.shape[:2],dtype='uint8')
+            subview_mask = np.zeros(image.shape[:2],dtype=np.int8)
 
         self.set_subview_mask(subview_mask,subview_names,coords)
 
@@ -1003,7 +1009,7 @@ class Calibration():
 
 
             # Save the field mask
-            cv2.imwrite(os.path.join(save_file.get_temp_path(),'subview_mask.png'),self.get_subview_mask(coords='display'))
+            cv2.imwrite(os.path.join(save_file.get_temp_path(),'subview_mask.png'),self.get_subview_mask(coords='display').astype(np.uint8))
 
             # Save the general information
             meta = {
@@ -1249,7 +1255,9 @@ class Calibration():
         elif subview is None:
             subview = 0
 
-        return self.view_models[subview].get_cam_roll()
+        ypx, xpx = CoM(self.get_subview_mask(coords='Display') == subview)
+
+        return self.view_models[subview].get_cam_roll(x=xpx,y=ypx)
 
 
     # Get the horizontal and vertical field of view of a given sub-view
@@ -1646,7 +1654,7 @@ class Calibration():
             pass
 
         self.view_models = [ViewModel.from_dict(coeffs_dict)]
-        self.subview_mask = np.zeros(intrinsics_calib.subview_mask.shape,dtype=np.uint8)
+        self.subview_mask = np.zeros(intrinsics_calib.subview_mask.shape,dtype=np.int8)
         self.geometry = copy.copy(intrinsics_calib.geometry)
         self.pixel_size = intrinsics_calib.pixel_size
         self.intrinsics_constraints = []
@@ -1692,7 +1700,7 @@ class Calibration():
         self.view_models = [ViewModel.from_dict(coeffs_dict)]
 
         if self.geometry.get_display_shape() != images_and_points[0][0].shape[:2][::-1]:
-            self.subview_mask = np.zeros(images_and_points[0][0].shape[:2],dtype=np.uint8)
+            self.subview_mask = np.zeros(images_and_points[0][0].shape[:2],dtype=np.int8)
             self.geometry = CoordTransformer(orig_x=self.subview_mask.shape[1],orig_y = self.subview_mask.shape[0])
             self.pixel_size = None
 
@@ -1726,7 +1734,7 @@ class Calibration():
                 raise ValueError('All of fx,fy,cx,cy,nx and ny must be specified for a virtual calibration.')
             else:
                 self.geometry = CoordTransformer(orig_x=nx,orig_y = ny)
-                self.subview_mask = np.zeros([ny,nx],dtype=np.uint8)
+                self.subview_mask = np.zeros([ny,nx],dtype=np.int8)
 
         elif self._type == 'alignment':
             shape = self.geometry.get_display_shape()
@@ -2200,7 +2208,7 @@ class Fitter:
         self.fixskew = True
         self.disabletangentialdist=False
         self.fixcc = False
-        self.ignore_upside_down=False
+        self.ignore_upside_down=True
 
 
     def set_model(self,model):

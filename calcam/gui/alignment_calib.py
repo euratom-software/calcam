@@ -98,6 +98,7 @@ class AlignmentCalib(CalcamGUIWindow):
         self.im_edge_colour_button.clicked.connect(self.update_edge_colour)
         self.edge_threshold_1.valueChanged.connect(self.update_overlay)
         self.edge_threshold_2.valueChanged.connect(self.update_overlay)
+        self.image_mask_button.clicked.connect(self.edit_masking)
 
         self.control_sensitivity_slider.valueChanged.connect(lambda x: self.interactor3d.set_control_sensitivity(x*0.01))
         self.rmb_rotate.toggled.connect(self.interactor3d.set_rmb_rotate)
@@ -205,6 +206,16 @@ class AlignmentCalib(CalcamGUIWindow):
         self.unsaved_changes = False
 
 
+    def edit_masking(self):
+
+        dialog = ImageMaskDialog(self,self.calibration.get_image(),allow_subviews=False)
+        result = dialog.exec()
+
+        if result == 1:
+            self.calibration.set_subview_mask(dialog.fieldmask,subview_names=dialog.field_names,coords='Display')
+            self.unsaved_changes = True
+
+        del dialog
 
     def update_edge_colour(self):
 
@@ -382,7 +393,7 @@ class AlignmentCalib(CalcamGUIWindow):
                 if len(self.intrinsics_calib.view_models) != 1:
                     self.intrinsics_calib = None
                     self.current_intrinsics_combobox.setChecked(True)
-                    raise UserWarning('This calibration has multiple sub-fields; no worky; sorry.')
+                    raise UserWarning('This calibration has multiple sub-fields, which is not supported by the manual alignment calibration tool.')
 
                 self.calibration.set_calib_intrinsics(self.intrinsics_calib,update_hist_recursion = not (self.intrinsics_calib is self.calibration))
                 self.current_intrinsics_combobox = self.calcam_intrinsics

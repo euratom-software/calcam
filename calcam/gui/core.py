@@ -744,8 +744,6 @@ class CalcamGUIWindow(qt.QMainWindow):
 
     def set_view_from_calib(self,calibration,subfield):
 
-        viewmodel = calibration.view_models[subfield]
-
         if self.fov_enabled:
             fov = calibration.get_fov(subview=subfield,fullchip=True)
             vtk_aspect = float(self.vtksize[1]) / float(self.vtksize[0])
@@ -761,15 +759,15 @@ class CalcamGUIWindow(qt.QMainWindow):
             self.camera_3d.SetViewAngle(fov_angle)
             self.camera_3d.SetUseHorizontalViewAngle(h_fov)
 
-        self.camera_3d.SetPosition(viewmodel.get_pupilpos())
+        self.camera_3d.SetPosition(calibration.get_pupilpos(subview=subfield))
 
         if self.viewdir_at_cc:
             mat = calibration.get_cam_matrix(subview=subfield)
-            self.camera_3d.SetFocalPoint(viewmodel.get_pupilpos() + viewmodel.get_los_direction(mat[0,2],mat[1,2]))
+            self.camera_3d.SetFocalPoint(calibration.get_pupilpos(subview=subfield) + calibration.get_los_direction(mat[0,2],mat[1,2]))
         else:
-            self.camera_3d.SetFocalPoint(viewmodel.get_pupilpos() + viewmodel.get_los_direction(calibration.geometry.get_display_shape()[0]/2,calibration.geometry.get_display_shape()[1]/2))
+            self.camera_3d.SetFocalPoint(calibration.get_pupilpos(subview=subfield) + calibration.get_los_direction(calibration.geometry.get_display_shape()[0]/2,calibration.geometry.get_display_shape()[1]/2))
 
-        self.interactor3d.set_roll(viewmodel.get_cam_roll())
+        self.interactor3d.set_roll(calibration.get_cam_roll(subview=subfield))
 
         self.update_viewport_info(keep_selection=True)
 
@@ -1626,9 +1624,9 @@ class AreYouSureDialog(qt.QDialog):
 
 
 
-class SplitFieldDialog(qt.QDialog):
+class ImageMaskDialog(qt.QDialog):
 
-    def __init__(self, parent, image):
+    def __init__(self, parent, image,allow_subviews=True):
 
         # GUI initialisation
         qt.QDialog.__init__(self, parent,qt.Qt.WindowTitleHint | qt.Qt.WindowCloseButtonHint)
@@ -1653,10 +1651,13 @@ class SplitFieldDialog(qt.QDialog):
         self.method_mask.toggled.connect(self.change_method)
         self.method_points.toggled.connect(self.change_method)
         self.no_split.toggled.connect(self.change_method)
+        self.method_floodfill.toggled.connect(self.change_method)
         self.mask_alpha_slider.valueChanged.connect(self.update_mask_alpha)
         self.cancel_button.clicked.connect(self.reject)
         self.apply_button.clicked.connect(self.apply)
         self.mask_browse_button.clicked.connect(self.load_mask_image)
+        self.fill_reset_button.clicked.connect(lambda : self.change_method(True))
+        self.save_image_button.clicked.connect(self.save_image)
 
         self.points_options.hide()
         self.mask_options.hide()
@@ -1666,7 +1667,12 @@ class SplitFieldDialog(qt.QDialog):
         self.interactor.cursor_size = 0.05
 
         self.update_mask_alpha(self.mask_alpha_slider.value())
-            
+
+        self.allow_subviews = allow_subviews
+        if not allow_subviews:
+            self.method_points.hide()
+            self.mask_instructions.setText('Load an image file, the same size as the camera image, with pixels containing the image filled a different colour to pixels with no image.')
+
 
         # Start the GUI!
         self.show()
@@ -1675,11 +1681,11 @@ class SplitFieldDialog(qt.QDialog):
         self.vtkInteractor.Initialize()
         self.interactor.set_image(self.image)
 
-        if self.parent.calibration.n_subviews == 1:
+        if self.parent.calibration.n_subviews == 1 and self.parent.calibration.subview_mask.min() == 0:
             self.no_split.setChecked(True)
         else:
             self.method_mask.setChecked(True)
-            self.update_fieldmask(mask=self.parent.calibration.get_subview_mask(coords='Display'))
+            self.update_fieldmask(mask=self.parent.calibration.get_subview_mask(coords='Display'),mask_formatted=True,names=self.parent.calibration.subview_names)
             
 
 
@@ -1694,8 +1700,10 @@ class SplitFieldDialog(qt.QDialog):
             return
 
         if self.method_points.isChecked():
+            self.update_fieldmask(mask=np.zeros(self.image.shape[:2], dtype=np.int8))
             self.points_options.show()
             self.mask_options.hide()
+            self.floodfill_options.hide()
             self.mask_alpha_slider.setEnabled(True)
             self.mask_alpha_label.setEnabled(True)
             for point in self.points:
@@ -1703,25 +1711,39 @@ class SplitFieldDialog(qt.QDialog):
             if len(self.points) == 2:
                 self.interactor.set_cursor_focus(point[1])
 
+
         elif self.method_mask.isChecked():
             self.mask_options.show()
             self.points_options.hide()
+            self.floodfill_options.hide()
             for point in self.points:
                 self.interactor.remove_active_cursor(point[1])
-                point[1] = None
-
+            self.points = []
             self.mask_alpha_slider.setEnabled(True)
             self.mask_alpha_label.setEnabled(True)
-            self.update_fieldmask( mask = np.zeros(self.image.shape[:2],dtype=np.uint8) )
+            self.update_fieldmask( mask = np.zeros(self.image.shape[:2],dtype=np.int8) )
+
+        elif self.method_floodfill.isChecked():
+            for point in self.points:
+                self.interactor.remove_active_cursor(point[1])
+            self.points = []
+            self.mask_alpha_slider.setEnabled(True)
+            self.mask_alpha_label.setEnabled(True)
+            self.mask_options.hide()
+            self.points_options.hide()
+            self.floodfill_options.show()
+            self.update_fieldmask(mask=np.zeros(self.image.shape[:2], dtype=np.int8))
+
         else:
             self.mask_options.hide()
             self.points_options.hide()
+            self.floodfill_options.hide()
             for point in self.points:
                 self.interactor.remove_active_cursor(point[1])
-                point[1] = None
+            self.points = []
             self.mask_alpha_slider.setEnabled(False)
             self.mask_alpha_label.setEnabled(False)
-            self.update_fieldmask( mask = np.zeros(self.image.shape[:2],dtype=np.uint8) )
+            self.update_fieldmask( mask = np.zeros(self.image.shape[:2],dtype=np.int8) )
 
         self.refresh_2d()
 
@@ -1746,13 +1768,42 @@ class SplitFieldDialog(qt.QDialog):
             for widget in self.field_names_boxes:
                 layout.removeWidget(widget)
             self.field_names_boxes = []
+            self.field_checkboxes = []
             if n_fields > 1:
                 for field in range(n_fields):
                     self.field_names_boxes.append(qt.QLineEdit())
                     self.field_names_boxes[-1].setStyleSheet("background: rgb({:.0f}, {:.0f}, {:.0f}); color: rgb(255,255,255); border: 1px solid;".format(colours[field][0],colours[field][1],colours[field][2]))
                     self.field_names_boxes[-1].setMaximumWidth(150)
                     self.field_names_boxes[-1].setText(names[field])
-                    layout.addWidget(self.field_names_boxes[-1])
+                    self.field_checkboxes.append(qt.QCheckBox('Region contains image'))
+                    self.field_checkboxes[-1].setChecked(True)
+                    self.field_checkboxes[-1].toggled.connect(self.update_field_enables)
+                    layout.addWidget(self.field_names_boxes[-1],field,0)
+                    layout.addWidget(self.field_checkboxes[-1],field,1)
+
+
+    def update_field_enables(self):
+
+        for i,cb in enumerate(self.field_checkboxes):
+
+            if self.sender() is cb:
+                if cb.isChecked():
+                    self.field_names_boxes[i].setEnabled(True)
+                else:
+                    self.field_names_boxes[i].setEnabled(False)
+
+        mask_image = np.zeros([self.fieldmask.shape[0], self.fieldmask.shape[1], 4], dtype=np.uint8)
+
+        for field in range(self.fieldmask.max()+1):
+            inds = np.where(self.fieldmask == field)
+            if self.field_checkboxes[field].isChecked():
+                mask_image[inds[0], inds[1], 0] = self.field_colours[field][0]
+                mask_image[inds[0], inds[1], 1] = self.field_colours[field][1]
+                mask_image[inds[0], inds[1], 2] = self.field_colours[field][2]
+
+        mask_image[:, :, 3] = self.overlay_opacity
+
+        self.interactor.set_overlay_image(mask_image)
 
 
     def apply(self):
@@ -1760,7 +1811,19 @@ class SplitFieldDialog(qt.QDialog):
         if self.fieldmask.max() == 0:
             self.field_names = ['Image']
         else:
-            self.field_names = [str(namebox.text()) for namebox in self.field_names_boxes]
+            final_fieldmask = np.zeros_like(self.fieldmask)
+            self.field_names = []
+            i = 0
+            for field in range(self.fieldmask.max() + 1):
+                inds = np.where(self.fieldmask == field)
+                if self.field_checkboxes[field].isChecked():
+                    final_fieldmask[inds] = i
+                    self.field_names.append(self.field_names_boxes[field].text())
+                    i += 1
+                else:
+                    final_fieldmask[inds] = -1
+
+            self.fieldmask = final_fieldmask
 
         self.done(1)
 
@@ -1774,6 +1837,7 @@ class SplitFieldDialog(qt.QDialog):
         filedialog.setWindowTitle('Select Mask File')
         filedialog.setNameFilter('Image Files (*.png *.bmp *.jp2 *.tiff *.tif)')
         filedialog.exec()
+
         if filedialog.result() == 1:
             mask_im = cv2.imread(str(filedialog.selectedFiles()[0]))
 
@@ -1793,10 +1857,21 @@ class SplitFieldDialog(qt.QDialog):
             if len(self.points) == 2:
                 self.interactor.set_cursor_focus(self.points[-1][1])
             self.update_fieldmask()
+
+        elif self.method_floodfill.isChecked():
+            newmask = np.zeros((self.image.shape[0]+2,self.image.shape[1]+2),np.uint8)
+            try:
+                n_channels = self.image.shape[2]
+            except IndexError:
+                n_channels = 1
+            filtered_image = cv2.medianBlur(self.image,self.medfilt_pixels.value())
+            cv2.floodFill(filtered_image,newmask,seedPoint=tuple(np.round(im_coords).astype(np.uint32)),newVal=(0,)*n_channels,loDiff=(self.fill_tolerance.value(),)*n_channels,upDiff=(self.fill_tolerance.value(),)*n_channels,flags=cv2.FLOODFILL_MASK_ONLY | cv2.FLOODFILL_FIXED_RANGE)
+            mask = -1 * ((newmask[1:-1,1:-1] == 1) | (self.fieldmask < 0))
+            self.update_fieldmask(mask=mask.astype(np.int8),mask_formatted=True)
  
 
 
-    def update_fieldmask(self,cursor_moved=None,updated_position=None,mask=None):
+    def update_fieldmask(self,cursor_moved=None,updated_position=None,mask=None,names=[],mask_formatted=False):
 
         if cursor_moved is not None:
             for point in self.points:
@@ -1831,26 +1906,34 @@ class SplitFieldDialog(qt.QDialog):
         # or if we're doing it from a mask..
         else:
 
-            if len(mask.shape) > 2:
-                for channel in range(mask.shape[2]):
-                    mask[:,:,channel] = mask[:,:,channel] * 2**channel
-                mask = np.sum(mask,axis=2)
+            if not mask_formatted:
 
-            lookup = list(np.unique(mask))
-            n_fields = len(lookup)
+                if len(mask.shape) > 2:
+                    mask = mask.astype(np.float32)
+                    for channel in range(mask.shape[2]):
+                        mask[:, :, channel] = mask[:, :, channel] + 255 * channel
+                    mask = np.sum(mask, axis=2)
 
-            if n_fields > 5:
-                raise UserWarning('The loaded mask image contains {:d} different colours. This seems wrong.')
+                lookup = list(np.unique(mask))
+                n_fields = len(lookup)
 
-            for value in lookup:
-                mask[mask == value] = lookup.index(value)
+                if n_fields > 50:
+                    raise UserWarning('The loaded mask image contains {:d} different colours. This seems wrong.')
+                newmask = np.zeros((mask.shape[0],mask.shape[1]),dtype=np.int8)
+                for value in lookup:
+                    newmask[mask == value] = lookup.index(value)
 
-            self.fieldmask = np.uint8(mask)
-        
+                self.fieldmask = newmask
+
+            else:
+                n_fields = int(mask.max() + 1)
+
+                self.fieldmask = np.int8(mask)
+
+
         self.field_colours = []
 
-
-        if n_fields > 1:
+        if n_fields > 1 or self.fieldmask.min() < 0 or self.method_floodfill.isChecked():
             
             colourcycle = ColourCycle()
             self.field_colours = [ np.uint8(np.array(next(colourcycle)) * 255) for i in range(n_fields) ]
@@ -1875,48 +1958,77 @@ class SplitFieldDialog(qt.QDialog):
 
 
         if len(self.field_names_boxes) != n_fields:
-            names = []
-            if n_fields == 2:
 
-                    xpx = np.zeros(2)
-                    ypx = np.zeros(2)
+            if len(names) != n_fields:
 
+                if n_fields == 2:
+
+                        xpx = np.zeros(2)
+                        ypx = np.zeros(2)
+
+                        for field in range(n_fields):
+
+                            # Get CoM of this field on the chip
+                            x,y = np.meshgrid(np.linspace(0,self.image.shape[1]-1,self.image.shape[1]),np.linspace(0,self.image.shape[0]-1,self.image.shape[0]))
+                            x[self.fieldmask != field] = 0
+                            y[self.fieldmask != field] = 0
+                            xpx[field] = np.sum(x)/np.count_nonzero(x)
+                            ypx[field] = np.sum(y)/np.count_nonzero(y)
+
+                        names = ['','']
+
+                        if ypx.max() - ypx.min() > 20:
+                            names[np.argmin(ypx)] = 'Upper '
+                            names[np.argmax(ypx)] = 'Lower '
+
+                        if xpx.max() - xpx.min() > 20:
+                            names[np.argmax(xpx)] = names[np.argmax(xpx)] + 'Right '
+                            names[np.argmin(xpx)] = names[np.argmin(xpx)] + 'Left '
+
+                        if names == ['','']:
+                            names = ['Sub FOV # 1', 'Sub FOV # 2']
+                        else:
+                            names[0] = names[0] + 'View'
+                            names[1] = names[1] + 'View'
+
+                elif n_fields > 2:
+                    names = []
                     for field in range(n_fields):
+                        names.append('Sub FOV # ' + str(field + 1))
 
-                        # Get CoM of this field on the chip
-                        x,y = np.meshgrid(np.linspace(0,self.image.shape[1]-1,self.image.shape[1]),np.linspace(0,self.image.shape[0]-1,self.image.shape[0]))
-                        x[self.fieldmask != field] = 0
-                        y[self.fieldmask != field] = 0
-                        xpx[field] = np.sum(x)/np.count_nonzero(x)
-                        ypx[field] = np.sum(y)/np.count_nonzero(y)
-
-                    names = ['','']
-
-                    if ypx.max() - ypx.min() > 20:
-                        names[np.argmin(ypx)] = 'Upper '
-                        names[np.argmax(ypx)] = 'Lower '
-
-                    if xpx.max() - xpx.min() > 20:
-                        names[np.argmax(xpx)] = names[np.argmax(xpx)] + 'Right '
-                        names[np.argmin(xpx)] = names[np.argmin(xpx)] + 'Left '
-
-                    if names == ['','']:
-                        names.append('Sub FOV # 1', 'Sub FOV # 2')
-                    else:
-                        names[0] = names[0] + 'View'
-                        names[1] = names[1] + 'View'
-
-            elif n_fields > 2:
-                names = []
-                for field in range(n_fields):
-                    names.append('Sub FOV # ' + str(field + 1))
-
-            elif n_fields == 1:
-                names = ['Image']
+                elif n_fields == 1:
+                    names = ['Image']
 
 
             self.update_fieldnames_gui(n_fields,self.field_colours,names)
 
+
+    def save_image(self):
+
+        config = CalcamConfig()
+        filename_filter = config.filename_filters['image']
+        fext = filename_filter.split('(*')[1].split(')')[0]
+
+        filedialog = qt.QFileDialog(self)
+        filedialog.setAcceptMode(filedialog.AcceptSave)
+
+        try:
+            filedialog.setDirectory(config.file_dirs['image'])
+        except KeyError:
+            filedialog.setDirectory(os.path.expanduser('~'))
+
+        filedialog.setFileMode(filedialog.AnyFile)
+
+        filedialog.setWindowTitle('Save As...')
+        filedialog.setNameFilter(filename_filter)
+        filedialog.exec()
+        if filedialog.result() == 1:
+            selected_path = str(filedialog.selectedFiles()[0])
+            config.file_dirs['image'] = os.path.split(selected_path)[0]
+            if not selected_path.endswith(fext):
+                selected_path = selected_path + fext
+
+            cv2.imwrite(selected_path,self.image)
 
 
 class CalibInfoDialog(qt.QDialog):
@@ -1941,46 +2053,3 @@ class CalibInfoDialog(qt.QDialog):
 
         self.show()
 
-
-
-def hist_eq(image):
-    '''
-    Apply histogram equilisation to a given image to improve feature contrast.
-    By default, tries to apply OpenCV's adaptive histogram equilisation,
-    but if that's not available performs a global histogram equilisation with NuMPy.
-    
-    Paranmeters:
-            image (np.ndarray)  : 8-bit mono or RGB(A) image to be processed
-            
-    Returns:
-            np.ndarray : Histogram equilised image.
-            
-    '''    
-    im_out = image.copy()
-    
-    try:
-        
-        hist_eq_filter = cv2.createCLAHE(clipLimit=4.0, tileGridSize=(16,16))
-        if len(image.shape) == 2:
-            im_out = hist_eq_filter.apply(im_out.astype('uint8'))
-        elif len(image.shape) > 2:
-            for channel in range(3):
-                im_out[:,:,channel] = hist_eq_filter.apply(im_out.astype('uint8')[:,:,channel])
-
-    except Exception as e:
-
-        if len(image.shape) == 2:
-            data = image.flatten()
-            hist, bins = np.histogram(data, 256, density=True)
-            cdf = hist.cumsum()
-            cdf = 255*cdf/cdf[-1]
-            im_out = np.interp(data, bins[:-1], cdf).reshape(image.shape)
-        elif len(image.shape) > 2:
-            for channel in range(3):
-                data = image[:,:,channel].flatten()
-                hist, bins = np.histogram(data, 256, density=True)
-                cdf = hist.cumsum()
-                cdf = 255*cdf/cdf[-1]
-                im_out[:,:,channel] = np.interp(data, bins[:-1], cdf).reshape(image.shape[:2])
-        
-    return im_out

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>775</width>
-    <height>451</height>
+    <width>819</width>
+    <height>672</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -17,7 +17,7 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>Define Split Field-of-View</string>
+   <string>Define Image Regions</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0" rowspan="3">
@@ -166,14 +166,81 @@
          </sizepolicy>
         </property>
         <property name="title">
-         <string>Define Split Field-of-View</string>
+         <string>Define Image Region Masking</string>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_4">
          <item>
           <widget class="QRadioButton" name="no_split">
            <property name="text">
-            <string>No Split Field-of-View</string>
+            <string>No masking (one view covering whole image area)</string>
            </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QRadioButton" name="method_floodfill">
+           <property name="text">
+            <string>Image surrounded by dark border</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QWidget" name="floodfill_options" native="true">
+           <layout class="QGridLayout" name="gridLayout_3">
+            <item row="0" column="0" colspan="2">
+             <widget class="QLabel" name="label_5">
+              <property name="text">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Click in the dark border(s) of the image to mark these areas as not containing image. Use the controls below to change the flood fill settings or reset and start again. If flood filling does not produce good results, consider using the &amp;quot;arbitrary mask&amp;quot; option instead.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="wordWrap">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="label">
+              <property name="text">
+               <string>Flood fill colour tolerance</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="1">
+             <widget class="QPushButton" name="fill_reset_button">
+              <property name="text">
+               <string>Reset</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QSpinBox" name="fill_tolerance">
+              <property name="suffix">
+               <string> DL</string>
+              </property>
+              <property name="maximum">
+               <number>255</number>
+              </property>
+              <property name="value">
+               <number>5</number>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="label_3">
+              <property name="text">
+               <string>Median filter:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QSpinBox" name="medfilt_pixels">
+              <property name="suffix">
+               <string> pixels</string>
+              </property>
+              <property name="value">
+               <number>3</number>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </widget>
          </item>
          <item>
@@ -185,7 +252,7 @@
             </sizepolicy>
            </property>
            <property name="text">
-            <string>2 Sub-views separated by a straight line</string>
+            <string>2 Views separated by a straight line</string>
            </property>
            <property name="checked">
             <bool>false</bool>
@@ -229,7 +296,7 @@
             </sizepolicy>
            </property>
            <property name="text">
-            <string>Custom mask</string>
+            <string>Arbitrary mask</string>
            </property>
           </widget>
          </item>
@@ -243,7 +310,7 @@
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_2">
             <item>
-             <widget class="QLabel" name="label_3">
+             <widget class="QLabel" name="mask_instructions">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
                 <horstretch>0</horstretch>
@@ -251,26 +318,43 @@
                </sizepolicy>
               </property>
               <property name="text">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Load an image file, the same size as the camera&lt;br/&gt;image, with pixels belonging to each sub-field&lt;br/&gt;filled with different colours.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Load an image file, the same size as the camera&lt;br/&gt;image, with pixels belonging to each region&lt;br/&gt;filled with different colours.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
              </widget>
             </item>
             <item>
              <widget class="QPushButton" name="mask_browse_button">
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
-              <property name="maximumSize">
-               <size>
-                <width>75</width>
-                <height>16777215</height>
-               </size>
+              <property name="text">
+               <string>Load Mask Image...</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_4">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
               </property>
               <property name="text">
-               <string>Browse...</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Use this button to save a copy of the image being calibrated that you can use as a guide / template to create the mask:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="wordWrap">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="save_image_button">
+              <property name="text">
+               <string>Save Calibration Image...</string>
               </property>
              </widget>
             </item>
@@ -283,9 +367,9 @@
       <item>
        <widget class="QGroupBox" name="fieldnames_box">
         <property name="title">
-         <string>Sub-Field Names</string>
+         <string>Region Names</string>
         </property>
-        <layout class="QVBoxLayout" name="verticalLayout_5"/>
+        <layout class="QGridLayout" name="gridLayout_2"/>
        </widget>
       </item>
       <item>
