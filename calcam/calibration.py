@@ -2126,7 +2126,7 @@ class Calibration():
         msg = msg + 'Pupil Position (X,Y,Z):      ( {:.3f}, {:.3f}, {:.3f} ) m\n'.format(pupilpos[0],pupilpos[1],pupilpos[2])
         msg = msg + 'View Direction (X,Y,Z):      ( {:.3f}, {:.3f}, {:.3f} ) at view centre\n'.format(los_centre[0],los_centre[1],los_centre[2]) + ' ' * 29 + '( {:.3f}, {:.3f}, {:.3f} ) along optical axis\n'.format(los_cc[0],los_cc[1],los_cc[2])
         if np.isfinite(model.get_cam_roll()): 
-            msg = msg + 'Camera roll:                 {:.1f} degrees \n'.format(model.get_cam_roll())
+            msg = msg + 'Camera roll:                 {:.1f} degrees (about view centre) \n'.format(model.get_cam_roll())
 
         return msg
         
