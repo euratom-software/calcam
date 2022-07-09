@@ -1,8 +1,8 @@
 Calcam Changelog
 ================
 
-Changes since last relase version
----------------------------------
+Minor Release 2.9.0 (Soon!)
+---------------------------
 
 Fixes:
 * Fix issue where setting the 3D CAD view to match a calibration result set the camera roll inaccurately.
@@ -17,16 +17,19 @@ Fixes:
 * Fitting options no longer reset for no reason when changing image masking in fitting calibration tool.
 
 New & Enhancements:
-* Support masking of images (i.e marking parts of the image which do not contain any actual image) in fitting and manual alignment calibration tools.
+* Calcam now available on PyPi! (#83)
+* Support masking of images (i.e marking parts of the image which do not contain any actual image) in fitting and manual alignment calibration tools (#46).
 * Add vertical field of view input in virtual calibration editor as an alternative to focal length (#85).
 * Remove error message if fitting determines the camera is upside-down; camera roll not settable in range -180,180 instead of -90,90 degrees.
 * In the virtual calibration editor, hide pinhole model parameters if another intrinsics type is selected (otherwise could be misleading).
 * In the virtual calibration editor, when using intrinsics from an existing calibration, display the filename of that calibration.
 * Add button to save image to use as a template for creating image masks.
-* Make setup.py suitable for building source distributions for PyPi!
 * Add ability to place a default configuration file in the calcam directory which will be checked for new users on multi-user systems.
 * Version number is now stored in 1 place (calcam/__version__) instead of 3 different places.
+* Re-work setup.py for compatibility with PyPi and pip.
 * Make handling of missing dependencies smoother i.e. error messages more helpful (hopefully).
+* Try to improve documentation for installation & setup.
+* Change new version update prompt link from linking to code archive to linking to the relevant doc page.
 
 
 Patch Release 2.8.3 (01 Apr 2022)

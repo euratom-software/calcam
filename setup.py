@@ -25,15 +25,21 @@ Calcam Setup script, uses pip and setuptools.
 This uses the standard setuptools install_requires to specify the "easy" dependencies of SciPy and MatPlotLib,
 but deals with OpenCV, VTK and PyQt using special custom logic and separate pip processes. This is because
 (1) It seems to work across more platforms & environments, and (2) It allows implementing logic of fallback
-dependencies which as far as I can tell are not possible using a standard python packaging method.
+dependencies, which as far as I can tell are not possible using the usual python packaging methods.
 
-The aim of this is to make calcam easier to install under as many environments as possible. It does mean that
-it can't be distributed as wheels, though.
+To make sure the logic in this script gets run at install even with pip, I have to deliberately break wheel building.
+Frankly, this is all a horrible hack in terms of how python package installation is supposed to work, but after trying things
+on several platforms, this actually makes it work smoothest on the widest range of platforms. So I'm prioritising creating an easy
+experience for the user over good practise for Python packaging, and I can only hope that one day before pip stops supporting direct
+installation altogether, the official tools provide a way to do this in a more "proper" way.
 '''
 
 import sys
 import os
 import subprocess
+
+if 'bdist_wheel' in sys.argv:
+    raise Exception("Looks like you are trying to build a wheel for Calcam. That would skip important logic to deal with awkward dependencies, so I'm afraid I can't let you do that.")
 
 # Read version from the version file.
 with open(os.path.join(os.path.split(os.path.abspath(__file__))[0],'calcam','__version__'),'r') as ver_file:

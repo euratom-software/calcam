@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>819</width>
-    <height>672</height>
+    <height>692</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -219,7 +219,7 @@
                <number>255</number>
               </property>
               <property name="value">
-               <number>5</number>
+               <number>10</number>
               </property>
              </widget>
             </item>
@@ -235,8 +235,21 @@
               <property name="suffix">
                <string> pixels</string>
               </property>
+              <property name="minimum">
+               <number>1</number>
+              </property>
+              <property name="singleStep">
+               <number>2</number>
+              </property>
               <property name="value">
-               <number>3</number>
+               <number>7</number>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="0">
+             <widget class="QLabel" name="label_6">
+              <property name="text">
+               <string>Reset selection:</string>
               </property>
              </widget>
             </item>

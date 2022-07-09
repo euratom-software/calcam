@@ -140,6 +140,11 @@ class VirtualCalib(CalcamGUIWindow):
         if self.sender() is self.load_intrinsics_button:
             self.intrinsics_calib = None
 
+
+        nx,ny = self.calibration.geometry.get_image_shape(coords='Original')
+        if nx is not None and ny is not None:
+            self.calibration.set_subview_mask(np.zeros((ny,nx), dtype=np.int8), coords='Original')
+
         if self.calcam_intrinsics.isChecked():
             self.interactor3d.zoom_enabled = False
             self.load_chessboard_button.setEnabled(False)
@@ -155,6 +160,7 @@ class VirtualCalib(CalcamGUIWindow):
                         self.current_intrinsics_combobox.setChecked(True)
                     else:
                         self.calibration.set_calib_intrinsics(self.intrinsics_calib,update_hist_recursion = not (self.intrinsics_calib is self.calibration) )
+                        self.calibration.set_subview_mask(self.intrinsics_calib.get_subview_mask(coords='Original'),coords='Original')
                         self.current_intrinsics_combobox = self.calcam_intrinsics
                         self.calcam_intrinsics_fname.setText(os.path.split(self.intrinsics_calib.filename)[-1][:-4])
                         self.calcam_intrinsics_fname.show()

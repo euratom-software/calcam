@@ -18,7 +18,6 @@ Turning CAD model features On/Off
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 For CAD models composed of multiple parts in separate mesh files, individual mesh files can be turned on or off by ticking/unticking them in the :guilabel:`Enable / Disable Features` panel. This can be done for individual parts, groups of parts (if defined in the CAD model) or the entire model. This can be helpful to improve performance when working with large models if not all parts are necessary for a particular calibration, or for removing parts which are in the way and make the calibration more difficult.
 
-
 Creating the Virtual Calibration
 --------------------------------
 Creating a virtual calibration consists of definining both the camera intrinsic and extrinsic parameters, both of which are set using the :guilabel:`Virtual Calibration` control tab. The sections below detail how to set each.
@@ -29,7 +28,7 @@ The camera intrinsics are set using the top part of the :guilabel:`Virtual Calib
 
 Existing Calibration Intrinsics
 *******************************
-To use intrinsics from an existing Calcam calibration, select :guilabel:`Use intrinsics from existing calibration` and browse for the calibration you want to use. The loaded calibration can be changed using the :guilabel:`Load...` button.
+To use intrinsics from an existing Calcam calibration, select :guilabel:`Use intrinsics from existing calibration` and browse for the calibration you want to use. The loaded calibration can be changed using the :guilabel:`Load...` button. The camera intrinsics and image masking from that calibration will be used in the virtual calibration.
 
 Chessboard Calibration Intrinsics
 *********************************

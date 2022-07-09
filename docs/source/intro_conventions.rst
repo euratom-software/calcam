@@ -5,7 +5,7 @@ Concepts & Conventions
 
 Image Pixel Coordinates
 -----------------------
-Calcam follows the convention of using matrix/linear algebra style pixel coordinates for images, which is consistent with the way images are stored and addressed in 2D arrays in Python. In this convention, the origin ``(0,0)`` is in the centre of the top-left pixel in the image. The *y* axis runs from top to bottom down the image and the *x* axis runs horizontally left to right. 
+Calcam follows the convention of using matrix/linear algebra style pixel coordinates for images, which is consistent with the way 2D arrays are handled by default in Python. In this convention, the origin ``(0,0)`` is in the centre of the top-left pixel in the image. The *y* axis runs from top to bottom down the image and the *x* axis runs horizontally left to right.
 
 It is important to note that since 2D arrays are indexed ``[row, column]``, arrays containing images are indexed as ``[y,x]``. However, Calcam functions which deal with image coordinates are called as ``function(x,y)``. This is consistent with the way image coordinates are delt with in OpenCV.
 

@@ -67,7 +67,7 @@ def update_prompt_string(queue):
     # If a newer version is available, return a string to tell the user that.
     updatestring = None
     if latest_ver_base10 > this_ver_base10:
-        updatestring = '<b>Calcam {:} is now available! Find out what changed <a href=https://github.com/euratom-software/calcam/blob/{:s}/CHANGELOG.txt>here</a>, and/or download the source zip <a href={:s}>here</a>!</b>'.format(data[0]['name'],data[0]['commit']['sha'],data[0]['zipball_url'])
+        updatestring = '<b>Calcam {:} now available! Find out what changed <a href=https://github.com/euratom-software/calcam/blob/{:s}/CHANGELOG.txt>here</a>; update with pip or download the <a href={:s}>source zip</a>; or read more about updating <a href=https://euratom-software.github.io/calcam/html/intro_install_setup.html#updating>here</a>!</b>'.format(data[0]['name'],data[0]['commit']['sha'],data[0]['zipball_url'])
 
     queue.put(updatestring)
 

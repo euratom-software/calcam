@@ -370,6 +370,9 @@ class AlignmentCalib(CalcamGUIWindow):
         if self.calibration.image is None:
             return
 
+        nx,ny = self.calibration.geometry.get_original_shape()
+        self.calibration.set_subview_mask(np.zeros((ny,nx),dtype=np.int8), coords='Original')
+
         if self.sender() is self.load_intrinsics_button:
             self.intrinsics_calib = None
 
@@ -396,6 +399,7 @@ class AlignmentCalib(CalcamGUIWindow):
                     raise UserWarning('This calibration has multiple sub-fields, which is not supported by the manual alignment calibration tool.')
 
                 self.calibration.set_calib_intrinsics(self.intrinsics_calib,update_hist_recursion = not (self.intrinsics_calib is self.calibration))
+                self.calibration.set_subview_mask(self.intrinsics_calib.get_subview_mask(coords='Original'),coords='Original')
                 self.current_intrinsics_combobox = self.calcam_intrinsics
             else:
                 self.current_intrinsics_combobox.setChecked(True)

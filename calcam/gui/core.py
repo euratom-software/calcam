@@ -1664,6 +1664,8 @@ class ImageMaskDialog(qt.QDialog):
         self.mask_image = None
         self.points = []
 
+        self.medfilt_pixels.lineEdit().setReadOnly(True)
+
         self.interactor.cursor_size = 0.05
 
         self.update_mask_alpha(self.mask_alpha_slider.value())
@@ -1804,6 +1806,8 @@ class ImageMaskDialog(qt.QDialog):
         mask_image[:, :, 3] = self.overlay_opacity
 
         self.interactor.set_overlay_image(mask_image)
+
+        self.mask_image = mask_image
 
 
     def apply(self):
