@@ -257,10 +257,16 @@
 </div>
 <div class="section" id="initial-configuration">
 <h2>Initial Configuration<a class="headerlink" href="#initial-configuration" title="Permalink to this headline">¶</a></h2>
-<p>For convenience, it is suggested to make a shortcut to the calcam GUI executable, the path of which is given in the message at the end of setup.</p>
+<p>If you will be using the Calcam GUI often, it is highly suggested to make a shortcut to the calcam GUI executable for covenience. If you did not see a message telling you where this executable is during installation, or need to check it later, you can find out the executable location using the following Python code:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">calcam</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">calcam</span><span class="o">.</span><span class="n">gui</span><span class="o">.</span><span class="n">executable_path</span><span class="p">)</span>
+</pre></div>
+</div>
 <div class="section" id="setting-up-cad-model-definitions">
 <h3>Setting up CAD Model Definitions<a class="headerlink" href="#setting-up-cad-model-definitions" title="Permalink to this headline">¶</a></h3>
-<p>Camera calibration in Calcam is based on matching features between camera images and a CAD model of the scene viewed by the camera. As such, it is necessary to define one or more CAD models for use in calcam. The current version supports importing <code class="docutils literal notranslate"><span class="pre">.stl</span></code> or <code class="docutils literal notranslate"><span class="pre">.obj</span></code> format 3D mesh files. It’s usually convenient to split the model in to several individual mesh files containing different parts of the scene, and these can then be turned on or off individually when working with the model. Calcam packages these mesh files in to a custom zipped file format (.ccm) along with various metadata to create a Calcam CAD model file. You can have several such files and easily switch between them at any time. It is recommended to read the <a class="reference internal" href="intro_conventions.html#cadmodel-intro"><span class="std std-ref">CAD Models</span></a> section in concepts and conventions, then consult the user guide for the <a class="reference internal" href="gui_settings.html"><span class="doc">Calcam Settings</span></a> interface for details of how to set up CAD model definitions.</p>
+<p>Camera calibration in Calcam is based on matching features between camera images and a CAD model of the scene viewed by the camera. As such, it is necessary to define one or more CAD models for use in calcam.</p>
+<p>The current version supports importing <code class="docutils literal notranslate"><span class="pre">.stl</span></code> or <code class="docutils literal notranslate"><span class="pre">.obj</span></code> format 3D mesh files. It’s usually convenient to split the model in to several individual mesh files containing different parts of the scene, and these can then be turned on or off individually when working with the model. Calcam packages these mesh files in to a custom zipped file format (.ccm) along with various metadata to create a Calcam CAD model file. You can have several such files and easily switch between them at any time.</p>
+<p>When you first start one of the Calcam GUI tools which requires CAD models, you will be prompted to either browse for a folder containing existing Calcam CAD model files or create a new one by importing mesh files. For creating CAD model definitions from mesh files, it is recommended to read the <a class="reference internal" href="intro_conventions.html#cadmodel-intro"><span class="std std-ref">CAD Models</span></a> section in concepts and conventions, then consult the user guide for the <a class="reference internal" href="gui_settings.html#cad-editor"><span class="std std-ref">The CAD Model Definition Editor</span></a> for details of how to use the CAD model definition editing tool.</p>
 </div>
 <div class="section" id="setting-up-custom-image-sources-optional">
 <h3>Setting up custom image sources (optional)<a class="headerlink" href="#setting-up-custom-image-sources-optional" title="Permalink to this headline">¶</a></h3>
@@ -268,7 +274,11 @@
 </div>
 <div class="section" id="file-type-associations-optional">
 <h3>File type associations (optional)<a class="headerlink" href="#file-type-associations-optional" title="Permalink to this headline">¶</a></h3>
-<p>Since version 2.6, it is possible to open .ccc files directly with the Calcam GUI executable / launch script to make opening calibrations more convenient. To take advantage of this, follow your operating system’s normal procedure to associate the Calcam executable with opening .ccc files. The location of the calcam executable is given at the end of the installation process (see above).</p>
+<p>Since version 2.6, it is possible to open .ccc files directly with the Calcam GUI executable / launch script to make opening calibrations more convenient. To take advantage of this, follow your operating system’s normal procedure to associate the Calcam executable with opening files with extension <cite>.ccc</cite>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Calcam calibration files with extension <code class="docutils literal notranslate"><span class="pre">.ccc</span></code> have the MIME type <code class="docutils literal notranslate"><span class="pre">application/zip</span></code>. Therefore on platforms which manage application / file type associations based on MIME type, rather than filename extension (i.e. Linux), associating calcam files with the calcam executable may have the side effect of associating all ZIP files to calcam too.</p>
+</div>
 </div>
 <div class="section" id="system-wide-default-configuration">
 <h3>System-wide default configuration<a class="headerlink" href="#system-wide-default-configuration" title="Permalink to this headline">¶</a></h3>
@@ -284,7 +294,7 @@
 </div>
 <div class="section" id="troubleshooting">
 <h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permalink to this headline">¶</a></h2>
-<p>If you use the <code class="docutils literal notranslate"><span class="pre">-v</span></code> option with <code class="docutils literal notranslate"><span class="pre">pip</span></code>, the calcam setup should finish with a message like this:</p>
+<p>At the end of the installation you should see a mesage saying Calcam was successfully installed. If you used the <code class="docutils literal notranslate"><span class="pre">-v</span></code> option with <code class="docutils literal notranslate"><span class="pre">pip</span></code> (or installed by directly running <code class="docutils literal notranslate"><span class="pre">setup.py</span> <span class="pre">install</span></code>), you should also see an additional message like this:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">***************************************************************</span>
 
 <span class="n">Calcam</span> <span class="n">installation</span> <span class="n">complete</span><span class="o">.</span>
@@ -297,7 +307,7 @@
 <span class="o">***************************************************************</span>
 </pre></div>
 </div>
-<p>You should then be able to import the calcam module and start the GUI. If not, the following sections provide some guidance on fixing common problems.</p>
+<p>You should then be able to import the calcam module in Python and start the GUI via the executable or via Python (see the GUI user guide). If instead you get error messages, or get errors when trying to start or import calcam, the following sections provide some guidance on fixing common problems.</p>
 <div class="section" id="insufficient-persmissions-to-install">
 <h3>Insufficient Persmissions to install<a class="headerlink" href="#insufficient-persmissions-to-install" title="Permalink to this headline">¶</a></h3>
 <p>The setup process may try to install Calcam in the python library paths for your system. If your user account does not have permissions to write to these paths (e.g. root or admin permissions), the setup will fail with an error about permissions. In this case, adding the <code class="docutils literal notranslate"><span class="pre">--user</span></code> option to the installation command will install the package for your user account only, which does not require root or admin permissions.</p>

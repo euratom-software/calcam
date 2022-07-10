@@ -200,32 +200,46 @@ s = setup(
                     },
         license_files = ('LICENCE.txt',),
         packages=find_packages(),
-        package_data={'calcam':['gui/icons/*','gui/qt_designer_files/*.ui','gui/logo.png','builtin_image_sources/*.py','__version__']},
+        package_data={'calcam':['gui/icons/*','gui/qt_designer_files/*.ui','gui/logo.png','builtin_image_sources/*.py','__version__','gui/__executable_path__']},
         entry_points={ 'gui_scripts': [ 'calcam = calcam:start_gui'] },
         zip_safe=False,
         install_requires=['scipy','matplotlib']
         )
 
-# Offer the user some useful and informative statements about what just happened.
-if 'install' in sys.argv or 'develop' in sys.argv:
 
+if 'install' in sys.argv or 'develop' in sys.argv:
+    # Find out where setup() put the the GUI launcher script / executable and do 2 things with it:
+    # (1) Print a message telling the user about it,
+    # (2) Write it down in a file in the code path so that the user can easily look it up later.
     if 'install' in sys.argv:
         script_dir = s.command_obj['install'].install_scripts
+        code_dir = s.command_obj['install'].install_lib
     elif 'develop' in sys.argv:
         script_dir = s.command_obj['develop'].script_dir
+        code_dir = os.path.split(__file__)[0]
 
+    executable_path = os.path.join(script_dir.replace('/',os.path.sep),'calcam')
+    if sys.platform == 'win32':
+        executable_path = executable_path + '.exe'
+
+    extra_msg = '\n\nThe GUI can be launched using the executable:\n{:s}'.format(executable_path)
+
+    try:
+        with open(os.path.join(code_dir,'calcam','gui','__executable_path__'),'w') as f:
+            f.write(executable_path)
+    except Exception:
+        pass
+
+    # Check if the executable path is included in the PATH environment variable which makes the GUI easier to run
     try:
         env_path = os.environ['PATH']
     except KeyError:
         env_path = ''
 
-    extra_msg = '\n\nIt can be imported as a Python module with "import calcam"'
-
-    extra_msg = extra_msg + '\n\nThe GUI can be launched using the executable:\n{:s}'.format(os.path.join(script_dir.replace('/',os.path.sep),'calcam'))
-    if sys.platform == 'win32':
-        extra_msg = extra_msg + '.exe'
     if script_dir in env_path:
         extra_msg = extra_msg + '\nor just by typing "calcam" at a terminal.'
 
-    print('\n***************************************************************\n\nCalcam installation complete.{:s}\n\n***************************************************************\n'.format(extra_msg))
+    print('\n***************************************************************\n\nCalcam installation complete.\n\nIt can be imported as a Python module with "import calcam"{:s}\n\n***************************************************************\n'.format(extra_msg))
 
+else:
+    print('\n***************************************************************\n')

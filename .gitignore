@@ -9,3 +9,4 @@ Calcam.egg-info/*
 build/
 dist/
 .idea/
+calcam/gui/__executable_path__
