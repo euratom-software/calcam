@@ -113,7 +113,9 @@ By default, the CAD model view will also show a solid green line in 3D represent
 
 Projecting images to the CAD model
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-For cameras observing the surfaces of the device, e.g. infrared thermography cameras, it can be useful to visualise the camera data mapped on to the surface of the CAD model. This can be done by activaing the :guilabel:`Show image mapped on to CAD model` checkbox on the :guilabel:`Position Analysis`. Please note: when activating this option for the first time with a given calibration, the process to calculate the projection can be very slow, particularly with complex CAD models and/or high resolution images. During this time the application will show a "busy" mouse cursor. However, turning the projection off then back on, or making adjustments to the image e.g. changing colour mapping, enhancement or movement correction options will not take significant time since the mapping does not need to be re-calculated.
+For cameras observing the surfaces of the device, e.g. infrared thermography cameras, it can be useful to visualise the camera data mapped on to the surface of the CAD model. This can be done by activaing the :guilabel:`Show image mapped on to CAD model` checkbox on the :guilabel:`Position Analysis`. W
+.. note::
+When activating this feature for the first time with a given calibration, the process to calculate the projection can be very slow, particularly with complex CAD models and/or high resolution images. During this time the application will show a "busy" mouse cursor. After this, turning the projection off then back on, or making adjustments to the image e.g. changing colour mapping, enhancement or movement correction options will not take significant time since the mapping does not need to be re-calculated.
 
 
 Exporting Images

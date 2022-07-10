@@ -1,5 +1,5 @@
 '''
-* Copyright 2015-2021 European Atomic Energy Community (EURATOM)
+* Copyright 2015-2022 European Atomic Energy Community (EURATOM)
 *
 * Licensed under the EUPL, Version 1.1 or - as soon they
   will be approved by the European Commission - subsequent
@@ -19,13 +19,19 @@
   permissions and limitations under the Licence.
 '''
 
-
 """
 CalCam package.
 """
+import os
+import warnings
 
 # Calcam version
-__version__ = '2.8.3'
+with open(os.path.join(os.path.split(os.path.abspath(__file__))[0],'__version__'),'r') as ver_file:
+    __version__ = ver_file.readline().rstrip()
+
+# Calcam supports a "headless" mode which does not require VTK / PyQt. This way it can still be used for analysis
+# using calibration or raydata objects even if the GUI libraries are not available.
+no_gui_reason = None
 
 try:
     import vtk
@@ -34,23 +40,29 @@ try:
     try:
         from . import gui
         from .gui import start_gui
-        from . import movement
+
     except Exception as e:
-        print('WARNING: calcam.gui and calcam.movement module snot available (error: {:})'.format(e))
+        warnings.warn('Error importing GUI modules (error: {:}) - the calcam.gui module will not be available.'.format(e),ImportWarning)
+        no_gui_reason = str(e)
 
     from .cadmodel import CADModel
     from .raycast import raycast_sightlines
     from .render import render_cam_view,render_unfolded_wall
 
-except:
-    print('WARNING: VTK not available; calcam.gui, calcam.raycast, calcam.render and calcam.cadmodel modules will not be available.')
-
+except Exception as e:
+    warnings.warn('Cannot import VTK python package (error: {:}) - the calcam.gui, calcam.raycast, calcam.render and calcam.cadmodel modules will not be available.'.format(e),ImportWarning)
+    no_gui_reason = 'Cannot import VTK python package (error: {:})'.format(e)
 
 # Import the top level "public facing" classes & functions
 # which do not rely on VTK.
 from .calibration import Calibration
+from . import movement
 from .raycast import RayData
 from .pointpairs import PointPairs
 
 from . import config
 from . import gm
+
+# If we have no GUI available, put a placeholder function to print a message about why where the GUI launcher would normally be.
+if no_gui_reason is not None:
+    start_gui = lambda : print('Could not start calcam GUI: {:s}'.format(no_gui_reason))

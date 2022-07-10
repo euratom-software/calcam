@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                Version 2.8
+                Version 2.9
               </div>
             
           
@@ -215,22 +215,44 @@
 <h2>Current Image Settings<a class="headerlink" href="#current-image-settings" title="Permalink to this headline">¶</a></h2>
 <p>With an image loaded, the <span class="guilabel">Current Image</span> section appears on the <span class="guilabel">Camera Image</span> tab, containing information and settings for the current image. Controls include</p>
 <ul class="simple">
-<li><p><strong>Known Pixel Size</strong>: If you know the pixel size of the camera, it can be entered here. This does not make any difference to the calibration except that focal lengths can be displayed in mm instead of pixels, which can be useful for sanity checking results e.g. comparing with optical designs or known lenses.</p></li>
-<li><p><strong>Geometrical Transformations</strong>: Controls for transforming the image to get it the “right way up”. It is recommended to always load images in to Calcam the way they come out of the camera as raw, then use these controls to get the image right-way-up for calibration. The :guilabell:Stretch Vertically by’ button is provided for cameras with non-square pixels or anamorphic optics.</p></li>
-<li><p><strong>Histogram Equilise</strong> (only available with OpenCV 3.0+): Toggle adaptive histogram equilistion on the image display; turning this on will increase the image contrast to mak it easier to see features in the image.</p></li>
+<li><p><strong>Known Pixel Size</strong>: If you know the pixel size of the camera, it can be entered here. This does not make any difference to the calibration except that focal lengths can be displayed in units of mm instead of pixels, which can be useful for sanity checking results e.g. comparing with optical designs or known lenses.</p></li>
+<li><p><strong>Geometrical Transformations</strong>: Controls for transforming the image to get it the “right way up”. It is recommended to always load images in to Calcam the way they come out straight from the camera, then use these controls to get the image right-way-up for calibration. The :guilabell:Stretch Vertically by’ button is provided for cameras with non-square pixels or anamorphic optics. Although images can still be calibrated if you leave them rotated, you must use these controls to remove any horizontal or vertical flip from the image, otherwise the calibration will not work.</p></li>
+<li><p><strong>Apply Image Enhancement</strong>: Enabling this option will attempt to enhance the displayed image to increase the contrast and visibility of image features which might be useful for calibration.</p></li>
 </ul>
-<div class="section" id="images-with-multiple-sub-views">
-<h3>Images with multiple sub-views<a class="headerlink" href="#images-with-multiple-sub-views" title="Permalink to this headline">¶</a></h3>
-<p>If the image to be calibrated contains multiple <a class="reference internal" href="intro_conventions.html#subviews-intro"><span class="std std-ref">Detector / Image Offset</span></a>, this can be set up by clicking the <span class="guilabel">Define Sub-Views</span> button at the bottom of the image controls, which opens the below window:</p>
-<img alt="Sub-view window screenshot" class="align-left" src="_images/subviews.png" />
-<p>This window shows the image on the left, with the different sub-views tinted in different colours. Below the image is a slider which can be used to control the opacity of this tint effect to. Mouse navigation controls for the image are the same as for the image in the main calibration window. On the right-of the window are 3 options for defining which pixels in the image belong to which sub-view:</p>
+<div class="section" id="view-masking">
+<h3>View Masking<a class="headerlink" href="#view-masking" title="Permalink to this headline">¶</a></h3>
+<p>For many camera systems, not every pixel on the detector should have the same calibration applied. In some systems the image projected by the optics does not fill the whole sensor, and some systems consist of multiple views in different directions, optically combined on to a single detector. Calcam supports these types of systems by allowing you to set up a mask specifying which pixels contain what image. This can be set up by clicking the <span class="guilabel">Define…</span> button beside the text <span class="guilabel">Image masking and &amp; sub-views</span>. Pressing the button opens the following dialog box:</p>
+<img alt="Sub-view window screenshot" class="align-left" src="_images/subviews_start.png" />
+<p>This window shows the image on the left, with any mask shown by different coloured shading. Below the image is a slider which can be used to control the opacity of the shading. Mouse navigation controls for the image are the same as for the image in the main calibration window. On the right-of the window are the different options you can select for defining the image masking:</p>
+<div class="section" id="no-masking">
+<h4>No Masking<a class="headerlink" href="#no-masking" title="Permalink to this headline">¶</a></h4>
+<p>This is the default for a newly loaded image. Use this option if you have a straightforward image with all of the sensor area used.</p>
+</div>
+<div class="section" id="image-surrounded-by-dark-border">
+<h4>Image Surrounded by Dark Border<a class="headerlink" href="#image-surrounded-by-dark-border" title="Permalink to this headline">¶</a></h4>
+<p>This option is used for cases where the optical image does not fill the whole sensor - the image takes up some of the sensor area but is surrounded by a dark border where there is no real image. When selected, this option lets you click on areas where there is no image to “flood fill” a mask excluding those pixels from calibration. When you select this option, the entire image is shown shaded in colour. As you click on areas to mark them as not containing image, these ares become shaded grey. Clicking on the image multiple times adds whatever area is clicked to the excluded area. If the flood fill algorithm selects too little or too much of the image, you can adjust the threshold and median filter size for the flood fill algorithm with the provided controls. Increasing these values means a larger area will be selected with each click. If you select too much area to exclude and need to start again, use the <span class="guilabel">Reset</span> button to clear the masking and start again. When finished, the part of the sensor containing the image should be shown with a colour overlay while the part containing no image should be shaded grey, like the example below.</p>
+<img alt="Sub-view window screenshot" class="align-left" src="_images/subviews2.png" />
+</div>
+<div class="section" id="sub-views-separated-by-a-straight-line">
+<h4>2 Sub-views separated by a straight line<a class="headerlink" href="#sub-views-separated-by-a-straight-line" title="Permalink to this headline">¶</a></h4>
+<p>This option can be used where there are 2 different fields of view (‘sub-views’) optically combined on to a single detector, with a straight line border between the two. When this option is selected, you can click two points on the image to define the line which separates the two sub-views. Once the points are placed, clicking on the image again moves the selected point (shown in green) to the clicked position. The other point can be selected by clicking it.</p>
 <ul class="simple">
-<li><p><strong>No Split Field-of-View</strong>: If the image does not have a split field-of-view (i.e. only contains a single subview) as is the case for most images. This is the default for images loaded from image files.</p></li>
-<li><p><strong>2 Sub-views separated by a straight line</strong>: The simplest case for a split-view image. If this option is selected, click two points on the image to define the line which separates the two sub-views. Once the points are placed, clicking on the image again moves the selected point (shown in green) to the clicked position. The other point can be selected by clicking it.</p></li>
 <li><p><strong>Custom mask</strong> for images with more than 2 sub-views or where the boundary between the sub-views is not a straight line. To use this function, prepare an image file the same size as the image to be calibrated with blocks of different solid colours representing each sub-view. You can then load this image file and the blocks of different colours will be used to define the coverage of the different sub-views.</p></li>
 </ul>
-<p>Once the positions of the sub-views have been configured, on the lower-right of the window are boxes to enter human-friendly names for the different sub-views. These will be used to identify the sub-views elsewhere in the GUI and calibration information.</p>
-<p>Once this is all set to your satisfaction, click <span class="guilabel">Apply</span> to apply the sub-view configuration and return to the main window. Clicking <span class="guilabel">Cancel</span> will return to the main window without making any changes.</p>
+<p>Once the positions of the sub-views have been configured, on the lower-right of the window are boxes to enter human-friendly names for the different sub-views (see screenshot below). These will be used to identify the sub-views elsewhere in the GUI and calibration information.</p>
+</div>
+<div class="section" id="arbitrary-mask">
+<h4>Arbitrary Mask<a class="headerlink" href="#arbitrary-mask" title="Permalink to this headline">¶</a></h4>
+<p>This option can be used to treat more complicated situations, like if there are more than 2 different ‘sub-views’ combined on the sensor; multiple views plus some parts of the image with no image; or parts of the image are blocked by features not included in the CAD model and you wish to mark them as not containing useful images. In this case, you should prepare an image file, the same dimensions as the image being calibrated, where the distinct regions are flood-filled with different colours. You can then load this image using the <span class="guilabel">Load Mask Image</span> button and it will be used to define the image mask. The example below shows a case of an image from JET where the detector includes 2 different optically-combined views, plus some unused area:
+It is often useful to save a copy of the image being calibrated to use as a template / layer when creating the mask image. You can save a copy of the image being calibrated using the <span class="guilabel">Save Calibration Image…</span> button.</p>
+<p>Once the mask image is loaded, you can give each region of the image a human-friendly name using the boxes on the right, and use the tick boxes to indicate which regions contain image to be calibrated and which do not contain image data:</p>
+<img alt="Sub-view window screenshot" class="align-left" src="_images/subviews.png" />
+<p>When you are happy with the image masking configuration, click <span class="guilabel">Apply</span>. If you click <span class="guilabel">cancel</span>, no change will be applied to the masking configuration.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>After changing the masking configuration, any existing calibration fit(s) will be reset so you will have to re-run the calibration fitting.</p>
+</div>
+</div>
 </div>
 </div>
 <div class="section" id="loading-and-manipulating-a-cad-model">
@@ -341,7 +363,7 @@
   <div role="contentinfo">
     <p>
         
-        &copy; Copyright 2015-2020, European Atomic Energy Community (EURATOM)
+        &copy; Copyright 2015-2022, European Atomic Energy Community (EURATOM)
 
     </p>
   </div>

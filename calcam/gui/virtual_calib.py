@@ -78,6 +78,7 @@ class VirtualCalib(CalcamGUIWindow):
         self.x_pixels_box.valueChanged.connect(self.update_intrinsics)
         self.y_pixels_box.valueChanged.connect(self.update_intrinsics)
         self.focal_length_box.valueChanged.connect(self.update_intrinsics)
+        self.fov_box.valueChanged.connect(self.update_intrinsics)
         self.load_chessboard_button.clicked.connect(self.update_chessboard_intrinsics)
         self.load_intrinsics_button.clicked.connect(self.update_intrinsics)
         self.load_extrinsics_button.clicked.connect(self.load_viewport_calib)
@@ -118,7 +119,8 @@ class VirtualCalib(CalcamGUIWindow):
     def update_viewport_info(self,keep_selection=False):
 
         CalcamGUIWindow.update_viewport_info(self,keep_selection)
-        self.unsaved_changes = True
+        if self.cadmodel is not None:
+            self.unsaved_changes = True
 
         if self.pinhole_intrinsics.isChecked():
 
@@ -138,14 +140,16 @@ class VirtualCalib(CalcamGUIWindow):
         if self.sender() is self.load_intrinsics_button:
             self.intrinsics_calib = None
 
+
+        nx,ny = self.calibration.geometry.get_image_shape(coords='Original')
+        if nx is not None and ny is not None:
+            self.calibration.set_subview_mask(np.zeros((ny,nx), dtype=np.int8), coords='Original')
+
         if self.calcam_intrinsics.isChecked():
             self.interactor3d.zoom_enabled = False
             self.load_chessboard_button.setEnabled(False)
             self.load_intrinsics_button.setEnabled(True)
-            self.x_pixels_box.setEnabled(False)
-            self.y_pixels_box.setEnabled(False)
-            self.pixel_size_box.setEnabled(False)
-            self.focal_length_box.setEnabled(False)
+            self.pinhole_params_box.hide()
             
             if self.intrinsics_calib is None:
                 self.intrinsics_calib = self.object_from_file('calibration')
@@ -156,23 +160,36 @@ class VirtualCalib(CalcamGUIWindow):
                         self.current_intrinsics_combobox.setChecked(True)
                     else:
                         self.calibration.set_calib_intrinsics(self.intrinsics_calib,update_hist_recursion = not (self.intrinsics_calib is self.calibration) )
+                        self.calibration.set_subview_mask(self.intrinsics_calib.get_subview_mask(coords='Original'),coords='Original')
                         self.current_intrinsics_combobox = self.calcam_intrinsics
+                        self.calcam_intrinsics_fname.setText(os.path.split(self.intrinsics_calib.filename)[-1][:-4])
+                        self.calcam_intrinsics_fname.show()
 
                 else:
                     self.current_intrinsics_combobox.setChecked(True)
                 
             else:
+                self.calcam_intrinsics_fname.show()
                 self.calibration.set_calib_intrinsics(self.intrinsics_calib,update_hist_recursion = not (self.intrinsics_calib is self.calibration))
                 self.current_intrinsics_combobox = self.calcam_intrinsics
 
         elif self.pinhole_intrinsics.isChecked():
+            self.calcam_intrinsics_fname.hide()
             self.interactor3d.zoom_enabled = True
             self.load_chessboard_button.setEnabled(False)
             self.load_intrinsics_button.setEnabled(False)
-            self.x_pixels_box.setEnabled(True)
-            self.y_pixels_box.setEnabled(True)
-            self.pixel_size_box.setEnabled(True)
-            self.focal_length_box.setEnabled(True)
+            self.pinhole_params_box.show()
+
+            if self.sender() is self.fov_box:
+                self.focal_length_box.blockSignals(True)
+                fl = self.y_pixels_box.value() * self.pixel_size_box.value() * 1e-3 / (2*np.tan(self.fov_box.value()/360 * np.pi))
+                self.focal_length_box.setValue(fl)
+                self.focal_length_box.blockSignals(False)
+            elif self.sender() is self.focal_length_box:
+                self.fov_box.blockSignals(True)
+                fov = 360*np.arctan(self.y_pixels_box.value() * self.pixel_size_box.value() * 1e-3 / (2*self.focal_length_box.value())) / np.pi
+                self.fov_box.setValue(fov)
+                self.fov_box.blockSignals(False)
 
             nx = self.x_pixels_box.value()
             ny = self.y_pixels_box.value()
@@ -183,18 +200,16 @@ class VirtualCalib(CalcamGUIWindow):
             self.current_intrinsics_combobox = self.pinhole_intrinsics
 
         elif self.chessboard_intrinsics.isChecked():
+            self.calcam_intrinsics_fname.hide()
             self.interactor3d.zoom_enabled = False
             self.load_chessboard_button.setEnabled(True)
             self.load_intrinsics_button.setEnabled(False)
-            self.x_pixels_box.setEnabled(False)
-            self.y_pixels_box.setEnabled(False)
-            self.pixel_size_box.setEnabled(False)
-            self.focal_length_box.setEnabled(False)
+            self.pinhole_params_box.hide()
 
             if self.chessboard_fit is None:
                 self.update_chessboard_intrinsics(pass_calib=False)
                 if self.chessboard_fit is None:
-                    self.current_intrinsics_combobox.setChecked(True)
+                    self.current_intrinsics_combobox.click()
                 return
             else:
                 self.calibration.set_chessboard_intrinsics(self.chessboard_fit,self.chessboard_pointpairs,self.chessboard_src)
@@ -238,7 +253,8 @@ class VirtualCalib(CalcamGUIWindow):
         self.resize(winsize.width(),winsize.height())
 
         self.refresh_3d()
-        self.unsaved_changes = True
+        if self.cadmodel is not None:
+            self.unsaved_changes = True
 
 
 

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>927</width>
-    <height>772</height>
+    <width>1160</width>
+    <height>778</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -181,31 +181,7 @@
            <property name="sizeConstraint">
             <enum>QLayout::SetMinimumSize</enum>
            </property>
-           <item row="1" column="0">
-            <widget class="QRadioButton" name="chessboard_intrinsics">
-             <property name="text">
-              <string>Calibrate from chessboard images:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="0">
-            <widget class="QRadioButton" name="calcam_intrinsics">
-             <property name="text">
-              <string>Use intrinsics from exsiting calibration:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="0">
-            <widget class="QRadioButton" name="pinhole_intrinsics">
-             <property name="text">
-              <string>Use ideal pinhole camera model:</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="1">
+           <item row="2" column="1">
             <widget class="QPushButton" name="load_chessboard_button">
              <property name="enabled">
               <bool>false</bool>
@@ -221,8 +197,8 @@
              </property>
             </widget>
            </item>
-           <item row="4" column="0" colspan="2">
-            <widget class="QFrame" name="frame">
+           <item row="5" column="0" colspan="2">
+            <widget class="QFrame" name="pinhole_params_box">
              <property name="minimumSize">
               <size>
                <width>0</width>
@@ -236,12 +212,64 @@
               <enum>QFrame::Raised</enum>
              </property>
              <layout class="QGridLayout" name="gridLayout_5">
-              <item row="2" column="2" colspan="2">
-               <widget class="QDoubleSpinBox" name="focal_length_box">
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_2">
+                <property name="text">
+                 <string>Numer of pixels:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="2">
+               <widget class="QSpinBox" name="x_pixels_box">
                 <property name="buttonSymbols">
                  <enum>QAbstractSpinBox::NoButtons</enum>
                 </property>
                 <property name="keyboardTracking">
+                 <bool>false</bool>
+                </property>
+                <property name="minimum">
+                 <number>2</number>
+                </property>
+                <property name="maximum">
+                 <number>16384</number>
+                </property>
+                <property name="value">
+                 <number>1024</number>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="3">
+               <widget class="QLabel" name="label_6">
+                <property name="text">
+                 <string>x</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="label_3">
+                <property name="text">
+                 <string>Focal Lnegth:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="2">
+               <widget class="QDoubleSpinBox" name="focal_length_box">
+                <property name="wrapping">
+                 <bool>false</bool>
+                </property>
+                <property name="frame">
+                 <bool>true</bool>
+                </property>
+                <property name="buttonSymbols">
+                 <enum>QAbstractSpinBox::NoButtons</enum>
+                </property>
+                <property name="keyboardTracking">
+                 <bool>false</bool>
+                </property>
+                <property name="showGroupSeparator" stdset="0">
                  <bool>false</bool>
                 </property>
                 <property name="suffix">
@@ -264,21 +292,53 @@
                 </property>
                </widget>
               </item>
-              <item row="2" column="0">
-               <widget class="QLabel" name="label_3">
+              <item row="0" column="0">
+               <widget class="QLabel" name="label">
                 <property name="text">
-                 <string>Focal Lnegth:</string>
+                 <string>Pixel Size:</string>
                 </property>
                </widget>
               </item>
-              <item row="0" column="2" colspan="2">
-               <widget class="QDoubleSpinBox" name="pixel_size_box">
-                <property name="maximumSize">
-                 <size>
-                  <width>16777215</width>
-                  <height>16777215</height>
-                 </size>
+              <item row="2" column="3">
+               <widget class="QLabel" name="label_17">
+                <property name="text">
+                 <string>(vert. FOV:</string>
                 </property>
+               </widget>
+              </item>
+              <item row="2" column="4">
+               <widget class="QDoubleSpinBox" name="fov_box">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="buttonSymbols">
+                 <enum>QAbstractSpinBox::NoButtons</enum>
+                </property>
+                <property name="keyboardTracking">
+                 <bool>false</bool>
+                </property>
+                <property name="suffix">
+                 <string>°</string>
+                </property>
+                <property name="decimals">
+                 <number>1</number>
+                </property>
+                <property name="minimum">
+                 <double>0.100000000000000</double>
+                </property>
+                <property name="maximum">
+                 <double>179.000000000000000</double>
+                </property>
+                <property name="value">
+                 <double>81.000000000000000</double>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="2">
+               <widget class="QDoubleSpinBox" name="pixel_size_box">
                 <property name="buttonSymbols">
                  <enum>QAbstractSpinBox::NoButtons</enum>
                 </property>
@@ -296,66 +356,15 @@
                 </property>
                </widget>
               </item>
-              <item row="0" column="0">
-               <widget class="QLabel" name="label">
+              <item row="2" column="5">
+               <widget class="QLabel" name="label_18">
                 <property name="text">
-                 <string>Pixel Size:</string>
+                 <string>)</string>
                 </property>
                </widget>
               </item>
-              <item row="1" column="0">
-               <widget class="QLabel" name="label_2">
-                <property name="text">
-                 <string>Numer of pixels:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="2">
-               <widget class="QSpinBox" name="x_pixels_box">
-                <property name="maximumSize">
-                 <size>
-                  <width>60</width>
-                  <height>16777215</height>
-                 </size>
-                </property>
-                <property name="buttonSymbols">
-                 <enum>QAbstractSpinBox::NoButtons</enum>
-                </property>
-                <property name="keyboardTracking">
-                 <bool>false</bool>
-                </property>
-                <property name="minimum">
-                 <number>2</number>
-                </property>
-                <property name="maximum">
-                 <number>16384</number>
-                </property>
-                <property name="value">
-                 <number>1024</number>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="3">
-               <widget class="QLabel" name="label_6">
-                <property name="maximumSize">
-                 <size>
-                  <width>15</width>
-                  <height>16777215</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string>x</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="4">
+              <item row="1" column="4" colspan="2">
                <widget class="QSpinBox" name="y_pixels_box">
-                <property name="maximumSize">
-                 <size>
-                  <width>60</width>
-                  <height>16777215</height>
-                 </size>
-                </property>
                 <property name="buttonSymbols">
                  <enum>QAbstractSpinBox::NoButtons</enum>
                 </property>
@@ -376,6 +385,23 @@
              </layout>
             </widget>
            </item>
+           <item row="0" column="0">
+            <widget class="QRadioButton" name="calcam_intrinsics">
+             <property name="text">
+              <string>Use intrinsics from exsiting calibration:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0">
+            <widget class="QRadioButton" name="pinhole_intrinsics">
+             <property name="text">
+              <string>Use ideal pinhole camera model:</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
            <item row="0" column="1">
             <widget class="QPushButton" name="load_intrinsics_button">
              <property name="enabled">
@@ -383,6 +409,35 @@
              </property>
              <property name="text">
               <string>Load...</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QRadioButton" name="chessboard_intrinsics">
+             <property name="text">
+              <string>Calibrate from chessboard images:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0" colspan="2">
+            <widget class="QLabel" name="calcam_intrinsics_fname">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>TextLabel</string>
+             </property>
+             <property name="scaledContents">
+              <bool>true</bool>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+             </property>
+             <property name="indent">
+              <number>20</number>
              </property>
             </widget>
            </item>
@@ -675,13 +730,13 @@
                  <bool>false</bool>
                 </property>
                 <property name="suffix">
-                 <string> °</string>
+                 <string>°</string>
                 </property>
                 <property name="minimum">
-                 <double>-90.000000000000000</double>
+                 <double>-180.000000000000000</double>
                 </property>
                 <property name="maximum">
-                 <double>90.000000000000000</double>
+                 <double>180.000000000000000</double>
                 </property>
                 <property name="singleStep">
                  <double>0.100000000000000</double>

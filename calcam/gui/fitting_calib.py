@@ -650,7 +650,7 @@ class FittingCalib(CalcamGUIWindow):
         self.fit_enable_check()
 
 
-    def init_fitting(self,reset_fit=True):
+    def init_fitting(self,reset_fit=True,reset_options=False):
 
         self.fit_initted = False
 
@@ -668,14 +668,16 @@ class FittingCalib(CalcamGUIWindow):
         self.fit_buttons = []
         self.fit_results = []
 
-        self.fitters = []
+        if reset_options or len(self.fitters) != self.calibration.n_subviews:
+            self.fitters = []
 
         self.fit_results_widgets = []
         self.view_to_fit_buttons = []
 
         for field in range(self.calibration.n_subviews):
 
-            self.fitters.append(Fitter())
+            if reset_options or len(self.fitters) != self.calibration.n_subviews:
+                self.fitters.append(Fitter())
 
             new_tab = qt.QWidget()
             new_layout = qt.QVBoxLayout()
@@ -1388,10 +1390,15 @@ class FittingCalib(CalcamGUIWindow):
 
     def save_calib(self,saveas=False):
 
+        if self.calibration.subview_mask is None:
+            raise UserWarning('Nothing to save! You need to load a camera image to calibrate before you can save anything in this tool.')
+
         if saveas:
+            # Back up then clear the current filename if we want to force a new filename choice.
             orig_filename = self.filename
             self.filename = None
 
+        # Save file dialog box
         if self.filename is None:
             self.filename = self.get_save_filename('calibration')
 
@@ -1416,6 +1423,7 @@ class FittingCalib(CalcamGUIWindow):
             self.app.restoreOverrideCursor()
 
         elif saveas:
+            # Restore original filename if we didn't end up finishing the Save As...
             self.filename = orig_filename
 
 
@@ -1569,7 +1577,7 @@ class FittingCalib(CalcamGUIWindow):
 
     def edit_split_field(self):
 
-        dialog = SplitFieldDialog(self,self.interactor2d.get_image())
+        dialog = ImageMaskDialog(self,self.interactor2d.get_image())
         result = dialog.exec()
 
         if result == 1:
@@ -1578,7 +1586,6 @@ class FittingCalib(CalcamGUIWindow):
             self.init_fitting()
             self.unsaved_changes = True
             self.update_n_points()
-            self.reset_fit()
             self.pointpairs_history.clear()
             self.points_undo_button.setEnabled(False)
 

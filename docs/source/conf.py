@@ -52,15 +52,18 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Calcam'
-copyright = u'2015-2020, European Atomic Energy Community (EURATOM)'
+copyright = u'2015-2022, European Atomic Energy Community (EURATOM)'
 author = u'Scott Silburn et. al.'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
-# The short X.Y version.
-version = 'Version 2.8'
+# The short X.Y version - read from calcam version file.
+with open(os.path.join(os.path.split(os.path.abspath(__file__))[0],os.pardir,os.pardir,'calcam','__version__'),'r') as ver_file:
+    _version = ver_file.readline().rstrip()
+
+version = 'Version {:s}'.format('.'.join(_version.split('.')[:2]))
 # The full version, including alpha/beta/rc tags.
 #release = u'1.9.3'
 
