@@ -160,10 +160,11 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
     '''
     Render an image of a given CAD model from the point of view of a given calibration.
 
-    NOTE: This function uses off-screen OpenGL rendering which fails above some image dimension which depends on the system.
-    The workaround for this is that above a render dimension set by calcam.render.max_render_dimension, the image is rendered
-    at lower resolution and then scaled up using nearest-neighbour scaling. For this reason, when rendering high resolution
-    images the rendered image quality may be lower than expected.
+    .. note::
+        This function uses off-screen OpenGL rendering, which fails above some image dimension which depends on the system.
+        The workaround for this is that above a render dimension set by ``calcam.render.max_render_dimension``, the image is rendered
+        at lower resolution and then scaled up using nearest-neighbour scaling. For this reason, when rendering very high resolution
+        images the rendered image quality may be lower than expected.
 
     Parameters:
 
@@ -1102,7 +1103,7 @@ def render_unfolded_wall(cadmodel,calibrations=[],labels = [],colours=None,cal_o
         cadmodel (calcam.CADModel)                  : CAD Model to render. The CAD model must have an R, Z wall contour embedded in it (this is \
                                                       ued in the wall flattening calculations), which can be added in the CAD model editor.
         calibrations (list of calcam.Calibration)   : List of camera calibrations to visualise on the wall. If provided, each camera calibration \
-                                                      will be shown on the image as a colour shaded area on the wall indicating which parts of the wall \
+                                                      will be shown on the image as a colour shaded area indicating which parts of the wall \
                                                       the camera can see.
         labels (list of strings)                    : List of strings containing legend text for the calibrations. If not provided, no legend will be added \
                                                       to the image. If provided, must be the same length as the list of calibrations.

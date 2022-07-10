@@ -1,76 +1,40 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Calcam Settings &mdash; Calcam  documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-
-  
-  
-  
-  
-
-  
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
-        <script src="_static/language_data.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Calibration by point fitting" href="gui_calib.html" />
     <link rel="prev" title="Introduction &amp; Launcher" href="gui_intro.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="index.html">
-          
-
-          
-            
             <img src="_static/logo.png" class="logo" alt="Logo"/>
-          
           </a>
-
-          
-            
-            
               <div class="version">
                 Version 2.9
               </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -78,26 +42,15 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
-              <p class="caption"><span class="caption-text">Introduction</span></p>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="intro_general.html">General Introduction to Calcam</a></li>
 <li class="toctree-l1"><a class="reference internal" href="intro_install_setup.html">Getting Up &amp; Running</a></li>
 <li class="toctree-l1"><a class="reference internal" href="intro_theory.html">Camera Calibration Theory</a></li>
 <li class="toctree-l1"><a class="reference internal" href="intro_conventions.html">Concepts &amp; Conventions</a></li>
 </ul>
-<p class="caption"><span class="caption-text">GUI App User Guide</span></p>
+<p class="caption" role="heading"><span class="caption-text">GUI App User Guide</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="gui_intro.html">Introduction &amp; Launcher</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Calcam Settings</a><ul>
@@ -113,95 +66,58 @@
 <li class="toctree-l1"><a class="reference internal" href="gui_viewer.html">3D Viewer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_movement.html">Camera Movement Determination</a></li>
 </ul>
-<p class="caption"><span class="caption-text">API User Guide</span></p>
+<p class="caption" role="heading"><span class="caption-text">API User Guide</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="api_analysis.html">Using Calibration Results</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_calib.html">The Calibration Class</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_cadmodel.html">CAD Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_raycast.html">Ray Casting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_rendering.html">Rendering Images</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_geom_matrix.html">Tomography Geometry Matrices</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_movement.html">Camera Movement Correction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_examples.html">Examples</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Developer Documentation</span></p>
+<p class="caption" role="heading"><span class="caption-text">Developer Documentation</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="dev_imsources.html">Image Sources</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dev_coord_formatter.html">3D Coordinate Formatters</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">Calcam</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-        
       <li>Calcam Settings</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-            
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="calcam-settings">
-<h1>Calcam Settings<a class="headerlink" href="#calcam-settings" title="Permalink to this headline">¶</a></h1>
+             
+  <section id="calcam-settings">
+<h1>Calcam Settings<a class="headerlink" href="#calcam-settings" title="Permalink to this heading"></a></h1>
 <p>The calcam settings GUI allows setup of directories where Calcam should search for CAD model definitions and custom image source definitions; allows access to the CAD model editing tool and also shows software environment information. The settings window is shown below:</p>
 <img alt="Settings Window Screenshot" src="_images/settings.png" />
-<div class="section" id="search-paths">
-<h2>Search Paths<a class="headerlink" href="#search-paths" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="cad-models">
-<h3>CAD Models<a class="headerlink" href="#cad-models" title="Permalink to this headline">¶</a></h3>
+<section id="search-paths">
+<h2>Search Paths<a class="headerlink" href="#search-paths" title="Permalink to this heading"></a></h2>
+<section id="cad-models">
+<h3>CAD Models<a class="headerlink" href="#cad-models" title="Permalink to this heading"></a></h3>
 <p>Calcam looks for CAD model definition (<cite>.ccm</cite>) files in a list of user-set directories which are set using the settings dialog. These are listed in the top-left list box in the settings window. If any of these directories do not exist or are unreadable, they will appear in red, otherwise they are listed in black. Directories to look for <cite>.ccm</cite> files can be added or removed using the buttons underneath the path list box. Note: the CAD model search does not traverse sub-directories, so if a subdirectory of a directory already in the list contains more definition files, it must still be added separately.</p>
 <p>CAD model definitions detected in the CAD model search paths are listed in the top-right list box in the settings window. These are the CAD models which will be available to choose from in Calcam GUI tools. You can select an existing model in this list and click the <span class="guilabel">Edit…</span> button under the CAD model list to open the CAD model editor with that model, or use the <span class="guilabel">New…</span> button under the CAD model list to create a new model definition. The list is refreshed periodically, so creating or removing model definitions will be automatically reflected in the list.</p>
-</div>
-<div class="section" id="image-sources">
-<h3>Image Sources<a class="headerlink" href="#image-sources" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="image-sources">
+<h3>Image Sources<a class="headerlink" href="#image-sources" title="Permalink to this heading"></a></h3>
 <p>User-defined image sources are a way to plug in custom Python code to Calcam for loading images to be calibrated. By default, Calcam can load images from most common image file formats, however it may be convenient to be able to load images e.g. from an experimental data server or custom file format. This is achieved by writing custom image source code, which takes the form of a python module or package. Details of how to write a custom image source are given <a class="reference internal" href="dev_imsources.html"><span class="doc">here</span></a>.</p>
 <p>Calcam searches for user-written image sources in the list of paths displayed in the bottom-left list box in the Settings window.  If any of these directories do not exist or are unreadable, they will appear in red, otherwise they are listed in black. Directories to look for image source python code can be added or removed using the buttons underneath the path list box.</p>
 <div class="admonition note">
@@ -210,22 +126,22 @@
 </div>
 <p>The list box in the bottom-right of the Settings window shows all python modules and packages detected in the image source search paths. If these are working and can be used as image sources, the name of the corresponding image source is displayed in black. If there is a python package / module detected but it cannot be identified as a working image source, it will be shown in read. Hovering the mouse over an item listed in red will show the error encountered when testing that image source. In addition to user created image sources, the two Calcam built-in image sources: loading from image files or calcam calibration files, are always shown.</p>
 <p>Custom image sources can be selected by clicking them in the image source list, which will enable the <span class="guilabel">Edit…</span> button under the image source list. Clicking this button will open the python file or folder corresponding to the image source. The image source list is periodically refreshed, so if you make changes to the image source code e.g. to try and fix a non-working image source, or creating a new image source in one of the search paths, this change will be reflected in the list.</p>
-</div>
-</div>
-<div class="section" id="environment-information">
-<h2>Environment Information<a class="headerlink" href="#environment-information" title="Permalink to this headline">¶</a></h2>
+</section>
+</section>
+<section id="environment-information">
+<h2>Environment Information<a class="headerlink" href="#environment-information" title="Permalink to this heading"></a></h2>
 <p>At the bottom of the settings window, information about the current software environment is displayed. This includes the OS platform, current versions of Python and Calcam, and the most critical dependencies: VTK, OpenCV and PyQt. This information can be useful when troubleshooting bugs or unexpected behaviour of the software.</p>
-</div>
-<div class="section" id="the-cad-model-definition-editor">
-<span id="cad-editor"></span><h2>The CAD Model Definition Editor<a class="headerlink" href="#the-cad-model-definition-editor" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="the-cad-model-definition-editor">
+<span id="cad-editor"></span><h2>The CAD Model Definition Editor<a class="headerlink" href="#the-cad-model-definition-editor" title="Permalink to this heading"></a></h2>
 <p>The CAD model editing window, which is accessed using the <span class="guilabel">New…</span> or <span class="guilabel">Edit…</span> CAD model buttons in the settings window, is shown below:</p>
 <img alt="CAD editor window screenshot" src="_images/cad_edit_annotated.png" />
-<div class="section" id="basic-model-properties">
-<h3>Basic Model Properties<a class="headerlink" href="#basic-model-properties" title="Permalink to this headline">¶</a></h3>
+<section id="basic-model-properties">
+<h3>Basic Model Properties<a class="headerlink" href="#basic-model-properties" title="Permalink to this heading"></a></h3>
 <p>At the top of the <span class="guilabel">Mesh Files</span> control tab is a box to enter the name of the CAD model. Below this is a dropdown box showing the different variants of the model, where new variants can be added or the current variant renamed or removed, using the buttons directly below the <span class="guilabel">Model Variant</span> dropdown box.</p>
-</div>
-<div class="section" id="adding-and-organising-model-parts">
-<h3>Adding and organising model parts<a class="headerlink" href="#adding-and-organising-model-parts" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="adding-and-organising-model-parts">
+<h3>Adding and organising model parts<a class="headerlink" href="#adding-and-organising-model-parts" title="Permalink to this heading"></a></h3>
 <p>In the centre of the <span class="guilabel">Mesh Files</span> tab is a tree view showing the parts of the model. Each part corresponds to a single 3D mesh file.</p>
 <p>To add a new part, click the <span class="guilabel">Add…</span> button above the part tree to browse for one or more mesh file(s) to add. Currently Calcam supports <code class="docutils literal notranslate"><span class="pre">.obj</span></code> and <code class="docutils literal notranslate"><span class="pre">.stl</span></code> format 3D mesh files. The selected file(s) will be added to the 3D view and the part tree, with a part name corresponding to the mesh file name.</p>
 <p>To rename a part, double-click on its name and type the new name.</p>
@@ -241,94 +157,69 @@
 <img alt="Grouped CAD model parts" src="_images/model_parts_grouped.png" />
 <p>To remove a part from the CAD model, select it from the feature tree and click the <span class="guilabel">Remove</span> button above the model tree.</p>
 <p>Features can be turned on or off by ticking or un-ticking the checkbox next to the feature’s name. Features which are ticked when saving the model definition will load by default whenever the model is loaded, while any un-ticked features will not be loaded by default.</p>
-</div>
-<div class="section" id="viewport-setup">
-<h3>Viewport Setup<a class="headerlink" href="#viewport-setup" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="viewport-setup">
+<h3>Viewport Setup<a class="headerlink" href="#viewport-setup" title="Permalink to this heading"></a></h3>
 <p>It is usually convenient to define some preset views of the model (i.e. camera positions and orientations) which can be quickly switched to e.g. as starting points for calibrations. For example, it is usually convenient to make preset views through ports which are usually used for cameras. Viewport setup is performed on the <span class="guilabel">Viewports</span> tab. At the top of this tab is a list of the viewports defined in the CAD model definition. At least one view must be defined before saving the CAD model definition, to be set automatically when the CAD model is loaded.</p>
 <p>To add the current 3D view shown in the window as a preset view, enter a name for the view in the box half way down the <span class="guilabel">Viewport</span> tab and click <span class="guilabel">Add</span>. The current viewport can be adjusted either with mouse controls or by manually entering the 3D position and viewing target of the camera in the boxes near the bottom of the tab. To control the viewport with the mouse, the following mouse controls can be used on the 3D view:</p>
 <ul class="simple">
-<li><p><kbd class="kbd docutils literal notranslate"><kbd class="kbd docutils literal notranslate">Left</kbd> <kbd class="kbd docutils literal notranslate">Click</kbd></kbd> - Place a cursor on the 3D model, or move the cursor if one already exists. This will display information about the cursor position in the window status bar and can be used by cross-sectioning / wall contour display features.</p></li>
-<li><p><kbd class="kbd docutils literal notranslate"><kbd class="kbd docutils literal notranslate">Right</kbd> <kbd class="kbd docutils literal notranslate">Click</kbd> <kbd class="kbd docutils literal notranslate"></kbd>+<kbd class="kbd docutils literal notranslate"></kbd> <kbd class="kbd docutils literal notranslate">Drag</kbd></kbd> - Look around (first-person shooter style control; default) or rotate CAD model depending on settings</p></li>
-<li><p><kbd class="kbd docutils literal notranslate"><kbd class="kbd docutils literal notranslate">Middle</kbd> <kbd class="kbd docutils literal notranslate">Click</kbd> <kbd class="kbd docutils literal notranslate"></kbd>+<kbd class="kbd docutils literal notranslate"></kbd> <kbd class="kbd docutils literal notranslate">Drag</kbd></kbd> - Pan (translate) sideways i.e. in the plane of the monitor.</p></li>
-<li><p><kbd class="kbd docutils literal notranslate"><kbd class="kbd docutils literal notranslate">Scroll</kbd> <kbd class="kbd docutils literal notranslate">Wheel</kbd></kbd> - Move forwards or backwards.</p></li>
-<li><p><kbd class="kbd docutils literal notranslate"><kbd class="kbd docutils literal notranslate">Ctrl</kbd> <kbd class="kbd docutils literal notranslate"></kbd>+<kbd class="kbd docutils literal notranslate"></kbd> <kbd class="kbd docutils literal notranslate">Scroll</kbd> <kbd class="kbd docutils literal notranslate">Wheel</kbd></kbd> Reduce or increase the CAD field-of-view angle (i.e. Zoom)</p></li>
-<li><p><kbd class="kbd docutils literal notranslate"><kbd class="kbd docutils literal notranslate">Ctrl</kbd> <kbd class="kbd docutils literal notranslate"></kbd>+<kbd class="kbd docutils literal notranslate"></kbd> <kbd class="kbd docutils literal notranslate">Right</kbd> <kbd class="kbd docutils literal notranslate">Click</kbd> <kbd class="kbd docutils literal notranslate"></kbd>+<kbd class="kbd docutils literal notranslate"></kbd> <kbd class="kbd docutils literal notranslate">Drag</kbd></kbd> - Roll the camera (rotate about the direction of view)</p></li>
+<li><p><kbd class="kbd compound docutils literal notranslate"><kbd class="kbd docutils literal notranslate">Left</kbd> <kbd class="kbd docutils literal notranslate">Click</kbd></kbd> - Place a cursor on the 3D model, or move the cursor if one already exists. This will display information about the cursor position in the window status bar and can be used by cross-sectioning / wall contour display features.</p></li>
+<li><p><kbd class="kbd compound docutils literal notranslate"><kbd class="kbd docutils literal notranslate">Right</kbd> <kbd class="kbd docutils literal notranslate">Click</kbd> <kbd class="kbd docutils literal notranslate"></kbd>+<kbd class="kbd docutils literal notranslate"></kbd> <kbd class="kbd docutils literal notranslate">Drag</kbd></kbd> - Look around (first-person shooter style control; default) or rotate CAD model depending on settings</p></li>
+<li><p><kbd class="kbd compound docutils literal notranslate"><kbd class="kbd docutils literal notranslate">Middle</kbd> <kbd class="kbd docutils literal notranslate">Click</kbd> <kbd class="kbd docutils literal notranslate"></kbd>+<kbd class="kbd docutils literal notranslate"></kbd> <kbd class="kbd docutils literal notranslate">Drag</kbd></kbd> - Pan (translate) sideways i.e. in the plane of the monitor.</p></li>
+<li><p><kbd class="kbd compound docutils literal notranslate"><kbd class="kbd docutils literal notranslate">Scroll</kbd> <kbd class="kbd docutils literal notranslate">Wheel</kbd></kbd> - Move forwards or backwards.</p></li>
+<li><p><kbd class="kbd compound docutils literal notranslate"><kbd class="kbd docutils literal notranslate">Ctrl</kbd> <kbd class="kbd docutils literal notranslate"></kbd>+<kbd class="kbd docutils literal notranslate"></kbd> <kbd class="kbd docutils literal notranslate">Scroll</kbd> <kbd class="kbd docutils literal notranslate">Wheel</kbd></kbd> Reduce or increase the CAD field-of-view angle (i.e. Zoom)</p></li>
+<li><p><kbd class="kbd compound docutils literal notranslate"><kbd class="kbd docutils literal notranslate">Ctrl</kbd> <kbd class="kbd docutils literal notranslate"></kbd>+<kbd class="kbd docutils literal notranslate"></kbd> <kbd class="kbd docutils literal notranslate">Right</kbd> <kbd class="kbd docutils literal notranslate">Click</kbd> <kbd class="kbd docutils literal notranslate"></kbd>+<kbd class="kbd docutils literal notranslate"></kbd> <kbd class="kbd docutils literal notranslate">Drag</kbd></kbd> - Roll the camera (rotate about the direction of view)</p></li>
 </ul>
 <p>When multiple views are defined in a CAD model, the default view, i.e. the view set automatically when the model is loaded, can be set by selecting the view in the view list and clicking <span class="guilabel">Set As Default (*)</span> under the view list. The current default view is marked with an asterisk <cite>*</cite>. To remove an existing view, select it and click the <span class="guilabel">Remove</span> button.</p>
-</div>
-<div class="section" id="adding-additional-information">
-<h3>Adding Additional Information<a class="headerlink" href="#adding-additional-information" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="adding-additional-information">
+<h3>Adding Additional Information<a class="headerlink" href="#adding-additional-information" title="Permalink to this heading"></a></h3>
 <p>Additional information can be added to the CAD model definition using the <span class="guilabel">Additional information</span> tab:</p>
-<div class="section" id="r-z-wall-contour">
-<span id="wall-contour"></span><h4>R,Z Wall Contour<a class="headerlink" href="#r-z-wall-contour" title="Permalink to this headline">¶</a></h4>
+<section id="r-z-wall-contour">
+<span id="wall-contour"></span><h4>R,Z Wall Contour<a class="headerlink" href="#r-z-wall-contour" title="Permalink to this heading"></a></h4>
 <p>An R,Z wall contour can be saved as part of the model definition; currently this is only used for displaying in the 3D viewer but is intended to be used in future for geometry matrix calculation, for example. To add an R,Z wall contour to the CAD model, prepare the contour in a two-column ASCII file containing R,Z coordinates of the wall (in metres) around the poloidal cross-section, with one coordinate per line in the file. Then click <span class="guilabel">Load from file…</span> in the <span class="guilabel">R, Z Wall Contour</span> box to load the file. If a wall contour already exists in the model, its details will also be displayed in this box. If a cursor is placed on the 3D model, the current wall contour can be displayed, at the cursor position, using the <span class="guilabel">Show contour at cursor position</span> checkbox.</p>
-</div>
-<div class="section" id="d-coordinate-information">
-<h4>3D Coordinate Information<a class="headerlink" href="#d-coordinate-information" title="Permalink to this headline">¶</a></h4>
+</section>
+<section id="d-coordinate-information">
+<h4>3D Coordinate Information<a class="headerlink" href="#d-coordinate-information" title="Permalink to this heading"></a></h4>
 <p>In various places in Calcam, the 3D position of a point on the CAD model is displayed. By default, the <span class="math notranslate nohighlight">\(X,Y,Z\)</span> coordinates in metres and <span class="math notranslate nohighlight">\(R,Z,\phi\)</span> coordinates are displayed. However, it is often helpful to have more machine-specific information added to this. For example, on a tokamak usually divided in to toroidal segments, it can be helpful to display which segment something is in, or you may want to display coordinates in different units. This can be achieved by writing a custom coordinate formatting function in Python, which can be saved as part of the model definition and is used to generate the 3D coordinate information to be displayed. This takes the form of a user-written python module or package, and details of how to write such a formatter are given <a class="reference internal" href="dev_coord_formatter.html"><span class="doc">here</span></a>. Once created, you can use the <span class="guilabel">Load custom…</span> button in the <span class="guilabel">3D coordinate information</span> box to browse for the python code (Note: if your coordinate formatter code is a Python package rather than a single module, in the file selection dialog, select the __init__.py file of the package). At the top of the <span class="guilabel">3D coordinate information</span> box is information about the current coordinate formatter. If a cursor is currently placed on the model, the output of the coordinate formatter for its current location is shown. If you have loaded a custom coordinate formatter and want to make changes to its code “live”, you can use the <span class="guilabel">Refresh</span> button to re-load the currently loaded python file. If a custom coordinate formatter is already loaded or already exists in the model, an <span class="guilabel">Edit…</span> button is displayed which will open the python file or folder for editing. To remove the custom formatting code from the model and revert to the default built-in coordinate display, use the <span class="guilabel">Remove</span> button.</p>
-</div>
-<div class="section" id="loading-saving-models">
-<h4>Loading &amp; Saving Models<a class="headerlink" href="#loading-saving-models" title="Permalink to this headline">¶</a></h4>
+</section>
+<section id="loading-saving-models">
+<h4>Loading &amp; Saving Models<a class="headerlink" href="#loading-saving-models" title="Permalink to this heading"></a></h4>
 <p>Changes to the currently loaded model can be saved using the <span class="guilabel">Save</span> or <span class="guilabel">Save As</span> buttons on the toolbar. A different CAD model definition can be loaded with the <span class="guilabel">Open</span> button, or a new empty CAD model definition can be started with the <span class="guilabel">New</span> button. When saving a model definition, if the definition is saved to a directory not currently in Calcam’s CAD model search path, you will be prompted to add that location so that the saved CAD model will be visible in the other Calcam GUI tools.</p>
-</div>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="gui_calib.html" class="btn btn-neutral float-right" title="Calibration by point fitting" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="gui_intro.html" class="btn btn-neutral float-left" title="Introduction &amp; Launcher" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="gui_intro.html" class="btn btn-neutral float-left" title="Introduction &amp; Launcher" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="gui_calib.html" class="btn btn-neutral float-right" title="Calibration by point fitting" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        
-        &copy; Copyright 2015-2022, European Atomic Energy Community (EURATOM)
-
-    </p>
+    <p>&#169; Copyright 2015-2022, European Atomic Energy Community (EURATOM).</p>
   </div>
-    
-    
-    
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
-    
-    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
-
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

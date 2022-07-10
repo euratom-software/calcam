@@ -1,76 +1,40 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Examples &mdash; Calcam  documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-
-  
-  
-  
-  
-
-  
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
-        <script src="_static/language_data.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Image Sources" href="dev_imsources.html" />
     <link rel="prev" title="Camera Movement Correction" href="api_movement.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="index.html">
-          
-
-          
-            
             <img src="_static/logo.png" class="logo" alt="Logo"/>
-          
           </a>
-
-          
-            
-            
               <div class="version">
                 Version 2.9
               </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -78,26 +42,15 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
-              <p class="caption"><span class="caption-text">Introduction</span></p>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="intro_general.html">General Introduction to Calcam</a></li>
 <li class="toctree-l1"><a class="reference internal" href="intro_install_setup.html">Getting Up &amp; Running</a></li>
 <li class="toctree-l1"><a class="reference internal" href="intro_theory.html">Camera Calibration Theory</a></li>
 <li class="toctree-l1"><a class="reference internal" href="intro_conventions.html">Concepts &amp; Conventions</a></li>
 </ul>
-<p class="caption"><span class="caption-text">GUI App User Guide</span></p>
+<p class="caption" role="heading"><span class="caption-text">GUI App User Guide</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="gui_intro.html">Introduction &amp; Launcher</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_settings.html">Calcam Settings</a></li>
@@ -108,10 +61,11 @@
 <li class="toctree-l1"><a class="reference internal" href="gui_viewer.html">3D Viewer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_movement.html">Camera Movement Determination</a></li>
 </ul>
-<p class="caption"><span class="caption-text">API User Guide</span></p>
+<p class="caption" role="heading"><span class="caption-text">API User Guide</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="api_analysis.html">Using Calibration Results</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_calib.html">The Calibration Class</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_cadmodel.html">CAD Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_raycast.html">Ray Casting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_rendering.html">Rendering Images</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_geom_matrix.html">Tomography Geometry Matrices</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_movement.html">Camera Movement Correction</a></li>
@@ -124,78 +78,40 @@
 </ul>
 </li>
 </ul>
-<p class="caption"><span class="caption-text">Developer Documentation</span></p>
+<p class="caption" role="heading"><span class="caption-text">Developer Documentation</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="dev_imsources.html">Image Sources</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dev_coord_formatter.html">3D Coordinate Formatters</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">Calcam</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-        
       <li>Examples</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-            
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="examples">
-<h1>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h1>
+             
+  <section id="examples">
+<h1>Examples<a class="headerlink" href="#examples" title="Permalink to this heading"></a></h1>
 <p>This page has some examples of using the Calcam API. It is not meant to demonstrate all API features exhaustively, but gives some examples of simple use cases and workflows; for more complete details of the API features please refer to the other API documentation pages.</p>
-<div class="section" id="mapping-a-magnetic-field-line-on-to-an-image">
-<h2>Mapping a magnetic field line on to an image<a class="headerlink" href="#mapping-a-magnetic-field-line-on-to-an-image" title="Permalink to this headline">¶</a></h2>
+<section id="mapping-a-magnetic-field-line-on-to-an-image">
+<h2>Mapping a magnetic field line on to an image<a class="headerlink" href="#mapping-a-magnetic-field-line-on-to-an-image" title="Permalink to this heading"></a></h2>
 <p>We start with an image of a MAST plasma on to which we want to overlay a magnetic field line, which we will assume is saved as <code class="docutils literal notranslate"><span class="pre">image.png</span></code> in the current directory. We also have a Calcam calibration for that image stored in the file <code class="docutils literal notranslate"><span class="pre">mycalib.ccc</span></code>, which for convenience we assume is also saved in the current directory. Finally, we have a <code class="docutils literal notranslate"><span class="pre">.csv</span></code> file containing a set of 3D coordinates of points along a magnetic field line (generated using a field line tracing tool), with each row of the file containg X,Y,Z coordinates of a single point.</p>
 <p>We can plot the field line on top of the image with the following code:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">calcam</span>
@@ -259,9 +175,9 @@
 </div>
 <p>Which results in the following figure:</p>
 <img alt="MAST field line projection example" src="_images/mast_fieldline_example_2.png" />
-</div>
-<div class="section" id="rendering-camera-view-wireframe">
-<h2>Rendering: camera view wireframe<a class="headerlink" href="#rendering-camera-view-wireframe" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="rendering-camera-view-wireframe">
+<h2>Rendering: camera view wireframe<a class="headerlink" href="#rendering-camera-view-wireframe" title="Permalink to this heading"></a></h2>
 <p>For this example, we start with a Calcam calibration for a MAST camera, and we want to render a wireframe version of the MAST CAD model which aligns with the camera image. This might be used, for example, to use as an overlay on a plasma image to give context to the image. We can do this with the following code:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">calcam</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
@@ -286,9 +202,9 @@
 <p>This results in the following plot:</p>
 <img alt="MAST wireframe example" src="_images/mast_wireframe_example.png" />
 <p>and also the same image saved to the file <cite>wireframe.png</cite>.</p>
-</div>
-<div class="section" id="ray-casting">
-<h2>Ray casting<a class="headerlink" href="#ray-casting" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="ray-casting">
+<h2>Ray casting<a class="headerlink" href="#ray-casting" title="Permalink to this heading"></a></h2>
 <p>Imagine we have an IR image from a first wall monitoring camera which shows some unusual event at pixel coordinates (100,250). We might want to get the 3D coordinates on the CAD model corresponding to this pixel to tell us where exactly this event took place. We could do this by ray-casting that particular pixel:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">calcam</span>
 
@@ -317,9 +233,9 @@
 <span class="n">raydata</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;my_raydata.nc&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="tomography-geometry-matrices">
-<h2>Tomography Geometry Matrices<a class="headerlink" href="#tomography-geometry-matrices" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="tomography-geometry-matrices">
+<h2>Tomography Geometry Matrices<a class="headerlink" href="#tomography-geometry-matrices" title="Permalink to this heading"></a></h2>
 <p>For this example, we assume we already have a set of saved raydata relating to a camera we want to tomographically invert. For the purposes of this example we imagine it is a divertor camera on MAST, which can see Z heights up to about -0.6m in its field of view. To make the geometry matrix, we do this:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">calcam</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
@@ -384,10 +300,10 @@
 <span class="n">result_along_slice</span> <span class="o">=</span> <span class="n">geom_mat</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">r_coords</span><span class="p">,</span><span class="n">z_coords</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="camera-movement-correction">
-<h2>Camera Movement Correction<a class="headerlink" href="#camera-movement-correction" title="Permalink to this headline">¶</a></h2>
-<p>Let’s say we have a good calibration, and we have a <a class="reference internal" href="api_analysis.html#calcam.Calibration" title="calcam.Calibration"><code class="xref py py-class docutils literal notranslate"><span class="pre">calcam.Calibration</span></code></a> object for it in <code class="docutils literal notranslate"><span class="pre">my_calib</span></code>. We also have an image from the same camera some time later when the camera has moved, stored in a Numpy array called <code class="docutils literal notranslate"><span class="pre">moved_im</span></code>. We can then try to determine the correction to align the moved image with the calibration by:</p>
+</section>
+<section id="camera-movement-correction">
+<h2>Camera Movement Correction<a class="headerlink" href="#camera-movement-correction" title="Permalink to this heading"></a></h2>
+<p>Let’s say we have a good calibration, and we have a <a class="reference internal" href="api_calib.html#calcam.Calibration" title="calcam.Calibration"><code class="xref py py-class docutils literal notranslate"><span class="pre">calcam.Calibration</span></code></a> object for it in <code class="docutils literal notranslate"><span class="pre">my_calib</span></code>. We also have an image from the same camera some time later when the camera has moved, stored in a Numpy array called <code class="docutils literal notranslate"><span class="pre">moved_im</span></code>. We can then try to determine the correction to align the moved image with the calibration by:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">mov</span> <span class="o">=</span> <span class="n">calcam</span><span class="o">.</span><span class="n">movement</span><span class="o">.</span><span class="n">detect_movement</span><span class="p">(</span><span class="n">my_calib</span><span class="p">,</span> <span class="n">moved_im</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -409,63 +325,38 @@
 <span class="n">mov_loaded</span> <span class="o">=</span> <span class="n">calcam</span><span class="o">.</span><span class="n">movement</span><span class="o">.</span><span class="n">MovementCorrection</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;my movement correction.cmc&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="dev_imsources.html" class="btn btn-neutral float-right" title="Image Sources" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="api_movement.html" class="btn btn-neutral float-left" title="Camera Movement Correction" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="api_movement.html" class="btn btn-neutral float-left" title="Camera Movement Correction" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="dev_imsources.html" class="btn btn-neutral float-right" title="Image Sources" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        
-        &copy; Copyright 2015-2022, European Atomic Energy Community (EURATOM)
-
-    </p>
+    <p>&#169; Copyright 2015-2022, European Atomic Energy Community (EURATOM).</p>
   </div>
-    
-    
-    
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
-    
-    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
-
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

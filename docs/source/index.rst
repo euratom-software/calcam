@@ -40,8 +40,9 @@ Welcome to the Calcam documentation index page. If you want to know what it's al
    :maxdepth: 1
    :name: apitoc
 
-   api_analysis
+   api_calib
    api_cadmodel
+   api_raycast
    api_rendering
    api_geom_matrix
    api_movement
