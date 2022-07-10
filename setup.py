@@ -39,7 +39,7 @@ import os
 import subprocess
 
 if 'bdist_wheel' in sys.argv:
-    raise Exception("Looks like you are trying to build a wheel for Calcam. That would skip important logic to deal with awkward dependencies, so I'm afraid I can't let you do that.")
+    raise Exception("Looks like you are trying to build a wheel for Calcam. That would skip setup.py at install time which contains important setup logic, so I'm afraid I can't let you do that.")
 
 # Read version from the version file.
 with open(os.path.join(os.path.split(os.path.abspath(__file__))[0],'calcam','__version__'),'r') as ver_file:
@@ -163,6 +163,10 @@ if 'install' in sys.argv or 'develop' in sys.argv:
         else:
             print('   Failed.\n')
             vtk = False
+
+    # Make sure a file exists at calcam/gui/__executable_path__ before calling setup() - this makes sure it gets marked as part of the package
+    # so allows clean uninnstallation, but without having to keep a blank copy of the file in the git repo which causes git confusion.
+    open(os.path.join(os.path.split(__file__)[0],'calcam','gui','__executable_path__'), 'a').close()
 
     print('\nNow handing over to setuptools...\n')
 
