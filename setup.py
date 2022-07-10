@@ -46,7 +46,7 @@ with open(os.path.join(os.path.split(os.path.abspath(__file__))[0],'calcam','__v
     version = ver_file.readline().rstrip()
 
 # Read the readme.
-with open(os.path.join(os.path.split(os.path.abspath(__file__))[0],'README.md'),'r') as readme_file:
+with open(os.path.join(os.path.split(os.path.abspath(__file__))[0],'README.md'),'r',encoding='utf-8') as readme_file:
     readme = readme_file.read()
 
 print('\n***************************************************************')
@@ -168,13 +168,12 @@ if 'install' in sys.argv or 'develop' in sys.argv:
 
 # Actually do the requested setup actions
 s = setup(
-        name='Calcam',
+        name='calcam',
         version=version,
-        url='https://euratom-software.github.io/calcam/',
         license='European Union Public License 1.1',
-        author='Scott Silburn et.al.',
+        author='Scott Silburn et. al.',
         author_email='scott.silburn@ukaea.uk',
-        description='Spatial calibration tools for tokamak imaging diagnostics.',
+        description='Spatial calibration tools for science & engineering camera systems.',
         long_description=readme,
         long_description_content_type='text/markdown',
         classifiers=[
@@ -186,7 +185,7 @@ s = setup(
                     "Environment :: X11 Applications :: Qt",
                     "Intended Audience :: Science/Research",
                     "Intended Audience :: Developers",
-                    "License :: OSI Approved :: European Union Public Licence 1.1 (EUPL 1.1)"
+                    "License :: OSI Approved :: European Union Public Licence 1.1 (EUPL 1.1)",
                     "Natural Language :: English",
                     "Programming Language :: Python :: 3",
                     "Topic :: Scientific/Engineering :: Physics",
