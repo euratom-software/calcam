@@ -767,7 +767,7 @@ class CalcamGUIWindow(qt.QMainWindow):
         else:
             self.camera_3d.SetFocalPoint(calibration.get_pupilpos(subview=subfield) + calibration.get_los_direction(calibration.geometry.get_display_shape()[0]/2,calibration.geometry.get_display_shape()[1]/2))
 
-        self.interactor3d.set_roll(calibration.get_cam_roll(subview=subfield))
+        self.interactor3d.set_roll(calibration.get_cam_roll(subview=subfield,centre='subview'))
 
         self.update_viewport_info(keep_selection=True)
 

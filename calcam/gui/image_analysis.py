@@ -31,6 +31,7 @@ from ..coordtransformer import CoordTransformer
 from ..raycast import raycast_sightlines
 from ..image_enhancement import enhance_image, scale_to_8bit
 from ..movement import manual_movement
+from ..calibration import NoSubviews
 
 type_description = {'alignment': 'Manual Alignment', 'fit':'Point pair fitting','virtual':'Virtual'}
 
@@ -503,15 +504,20 @@ class ImageAnalyser(CalcamGUIWindow):
 
                 if self.image_geometry.get_display_shape() != opened_calib.geometry.get_display_shape() or (self.image_geometry.offset != opened_calib.geometry.offset and 'image_offset' not in self.image_assumptions):
                     osize = opened_calib.geometry.display_to_original_shape(self.image_geometry.get_display_shape())
-                    opened_calib.set_detector_window((self.image_geometry.offset[0],self.image_geometry.offset[1],osize[0],osize[1]))
-
+                    try:
+                        opened_calib.set_detector_window((self.image_geometry.offset[0],self.image_geometry.offset[1],osize[0],osize[1]))
+                    except NoSubviews:
+                        raise UserWarning('The detector area according to the image metadata ({:d}x{:d} pixels at offset {:d}x{:d}) does not contain any image according to the calibration! Perhaps the image detector offset is set incorrectly?'.format(osize[0],osize[1],self.image_geometry.offset[0],self.image_geometry.offset[1]))
                 if self.image_geometry.transform_actions == []:
                     self.image = opened_calib.geometry.display_to_original_image(self.image)
 
             else:
                 if self.image_geometry.get_original_shape() != opened_calib.geometry.get_original_shape() or (self.image_geometry.offset != opened_calib.geometry.offset and 'image_offset' not in self.image_assumptions):
                     osize = self.image_geometry.get_original_shape()
-                    opened_calib.set_detector_window((self.image_geometry.offset[0],self.image_geometry.offset[1],osize[0],osize[1]))
+                    try:
+                        opened_calib.set_detector_window((self.image_geometry.offset[0],self.image_geometry.offset[1],osize[0],osize[1]))
+                    except NoSubviews:
+                        raise UserWarning('The detector area according to the image metadata ({:d}x{:d} pixels at offset {:d}x{:d}) does not contain any image according to the calibration! Perhaps the image detector offset is set incorrectly?'.format(osize[0],osize[1],self.image_geometry.offset[0],self.image_geometry.offset[1]))
 
             if opened_calib.image is not None:
                 self.movement_correction_button.setEnabled(True)
@@ -690,7 +696,11 @@ class ImageAnalyser(CalcamGUIWindow):
                 osize = new_geom.get_original_shape()
 
                 self.calibration.geometry.set_pixel_aspect(new_geom.pixel_aspectratio,relative_to='original')
-                self.calibration.set_detector_window((newim_geometry.offset[0],newim_geometry.offset[1],osize[0],osize[1]))
+                try:
+                    self.calibration.set_detector_window((newim_geometry.offset[0], newim_geometry.offset[1], osize[0], osize[1]))
+                except NoSubviews:
+                    raise UserWarning('The detector area according to the image metadata ({:d}x{:d} pixels at offset {:d}x{:d}) does not contain any image according to the calibration! Perhaps the image detector offset is set incorrectly?'.format(osize[0], osize[1], self.image_geometry.offset[0], self.image_geometry.offset[1]))
+
 
                 self.overlay = None
                 if self.overlay_checkbox.isChecked():

@@ -4,18 +4,6 @@ Calcam Changelog
 Minor Release 2.9.0 (Soon!)
 ---------------------------
 
-Fixes:
-* Fix issue where setting the 3D CAD view to match a calibration result set the camera roll inaccurately.
-* Fix a bug which caused invisible wall coverage shading on some platforms (#86).
-* Fix an exception raised in the CAD definition editor when deteling model variants in a new CAD model definition (#87).
-* Fix exception raised when opening calibration info box with PyQt6 (#88)
-* Fix a bug where the filename of a calibration is not updated in the calibration info after "Save As"
-* Fix a bug in the virtual calibration editor where changing intrinsics type did not enable the correct set of options.
-* Fix a bug where the virtual calibration editor would prompt to save changes even with no CAD model loaded.
-* Fixed a bug where the "new version available" prompt could be shown incorrectly.
-* Fixed a bug in 3D viewer where loading a calibration while "CAD model shading" view type was selected raised an exception.
-* Fitting options no longer reset for no reason when changing image masking in fitting calibration tool.
-
 New & Enhancements:
 * Calcam now available on PyPi! (#83)
 * Support masking of images (i.e marking parts of the image which do not contain any actual image) in fitting and manual alignment calibration tools (#46).
@@ -27,9 +15,23 @@ New & Enhancements:
 * Add ability to place a default configuration file in the calcam directory which will be checked for new users on multi-user systems.
 * Version number is now stored in 1 place (calcam/__version__) instead of 3 different places.
 * Re-work setup.py for compatibility with PyPi and pip.
-* Make handling of missing dependencies smoother i.e. error messages more helpful (hopefully).
+* Make handling of missing dependencies smoother & error messages more helpful (hopefully), including raising ImportWarnings at import instead of print statements.
 * Try to improve documentation for installation & setup.
 * Change new version update prompt link from linking to code archive to linking to the relevant doc page.
+
+Fixes:
+* Fix issue where setting the 3D CAD view to match a calibration result set the camera roll inaccurately.
+* Fix a bug which caused invisible wall coverage shading on some platforms (#86).
+* Fix an exception raised in the CAD definition editor when deteling model variants in a new CAD model definition (#87).
+* Fix exception raised when opening calibration info box with PyQt6 (#88)
+* Fix a bug where the filename of a calibration is not updated in the calibration info after "Save As"
+* Fix a bug in the virtual calibration editor where changing intrinsics type did not enable the correct set of options.
+* Fix a bug where the virtual calibration editor would prompt to save changes even with no CAD model loaded.
+* Fixed a bug where the "new version available" prompt could be shown incorrectly.
+* Fixed a bug in 3D viewer where loading a calibration while "CAD model shading" view type was selected raised an exception.
+* Fitting options no longer reset for no reason when changing image masking in fitting calibration tool.
+* Fix an exception raised when pressing Alt+Shift keys together over VTK views.
+* Replace exception raised in image analyser if the image window metadata does not match calibration with a more helpful error message.
 
 
 Patch Release 2.8.3 (01 Apr 2022)

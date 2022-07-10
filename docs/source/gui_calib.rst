@@ -39,7 +39,7 @@ View Masking
 ~~~~~~~~~~~~
 For many camera systems, not every pixel on the detector should have the same calibration applied. In some systems the image projected by the optics does not fill the whole sensor, and some systems consist of multiple views in different directions, optically combined on to a single detector. Calcam supports these types of systems by allowing you to set up a mask specifying which pixels contain what image. This can be set up by clicking the :guilabel:`Define...` button beside the text :guilabel:`Image masking and & sub-views`. Pressing the button opens the following dialog box:
 
-.. image:: images/screenshots/subviews.png
+.. image:: images/screenshots/subviews_start.png
    :alt: Sub-view window screenshot
    :align: left
 
@@ -53,6 +53,9 @@ Image Surrounded by Dark Border
 *******************************
 This option is used for cases where the optical image does not fill the whole sensor - the image takes up some of the sensor area but is surrounded by a dark border where there is no real image. When selected, this option lets you click on areas where there is no image to "flood fill" a mask excluding those pixels from calibration. When you select this option, the entire image is shown shaded in colour. As you click on areas to mark them as not containing image, these ares become shaded grey. Clicking on the image multiple times adds whatever area is clicked to the excluded area. If the flood fill algorithm selects too little or too much of the image, you can adjust the threshold and median filter size for the flood fill algorithm with the provided controls. Increasing these values means a larger area will be selected with each click. If you select too much area to exclude and need to start again, use the :guilabel:`Reset` button to clear the masking and start again. When finished, the part of the sensor containing the image should be shown with a colour overlay while the part containing no image should be shaded grey, like the example below.
 
+.. image:: images/screenshots/subviews2.png
+   :alt: Sub-view window screenshot
+   :align: left
 
 2 Sub-views separated by a straight line
 ****************************************
@@ -60,9 +63,7 @@ This option can be used where there are 2 different fields of view ('sub-views')
 
 * **Custom mask** for images with more than 2 sub-views or where the boundary between the sub-views is not a straight line. To use this function, prepare an image file the same size as the image to be calibrated with blocks of different solid colours representing each sub-view. You can then load this image file and the blocks of different colours will be used to define the coverage of the different sub-views.
 
-Once the positions of the sub-views have been configured, on the lower-right of the window are boxes to enter human-friendly names for the different sub-views. These will be used to identify the sub-views elsewhere in the GUI and calibration information.
-
-Once this is all set to your satisfaction, click :guilabel:`Apply` to apply the sub-view configuration and return to the main window. Clicking :guilabel:`Cancel` will return to the main window without making any changes.
+Once the positions of the sub-views have been configured, on the lower-right of the window are boxes to enter human-friendly names for the different sub-views (see screenshot below). These will be used to identify the sub-views elsewhere in the GUI and calibration information.
 
 Arbitrary Mask
 **************
@@ -71,9 +72,14 @@ It is often useful to save a copy of the image being calibrated to use as a temp
 
 Once the mask image is loaded, you can give each region of the image a human-friendly name using the boxes on the right, and use the tick boxes to indicate which regions contain image to be calibrated and which do not contain image data:
 
+.. image:: images/screenshots/subviews.png
+   :alt: Sub-view window screenshot
+   :align: left
+
 When you are happy with the image masking configuration, click :guilabel:`Apply`. If you click :guilabel:`cancel`, no change will be applied to the masking configuration.
 
-    Note that after changing the masking configuration, any existing calibration fit(s) will be reset so you will have to re-run the calibration fitting.
+.. note::
+    After changing the masking configuration, any existing calibration fit(s) will be reset so you will have to re-run the calibration fitting.
 
 
 Loading and manipulating a CAD model

@@ -128,7 +128,7 @@ You should then be able to import the calcam module and start the GUI. If not, t
 
 Insufficient Persmissions to install
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-The setup process may try to install Calcam in the python library paths for your system. If your user account does not have permissions to write to these paths (e.g. root or admin permissions), the setup script will fail with an error about permissions. **In this case, adding the ``--user`` option to the installation command will install the package for your user account only, which does not require root or admin permissions.**
+The setup process may try to install Calcam in the python library paths for your system. If your user account does not have permissions to write to these paths (e.g. root or admin permissions), the setup will fail with an error about permissions. In this case, adding the ``--user`` option to the installation command will install the package for your user account only, which does not require root or admin permissions.
 
 
 Problems trying to start Calcam
@@ -203,7 +203,7 @@ Updating
 Version Cross-Compatibility
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Calcam uses something close to semanic versioning, to try to make it clear for users to decide when to update. The version number consists of 3 numbers separated by points, in the format ``Major.Minor.Patch``:
+Calcam uses something close to semanic versioning, to try to make it clear for users to decide when to update. The version number consists of 3 numbers separated by points, in the format ``major.minor.patch``:
 
 * The ``patch`` version is incremented for bug fixes which do not change the functionality.
 * The ``minor`` version is incremented when adding new functionality in a backwards-compatible way. Upgrading to a newer minor version of calcam should therefore not break any code which calls calcam as a dependency.
@@ -215,8 +215,10 @@ File Compatibility
 ******************
 Newer ``minor`` versions of Calcam will maintain backwards compatibility with files created by earlier versions, but forward compatibility is not guaranteed i.e. files created with newer versions of Calcam may not work properly with older versions.
 
-    * Calibration files created with Calcam 2.9 or newer which make use of the image masking feature will cause errors if used with Calcam versions < 2.9
-    * Calibration files created with Calcam 2.6 or newer cannot be loaded properly in Calcam versions < 2.6
+.. warning::
+    Calibration files created with Calcam 2.9 or newer which make use of the image masking feature will cause errors if used with Calcam versions < 2.9
+
+    Calibration files created with Calcam 2.6 or newer cannot be loaded properly in Calcam versions < 2.6
 
 Updating using pip
 ~~~~~~~~~~~~~~~~~~
@@ -226,9 +228,10 @@ To update to the latest release version of calcam using ``pip``, use the command
 
 From source
 ~~~~~~~~~~~
-To upgrade from manually downloaded source, follow the instructions to install from source on this page, with the version of the code you want to use.
+To upgrade from manually downloaded source, follow the instructions near the top of this page to download the version you want and install.
 
-    If installing older versions of Calcam < 2.9, installing with pip may not take care of Calcam's dependencies properly. For these older versions, refer to the offline version of this documentation in the ``docs/`` folder of the particular code version.
+.. note::
+    If installing older versions of Calcam < 2.9, installing with pip may not take care of Calcam's dependencies properly. If you have problems with the instructions on this page for older versions, refer to the offline version of this documentation in the ``docs/html/`` folder of the particular code version.
 
 Updating from Calcam 1.x
 ~~~~~~~~~~~~~~~~~~~~~~~~

@@ -45,6 +45,8 @@ except AttributeError:
 class ImageUpsideDown(Exception):
     pass
 
+class NoSubviews(Exception):
+    pass
 
 # Superclass for camera models.
 class ViewModel():
@@ -62,9 +64,9 @@ class ViewModel():
     # Get the pupil position
     def get_pupilpos(self):
 
-        rotation_matrix = np.matrix(cv2.Rodrigues(self.rvec)[0])
+        rotation_matrix = self.get_cam_to_lab_rotation()
         cam_pos = np.matrix(self.tvec)
-        cam_pos = np.array( - (rotation_matrix.transpose() * cam_pos) )
+        cam_pos = np.array( - (rotation_matrix * cam_pos) )
 
         return np.array([cam_pos[0][0],cam_pos[1][0],cam_pos[2][0]])
 
@@ -131,28 +133,29 @@ class ViewModel():
 
 
     def get_cam_roll(self,x=None,y=None):
-        
-        # Get the projection of the lab +z axis on to the detector plane
-        z_camframe = np.squeeze( self.get_cam_to_lab_rotation().T[:,2] )
 
+        # Default position is at the optical axis
         if x is None or y is None:
-            viewdir = np.matrix([0,0,1])    # In the camera frame, +z is the view direction.
-        else:
-            xn,yn = self.normalise(x,y)
-            viewdir = np.matrix([xn.item(),yn.item(),1])
+            x = self.cam_matrix[0,2]
+            y = self.cam_matrix[1,2]
 
-        z_proj = np.cross(viewdir, np.cross(z_camframe,viewdir) )
-        z_proj = z_proj / np.sqrt(np.sum(z_proj**2))
+        # Project a 1m tall vertical line in the lab frame on to the image starting from (x,y)
+        axis_dir = self.get_los_direction(x,y)
+        cam_pos = self.get_pupilpos()
+        endpoint_3d = cam_pos + axis_dir
+        endpoint_3d[2] = endpoint_3d[2] + 1
 
-        # The roll is the angle between this projection and -y
-        # Since we use arctan which returns an angle in [0,pi], we need to manually
-        # check the sign based on which side of -y the z projection is pointing.
-        if z_proj[0][0] > 0.:
-            sign = -1
-        else:
-            sign = 1
-            
-        return sign * 180 * np.arccos( -z_proj[0][1] ) / np.pi
+        # Note suppressing the distortion model for this makes it robust to use project_points.
+        endpoint = self.project_points(endpoint_3d,include_distortion=False)
+
+        # This line gives us a projection of the lab +Z axis on the image
+        proj_x = endpoint[0]-x
+        proj_y = endpoint[1]-y
+
+        # Camera roll is the angle of this projection on the image. Note the arguments
+        # to arctan2 are -x, -y instead of y,x because (1) 0 degrees is when the line is vertical
+        # and (2) +y is downwards in the image.
+        return 180 * np.arctan2(-proj_x,-proj_y) / np.pi
 
 
 # Class representing a perspective camera model.
@@ -236,12 +239,11 @@ class RectilinearViewModel(ViewModel):
         undistorted = np.swapaxes(undistorted,0,1)[0]
 
         return np.reshape(undistorted[:,0],oldshape,order='F') , np.reshape(undistorted[:,1],oldshape,order='F')
- 
 
 
 
     # Get list of 2D coordinates based on 3D point coordinates
-    def project_points(self,points):
+    def project_points(self,points,include_distortion=True):
 
         # Check the input points are in a suitable format
         if np.ndim(points) < 3:
@@ -249,10 +251,13 @@ class RectilinearViewModel(ViewModel):
         else:
             points = np.array(points,dtype='float32')
 
-        output = np.zeros([len(points[0]),2])
+        if include_distortion:
+            kc = self.kc
+        else:
+            kc = np.zeros(4)
 
         # Do reprojection
-        points,_ = cv2.projectPoints(points,self.rvec,self.tvec,self.cam_matrix,self.kc)
+        points,_ = cv2.projectPoints(points,self.rvec,self.tvec,self.cam_matrix,kc)
 
         return np.squeeze(points)
 
@@ -346,7 +351,7 @@ class FisheyeeViewModel(ViewModel):
 
 
     # Get list of 2D coordinates based on 3D point coordinates
-    def project_points(self,points):
+    def project_points(self,points,include_distortion=True):
 
         # Check the input points are in a suitable format
         if np.ndim(points) < 3:
@@ -354,8 +359,13 @@ class FisheyeeViewModel(ViewModel):
         else:
             points = np.array(points,dtype='float32')
 
+        if include_distortion:
+            kc = self.kc
+        else:
+            kc = np.zeros(4)
+
         # Do reprojection
-        points,_ = cv2.fisheye.projectPoints(points,self.rvec,self.tvec,self.cam_matrix,self.kc)
+        points,_ = cv2.fisheye.projectPoints(points,self.rvec,self.tvec,self.cam_matrix,kc)
         points = np.swapaxes(points,0,1)
                    
         return np.squeeze(points)
@@ -476,7 +486,7 @@ class Calibration():
         over the full frame, but you now want to use this calibration for data which
         has been cropped.
 
-        Calling this function with `None` as the single argument sets the calibration
+        Calling this function with windiw=`None` sets the calibration
         back to its "native" state. Otherwise, call with a 4 element tuple specifying the
         left,top,width and height of the detector window.
 
@@ -484,7 +494,7 @@ class Calibration():
 
         Parameters:
 
-            window (sequence)      : A 4-element sequence of integers defining the \
+            window (sequence)      : Either `None` or a 4-element sequence of integers defining the \
                                      detector window coordinates (Left,Top,Width,Height). This MUST \
                                      be specified in 'original' detector coordinates (i.e. before any \
                                      image rotation, flips etc).
@@ -634,10 +644,13 @@ class Calibration():
             if self.pointpairs is not None:
                 self.pointpairs = self.geometry.original_to_display_pointpairs(pp_before)
 
-            self.set_subview_mask(new_subview_mask,coords='Original')
-
-
             self.crop = copy.deepcopy(window)
+            try:
+                self.set_subview_mask(new_subview_mask,coords='Original')
+            except NoSubviews:
+                self.set_detector_window(None)
+                raise NoSubviews('Requested detector area contains no image.')
+
 
             for i,model in enumerate(self.view_models):
                 modeldat = model.get_dict()
@@ -895,6 +908,9 @@ class Calibration():
                                    supplied mask is in.
         '''        
         n_subviews = mask.max() + 1
+
+        if n_subviews < 1:
+            raise NoSubviews('Provided subview mask indicates no pixels contain any image!')
 
         if subview_names is None or subview_names == []:
             if n_subviews == 1:
@@ -1232,16 +1248,21 @@ class Calibration():
 
 
 
-    def get_cam_roll(self,subview=None):
+    def get_cam_roll(self,subview=None,centre='optical'):
         '''
-        Get the camera roll. This is the angle between the lab 
-        +Z axis and the camera's "view up" direction.
+        Get the camera roll. This is the angle between the projection of the lab +Z axis in the image
+        and the vertical "up" direction on the detector.
 
         Parameters:
             
             subview (int) : For calibrations with multiple sub-views, \
                             which sub-view index to return the camera \
                             roll for.
+
+            centre (str)  : At what image position to measure the "camera roll". \
+                            'optical' - at the optical axis (default); \
+                            'detector' - at the detector centre; or \
+                            'subview' - at the centre of the relevant sub-view.
 
         Returns:
 
@@ -1255,7 +1276,17 @@ class Calibration():
         elif subview is None:
             subview = 0
 
-        ypx, xpx = CoM(self.get_subview_mask(coords='Display') == subview)
+        if centre.lower() == 'detector':
+            xsz,ysz = self.geometry.get_display_shape()
+            xpx = xsz/2
+            ypx = ysz/2
+        elif centre.lower() == 'subview':
+            ypx, xpx = CoM(self.get_subview_mask(coords='Display') == subview)
+        elif centre.lower() == 'optical':
+            xpx = None
+            ypx = None
+        else:
+            raise ValueError('Unknown axis parameter "{:}". Valid options are "optical", "detector" or "subview."')
 
         return self.view_models[subview].get_cam_roll(x=xpx,y=ypx)
 
@@ -2125,8 +2156,8 @@ class Calibration():
         pupilpos = self.get_pupilpos(subview=subview)
         msg = msg + 'Pupil Position (X,Y,Z):      ( {:.3f}, {:.3f}, {:.3f} ) m\n'.format(pupilpos[0],pupilpos[1],pupilpos[2])
         msg = msg + 'View Direction (X,Y,Z):      ( {:.3f}, {:.3f}, {:.3f} ) at view centre\n'.format(los_centre[0],los_centre[1],los_centre[2]) + ' ' * 29 + '( {:.3f}, {:.3f}, {:.3f} ) along optical axis\n'.format(los_cc[0],los_cc[1],los_cc[2])
-        if np.isfinite(model.get_cam_roll()): 
-            msg = msg + 'Camera roll:                 {:.1f} degrees (about view centre) \n'.format(model.get_cam_roll())
+        if np.isfinite(model.get_cam_roll()):
+            msg = msg + 'Camera roll:                 {:.1f} degrees about the optical axis \n'.format(model.get_cam_roll())
 
         return msg
         
