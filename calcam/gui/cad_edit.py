@@ -1147,9 +1147,9 @@ class CADEdit(CalcamGUIWindow):
 
             if not filename.endswith('.ccm'):
                 filename = filename + '.ccm'
-
-            if os.path.split(filename)[0] not in self.config.cad_def_paths:
-                add_path_prompt = os.path.split(filename)[0]
+            defpath = os.path.split(filename)[0].replace('/',os.path.sep)
+            if defpath not in self.config.cad_def_paths:
+                add_path_prompt = defpath
 
             if self.cadmodel.def_file is not None:
                 old_def_file = self.cadmodel.def_file

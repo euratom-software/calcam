@@ -1,11 +1,11 @@
 Calcam Changelog
 ================
 
-Minor Release 2.9.0 (Soon!)
----------------------------
+Minor Release 2.9.0 (16th July 2022)
+------------------------------------
 
 New & Enhancements:
-* Calcam now available on PyPi! (#83)
+* Calcam now available on PyPi (but could use improvements to make distribution more PEP compliant in future) (#83)
 * Support masking of images (i.e marking parts of the image which do not contain any actual image) in fitting and manual alignment calibration tools (#46).
 * Add vertical field of view input in virtual calibration editor as an alternative to focal length (#85).
 * Remove error message if fitting determines the camera is upside-down; camera roll not settable in range -180,180 instead of -90,90 degrees.
@@ -29,9 +29,11 @@ Fixes:
 * Fix a bug where the virtual calibration editor would prompt to save changes even with no CAD model loaded.
 * Fixed a bug where the "new version available" prompt could be shown incorrectly.
 * Fixed a bug in 3D viewer where loading a calibration while "CAD model shading" view type was selected raised an exception.
+* Fixed an issue which sometimes caused exceptions from MatPlotLib if plotting a tomography grid without data.
 * Fitting options no longer reset for no reason when changing image masking in fitting calibration tool.
 * Fix an exception raised when pressing Alt+Shift keys together over VTK views.
 * Replace exception raised in image analyser if the image window metadata does not match calibration with a more helpful error message.
+* Fixed an issue where the CAD model definition editor would not recognise a path was in the Calcam config even when it was.
 
 
 Patch Release 2.8.3 (01 Apr 2022)

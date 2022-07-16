@@ -361,7 +361,10 @@ class PoloidalVolumeGrid:
             xy = np.vstack( [ self.vertices[self.cells[cell_ind,i],:] for i in range(verts_per_cell)] )
             patches.append( PolyPatch( xy, closed=True) )
         pcoll = PatchCollection(patches)
-        pcoll.set_array(np.squeeze(data))
+        if data is not None:
+            pcoll.set_array(np.squeeze(data))
+        else:
+            pcoll.set_array(np.zeros(self.n_cells)+np.nan)
 
 
         # Set up appearance of the grid cells
@@ -660,12 +663,18 @@ class GeometryMatrix:
                 calc_status_callback(1.)
             
             
-            # Remove any grid cells + matrix rows which have no sight-line coverage.
+            # Remove any grid cells + matrix columns which have no sight-line coverage.
             unused_cells = np.where(np.abs(self.data.sum(axis=0)) == 0)[1]
             self.grid.remove_cells(unused_cells)
 
             used_cols = np.where(self.data.sum(axis=0) > 0)[1]
             self.data = self.data[:,used_cols]
+
+            # Set the pixel mask to exclude pixels which do not contribute to any grid cells.
+            if self.pixel_mask is not None:
+                used_pixels = np.abs(self.data.sum(axis=1)) > 1e-14
+                self.pixel_mask = used_pixels.reshape(imdims,order=self.pixel_order)
+
 
 
     def get_los_coverage(self):
@@ -885,6 +894,10 @@ class GeometryMatrix:
                                       matrix itself.
 
         '''
+
+        if len(image.shape) > 2:
+            raise ValueError('Provided image array has 3 dimensions i.e. includes colour channels. This only supports single channel images.')
+
         if coords is None:
 
             # If there are no transform actions, we have no problem.
@@ -923,7 +936,7 @@ class GeometryMatrix:
 
         im_out = im_out.reshape(im_out.size,order=self.pixel_order)
 
-        return scipy.sparse.csr_matrix(im_out[ self.pixel_mask.reshape(self.pixel_mask.size,order=self.pixel_order) == True])
+        return scipy.sparse.csr_matrix(im_out[ self.pixel_mask.reshape(self.pixel_mask.size,order=self.pixel_order)])
 
 
 
