@@ -741,6 +741,9 @@ def get_wall_coverage_actor(cal,cadmodel=None,image=None,imagecoords='Original',
             if subview is not None:
                 if np.any(cal.subview_lookup(rd.x[yi:yi+2,xi:xi+2],rd.y[yi:yi+2,xi:xi+2]) != subview):
                     continue
+            elif np.unique( cal.subview_lookup(rd.x[yi:yi+2,xi:xi+2],rd.y[yi:yi+2,xi:xi+2])).size > 1:
+                # Also don't do any cells which are split across subviews.
+                continue
 
             # Coordinates and indices of corners for this pixel.
             # Any coordinates == NaN indicates sight lines which did not hit the model so we skip those polys.
@@ -770,7 +773,7 @@ def get_wall_coverage_actor(cal,cadmodel=None,image=None,imagecoords='Original',
 
             dot_prods = [ np.dot(pixel_dir,sides[i,:]) for i in range(4) ]
 
-            if max(dot_prods) > 0.98:
+            if max(dot_prods) > 0.999 or side_lengths.max() > 8*side_lengths.min():
                 continue
 
             # Create a quad representing the pixel
@@ -1153,7 +1156,7 @@ def render_unfolded_wall(cadmodel,calibrations=[],labels = [],colours=None,cal_o
                 progress_callback('Calculating high-res wall coverage for calibration {:s}'.format(labels[i] if len(labels) > 0 else '...{:s}'.format(calib.filename[-16:])))
             except Exception:
                 print('Calculating high-res wall coverage for calibration {:s}'.format(labels[i] if len(labels) > 0 else '...{:s}'.format(calib.filename[-16:])))
-            actor = get_wall_coverage_actor(calib,cadmodel,clearance=2e-2)
+            actor = get_wall_coverage_actor(calib,cadmodel)
             actor.GetProperty().SetOpacity(cal_opacity)
             if colours is not None:
                 col = colours[i]
