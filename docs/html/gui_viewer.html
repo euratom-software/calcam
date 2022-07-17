@@ -106,14 +106,11 @@
 <li class="toctree-l1"><a class="reference internal" href="gui_virtual_calib.html">“Virtual” Calibrations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_image_analyser.html">Image Analyser</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">3D Viewer</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#loading-a-cad-model">Loading a CAD model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#turning-cad-model-parts-on-off">Turning CAD model parts On/Off</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#cad-model-appearance-settings">CAD model appearance settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#wall-contour-display">Wall contour display</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cad-model-setup">CAD Model Setup</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#mouse-navigation">Mouse Navigation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#d-viewport-tab">3D ViewPort Tab</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#visualising-camera-fields-of-view-from-calibrations">Visualising camera fields of view from calibrations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#displaying-arbitrary-3d-data">Displaying Arbitrary 3D Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#d-viewport-setup">3D Viewport Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#visualising-calibrated-fovs">Visualising calibrated FoVs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#displaying-arbitrary-3d-data">Displaying arbitrary 3D Data</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#rendering-and-saving-images">Rendering and saving images</a></li>
 </ul>
 </li>
@@ -121,8 +118,9 @@
 </ul>
 <p class="caption"><span class="caption-text">API User Guide</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="api_analysis.html">Using Calibration Results</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_calib.html">The Calibration Class</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_cadmodel.html">CAD Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_raycast.html">Ray Casting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_rendering.html">Rendering Images</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_geom_matrix.html">Tomography Geometry Matrices</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_movement.html">Camera Movement Correction</a></li>
@@ -199,21 +197,21 @@
 <h1>3D Viewer<a class="headerlink" href="#d-viewer" title="Permalink to this headline">¶</a></h1>
 <p>The Calcam 3D viewer can be used for visualising machine CAD models, camera positions and fields-of-view, and for creating high quality figures. As with the other Calcam GUI tools, the window consists of the 3D view on the left of the window and controls on tabs to the right:</p>
 <img alt="3D Viewer Screenshot" class="align-left" src="_images/viewer_annotated.png" />
-<div class="section" id="loading-a-cad-model">
-<h2>Loading a CAD model<a class="headerlink" href="#loading-a-cad-model" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="cad-model-setup">
+<h2>CAD Model Setup<a class="headerlink" href="#cad-model-setup" title="Permalink to this headline">¶</a></h2>
 <p>At the top the <span class="guilabel">Machine Model</span> control tab are controls for loading a CAD model to calibrate against. Two dropdown boxes are provided to select the CAD model to load and the <a class="reference internal" href="intro_conventions.html#cadmodel-intro"><span class="std std-ref">model variant</span></a>. The <span class="guilabel">Load</span> button to the right of the model variant then loads the model. Underneath the model variant dropdown box is a checkbox labeled <cite>Enable default model features on load</cite>: if checked, the default parts of the CAD model are all loaded as soon as the model itself is loaded. If not checked, the model definition will be loaded but none of the 3D mesh data will be loaded, and instead you can turn on features individually. This is useful if working with a large model on a slow computer where you don’t want to wait for the whole model to load if not needed. You can change to a different CAD model or variant at any time by selecting a different item from the dropdown boxes and clicking <span class="guilabel">Load</span> again.</p>
-</div>
 <div class="section" id="turning-cad-model-parts-on-off">
-<h2>Turning CAD model parts On/Off<a class="headerlink" href="#turning-cad-model-parts-on-off" title="Permalink to this headline">¶</a></h2>
+<h3>Turning CAD model parts On/Off<a class="headerlink" href="#turning-cad-model-parts-on-off" title="Permalink to this headline">¶</a></h3>
 <p>For CAD models composed of multiple parts in separate mesh files, individual mesh files can be turned on or off by ticking/unticking them in the <span class="guilabel">Enable / Disable Features</span> panel. This can be done for individual parts, groups of parts (if defined in the CAD model) or the entire model. This can be helpful to improve performance when working with large models if not all parts are necessary for a particular calibration, or for removing parts which are in the way and make the calibration more difficult.</p>
 </div>
 <div class="section" id="cad-model-appearance-settings">
-<h2>CAD model appearance settings<a class="headerlink" href="#cad-model-appearance-settings" title="Permalink to this headline">¶</a></h2>
+<h3>CAD model appearance settings<a class="headerlink" href="#cad-model-appearance-settings" title="Permalink to this headline">¶</a></h3>
 <p>The CAD model apprearance can be highly customised in order to create figures as desired. These options are in the <span class="guilabel">Appearance</span> box on the <span class="guilabel">Machine Model</span> control tab. This box contains controls to change the model appearance between solid body and wireframe / edges only. The colour of individual model feature(s) can also be changed by selecting the feature(s) in the <span class="guilabel">Enable / Disable Features</span> panel, and using the buttons in the <span class="guilabel">Appearance</span> box to change the part colour or reset it to the default value. You can also save the current colour configuration to be the default in the model definition by clicking <span class="guilabel">Save current colours as default (whole model)</span>.</p>
 </div>
 <div class="section" id="wall-contour-display">
-<h2>Wall contour display<a class="headerlink" href="#wall-contour-display" title="Permalink to this headline">¶</a></h2>
+<h3>Wall contour display<a class="headerlink" href="#wall-contour-display" title="Permalink to this headline">¶</a></h3>
 <p>If the CAD model dfinition includes an <span class="math notranslate nohighlight">\((R,Z)\)</span> wall contour, this can be displayed using the controls in the <span class="guilabel">Show R,Z Wall Contour</span> box. Here you can select between not showing the wall contour, showing it as a line at the toroidal position of the cursor, or revolving the R,Z contour in 3D to show a simplified, toroidally symmetric wall shape.</p>
+</div>
 </div>
 <div class="section" id="mouse-navigation">
 <h2>Mouse Navigation<a class="headerlink" href="#mouse-navigation" title="Permalink to this headline">¶</a></h2>
@@ -226,50 +224,67 @@
 <li><p><kbd class="kbd docutils literal notranslate"><kbd class="kbd docutils literal notranslate">Ctrl</kbd> <kbd class="kbd docutils literal notranslate"></kbd>+<kbd class="kbd docutils literal notranslate"></kbd> <kbd class="kbd docutils literal notranslate">Scroll</kbd> <kbd class="kbd docutils literal notranslate">Wheel</kbd></kbd> Reduce or increase the CAD field-of-view angle (i.e. Zoom)</p></li>
 <li><p><kbd class="kbd docutils literal notranslate"><kbd class="kbd docutils literal notranslate">Ctrl</kbd> <kbd class="kbd docutils literal notranslate"></kbd>+<kbd class="kbd docutils literal notranslate"></kbd> <kbd class="kbd docutils literal notranslate">Right</kbd> <kbd class="kbd docutils literal notranslate">Click</kbd> <kbd class="kbd docutils literal notranslate"></kbd>+<kbd class="kbd docutils literal notranslate"></kbd> <kbd class="kbd docutils literal notranslate">Drag</kbd></kbd> - Roll the camera (rotate about the direction of view)</p></li>
 </ul>
+<div class="section" id="mouse-control-settings">
+<h3>Mouse Control Settings<a class="headerlink" href="#mouse-control-settings" title="Permalink to this headline">¶</a></h3>
+<p>At the bottom of the <span class="guilabel">3D Viewport</span> tab are options for configuring the mouse controls. The <kbd class="kbd docutils literal notranslate"><kbd class="kbd docutils literal notranslate">Right</kbd> <kbd class="kbd docutils literal notranslate">Click</kbd> <kbd class="kbd docutils literal notranslate"></kbd>+<kbd class="kbd docutils literal notranslate"></kbd> <kbd class="kbd docutils literal notranslate">Drag</kbd></kbd> behaviour can be toggled between looking around and rotating the model about a point in front of the camera, and the mouse sensitivity can be adjusted.</p>
 </div>
-<div class="section" id="d-viewport-tab">
-<h2>3D ViewPort Tab<a class="headerlink" href="#d-viewport-tab" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="d-viewport-setup">
+<h2>3D Viewport Setup<a class="headerlink" href="#d-viewport-setup" title="Permalink to this headline">¶</a></h2>
 <p>In addition to the mouse controls, the <span class="guilabel">3D Viewport</span> tab  can be used to control the current view of the CAD model. In addition, this tab contains settings for the mouse controls and other options which can be used to change the rendering settings to adjust the appaerance of the model.</p>
 <div class="section" id="rendering-settings">
 <h3>Rendering Settings<a class="headerlink" href="#rendering-settings" title="Permalink to this headline">¶</a></h3>
 <p>At the top of the <span class="guilabel">3D Viewport</span> tab are settings which control the rendering style. The <span class="guilabel">3D Projection</span> options allow switching between a perspective projection view of the model and an orthographic view (where objects appear the same size regardless of their distance from the viewier). This can be helpful for making e.g. cross-section figures.</p>
 <p>In the <span class="guilabel">Cross-Sectioning</span> box are options which allow the CAD model to be cross-sectioned in the view. If there is a cursor placed, the cross-section can be set to either cut through the cursor or through the origin. Cross-sectioning is turned on and off using the checkbox on the left of these options. Note: cross-sectioning is implemented by adjusting the clipping planes of the 3D rendering, so the cross-section is always cut in a plane whose normal is the viewing direction.</p>
 </div>
-<div class="section" id="cad-viewport-adjustment">
-<h3>CAD Viewport Adjustment<a class="headerlink" href="#cad-viewport-adjustment" title="Permalink to this headline">¶</a></h3>
-<p>In the <span class="guilabel">Select pre-defined viewport</span> box is a list of viewports defined in the CAD model definition. Clicking on a view in this pane immediately changes the CAD viewport to that view. You can also set the view to match an existing calibrated camera by clicking the <span class="guilabel">Add from calibration(s)…</span> button below the viewport list. You can then select one or more Calcam calibration files to load, and the views defined by the calibration will be added to the viewport list on the 3D Viewport tab. In addition there are two <span class="guilabel">Auto Cross-Sections</span> views which will position the camera and set cross-sectioning options to view the entire model, cut in cross-section through the origin.</p>
-<p>If you want to save the current view of the CAD model in to the model definition so you can easily return to it, enter a name in the <span class="guilabel">Name</span> box under the heading <span class="guilabel">Save current view as preset</span> and click <span class="guilabel">Save</span>. The view will then be added to the viewport list, and if the model definition you are using is not read-only, will be saved to the model definition for future use.</p>
-<p>Near the bottom of the tab are editable boxes showing the current viewport’s camera position, camera view target, field of view and roll. These update automatically to reflect the current viewport, and you can manually set up the CAD view by editing these.</p>
-</div>
-<div class="section" id="mouse-control-settings">
-<h3>Mouse Control Settings<a class="headerlink" href="#mouse-control-settings" title="Permalink to this headline">¶</a></h3>
-<p>At the bottom of this tab are options for configuring the mouse controls for 3D navigation. The <kbd class="kbd docutils literal notranslate"><kbd class="kbd docutils literal notranslate">Right</kbd> <kbd class="kbd docutils literal notranslate">Click</kbd> <kbd class="kbd docutils literal notranslate"></kbd>+<kbd class="kbd docutils literal notranslate"></kbd> <kbd class="kbd docutils literal notranslate">Drag</kbd></kbd> behaviour can be toggled between looking around and rotating the model about a point in front of the camera, and the mouse sensitivity can be adjusted.</p>
+<div class="section" id="viewport-adjustment">
+<h3>Viewport Adjustment<a class="headerlink" href="#viewport-adjustment" title="Permalink to this headline">¶</a></h3>
+<p>In addition to using mouse navigation, the current view of the CAD model can be adjusted with the controls in this tab.</p>
+<p>In the <span class="guilabel">Select pre-defined viewport</span> box is a list of viewports defined in the CAD model definition. Clicking on a view in this pane immediately changes the CAD viewport to that view. In addition there are two <span class="guilabel">Auto Cross-Sections</span> views which will position the camera and set cross-sectioning options to view the entire model, cut in cross-section through the origin.</p>
+<p>You can also set the view to match a calibration by clicking the <span class="guilabel">Add from calibration(s)…</span> button below the viewport list. You can then select one or more Calcam calibration files to load, and the views defined by the calibration will be added to the viewport list on the 3D Viewport tab.</p>
+<p>If you want to save the current view of the CAD model in to the model definition so you can easily return to it, enter a name in the <span class="guilabel">Name</span> box under the heading <span class="guilabel">Save current view as preset</span> and click <span class="guilabel">Save</span>. The view will then be added to the viewport list, and if the model definition file you are using is not read-only, will be saved to the model definition for future use.</p>
+<p>Near the bottom of the tab are editable boxes showing the current viewport’s camera position, camera view target, field of view and roll. These update automatically to reflect the current viewport, or editing the values in these boxes will immediately adjust the view accordingly.</p>
 </div>
 </div>
-<div class="section" id="visualising-camera-fields-of-view-from-calibrations">
-<h2>Visualising camera fields of view from calibrations<a class="headerlink" href="#visualising-camera-fields-of-view-from-calibrations" title="Permalink to this headline">¶</a></h2>
-<p>Calcam calibration files can be loaded by the 3D viewer to visualise the camera sight-lines / fields of view on the 3D model. This is done on the <span class="guilabel">Calibrations</span> tab. Clicking the <span class="guilabel">Add…</span> button below the list of currently loaded calibrations will open a file browsing dialog to load a calibration file. Once loaded, the calibrated camera’s field of view is shown as a shaded volume in the 3D view. The sight-lines for a given calibration can be turned on or off using the tick-box next to its name. With multiple calibrations loaded, a legend showing which camera corresponds to which colour can be turned on or off using the checkbox next to the  <span class="guilabel">Add…</span> button. To change the name of a calibration in the legend, single-click the calibration name in the list box to edit the name.</p>
-<div class="section" id="field-of-view-appearance-options">
-<h3>Field-of-view appearance options<a class="headerlink" href="#field-of-view-appearance-options" title="Permalink to this headline">¶</a></h3>
-<p>The <span class="guilabel">Appearance</span> box at the bottom of the <span class="guilabel">Calibrations</span> tab allows customisation of how the selected camera field of view is displayed. In addition to controls for the transparency and colour, there are 3 different options for how fields of view appear:</p>
+<div class="section" id="visualising-calibrated-fovs">
+<h2>Visualising calibrated FoVs<a class="headerlink" href="#visualising-calibrated-fovs" title="Permalink to this headline">¶</a></h2>
+<p>Calcam calibration files can be loaded by the 3D viewer to visualise the camera sight-lines / fields of view on the 3D model. This is done on the <span class="guilabel">Calibrations</span> tab: click the <span class="guilabel">Add…</span> button to browse for a calibration file to load. The calibration will be added to the list at the top of the tab, and the tick-box next to the calibration name can be used to turn it on or off in the 3D view. To change the displayed name of a loaded calibration, single-click the calibration name in the list box to edit the name.</p>
+<div class="section" id="visualisation-options">
+<h3>Visualisation options<a class="headerlink" href="#visualisation-options" title="Permalink to this headline">¶</a></h3>
+<p>With a loaded calibration in the list selected, at the bottom of the tab are options for how to visualise the calibrated field of view. There are 3 ways to display fields of view:</p>
 <ul class="simple">
-<li><p>Shaded volume (default) - shows the camera field of view as a shaded cone eminating from the camera’s pupil.</p></li>
-<li><p>Sight-line fan - shows a 2D fan of discrete sight-lines eminating out from the camera.</p></li>
-<li><p>CAD model shading (warning - can be slow to calculate!) - useful for cameras such as IR thermography cameras designed to observe objects which are part of the CAD model, this option shows the camera field of view by shading parts of the CAD model which the camera can see. Note: when turning on this option it can be quite slow to calculate since the calculation involves ray casting over the camera field of view.</p></li>
+<li><p><em>Shaded volume</em> (default) displays the sight-line cone of the camera as a semi-transparent volume.</p></li>
+<li><p><em>Sight-line fan</em> displays an array of lines representing the camera lines-of-sight.</p></li>
+<li><p><em>CAD model shading</em> shades the surface of the CAD model where it can be seen by the camera.</p></li>
 </ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Since the <em>CAD model shading</em> display option requires raycasting calculations at much higher resolution than the other two display options, when changing to this display option it may be relatively slow for the calculation to complete.</p>
+</div>
+<p>You can choose the colour the current calibration is displayed in using the <span class="guilabel">Choose…</span> button below thw visualisation options, and a slider at the bottom is used to adjust the transparency of the field of view display.</p>
+<p>The names of the calibrations corresponding to each colour field-of-view visualisation can be displayed in a legend on the image by ticking the <span class="guilabel">Show in legend</span> box underneath the view list. By default this is automatically enabled if more than one calibration is loaded.</p>
 </div>
 </div>
 <div class="section" id="displaying-arbitrary-3d-data">
-<h2>Displaying Arbitrary 3D Data<a class="headerlink" href="#displaying-arbitrary-3d-data" title="Permalink to this headline">¶</a></h2>
-<p>In addition to showing camera fields-of-view, additional arbitrary 3D points and lines can be added to the visualisation, e.g. representing other diagnostic sight-lines, trajectories, magnetic field lines, flux surfaces or other 3D coordinates of interest. Controls for this are on the <span class="guilabel">3D Data</span> tab. The 3D data are loaded from ASCII files with .txt, .csv or .dat extensions.</p>
-<p>Once loaded, data sets are added to the list in the box on the <span class="guilabel">3D Data</span> tab, with names corresponding to the file name they were loaded from. The display of each data set can be turned on and off using the checkboxes next to the dataset names. To edit the name of a data set, single click its name in the list.</p>
-<div class="section" id="preparation-of-ascii-files">
-<h3>Preparation of ASCII files<a class="headerlink" href="#preparation-of-ascii-files" title="Permalink to this headline">¶</a></h3>
-<p>The ASCII data to be displayed can take one of two formats, depending on whether you want to display a single continuous line defined by a set of 3D points, or a collection of individual straight lines each with a start and end point. To display a single continuous 3D line, the file should contain a list of 3D coordinates along the line, with each point along the line taking up one line of the text file. Each line of the text file must therefore contain 3 numbers, which can be delimited with commas, spaces or tabs. If you wish to display a set of disconnected line segments, each line of the text file must contain 6 numbers: the 3D coordinates for the start of the 3D line segment followed by the 3D coordinates for the end of the line segment. The coordinates can be given either in cartesian coordinates <span class="math notranslate nohighlight">\(X,Y,Z\)</span> or <span class="math notranslate nohighlight">\(R,Z,\phi\)</span> where <span class="math notranslate nohighlight">\(\phi\)</span> is the toroidal angle in radians.</p>
+<h2>Displaying arbitrary 3D Data<a class="headerlink" href="#displaying-arbitrary-3d-data" title="Permalink to this headline">¶</a></h2>
+<p>In addition to showing camera fields-of-view, additional arbitrary 3D points and lines can be added to the visualisation, e.g. representing other diagnostic sight-lines, trajectories, magnetic field lines, flux surfaces or other 3D coordinates of interest. This is done by loading text files containing the 3D coordinates to display on the <span class="guilabel">3D Data</span> tab.</p>
+<div class="section" id="preparation-of-data-files">
+<h3>Preparation of data files<a class="headerlink" href="#preparation-of-data-files" title="Permalink to this headline">¶</a></h3>
+<p>3D coordinate data to visualise are loaded from text files with .txt, .csv or .dat file extensions. The data can be in either cartesian (<span class="math notranslate nohighlight">\(X,Y,Z\)</span>) or cylindrical (<span class="math notranslate nohighlight">\(R,Z,\phi\)</span> with <span class="math notranslate nohighlight">\(\phi\)</span> in radians) coordinates.</p>
+<p>The data files can take one of two formats, depending on whether you want to display a single continuous line defined by a set of 3D points, a set of individual points, or a collection of individual disconnected straight line segments:</p>
+<ul class="simple">
+<li><p>To display a single continuous 3D line, and/or a set of points, the file should contain a list of 3D coordinates, with each coordinate taking up one line of the text file. Each line of the file must therefore contain 3 numbers, delimited with commas, spaces or tabs.</p></li>
+<li><p>If you wish to display a set of disconnected 3D line segments, each line of the file must contain 6 numbers: the 3D coordinates for the start of the line segment followed by the 3D coordinates for the end of the line segment (again all delimited with commas, spaces or tabs).</p></li>
+</ul>
+</div>
+<div class="section" id="loading-and-removing-data">
+<h3>Loading and removing data<a class="headerlink" href="#loading-and-removing-data" title="Permalink to this headline">¶</a></h3>
+<p>Click the <span class="guilabel">Load from ASCII…</span> button to browse for a text file to load. Once selected, a dialog box will appear confirming the number of points or line segments found in the file, and asking whether the data are in cartesian or cylindircl coorinates. It also allows you to select whether you want to display the data as points and/or lines, although this can also be changed later.</p>
+<p>Once loaded, data sets are added to the list at the top of the tab, with names corresponding to the file name they were loaded from. The display of each data set can be turned on and off using the checkboxes next to the dataset names. To edit the name of a data set, single click its name in the list.</p>
 </div>
 <div class="section" id="appearance-options">
 <h3>Appearance Options<a class="headerlink" href="#appearance-options" title="Permalink to this headline">¶</a></h3>
-<p>The 3D data can be displayed as solid lines and/or spheres at each point in the data. With a data set selected on the <span class="guilabel">3D Data</span> tab, the lines and points for that data set can be turned on and off, and their thickness, size and colour changed using the <span class="guilabel">Appearance</span> options at the bottom of the tab. Legend entries can also be shown for the loaded data sets, which can be turned on and off with the <span class="guilabel">Show in legend</span> checkbox below the list of loaded data sets.</p>
+<p>The 3D data can be displayed as solid lines and/or spheres at each point in the data. With a data set selected from the list, options to turn on or off the lines and points for that data set, and change the line thickness, sphere marker size and colour are in the <span class="guilabel">Appearance</span> options at the bottom of the tab. Legend entries can also be shown for the loaded data sets, which can be turned on and off with the <span class="guilabel">Show in legend</span> checkbox below the list of loaded data sets.</p>
 </div>
 </div>
 <div class="section" id="rendering-and-saving-images">
@@ -287,7 +302,7 @@
 <div class="section" id="rendering-an-un-folded-first-wall-view">
 <h3>Rendering an un-folded first wall view<a class="headerlink" href="#rendering-an-un-folded-first-wall-view" title="Permalink to this headline">¶</a></h3>
 <p>It may be useful to have an overview image of the first wall of the device, showing the entire wall in a single image. This can be done using the <span class="guilabel">Unfolded first wall</span> option at the top of the <span class="guilabel">Render / Save Image</span> tab. This option is only enabled for CAD models which include an <span class="math notranslate nohighlight">\(R,Z\)</span> wall contour (see <a class="reference internal" href="gui_settings.html#wall-contour"><span class="std std-ref">R,Z Wall Contour</span></a> for how to add this to to the CAD model).</p>
-<p>The output of this type of render is an image of the first wall where toroidal angle increases along the horizontal direction of the image and poloidal angle increases in the vertical direction of the image. This can be useful e.g. for visualising how much of the device first wall has coverage from camera diagnostics.</p>
+<p>The output of this type of render is an image of the first wall where toroidal angle increases along the horizontal direction of the image and poloidal angle increases in the vertical direction of the image. This can be useful e.g. in combination with fields of view shown as <em>CAD model shading</em>, to visualise camera coverage of the device first wall.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>For rendering an un-folded first wall view with wall shading to represent camera fields of view, the function <a class="reference internal" href="api_rendering.html#calcam.render_unfolded_wall" title="calcam.render_unfolded_wall"><code class="xref py py-func docutils literal notranslate"><span class="pre">calcam.render_unfolded_wall()</span></code></a> will usually produce better quality results than using the 3D Viewer GUI.</p>

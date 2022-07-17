@@ -308,7 +308,7 @@ def update_calibration(calibration, moved_image, mov_correction, image_src=None,
     # Update image and subview mask
     subview_mask = calibration.get_subview_mask(coords='Display')
     subview_names = calibration.subview_names
-    subview_mask = mov_correction.warp_ref_to_moved(subview_mask,interp='nearest',fill_edges=True)[0].astype(np.uint8)
+    subview_mask = mov_correction.warp_ref_to_moved(subview_mask,interp='nearest',fill_edges=True)[0].astype(np.int8)
     if image_src is None:
         image_src = 'Updated by {:s} on {:s} at {:s}'.format(misc.username,misc.hostname,misc.get_formatted_time())
 

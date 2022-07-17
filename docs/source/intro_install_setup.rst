@@ -283,5 +283,3 @@ The change from Calcam 1 to Calcam 2 includes several compatibility breaking API
 * The :class:`machine_geometry` module has been removed. Now instead of every CAD modeling having its own class inside calcam.machine_geometry, the :class:`calcam.CADModel` class is used for all CAD models and is instanciated with string arguments to specify the name of the model you want. Also there have been various changes to method names and call signatures in the CAD model class.
 
 * Naming conventions: to be more Pythonic, throughout the API argument or function names which previously used capital letters and ``PascalCase`` or ``camelCase`` have been changed to ``lowercase_with_underscores``, while class names keep ``PascalCase``.
-
-For more information, see the API documentation in :doc:`api_analysis` and the :doc:`api_examples` .

@@ -110,8 +110,9 @@
 </ul>
 <p class="caption"><span class="caption-text">API User Guide</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="api_analysis.html">Using Calibration Results</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_calib.html">The Calibration Class</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_cadmodel.html">CAD Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_raycast.html">Ray Casting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_rendering.html">Rendering Images</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Tomography Geometry Matrices</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#background">Background</a></li>
@@ -215,7 +216,7 @@ stored as a sparse matrix using the scipy.sprase.csr_matrix class.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>grid</strong> (<a class="reference internal" href="#calcam.gm.PoloidalVolumeGrid" title="calcam.gm.PoloidalVolumeGrid"><em>calcam.gm.PoloidalVolumeGrid</em></a>) – Reconstruction grid to use</p></li>
-<li><p><strong>raydata</strong> (<a class="reference internal" href="api_analysis.html#calcam.RayData" title="calcam.RayData"><em>calcam.RayData</em></a>) – Ray data for the camera to be inverted</p></li>
+<li><p><strong>raydata</strong> (<a class="reference internal" href="api_raycast.html#calcam.RayData" title="calcam.RayData"><em>calcam.RayData</em></a>) – Ray data for the camera to be inverted</p></li>
 <li><p><strong>pixel_order</strong> (<em>str</em>) – What pixel order to use when flattening                                                the 2D image array in to the 1D data vector.                                                Default ‘C’ goes left-to-right, then row-by-row (NumPy default),                                                alternatively ‘F’ goes top-to-bottom, then column-by-column (MATLAB default).</p></li>
 <li><p><strong>calc_status_callback</strong> (<em>callable</em>) – Callable which takes a single argument, which will be called with                                                status updates about the calculation. It will be called with either                                                a string for textual status updates or a float from 0 to 1 specifying                                                the progress of the calculation. By default, status updates are printed                                                to stdout.  If set to None, no status updates are issued.</p></li>
 </ul>

@@ -37,8 +37,8 @@
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Rendering Images" href="api_rendering.html" />
-    <link rel="prev" title="Using Calibration Results" href="api_analysis.html" /> 
+    <link rel="next" title="Ray Casting" href="api_raycast.html" />
+    <link rel="prev" title="The Calibration Class" href="api_calib.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -110,8 +110,9 @@
 </ul>
 <p class="caption"><span class="caption-text">API User Guide</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="api_analysis.html">Using Calibration Results</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_calib.html">The Calibration Class</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">CAD Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_raycast.html">Ray Casting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_rendering.html">Rendering Images</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_geom_matrix.html">Tomography Geometry Matrices</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_movement.html">Camera Movement Correction</a></li>
@@ -186,7 +187,7 @@
             
   <div class="section" id="cad-models">
 <h1>CAD Models<a class="headerlink" href="#cad-models" title="Permalink to this headline">¶</a></h1>
-<p>Using CAD models programatically, e.g. loading them for rendering images or ray casting, is done with the <a class="reference internal" href="#calcam.CADModel" title="calcam.CADModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">calcam.CADModel</span></code></a> class.</p>
+<p>For use with ray casting or rendering images, it is common to need to make use of scene CAD models when using the calcam API. This is done with the <a class="reference internal" href="#calcam.CADModel" title="calcam.CADModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">calcam.CADModel</span></code></a> class, documented below. For examples of usage, see the <a class="reference internal" href="api_examples.html"><span class="doc">Examples</span></a> page.</p>
 <dl class="py class">
 <dt id="calcam.CADModel">
 <em class="property">class </em><code class="sig-prename descclassname">calcam.</code><code class="sig-name descname">CADModel</code><span class="sig-paren">(</span><em class="sig-param">model_name=None</em>, <em class="sig-param">model_variant=None</em>, <em class="sig-param">status_callback=&lt;function print_status&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.CADModel" title="Permalink to this definition">¶</a></dt>
@@ -445,10 +446,10 @@ busy doing things.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="api_rendering.html" class="btn btn-neutral float-right" title="Rendering Images" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="api_raycast.html" class="btn btn-neutral float-right" title="Ray Casting" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="api_analysis.html" class="btn btn-neutral float-left" title="Using Calibration Results" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="api_calib.html" class="btn btn-neutral float-left" title="The Calibration Class" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

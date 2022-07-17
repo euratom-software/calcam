@@ -1121,7 +1121,7 @@ def render_unfolded_wall(cadmodel,calibrations=[],labels = [],colours=None,cal_o
         cadmodel (calcam.CADModel)                  : CAD Model to render. The CAD model must have an R, Z wall contour embedded in it (this is \
                                                       ued in the wall flattening calculations), which can be added in the CAD model editor.
         calibrations (list of calcam.Calibration)   : List of camera calibrations to visualise on the wall. If provided, each camera calibration \
-                                                      will be shown on the image as a colour shaded area on the wall indicating which parts of the wall \
+                                                      will be shown on the image as a colour shaded area indicating which parts of the wall \
                                                       the camera can see.
         labels (list of strings)                    : List of strings containing legend text for the calibrations. If not provided, no legend will be added \
                                                       to the image. If provided, must be the same length as the list of calibrations.

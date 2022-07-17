@@ -38,7 +38,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Tomography Geometry Matrices" href="api_geom_matrix.html" />
-    <link rel="prev" title="CAD Models" href="api_cadmodel.html" /> 
+    <link rel="prev" title="Ray Casting" href="api_raycast.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -110,8 +110,9 @@
 </ul>
 <p class="caption"><span class="caption-text">API User Guide</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="api_analysis.html">Using Calibration Results</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_calib.html">The Calibration Class</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_cadmodel.html">CAD Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_raycast.html">Ray Casting</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Rendering Images</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_geom_matrix.html">Tomography Geometry Matrices</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_movement.html">Camera Movement Correction</a></li>
@@ -203,7 +204,7 @@ resolution images, the rendered image quality may be lower than expected.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>cadmodel</strong> (<a class="reference internal" href="api_cadmodel.html#calcam.CADModel" title="calcam.CADModel"><em>calcam.CADModel</em></a>) – CAD model of scene</p></li>
-<li><p><strong>calibration</strong> (<a class="reference internal" href="api_analysis.html#calcam.Calibration" title="calcam.Calibration"><em>calcam.Calibration</em></a>) – Calibration whose point-of-view to render from.</p></li>
+<li><p><strong>calibration</strong> (<a class="reference internal" href="api_calib.html#calcam.Calibration" title="calcam.Calibration"><em>calcam.Calibration</em></a>) – Calibration whose point-of-view to render from.</p></li>
 <li><p><strong>extra_actors</strong> (<em>list of vtk.vtkActor</em>) – List containing any additional vtkActors to add to the scene                                               in addition to the CAD model.</p></li>
 <li><p><strong>filename</strong> (<em>str</em>) – Filename to which to save the resulting image. If not given, no file is saved.</p></li>
 <li><p><strong>oversampling</strong> (<em>float</em>) – Used to render the image at higher (if &gt; 1) or lower (if &lt; 1) resolution than the                                               calibrated camera. Must be an integer if &gt; 1 or if &lt;1, 1/oversampling must be a                                               factor of both image width and height.</p></li>
@@ -232,7 +233,7 @@ vertical direction is poloidal.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>cadmodel</strong> (<a class="reference internal" href="api_cadmodel.html#calcam.CADModel" title="calcam.CADModel"><em>calcam.CADModel</em></a>) – CAD Model to render. The CAD model must have an R, Z wall contour embedded in it (this is                                                       ued in the wall flattening calculations), which can be added in the CAD model editor.</p></li>
-<li><p><strong>calibrations</strong> (<em>list of calcam.Calibration</em>) – List of camera calibrations to visualise on the wall. If provided, each camera calibration                                                       will be shown on the image as a colour shaded area on the wall indicating which parts of the wall                                                       the camera can see.</p></li>
+<li><p><strong>calibrations</strong> (<em>list of calcam.Calibration</em>) – List of camera calibrations to visualise on the wall. If provided, each camera calibration                                                       will be shown on the image as a colour shaded area indicating which parts of the wall                                                       the camera can see.</p></li>
 <li><p><strong>labels</strong> (<em>list of strings</em>) – List of strings containing legend text for the calibrations. If not provided, no legend will be added                                                       to the image. If provided, must be the same length as the list of calibrations.</p></li>
 <li><p><strong>colours</strong> (<em>list of tuple</em>) – List of 3-element tuples specifying the colours to use for the displayed calibrations. Each element of the                                                       list must have the format (R, G, B) where 0 &lt;= R, G and B &lt;= 1.</p></li>
 <li><p><strong>cal_opcity</strong> (<em>float</em>) – How opaque to make the wall shading when showing calibrations. 0 = completely invisible, 1 = complete opaque.                                                       Default is 0.7.</p></li>
@@ -266,7 +267,7 @@ vertical direction is poloidal.</p>
         <a href="api_geom_matrix.html" class="btn btn-neutral float-right" title="Tomography Geometry Matrices" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="api_cadmodel.html" class="btn btn-neutral float-left" title="CAD Models" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="api_raycast.html" class="btn btn-neutral float-left" title="Ray Casting" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

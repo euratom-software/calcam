@@ -115,8 +115,9 @@
 </ul>
 <p class="caption"><span class="caption-text">API User Guide</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="api_analysis.html">Using Calibration Results</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_calib.html">The Calibration Class</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_cadmodel.html">CAD Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_raycast.html">Ray Casting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_rendering.html">Rendering Images</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_geom_matrix.html">Tomography Geometry Matrices</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_movement.html">Camera Movement Correction</a></li>
@@ -250,7 +251,11 @@
 </div>
 <div class="section" id="saving-loading-and-viewing-calibration-information">
 <h2>Saving / Loading and viewing calibration information<a class="headerlink" href="#saving-loading-and-viewing-calibration-information" title="Permalink to this headline">¶</a></h2>
-<p>When done setting up the camera intrinsics and extrinsics, the calibration can be saved to a Calcam calibration (<code class="docutils literal notranslate"><span class="pre">.ccc</span></code>) file using the <span class="guilabel">Save</span> / <span class="guilabel">Save As</span> buttons on the toolbar at the top of the window. The resulting file can then be loaded using the Calcam <a class="reference internal" href="api_analysis.html"><span class="doc">Python API</span></a> to make use of the calibration. As with any computer application, it is advised to save your work regularly in case of computer crash or user error. Note: whenever the save button is clicked, the camera extrinsics in the saved calibration will be whatever the current CAD view alignment show.</p>
+<p>When done setting up the camera intrinsics and extrinsics, the calibration can be saved to a Calcam calibration (<code class="docutils literal notranslate"><span class="pre">.ccc</span></code>) file using the <span class="guilabel">Save</span> / <span class="guilabel">Save As</span> buttons on the toolbar at the top of the window. The resulting file can then be loaded in the <a class="reference internal" href="gui_image_analyser.html"><span class="doc">Image Analyser</span></a> tool or in Python with the <a class="reference internal" href="api_calib.html#calcam.Calibration" title="calcam.Calibration"><code class="xref py py-class docutils literal notranslate"><span class="pre">calcam.Calibration</span></code></a> class to make use of the calibration. As with any application, it is advised to save your work regularly in case of computer crash or user error.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Whenever the save button is clicked, the camera extrinsics in the saved calibration will correspond to the view currently shown in the GUI window.</p>
+</div>
 <p>Existing virtual calibrations can be loaded using the <span class="guilabel">Open</span> button in the toolbar at the top of the window. This will load the extrinsics and intrinsics from the saved calibration. If the CAD model which was last used for thet calibration is available, it will also load and set up the CAD model as it was the last time that file was edited.</p>
 <p>Information about the current calibration can be viewed using the <span class="guilabel">Calibration Information</span> button on the toolbar.</p>
 </div>

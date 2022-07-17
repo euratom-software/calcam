@@ -123,7 +123,12 @@ If the camera position and view direction are already approximately known, these
 
 Saving / Loading and viewing calibration information
 ----------------------------------------------------
-Once a satisfactory calibration has been obtained, the calibration can be saved to a Calcam calibration (``.ccc``) file using the :guilabel:`Save` / :guilabel:`Save As` buttons on the toolbar at the top of the window. The resulting file can then be loaded in the image analyser tool or using the Calcam :doc:`Python API <api_analysis>` to make use of the calibration. As with any computer application, it is advised to save your work regularly in case of computer crash or user error. Note: whenever the save button is clicked, the camera extrinsics in the saved calibration will be whatever the current CAD view alignment show.
+Once a satisfactory calibration has been obtained, the calibration can be saved to a Calcam calibration (``.ccc``) file using the :guilabel:`Save` / :guilabel:`Save As` buttons on the toolbar at the top of the window. The resulting file can then be loaded in the :doc:`gui_image_analyser` tool or in Python with the :class:`calcam.Calibration` class to make use of the calibration.
+
+As with any application, it is advised to save your work regularly to reduce the risk of software or user errors.
+
+.. note::
+    Whenever the save button is clicked, the camera extrinsics in the saved calibration will correspond go the current view in the GUI window.
 
 Existing manual alignment calibrations can be loaded using the :guilabel:`Open` button in the toolbar at the top of the window. This will load the image, extrinsics and intrinsics from the saved calibration. If the CAD model which was last used for thet calibration is available, it will also load and set up the CAD model as it was the last time that file was edited.
 

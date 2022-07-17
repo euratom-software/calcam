@@ -108,8 +108,9 @@
 </ul>
 <p class="caption"><span class="caption-text">API User Guide</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="api_analysis.html">Using Calibration Results</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_calib.html">The Calibration Class</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_cadmodel.html">CAD Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_raycast.html">Ray Casting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_rendering.html">Rendering Images</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_geom_matrix.html">Tomography Geometry Matrices</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_movement.html">Camera Movement Correction</a></li>
@@ -211,7 +212,7 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api_analysis.html#calcam.Calibration">Calibration (class in calcam)</a>
+      <li><a href="api_calib.html#calcam.Calibration">Calibration (class in calcam)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -259,11 +260,11 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_geom_matrix.html#calcam.gm.GeometryMatrix">GeometryMatrix (class in calcam.gm)</a>
 </li>
-      <li><a href="api_analysis.html#calcam.Calibration.get_cam_matrix">get_cam_matrix() (calcam.Calibration method)</a>
+      <li><a href="api_calib.html#calcam.Calibration.get_cam_matrix">get_cam_matrix() (calcam.Calibration method)</a>
 </li>
-      <li><a href="api_analysis.html#calcam.Calibration.get_cam_roll">get_cam_roll() (calcam.Calibration method)</a>
+      <li><a href="api_calib.html#calcam.Calibration.get_cam_roll">get_cam_roll() (calcam.Calibration method)</a>
 </li>
-      <li><a href="api_analysis.html#calcam.Calibration.get_cam_to_lab_rotation">get_cam_to_lab_rotation() (calcam.Calibration method)</a>
+      <li><a href="api_calib.html#calcam.Calibration.get_cam_to_lab_rotation">get_cam_to_lab_rotation() (calcam.Calibration method)</a>
 </li>
       <li><a href="api_geom_matrix.html#calcam.gm.PoloidalVolumeGrid.get_cell_intersections">get_cell_intersections() (calcam.gm.PoloidalVolumeGrid method)</a>
 </li>
@@ -277,11 +278,11 @@
 </li>
       <li><a href="api_cadmodel.html#calcam.CADModel.get_feature_list">get_feature_list() (calcam.CADModel method)</a>
 </li>
-      <li><a href="api_analysis.html#calcam.Calibration.get_fov">get_fov() (calcam.Calibration method)</a>
+      <li><a href="api_calib.html#calcam.Calibration.get_fov">get_fov() (calcam.Calibration method)</a>
 </li>
       <li><a href="api_cadmodel.html#calcam.CADModel.get_group_enable_state">get_group_enable_state() (calcam.CADModel method)</a>
 </li>
-      <li><a href="api_analysis.html#calcam.Calibration.get_image">get_image() (calcam.Calibration method)</a>
+      <li><a href="api_calib.html#calcam.Calibration.get_image">get_image() (calcam.Calibration method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -291,25 +292,25 @@
 </li>
       <li><a href="api_geom_matrix.html#calcam.gm.GeometryMatrix.get_los_coverage">get_los_coverage() (calcam.gm.GeometryMatrix method)</a>
 </li>
-      <li><a href="api_analysis.html#calcam.Calibration.get_los_direction">get_los_direction() (calcam.Calibration method)</a>
+      <li><a href="api_calib.html#calcam.Calibration.get_los_direction">get_los_direction() (calcam.Calibration method)</a>
 </li>
-      <li><a href="api_analysis.html#calcam.RayData.get_model_normals">get_model_normals() (calcam.RayData method)</a>
+      <li><a href="api_raycast.html#calcam.RayData.get_model_normals">get_model_normals() (calcam.RayData method)</a>
 </li>
-      <li><a href="api_analysis.html#calcam.Calibration.get_pupilpos">get_pupilpos() (calcam.Calibration method)</a>
+      <li><a href="api_calib.html#calcam.Calibration.get_pupilpos">get_pupilpos() (calcam.Calibration method)</a>
 </li>
-      <li><a href="api_analysis.html#calcam.RayData.get_ray_directions">get_ray_directions() (calcam.RayData method)</a>
+      <li><a href="api_raycast.html#calcam.RayData.get_ray_directions">get_ray_directions() (calcam.RayData method)</a>
 </li>
-      <li><a href="api_analysis.html#calcam.RayData.get_ray_end">get_ray_end() (calcam.RayData method)</a>
+      <li><a href="api_raycast.html#calcam.RayData.get_ray_end">get_ray_end() (calcam.RayData method)</a>
 </li>
-      <li><a href="api_analysis.html#calcam.RayData.get_ray_lengths">get_ray_lengths() (calcam.RayData method)</a>
+      <li><a href="api_raycast.html#calcam.RayData.get_ray_lengths">get_ray_lengths() (calcam.RayData method)</a>
 </li>
-      <li><a href="api_analysis.html#calcam.RayData.get_ray_start">get_ray_start() (calcam.RayData method)</a>
+      <li><a href="api_raycast.html#calcam.RayData.get_ray_start">get_ray_start() (calcam.RayData method)</a>
 </li>
-      <li><a href="api_analysis.html#calcam.Calibration.get_raysect_camera">get_raysect_camera() (calcam.Calibration method)</a>
+      <li><a href="api_calib.html#calcam.Calibration.get_raysect_camera">get_raysect_camera() (calcam.Calibration method)</a>
 </li>
       <li><a href="api_cadmodel.html#calcam.CADModel.get_status_callback">get_status_callback() (calcam.CADModel method)</a>
 </li>
-      <li><a href="api_analysis.html#calcam.Calibration.get_undistort_coeffs">get_undistort_coeffs() (calcam.Calibration method)</a>
+      <li><a href="api_calib.html#calcam.Calibration.get_undistort_coeffs">get_undistort_coeffs() (calcam.Calibration method)</a>
 </li>
       <li><a href="api_geom_matrix.html#calcam.gm.GeometryMatrix.grid">grid (calcam.gm.GeometryMatrix attribute)</a>
 </li>
@@ -319,7 +320,7 @@
 <h2 id="H">H</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api_analysis.html#calcam.RayData.history">history (calcam.RayData attribute)</a>
+      <li><a href="api_raycast.html#calcam.RayData.history">history (calcam.RayData attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -377,7 +378,7 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_geom_matrix.html#calcam.gm.PoloidalVolumeGrid">PoloidalVolumeGrid (class in calcam.gm)</a>
 </li>
-      <li><a href="api_analysis.html#calcam.Calibration.project_points">project_points() (calcam.Calibration method)</a>
+      <li><a href="api_calib.html#calcam.Calibration.project_points">project_points() (calcam.Calibration method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -385,9 +386,9 @@
 <h2 id="R">R</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api_analysis.html#calcam.raycast_sightlines">raycast_sightlines() (in module calcam)</a>
+      <li><a href="api_raycast.html#calcam.raycast_sightlines">raycast_sightlines() (in module calcam)</a>
 </li>
-      <li><a href="api_analysis.html#calcam.RayData">RayData (class in calcam)</a>
+      <li><a href="api_raycast.html#calcam.RayData">RayData (class in calcam)</a>
 </li>
       <li><a href="api_movement.html#calcam.movement.MovementCorrection.ref_to_moved_coords">ref_to_moved_coords() (calcam.movement.MovementCorrection method)</a>
 </li>
@@ -414,7 +415,7 @@
       <ul>
         <li><a href="api_movement.html#calcam.movement.MovementCorrection.save">(calcam.movement.MovementCorrection method)</a>
 </li>
-        <li><a href="api_analysis.html#calcam.RayData.save">(calcam.RayData method)</a>
+        <li><a href="api_raycast.html#calcam.RayData.save">(calcam.RayData method)</a>
 </li>
       </ul></li>
       <li><a href="api_movement.html#calcam.movement.MovementCorrection.scale">scale() (calcam.movement.MovementCorrection property)</a>
@@ -423,15 +424,15 @@
 </li>
       <li><a href="api_cadmodel.html#calcam.CADModel.set_colour">set_colour() (calcam.CADModel method)</a>
 </li>
-      <li><a href="api_analysis.html#calcam.Calibration.set_detector_window">set_detector_window() (calcam.Calibration method)</a>
+      <li><a href="api_calib.html#calcam.Calibration.set_detector_window">set_detector_window() (calcam.Calibration method)</a>
 
       <ul>
-        <li><a href="api_analysis.html#calcam.RayData.set_detector_window">(calcam.RayData method)</a>
+        <li><a href="api_raycast.html#calcam.RayData.set_detector_window">(calcam.RayData method)</a>
 </li>
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api_analysis.html#calcam.Calibration.set_extrinsics">set_extrinsics() (calcam.Calibration method)</a>
+      <li><a href="api_calib.html#calcam.Calibration.set_extrinsics">set_extrinsics() (calcam.Calibration method)</a>
 </li>
       <li><a href="api_cadmodel.html#calcam.CADModel.set_features_enabled">set_features_enabled() (calcam.CADModel method)</a>
 </li>
@@ -465,7 +466,7 @@
 <h2 id="U">U</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api_analysis.html#calcam.Calibration.undistort_image">undistort_image() (calcam.Calibration method)</a>
+      <li><a href="api_calib.html#calcam.Calibration.undistort_image">undistort_image() (calcam.Calibration method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>

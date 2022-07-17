@@ -110,8 +110,9 @@
 </ul>
 <p class="caption"><span class="caption-text">API User Guide</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="api_analysis.html">Using Calibration Results</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_calib.html">The Calibration Class</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_cadmodel.html">CAD Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_raycast.html">Ray Casting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_rendering.html">Rendering Images</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_geom_matrix.html">Tomography Geometry Matrices</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_movement.html">Camera Movement Correction</a></li>
@@ -387,7 +388,7 @@
 </div>
 <div class="section" id="camera-movement-correction">
 <h2>Camera Movement Correction<a class="headerlink" href="#camera-movement-correction" title="Permalink to this headline">¶</a></h2>
-<p>Let’s say we have a good calibration, and we have a <a class="reference internal" href="api_analysis.html#calcam.Calibration" title="calcam.Calibration"><code class="xref py py-class docutils literal notranslate"><span class="pre">calcam.Calibration</span></code></a> object for it in <code class="docutils literal notranslate"><span class="pre">my_calib</span></code>. We also have an image from the same camera some time later when the camera has moved, stored in a Numpy array called <code class="docutils literal notranslate"><span class="pre">moved_im</span></code>. We can then try to determine the correction to align the moved image with the calibration by:</p>
+<p>Let’s say we have a good calibration, and we have a <a class="reference internal" href="api_calib.html#calcam.Calibration" title="calcam.Calibration"><code class="xref py py-class docutils literal notranslate"><span class="pre">calcam.Calibration</span></code></a> object for it in <code class="docutils literal notranslate"><span class="pre">my_calib</span></code>. We also have an image from the same camera some time later when the camera has moved, stored in a Numpy array called <code class="docutils literal notranslate"><span class="pre">moved_im</span></code>. We can then try to determine the correction to align the moved image with the calibration by:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">mov</span> <span class="o">=</span> <span class="n">calcam</span><span class="o">.</span><span class="n">movement</span><span class="o">.</span><span class="n">detect_movement</span><span class="p">(</span><span class="n">my_calib</span><span class="p">,</span> <span class="n">moved_im</span><span class="p">)</span>
 </pre></div>
 </div>
