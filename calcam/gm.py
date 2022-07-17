@@ -672,7 +672,7 @@ class GeometryMatrix:
 
             # Set the pixel mask to exclude pixels which do not contribute to any grid cells and remove corresponding rows.
             if self.pixel_mask is not None:
-                used_pixels = np.abs(self.data.sum(axis=1)) > 1e-14
+                used_pixels = np.squeeze(np.array(np.abs(self.data.sum(axis=1))) > 1e-14)
                 self.pixel_mask = used_pixels.reshape(imdims,order=self.pixel_order)
                 self.data = self.data[used_pixels,:]
 
@@ -943,6 +943,51 @@ class GeometryMatrix:
 
         return scipy.sparse.csr_matrix(im_out[ self.pixel_mask.reshape(self.pixel_mask.size,order=self.pixel_order)])
 
+
+    def unformat_image(self,im_vector,coords='Native',fill_value=np.nan):
+        '''
+        Formats a given a 1D data vector of image pixel values (i.e. :math:`b` in :math:`Ax = b`)
+        back in to a 2D image array.
+
+        Parameters:
+
+            im_vector (numpy.ndarray or sparse matrix) : 1D vector of image data, must have length equal to the number of rows in the geometry matrix.
+
+            coords (str)                               : What image orientation to return the image: 'Original', 'Display' or 'Native' (whichever was used when creating the geometry matrix).
+
+            fill_value (float)                         : Value to return in any image pixels which are not included in the geometry matrix.
+
+        Returns:
+
+            numpy.ndarray : 2D array containing the image.
+
+        '''
+        if self.pixel_mask is None:
+            raise Exception('Cannot perform image un-formatting because this GeometryMatrix is not for a complete image area.')
+
+        try:
+            im_vector = im_vector.toarray()
+        except AttributeError:
+            im_vector = np.array(im_vector)
+
+        if (np.array(im_vector.shape) > 1).sum() > 1:
+            raise ValueError('Provided image data vector is not 1D! (array shape: {:}). Expected 1D vector.'.format(im_vector.shape))
+
+        im_vector = np.squeeze(im_vector)
+
+        if im_vector.size != self.data.shape[0]:
+            raise ValueError('Provided image data vector is not the correct size - expected {:d} values, got {:d}'.format(self.data.shape[0],im_vector.size))
+
+        im_out = np.zeros(self.pixel_mask.shape) + fill_value
+
+        im_out[self.pixel_mask] = im_vector
+
+        if coords.lower() == 'display' and self.image_coords.lower() == 'original':
+            im_out = self.image_geometry.original_to_display_image(im_out)
+        elif coords.lower() == 'original' and self.image_coords.lower() == 'display':
+            im_out = self.image_geometry.display_to_original_image(im_out)
+
+        return im_out
 
 
     def _calc_row_volume(self,ray_endpoints):

@@ -19,6 +19,7 @@ New & Enhancements:
 * Try to improve documentation for installation & setup.
 * Change new version update prompt link from linking to code archive to linking to the relevant doc page.
 * Improve image quality and status printing in render_unfolded_wall()
+* Added function GeometryMatrix.unformat_image() to do the inverse of format_image(). This is convenient to have when using the new masking functions.
 
 Fixes:
 * Fix issue where setting the 3D CAD view to match a calibration result set the camera roll inaccurately.

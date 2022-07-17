@@ -369,6 +369,28 @@ use this function on a transient copy of the matrix.</p>
 </dl>
 </dd></dl>
 
+<dl class="py method">
+<dt id="calcam.gm.GeometryMatrix.unformat_image">
+<code class="sig-name descname">unformat_image</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">im_vector</span></em>, <em class="sig-param"><span class="n">coords</span><span class="o">=</span><span class="default_value">'Native'</span></em>, <em class="sig-param"><span class="n">fill_value</span><span class="o">=</span><span class="default_value">nan</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.GeometryMatrix.unformat_image" title="Permalink to this definition">¶</a></dt>
+<dd><p>Formats a given a 1D data vector of image pixel values (i.e. <span class="math notranslate nohighlight">\(b\)</span> in <span class="math notranslate nohighlight">\(Ax = b\)</span>)
+back in to a 2D image array.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>im_vector</strong> (<em>numpy.ndarray</em><em> or </em><em>sparse matrix</em>) – 1D vector of image data, must have length equal to the number of rows in the geometry matrix.</p></li>
+<li><p><strong>coords</strong> (<em>str</em>) – What image orientation to return the image: ‘Original’, ‘Display’ or ‘Native’ (whichever was used when creating the geometry matrix).</p></li>
+<li><p><strong>fill_value</strong> (<em>float</em>) – Value to return in any image pixels which are not included in the geometry matrix.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>2D array containing the image.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 </div>
