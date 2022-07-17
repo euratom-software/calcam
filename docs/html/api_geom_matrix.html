@@ -316,15 +316,20 @@ geometry matrix.</p>
 <dt id="calcam.gm.GeometryMatrix.save">
 <code class="sig-name descname">save</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.GeometryMatrix.save" title="Permalink to this definition">¶</a></dt>
 <dd><p>Save the geometry matrix to a file.</p>
+<blockquote>
+<div><div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>.npz is the recommended file format; .mat is provided if compatibility
+with MATLAB is required but produces larger file sizes, and .zip is provided
+to make maximally compatible data files but is extremely slow to save and load.</p>
+</div>
+</div></blockquote>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>filename</strong> (<em>str</em>) – File name to save to, including file extension.                              The file extension determines the format to be saved:                              ‘.npz’ for compressed NumPy binary format,                              ‘.mat’ for MATLAB format or
 ‘.zip’ for Zipped collection of ASCII files.</p>
 </dd>
 </dl>
-<p>Note: .npz is the recommended format; .mat is provided if compatibility
-with MATLAB is required but produces larger file sizes, and .zip is provided
-to make maximally compatible data files but is extremely slow to save and load.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -346,10 +351,13 @@ computation requirements for inversions.</p>
 <dd><p>Set which image pixels should be included, or not. Can be
 used to exclude image pixels which are known to have bad data or
 otherwise do not conform to the assumptions of the inversion.</p>
-<p>Note: excluding pixels is a non-reversible process since their
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Excluding pixels is a non-reversible process since their
 matrix rows will be removed. It is therefore recommended to keep a
 master copy of the matrix with all pixels included and then
 use this function on a transient copy of the matrix.</p>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">

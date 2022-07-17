@@ -1,7 +1,7 @@
 Calcam Changelog
 ================
 
-Minor Release 2.9.0 (16th July 2022)
+Minor Release 2.9.0 (17th July 2022)
 ------------------------------------
 
 New & Enhancements:
@@ -18,6 +18,7 @@ New & Enhancements:
 * Make handling of missing dependencies smoother & error messages more helpful (hopefully), including raising ImportWarnings at import instead of print statements.
 * Try to improve documentation for installation & setup.
 * Change new version update prompt link from linking to code archive to linking to the relevant doc page.
+* Improve image quality and status printing in render_unfolded_wall()
 
 Fixes:
 * Fix issue where setting the 3D CAD view to match a calibration result set the camera roll inaccurately.

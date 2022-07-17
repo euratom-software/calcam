@@ -160,10 +160,11 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
     '''
     Render an image of a given CAD model from the point of view of a given calibration.
 
-    NOTE: This function uses off-screen OpenGL rendering which fails above some image dimension which depends on the system.
-    The workaround for this is that above a render dimension set by calcam.render.max_render_dimension, the image is rendered
-    at lower resolution and then scaled up using nearest-neighbour scaling. For this reason, when rendering high resolution
-    images the rendered image quality may be lower than expected.
+    .. note::
+        This function uses off-screen OpenGL rendering which fails above some image dimension which depends on the system.
+        The workaround for this is that above a render dimension set by ``calcam.render.max_render_dimension``, the image is rendered
+        at lower resolution and then scaled up using nearest-neighbour scaling. For this reason, when rendering very high
+        resolution images, the rendered image quality may be lower than expected.
 
     Parameters:
 
@@ -601,7 +602,7 @@ def get_fov_actor(cadmodel,calib,actor_type='volume',resolution=None,subview=Non
     return actor
 
 
-def get_wall_coverage_actor(cal,cadmodel=None,image=None,imagecoords='Original',clim=None,lower_transparent=True,cmap='jet',clearance=5e-3,resolution=None,subview=None):
+def get_wall_coverage_actor(cal,cadmodel=None,image=None,imagecoords='Original',clim=None,lower_transparent=True,cmap='jet',clearance=5e-3,resolution=None,subview=None,verbose=False):
     """
     Get a VTK actor representing the wall area coverage of a given camera.
     Optionally, pass an image to colour the actor according to the image (e.g. to map data to the wall for visualisation)
@@ -621,10 +622,12 @@ def get_wall_coverage_actor(cal,cadmodel=None,image=None,imagecoords='Original',
         resolution (int)           : Maximum side length in pixels for the ray casting. Smaller values result in faster calculation \
                                      but uglier result. Default will calculate the full resolution of the camera. Ignored if an image is provided.
         subview (int)              : If given, the actor will only include the given subview index.
+        verbose (bool)             : Whether to print information about progress.
 
     Returns:
 
-        vtkActor for a wall-hugging surface showing the camera coverage and/or image.
+        if image is None, returns a vtkActor containing a wall-hugging surface showing the camera coverage.
+        if image is not None, returns a calcam.render.MappedImageActor containing a wall-hugging mapped image.
 
         if return_raydata is True, returns the calcam.RayData object containing the geometry info.
 
@@ -684,7 +687,7 @@ def get_wall_coverage_actor(cal,cadmodel=None,image=None,imagecoords='Original',
         x = np.linspace(- 0.5, w - 0.5, int(w/binning) + 1)
         y = np.linspace(- 0.5, h - 0.5, int(h/binning) + 1)
         x,y = np.meshgrid(x,y)
-        rd = raycast_sightlines(cal,cadmodel,x=x,y=y,coords=imagecoords,calc_normals=True,verbose=False)
+        rd = raycast_sightlines(cal,cadmodel,x=x,y=y,coords=imagecoords,calc_normals=True,verbose=verbose)
         
     elif isinstance(cal,RayData):
         # If already given a raydata object, just use that!
@@ -729,10 +732,16 @@ def get_wall_coverage_actor(cal,cadmodel=None,image=None,imagecoords='Original',
         else:
             isnan = np.isnan(image.sum(axis=2))
 
+    if verbose:
+        lp = LoopProgPrinter()
+        lp.update('Constructing 3D mesh...')
+        i = 0
+        tot_px = (ray_end.shape[1]-1) * (ray_end.shape[0] - 1)
+
     # Go through the image
     for xi in range(ray_end.shape[1]-1):
         for yi in range(ray_end.shape[0] - 1):
-
+            i += 1
             # Don't map any pixels which are NaN
             if image is not None:
                 if isnan[yi,xi]:
@@ -793,6 +802,13 @@ def get_wall_coverage_actor(cal,cadmodel=None,image=None,imagecoords='Original',
                     colours.InsertNextTypedTuple(rgb)
                 else:
                     colours.InsertNextTypedTuple(fr[yi,xi,:])
+
+            if verbose:
+                lp.update(i/tot_px)
+
+    if verbose:
+        lp.update(1.)
+        del lp
 
     # Put it all togetehr in a vtkPolyDataActor
     polydata = vtk.vtkPolyData()
@@ -1156,7 +1172,7 @@ def render_unfolded_wall(cadmodel,calibrations=[],labels = [],colours=None,cal_o
                 progress_callback('Calculating high-res wall coverage for calibration {:s}'.format(labels[i] if len(labels) > 0 else '...{:s}'.format(calib.filename[-16:])))
             except Exception:
                 print('Calculating high-res wall coverage for calibration {:s}'.format(labels[i] if len(labels) > 0 else '...{:s}'.format(calib.filename[-16:])))
-            actor = get_wall_coverage_actor(calib,cadmodel)
+            actor = get_wall_coverage_actor(calib,cadmodel,verbose=True)
             actor.GetProperty().SetOpacity(cal_opacity)
             if colours is not None:
                 col = colours[i]

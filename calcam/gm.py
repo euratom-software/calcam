@@ -670,10 +670,11 @@ class GeometryMatrix:
             used_cols = np.where(self.data.sum(axis=0) > 0)[1]
             self.data = self.data[:,used_cols]
 
-            # Set the pixel mask to exclude pixels which do not contribute to any grid cells.
+            # Set the pixel mask to exclude pixels which do not contribute to any grid cells and remove corresponding rows.
             if self.pixel_mask is not None:
                 used_pixels = np.abs(self.data.sum(axis=1)) > 1e-14
                 self.pixel_mask = used_pixels.reshape(imdims,order=self.pixel_order)
+                self.data = self.data[used_pixels,:]
 
 
 
@@ -756,10 +757,11 @@ class GeometryMatrix:
         used to exclude image pixels which are known to have bad data or 
         otherwise do not conform to the assumptions of the inversion.
 
-        Note: excluding pixels is a non-reversible process since their 
-        matrix rows will be removed. It is therefore recommended to keep a
-        master copy of the matrix with all pixels included and then
-        use this function on a transient copy of the matrix.
+        .. note::
+            Excluding pixels is a non-reversible process since their
+            matrix rows will be removed. It is therefore recommended to keep a
+            master copy of the matrix with all pixels included and then
+            use this function on a transient copy of the matrix.
 
         Parameters:
 
@@ -841,7 +843,12 @@ class GeometryMatrix:
     def save(self,filename):
         '''
         Save the geometry matrix to a file.
-        
+
+         .. note::
+            .npz is the recommended file format; .mat is provided if compatibility
+            with MATLAB is required but produces larger file sizes, and .zip is provided
+            to make maximally compatible data files but is extremely slow to save and load.
+
         Parameters:
             
             filename (str) : File name to save to, including file extension. \
@@ -850,9 +857,7 @@ class GeometryMatrix:
                              '.mat' for MATLAB format or 
                              '.zip' for Zipped collection of ASCII files.
 
-        Note: .npz is the recommended format; .mat is provided if compatibility
-        with MATLAB is required but produces larger file sizes, and .zip is provided
-        to make maximally compatible data files but is extremely slow to save and load.
+
         '''
         try:
             fmt = filename.split('.')[1:][-1]

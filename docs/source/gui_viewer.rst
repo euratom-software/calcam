@@ -69,7 +69,7 @@ The :guilabel:`Appearance` box at the bottom of the :guilabel:`Calibrations` tab
 
 * Shaded volume (default) - shows the camera field of view as a shaded cone eminating from the camera's pupil.
 * Sight-line fan - shows a 2D fan of discrete sight-lines eminating out from the camera.
-* CAD model shading (WARNING - slow to calculate!) - useful for cameras such as IR thermography cameras designed to observe objects which are part of the CAD model, this option shows the camera field of view by shading parts of the CAD model which the camera can see. Note: when turning on this option it can be quite slow to calculate since the calculation involves ray casting over the camera field of view.
+* CAD model shading (warning - can be slow to calculate!) - useful for cameras such as IR thermography cameras designed to observe objects which are part of the CAD model, this option shows the camera field of view by shading parts of the CAD model which the camera can see. Note: when turning on this option it can be quite slow to calculate since the calculation involves ray casting over the camera field of view.
 
 
 Displaying Arbitrary 3D Data
@@ -105,6 +105,9 @@ Rendering an un-folded first wall view
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 It may be useful to have an overview image of the first wall of the device, showing the entire wall in a single image. This can be done using the :guilabel:`Unfolded first wall` option at the top of the :guilabel:`Render / Save Image` tab. This option is only enabled for CAD models which include an :math:`R,Z` wall contour (see :ref:`wall_contour` for how to add this to to the CAD model).
 
-The output of this type of render is an image of the first wall where toroidal angle increases along the horizontal direction of the image and poloidal angle increases in the vertical direction of the image. This can be useful e.g. for 
+The output of this type of render is an image of the first wall where toroidal angle increases along the horizontal direction of the image and poloidal angle increases in the vertical direction of the image. This can be useful e.g. for visualising how much of the device first wall has coverage from camera diagnostics.
+
+.. note::
+    For rendering an un-folded first wall view with wall shading to represent camera fields of view, the function :func:`calcam.render_unfolded_wall` will usually produce better quality results than using the 3D Viewer GUI.
 
 When the above settings are set as desired, click the :guilabel:`Render Image...` button to save an image file.

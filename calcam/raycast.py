@@ -539,10 +539,6 @@ class RayData:
         '''
         Get the 3D x,y,z coordinates of the "start" of the casted rays / sightlines.
 
-        Note: it is advised to use this function rather than accessing the `ray_start_coords`
-        attribute of the object directly because this function will respect any image cropping
-        applied using the set_detector_window() method.
-
         Parameters:
 
             x,y (array-like)        : Image pixel coordinates at which to get the sight-line start coordinates.\
@@ -620,10 +616,6 @@ class RayData:
     def get_ray_end(self,x=None,y=None,im_position_tol = 1,coords='Display'):
         '''
         Get the 3D x,y,z coordinates where the casted rays / sightlines intersect the CAD model.
-
-        Note: it is advised to use this function rather than accessing the `ray_end_coords`
-        attribute of the object directly because this function will respect any image cropping
-        applied using the set_detector_window() method.
 
         Parameters:
 
@@ -704,10 +696,6 @@ class RayData:
         '''
         Get the 3D unit normal vectors of the CAD model surface where the camera sight-lines hit the model.
         Only available if calc_normals = True was given when running raycast_sightlines().
-
-        Note: it is advised to use this function rather than accessing the `model_normals`
-        attribute of the object directly because this function will respect any image cropping
-        applied using the set_detector_window() method.
 
         Parameters:
 

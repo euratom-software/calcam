@@ -533,9 +533,6 @@ It can also be used to save and load ray cast results to disk.</p>
 <code class="sig-name descname">get_model_normals</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">y</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">im_position_tol</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">coords</span><span class="o">=</span><span class="default_value">'Display'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData.get_model_normals" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the 3D unit normal vectors of the CAD model surface where the camera sight-lines hit the model.
 Only available if calc_normals = True was given when running raycast_sightlines().</p>
-<p>Note: it is advised to use this function rather than accessing the <cite>model_normals</cite>
-attribute of the object directly because this function will respect any image cropping
-applied using the set_detector_window() method.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -578,9 +575,6 @@ applied using the set_detector_window() method.</p>
 <dt id="calcam.RayData.get_ray_end">
 <code class="sig-name descname">get_ray_end</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">y</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">im_position_tol</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">coords</span><span class="o">=</span><span class="default_value">'Display'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData.get_ray_end" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the 3D x,y,z coordinates where the casted rays / sightlines intersect the CAD model.</p>
-<p>Note: it is advised to use this function rather than accessing the <cite>ray_end_coords</cite>
-attribute of the object directly because this function will respect any image cropping
-applied using the set_detector_window() method.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -623,9 +617,6 @@ applied using the set_detector_window() method.</p>
 <dt id="calcam.RayData.get_ray_start">
 <code class="sig-name descname">get_ray_start</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">y</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">im_position_tol</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">coords</span><span class="o">=</span><span class="default_value">'Display'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData.get_ray_start" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the 3D x,y,z coordinates of the “start” of the casted rays / sightlines.</p>
-<p>Note: it is advised to use this function rather than accessing the <cite>ray_start_coords</cite>
-attribute of the object directly because this function will respect any image cropping
-applied using the set_detector_window() method.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">

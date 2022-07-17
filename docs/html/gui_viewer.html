@@ -255,7 +255,7 @@
 <ul class="simple">
 <li><p>Shaded volume (default) - shows the camera field of view as a shaded cone eminating from the camera’s pupil.</p></li>
 <li><p>Sight-line fan - shows a 2D fan of discrete sight-lines eminating out from the camera.</p></li>
-<li><p>CAD model shading (WARNING - slow to calculate!) - useful for cameras such as IR thermography cameras designed to observe objects which are part of the CAD model, this option shows the camera field of view by shading parts of the CAD model which the camera can see. Note: when turning on this option it can be quite slow to calculate since the calculation involves ray casting over the camera field of view.</p></li>
+<li><p>CAD model shading (warning - can be slow to calculate!) - useful for cameras such as IR thermography cameras designed to observe objects which are part of the CAD model, this option shows the camera field of view by shading parts of the CAD model which the camera can see. Note: when turning on this option it can be quite slow to calculate since the calculation involves ray casting over the camera field of view.</p></li>
 </ul>
 </div>
 </div>
@@ -287,7 +287,11 @@
 <div class="section" id="rendering-an-un-folded-first-wall-view">
 <h3>Rendering an un-folded first wall view<a class="headerlink" href="#rendering-an-un-folded-first-wall-view" title="Permalink to this headline">¶</a></h3>
 <p>It may be useful to have an overview image of the first wall of the device, showing the entire wall in a single image. This can be done using the <span class="guilabel">Unfolded first wall</span> option at the top of the <span class="guilabel">Render / Save Image</span> tab. This option is only enabled for CAD models which include an <span class="math notranslate nohighlight">\(R,Z\)</span> wall contour (see <a class="reference internal" href="gui_settings.html#wall-contour"><span class="std std-ref">R,Z Wall Contour</span></a> for how to add this to to the CAD model).</p>
-<p>The output of this type of render is an image of the first wall where toroidal angle increases along the horizontal direction of the image and poloidal angle increases in the vertical direction of the image. This can be useful e.g. for</p>
+<p>The output of this type of render is an image of the first wall where toroidal angle increases along the horizontal direction of the image and poloidal angle increases in the vertical direction of the image. This can be useful e.g. for visualising how much of the device first wall has coverage from camera diagnostics.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For rendering an un-folded first wall view with wall shading to represent camera fields of view, the function <a class="reference internal" href="api_rendering.html#calcam.render_unfolded_wall" title="calcam.render_unfolded_wall"><code class="xref py py-func docutils literal notranslate"><span class="pre">calcam.render_unfolded_wall()</span></code></a> will usually produce better quality results than using the 3D Viewer GUI.</p>
+</div>
 <p>When the above settings are set as desired, click the <span class="guilabel">Render Image…</span> button to save an image file.</p>
 </div>
 </div>

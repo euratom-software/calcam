@@ -192,10 +192,13 @@
 <dt id="calcam.render_cam_view">
 <code class="sig-prename descclassname">calcam.</code><code class="sig-name descname">render_cam_view</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cadmodel</span></em>, <em class="sig-param"><span class="n">calibration</span></em>, <em class="sig-param"><span class="n">extra_actors</span><span class="o">=</span><span class="default_value">[]</span></em>, <em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">oversampling</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">aa</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">transparency</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">coords</span><span class="o">=</span><span class="default_value">'display'</span></em>, <em class="sig-param"><span class="n">interpolation</span><span class="o">=</span><span class="default_value">'cubic'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.render_cam_view" title="Permalink to this definition">¶</a></dt>
 <dd><p>Render an image of a given CAD model from the point of view of a given calibration.</p>
-<p>NOTE: This function uses off-screen OpenGL rendering which fails above some image dimension which depends on the system.
-The workaround for this is that above a render dimension set by calcam.render.max_render_dimension, the image is rendered
-at lower resolution and then scaled up using nearest-neighbour scaling. For this reason, when rendering high resolution
-images the rendered image quality may be lower than expected.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This function uses off-screen OpenGL rendering which fails above some image dimension which depends on the system.
+The workaround for this is that above a render dimension set by <code class="docutils literal notranslate"><span class="pre">calcam.render.max_render_dimension</span></code>, the image is rendered
+at lower resolution and then scaled up using nearest-neighbour scaling. For this reason, when rendering very high
+resolution images, the rendered image quality may be lower than expected.</p>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
