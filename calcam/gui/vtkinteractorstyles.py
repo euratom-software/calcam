@@ -617,7 +617,7 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
 
         # Right click + drag rolls the camera.
         # This first case for if we're not looking vertically
-        elif np.abs(view_direction[2]) < 0.98:
+        elif np.abs(view_direction[2]) < 0.97:
             lastxy = xy + delta
             cc = np.array(self.vtkwindow.GetSize())/2.
             delta_theta = (np.arctan( (xy[0] - cc[0])/(xy[1] - cc[1]) ) - np.arctan( (lastxy[0] - cc[0])/(lastxy[1] - cc[1]) ) )
@@ -625,9 +625,13 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
             if np.abs(delta_theta) > 3:
                 delta_theta = delta_theta - 3.14159*np.sign(delta_theta)
 
-            if np.abs(self.cam_roll - 180*delta_theta/3.14159) < 90:
-                roll = self.cam_roll - 180*delta_theta/3.14159
-                self.set_roll(roll)
+            roll = self.cam_roll - 180*delta_theta/3.14159
+            if roll > 180:
+                roll = roll - 360
+            elif roll < -180:
+                roll = roll + 360
+
+            self.set_roll(roll)
 
         # If we are looking vertically, pretend the mouse has only moved horizontally
         # and call the regular handler. Believe it or not this enables consistent and smooth-ish rotation.
@@ -644,7 +648,7 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
         self.cam_roll = roll
         view_direction = self.camera.GetDirectionOfProjection()
         if np.abs(view_direction[2]) < 0.999:
-            z_projection = np.array([ -view_direction[0]*view_direction[2], -view_direction[1]*view_direction[2],1-view_direction[2]**2 ])
+            z_projection = np.array([ -view_direction[0]*view_direction[2], -view_direction[1]*view_direction[2], 1-view_direction[2]**2 ])
             upvec = rotate_3d(z_projection,view_direction,self.cam_roll)
             self.camera.SetViewUp(upvec)
             roll = self.camera.GetRoll()

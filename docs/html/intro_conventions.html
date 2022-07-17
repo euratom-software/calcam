@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                Version 2.8
+                Version 2.9
               </div>
             
           
@@ -115,8 +115,9 @@
 </ul>
 <p class="caption"><span class="caption-text">API User Guide</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="api_analysis.html">Using Calibration Results</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_calib.html">The Calibration Class</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_cadmodel.html">CAD Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_raycast.html">Ray Casting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_rendering.html">Rendering Images</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_geom_matrix.html">Tomography Geometry Matrices</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_movement.html">Camera Movement Correction</a></li>
@@ -193,7 +194,7 @@
 <h1>Concepts &amp; Conventions<a class="headerlink" href="#concepts-conventions" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="image-pixel-coordinates">
 <h2>Image Pixel Coordinates<a class="headerlink" href="#image-pixel-coordinates" title="Permalink to this headline">¶</a></h2>
-<p>Calcam follows the convention of using matrix/linear algebra style pixel coordinates for images, which is consistent with the way images are stored and addressed in 2D arrays in Python. In this convention, the origin <code class="docutils literal notranslate"><span class="pre">(0,0)</span></code> is in the centre of the top-left pixel in the image. The <em>y</em> axis runs from top to bottom down the image and the <em>x</em> axis runs horizontally left to right.</p>
+<p>Calcam follows the convention of using matrix/linear algebra style pixel coordinates for images, which is consistent with the way 2D arrays are handled by default in Python. In this convention, the origin <code class="docutils literal notranslate"><span class="pre">(0,0)</span></code> is in the centre of the top-left pixel in the image. The <em>y</em> axis runs from top to bottom down the image and the <em>x</em> axis runs horizontally left to right.</p>
 <p>It is important to note that since 2D arrays are indexed <code class="docutils literal notranslate"><span class="pre">[row,</span> <span class="pre">column]</span></code>, arrays containing images are indexed as <code class="docutils literal notranslate"><span class="pre">[y,x]</span></code>. However, Calcam functions which deal with image coordinates are called as <code class="docutils literal notranslate"><span class="pre">function(x,y)</span></code>. This is consistent with the way image coordinates are delt with in OpenCV.</p>
 <div class="section" id="original-and-display-pixel-coordinates">
 <h3>“Original” and “Display” Pixel Coordinates<a class="headerlink" href="#original-and-display-pixel-coordinates" title="Permalink to this headline">¶</a></h3>
@@ -236,7 +237,7 @@
   <div role="contentinfo">
     <p>
         
-        &copy; Copyright 2015-2020, European Atomic Energy Community (EURATOM)
+        &copy; Copyright 2015-2022, European Atomic Energy Community (EURATOM)
 
     </p>
   </div>

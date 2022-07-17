@@ -1,5 +1,5 @@
 '''
-* Copyright 2015-2020 European Atomic Energy Community (EURATOM)
+* Copyright 2015-2022 European Atomic Energy Community (EURATOM)
 *
 * Licensed under the EUPL, Version 1.1 or - as soon they
   will be approved by the European Commission - subsequent
@@ -19,6 +19,7 @@
   permissions and limitations under the Licence.
 '''
 import sys
+import os
 
 from .viewer import Viewer
 from .launcher import Launcher
@@ -31,6 +32,12 @@ from .cad_edit import CADEdit
 from .movement_correction import ImageAlignDialog
 from . import qt_wrapper as qt
 from ..calibration import Calibration
+
+try:
+    with open(os.path.join(os.path.split(__file__)[0],'__executable_path__'),'r') as f:
+        executable_path = f.readline()
+except Exception:
+    executable_path = None
 
 def open_window(window_class,*args):
     app = qt.QApplication([])

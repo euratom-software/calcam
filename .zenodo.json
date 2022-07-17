@@ -1,0 +1,57 @@
+{
+    "language": "eng",
+    "license": "EUPL-1.1",
+    "title": "Calcam",
+    "related_identifiers": [
+        {
+            "scheme": "doi",
+            "identifier": "10.5281/zenodo.1478554",
+            "relation": "isVersionOf"
+        }
+    ],
+    "upload_type": "software",
+    "creators": [
+        {
+            "orcid": "0000-0002-3111-5113",
+            "name": "Scott Silburn"
+        },
+        {
+            "orcid": "0000-0003-2906-5097",
+            "name": "James Harrison"
+        },
+        {
+            "orcid": "0000-0003-2307-6019",
+            "name": "Tom Farley"
+        },
+        {
+            "orcid": "0000-0002-8501-9039",
+            "name": "Jordan Cavalier"
+        },
+        {
+            "name": "Sam Van Stroud"
+        },
+        {
+            "name": "Jamie McGowan"
+        },
+        {
+            "name": "Augustin Marignier"
+        },
+        {
+            "name": "Emily Nurse"
+        },
+        {
+            "name": "Christian Gutschow"
+        },
+        {
+            "name": "Mark Smithies"
+        },
+        {
+            "name": "Alasdair Wynn"
+        },
+        {
+            "name": "Rhys Doyle"
+        }
+    ],
+    "access_right": "open",
+    "description": "<p>Calcam is a Python package for geometric calibration of cameras and for performing related analysis, i.e. for finding the mapping between pixel coordinates in a camera image and physical positions in 3D space. It was created for use with camera diagnostics on fusion experiments, but may be useful in other applications too. As well as calibrating existing cameras, it can also be used to define synthetic camera diagnostics, e.g. to simulate or help define new viewing geometries when designing new camera diagnostics.</p>\n\n<p>The full calcam documentation can be found at: <a href=\"https://euratom-software.github.io/calcam/\">https://euratom-software.github.io/calcam/</a></p>"
+}

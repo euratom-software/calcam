@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                Version 2.8
+                Version 2.9
               </div>
             
           
@@ -95,7 +95,6 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">General Introduction to Calcam</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#what-it-is-does">What it is &amp; does</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#licensing-citation-credits">Licensing, citation &amp; credits</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#version-numbering">Version Numbering</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="intro_install_setup.html">Getting Up &amp; Running</a></li>
@@ -115,8 +114,9 @@
 </ul>
 <p class="caption"><span class="caption-text">API User Guide</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="api_analysis.html">Using Calibration Results</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_calib.html">The Calibration Class</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_cadmodel.html">CAD Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_raycast.html">Ray Casting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_rendering.html">Rendering Images</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_geom_matrix.html">Tomography Geometry Matrices</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_movement.html">Camera Movement Correction</a></li>
@@ -200,20 +200,11 @@
 <div class="section" id="licensing-citation-credits">
 <h2>Licensing, citation &amp; credits<a class="headerlink" href="#licensing-citation-credits" title="Permalink to this headline">¶</a></h2>
 <p>Calcam is released under the <a class="reference external" href="https://opensource.org/licenses/EUPL-1.1">European Union Public License 1.1</a>.</p>
-<p>It was inspired by an IDL code of the same name originally written by James Harrison.</p>
-<p>The GUI toolbar button icons used are from <a class="reference external" href="https://icons8.com/">Icons8</a>.</p>
-<p>If using Calcam for published academic work, the code is citeable via a DOI provided by Zenodo. Citation details of both the latest and previous release versions can be found at the link below:</p>
+<p>If using Calcam for published academic work, please cite the code! It is citeable via a DOI provided by Zenodo. Citation details of both the latest and previous release versions can be found at the link below:</p>
 <a class="reference external image-reference" href="https://zenodo.org/badge/latestdoi/92296352"><img alt="https://zenodo.org/badge/92296352.svg" src="https://zenodo.org/badge/92296352.svg" /></a>
+<p>Calcam was inspired by an IDL code of the same name originally written by James Harrison.</p>
+<p>The GUI toolbar button icons used are from <a class="reference external" href="https://icons8.com/">Icons8</a>.</p>
 <p>The main contributors to Calcam are listed as authors on the Zeonodo page linked above, see also AUTHORS.txt in the code repository and the list of contributors on GitHub.</p>
-</div>
-<div class="section" id="version-numbering">
-<h2>Version Numbering<a class="headerlink" href="#version-numbering" title="Permalink to this headline">¶</a></h2>
-<p>Calcam (more-or-less) uses semanic versioning. The version number consists of 3 numbers separated by points, in the format <code class="docutils literal notranslate"><span class="pre">Major.Minor.Patch</span></code></p>
-<ul class="simple">
-<li><p>The <code class="docutils literal notranslate"><span class="pre">major</span></code> version number is incremented if incompatible (i.e. non backwards-compatible) changes to the public API or storage file formats are made. The public API is defined as anything covered by the <cite>API User Guide</cite> section of this documentation.</p></li>
-<li><p>The <code class="docutils literal notranslate"><span class="pre">minor</span></code> version is incremented when adding new functionality in a backwards-compatible way. Upgrading to a newer minor version of calcam should therefore not break any code which calls calcam as a dependency.</p></li>
-<li><p>The <code class="docutils literal notranslate"><span class="pre">patch</span></code> version is incremented for bug fixes which do not change the functionality.</p></li>
-</ul>
 </div>
 </div>
 
@@ -238,7 +229,7 @@
   <div role="contentinfo">
     <p>
         
-        &copy; Copyright 2015-2020, European Atomic Energy Community (EURATOM)
+        &copy; Copyright 2015-2022, European Atomic Energy Community (EURATOM)
 
     </p>
   </div>

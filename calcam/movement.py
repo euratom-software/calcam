@@ -203,8 +203,9 @@ def manual_movement(ref,moved,correction=None,parent_window=None):
 
     try:
         from . import gui
-    except:
-        raise Exception('Calcam GUI module not available. Manual movement correction requires the GUI module!')
+    except Exception:
+        from . import no_gui_reason
+        raise Exception('Cannot start movement correction GUI because the Calcam GUI module not available - {:s}'.format(no_gui_reason))
 
     if isinstance(ref,Calibration):
         ref_im = ref.get_image(coords='Display')
@@ -307,7 +308,7 @@ def update_calibration(calibration, moved_image, mov_correction, image_src=None,
     # Update image and subview mask
     subview_mask = calibration.get_subview_mask(coords='Display')
     subview_names = calibration.subview_names
-    subview_mask = mov_correction.warp_ref_to_moved(subview_mask,interp='nearest',fill_edges=True)[0].astype(np.uint8)
+    subview_mask = mov_correction.warp_ref_to_moved(subview_mask,interp='nearest',fill_edges=True)[0].astype(np.int8)
     if image_src is None:
         image_src = 'Updated by {:s} on {:s} at {:s}'.format(misc.username,misc.hostname,misc.get_formatted_time())
 

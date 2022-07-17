@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                Version 2.8
+                Version 2.9
               </div>
             
           
@@ -110,8 +110,9 @@
 </ul>
 <p class="caption"><span class="caption-text">API User Guide</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="api_analysis.html">Using Calibration Results</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_calib.html">The Calibration Class</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_cadmodel.html">CAD Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_raycast.html">Ray Casting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_rendering.html">Rendering Images</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_geom_matrix.html">Tomography Geometry Matrices</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Camera Movement Correction</a><ul>
@@ -213,8 +214,8 @@ be successfully determined, raises calcam.movement.DetectionFailedError</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ref</strong> (<em>np.ndarray</em><em> or </em><a class="reference internal" href="api_analysis.html#calcam.Calibration" title="calcam.Calibration"><em>calcam.Calibration</em></a>) – Reference image or calibration to align to. This can                                                     be either an array containg a refrence image, or a                                                     calcam calibrationn containing an image.</p></li>
-<li><p><strong>moved</strong> (<em>np.ndarray</em><em> or </em><a class="reference internal" href="api_analysis.html#calcam.Calibration" title="calcam.Calibration"><em>calcam.Calibration</em></a>) – Moved image or calibration to align. This can                                                     be either an array containg a refrence image, or a                                                     calcam calibrationn containing an image.</p></li>
+<li><p><strong>ref</strong> (<em>np.ndarray</em><em> or </em><a class="reference internal" href="api_calib.html#calcam.Calibration" title="calcam.Calibration"><em>calcam.Calibration</em></a>) – Reference image or calibration to align to. This can                                                     be either an array containg a refrence image, or a                                                     calcam calibrationn containing an image.</p></li>
+<li><p><strong>moved</strong> (<em>np.ndarray</em><em> or </em><a class="reference internal" href="api_calib.html#calcam.Calibration" title="calcam.Calibration"><em>calcam.Calibration</em></a>) – Moved image or calibration to align. This can                                                     be either an array containg a refrence image, or a                                                     calcam calibrationn containing an image.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -438,7 +439,7 @@ point pair fitting calibrations, not manual alignment calibrations.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>calibration</strong> (<a class="reference internal" href="api_analysis.html#calcam.Calibration" title="calcam.Calibration"><em>calcam.Calibration</em></a>) – Calibration to update.</p></li>
+<li><p><strong>calibration</strong> (<a class="reference internal" href="api_calib.html#calcam.Calibration" title="calcam.Calibration"><em>calcam.Calibration</em></a>) – Calibration to update.</p></li>
 <li><p><strong>moved_image</strong> (<em>np.ndarray</em>) – Moved image</p></li>
 <li><p><strong>mov_correction</strong> (<a class="reference internal" href="#calcam.movement.MovementCorrection" title="calcam.movement.MovementCorrection"><em>MovementCorrection</em></a>) – Movement correction object representing the movement between                                               the original calibrated image and the moved image.</p></li>
 <li><p><strong>image_src</strong> (<em>string</em>) – Human-readable description of where the moved image comes from,                                               for data provenance tracking.</p></li>
@@ -449,7 +450,7 @@ point pair fitting calibrations, not manual alignment calibrations.</p>
 <dd class="field-even"><p>Updated calibration object for the moved image</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference internal" href="api_analysis.html#calcam.Calibration" title="calcam.Calibration">calcam.Calibration</a></p>
+<dd class="field-odd"><p><a class="reference internal" href="api_calib.html#calcam.Calibration" title="calcam.Calibration">calcam.Calibration</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -478,7 +479,7 @@ point pair fitting calibrations, not manual alignment calibrations.</p>
   <div role="contentinfo">
     <p>
         
-        &copy; Copyright 2015-2020, European Atomic Energy Community (EURATOM)
+        &copy; Copyright 2015-2022, European Atomic Energy Community (EURATOM)
 
     </p>
   </div>

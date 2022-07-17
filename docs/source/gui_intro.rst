@@ -8,25 +8,39 @@ Calcam consists of 5 main GUI tools both for performing calibrations and visuali
    :alt: Calcam Launcher Screenshot
    :align: left
 
-The buttons to the right-hand side of the Calcam logo each open a new python instance running the selected GUI, and a link to the online copy of this documentation is provided under the logo. The launcher will also check whether you are using the most recent release version of Calcam and will display a message at the bottom of the window alerting you if a newer version is available. More details of each of the tools are given below.
+The buttons to the right-hand side of the Calcam logo each open a new python instance running the selected GUI. The details of what each one does and how to use it are given on the other pages in this section.
+
+A link to the online copy of this documentation is provided under the logo in the launcher. The launcher will also check whether you are using the most recent release version of Calcam, and will display a message at the bottom of the window alerting you if a newer version is available. More details of each of the tools are given below.
 
 Starting the launcher
 ---------------------
 
-From the command line
+From the executable
 ~~~~~~~~~~~~~~~~~~~~~
-At installation, the setup script will create a launcher for the Calcam GUI in your Python environment's script directory. If this directory is in your OS's ``PATH`` environment variable, this enables the Calcam GUI to be started directly from a terminal or command prompt simply by typing::
+At installation, the setup script will create a launcher for the Calcam GUI in your Python environment's script directory.
 
-	calcam
+If this directory is in your OS's ``PATH`` environment variable, this enables the Calcam GUI to be started directly from a terminal or command prompt simply by typing::
 
-On Windows, it should also be possible to create a shortcut to start Calcam by creating a new shortcut with the target "calcam".
+    calcam
 
-The setup script will check at the time of installation whether the location of the launcher is in your ``PATH`` environment variable, to enable the above functionality. If it is not, the setup script will tell you what path needs to be added to your ``PATH`` to enable this, which is highly recommended for convenience.
+If the directory is not in the ``PATH`` environment variable, you will have to use the full path to the calcam executable. If you will use the GUI often, it is recommended to make a graphical shortcut to it for easy access.
+
+If you need to check the location of the calcam executable, you can find it from within python using the following code:
+
+.. code-block:: python
+
+    import calcam
+    print(calcam.gui.executable_path)
+
+
 
 From within Python
 ~~~~~~~~~~~~~~~~~~
 
-Alternatively, the Calcam GUI launcher can be opened by calling the :func:`start_gui()` function in the Calcam Python package::
+Alternatively, the Calcam GUI launcher can be opened by calling the :func:`start_gui()` function in the Calcam Python package:
 
-	>>>import calcam
-	>>>calcam.start_gui()
+.. code-block:: python
+
+    import calcam
+    calcam.start_gui()
+

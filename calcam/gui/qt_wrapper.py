@@ -1,5 +1,5 @@
 '''
-* Copyright 2015-2020 European Atomic Energy Community (EURATOM)
+* Copyright 2015-2022 European Atomic Energy Community (EURATOM)
 *
 * Licensed under the EUPL, Version 1.1 or - as soon they
   will be approved by the European Commission - subsequent
@@ -37,6 +37,11 @@ try:
     qt_ver = 6
 
 except Exception:
+    try:
+        import PyQt6
+        pyqt6_broken=True
+    except Exception:
+        pyqt6_broken=False
 
     try:
         from PyQt5.QtCore import *
@@ -47,7 +52,11 @@ except Exception:
         qt_ver = 5
 
     except Exception:
-
+        try:
+            import PyQt5
+            pyqt5_broken=True
+        except:
+            pyqt5_broken=False
         try:
             from PyQt4.QtCore import *
             from PyQt4.QtGui import *
@@ -55,7 +64,14 @@ except Exception:
             from PyQt4 import uic
             qt_ver = 4
         except Exception:
-            raise ImportError('Could not import either PyQt6, PyQt5 or PyQt4 module.')
+
+            if pyqt6_broken:
+                raise ImportError('Could not import required GUI library: Python package "PyQt6" is present but seems to be broken.')
+
+            if pyqt5_broken:
+                raise ImportError('Could not import required GUI library: Python package "PyQt5" is present but seems to be broken.')
+
+            raise ImportError('Could not import required GUI library: could not import either "PyQt6", "PyQt5" or "PyQt4" python packages successfully.')
 
 
 if qt_ver == 6:
@@ -74,6 +90,7 @@ if qt_ver == 6:
                         QDialog:[QDialog.DialogCode],
                         QDialogButtonBox:[QDialogButtonBox.StandardButton],
                         QKeySequence:[QKeySequence.StandardKey],
+                        QTextBrowser:[QTextBrowser.LineWrapMode]
                        }
 
     for parent,enums in enums_to_unwrap.items():

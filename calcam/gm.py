@@ -361,7 +361,10 @@ class PoloidalVolumeGrid:
             xy = np.vstack( [ self.vertices[self.cells[cell_ind,i],:] for i in range(verts_per_cell)] )
             patches.append( PolyPatch( xy, closed=True) )
         pcoll = PatchCollection(patches)
-        pcoll.set_array(np.squeeze(data))
+        if data is not None:
+            pcoll.set_array(np.squeeze(data))
+        else:
+            pcoll.set_array(np.zeros(self.n_cells)+np.nan)
 
 
         # Set up appearance of the grid cells
@@ -660,12 +663,19 @@ class GeometryMatrix:
                 calc_status_callback(1.)
             
             
-            # Remove any grid cells + matrix rows which have no sight-line coverage.
+            # Remove any grid cells + matrix columns which have no sight-line coverage.
             unused_cells = np.where(np.abs(self.data.sum(axis=0)) == 0)[1]
             self.grid.remove_cells(unused_cells)
 
             used_cols = np.where(self.data.sum(axis=0) > 0)[1]
             self.data = self.data[:,used_cols]
+
+            # Set the pixel mask to exclude pixels which do not contribute to any grid cells and remove corresponding rows.
+            if self.pixel_mask is not None:
+                used_pixels = np.squeeze(np.array(np.abs(self.data.sum(axis=1))) > 1e-14)
+                self.pixel_mask = used_pixels.reshape(imdims,order=self.pixel_order)
+                self.data = self.data[used_pixels,:]
+
 
 
     def get_los_coverage(self):
@@ -747,10 +757,11 @@ class GeometryMatrix:
         used to exclude image pixels which are known to have bad data or 
         otherwise do not conform to the assumptions of the inversion.
 
-        Note: excluding pixels is a non-reversible process since their 
-        matrix rows will be removed. It is therefore recommended to keep a
-        master copy of the matrix with all pixels included and then
-        use this function on a transient copy of the matrix.
+        .. note::
+            Excluding pixels is a non-reversible process since their
+            matrix rows will be removed. It is therefore recommended to keep a
+            master copy of the matrix with all pixels included and then
+            use this function on a transient copy of the matrix.
 
         Parameters:
 
@@ -832,7 +843,12 @@ class GeometryMatrix:
     def save(self,filename):
         '''
         Save the geometry matrix to a file.
-        
+
+         .. note::
+            .npz is the recommended file format; .mat is provided if compatibility
+            with MATLAB is required but produces larger file sizes, and .zip is provided
+            to make maximally compatible data files but is extremely slow to save and load.
+
         Parameters:
             
             filename (str) : File name to save to, including file extension. \
@@ -841,9 +857,7 @@ class GeometryMatrix:
                              '.mat' for MATLAB format or 
                              '.zip' for Zipped collection of ASCII files.
 
-        Note: .npz is the recommended format; .mat is provided if compatibility
-        with MATLAB is required but produces larger file sizes, and .zip is provided
-        to make maximally compatible data files but is extremely slow to save and load.
+
         '''
         try:
             fmt = filename.split('.')[1:][-1]
@@ -885,6 +899,10 @@ class GeometryMatrix:
                                       matrix itself.
 
         '''
+
+        if len(image.shape) > 2:
+            raise ValueError('Provided image array has 3 dimensions i.e. includes colour channels. This only supports single channel images.')
+
         if coords is None:
 
             # If there are no transform actions, we have no problem.
@@ -923,8 +941,53 @@ class GeometryMatrix:
 
         im_out = im_out.reshape(im_out.size,order=self.pixel_order)
 
-        return scipy.sparse.csr_matrix(im_out[ self.pixel_mask.reshape(self.pixel_mask.size,order=self.pixel_order) == True])
+        return scipy.sparse.csr_matrix(im_out[ self.pixel_mask.reshape(self.pixel_mask.size,order=self.pixel_order)])
 
+
+    def unformat_image(self,im_vector,coords='Native',fill_value=np.nan):
+        '''
+        Formats a given a 1D data vector of image pixel values (i.e. :math:`b` in :math:`Ax = b`)
+        back in to a 2D image array.
+
+        Parameters:
+
+            im_vector (numpy.ndarray or sparse matrix) : 1D vector of image data, must have length equal to the number of rows in the geometry matrix.
+
+            coords (str)                               : What image orientation to return the image: 'Original', 'Display' or 'Native' (whichever was used when creating the geometry matrix).
+
+            fill_value (float)                         : Value to return in any image pixels which are not included in the geometry matrix.
+
+        Returns:
+
+            numpy.ndarray : 2D array containing the image.
+
+        '''
+        if self.pixel_mask is None:
+            raise Exception('Cannot perform image un-formatting because this GeometryMatrix is not for a complete image area.')
+
+        try:
+            im_vector = im_vector.toarray()
+        except AttributeError:
+            im_vector = np.array(im_vector)
+
+        if (np.array(im_vector.shape) > 1).sum() > 1:
+            raise ValueError('Provided image data vector is not 1D! (array shape: {:}). Expected 1D vector.'.format(im_vector.shape))
+
+        im_vector = np.squeeze(im_vector)
+
+        if im_vector.size != self.data.shape[0]:
+            raise ValueError('Provided image data vector is not the correct size - expected {:d} values, got {:d}'.format(self.data.shape[0],im_vector.size))
+
+        im_out = np.zeros(self.pixel_mask.shape) + fill_value
+
+        im_out[self.pixel_mask] = im_vector
+
+        if coords.lower() == 'display' and self.image_coords.lower() == 'original':
+            im_out = self.image_geometry.original_to_display_image(im_out)
+        elif coords.lower() == 'original' and self.image_coords.lower() == 'display':
+            im_out = self.image_geometry.display_to_original_image(im_out)
+
+        return im_out
 
 
     def _calc_row_volume(self,ray_endpoints):

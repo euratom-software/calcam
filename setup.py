@@ -1,5 +1,5 @@
 '''
-* Copyright 2015-2020 European Atomic Energy Community (EURATOM)
+* Copyright 2015-2022 European Atomic Energy Community (EURATOM)
 *
 * Licensed under the EUPL, Version 1.1 or - as soon they
   will be approved by the European Commission - subsequent
@@ -20,154 +20,230 @@
 '''
 
 '''
-Calcam Setup script.
-Uses setuptools and pip.
-'''
+Calcam Setup script, uses pip and setuptools.
 
-try:
-    import pip
-except ImportError:
-    print('\nERROR: PIP is not installed.\nPlease install the PIP package before using this setup script (see https://pip.pypa.io/en/stable/installing/)\n')
-    exit()
+This uses the standard setuptools install_requires to specify the "easy" dependencies of SciPy and MatPlotLib,
+but deals with OpenCV, VTK and PyQt using special custom logic and separate pip processes. This is because
+(1) It seems to work across more platforms & environments, and (2) It allows implementing logic of fallback
+dependencies, which as far as I can tell are not possible using the usual python packaging methods.
+
+To make sure the logic in this script gets run at install even with pip, I have to deliberately break wheel building.
+Frankly, this is all a horrible hack in terms of how python package installation is supposed to work, but after trying things
+on several platforms, this actually makes it work smoothest on the widest range of platforms. So I'm prioritising creating an easy
+experience for the user over good practise for Python packaging, and I can only hope that one day before pip stops supporting direct
+installation altogether, the official tools provide a way to do this in a more "proper" way.
+'''
 
 import sys
 import os
 import subprocess
-from setuptools import setup,find_packages
+
+if 'bdist_wheel' in sys.argv:
+    raise Exception("Looks like you are trying to build a wheel for Calcam. That would skip setup.py at install time which contains important setup logic, so I'm afraid I can't let you do that.")
+
+# Read version from the version file.
+with open(os.path.join(os.path.split(os.path.abspath(__file__))[0],'calcam','__version__'),'r') as ver_file:
+    version = ver_file.readline().rstrip()
+
+# Read the readme.
+with open(os.path.join(os.path.split(os.path.abspath(__file__))[0],'README.md'),'r',encoding='utf-8') as readme_file:
+    readme = readme_file.read()
+
+print('\n***************************************************************')
+print('                Calcam v{:s} Setup Script'.format(version))
+print('***************************************************************\n')
 
 
-def check_dependency(pkg_name):
-    '''
+# Check if we have pip and setuptools and if not try to give the user a friendly message.
+try:
+    import pip
+except Exception:
+    print('\nThe calcam installation process requires pip, but module pip could not be imported. Please install pip and try again (see https://pip.pypa.io/en/stable/installing/).')
+    exit()
+
+try:
+    from setuptools import setup,find_packages
+except Exception:
+    print('\nThe calcam installation process requires Python setuptools, but module setuptools could not be imported. Please install setuptools and try again.')
+    exit()
+
+
+def test_dependency(test_cmd):
+    """
     Check if a module is importable, using an external python process.
     The reason for doing this in a separate process is because otherwise
-    if we install a module in aseparate process then try to import it
-    on a subsequent check in this process,there be segfaults. So to avoid 
+    if we install a module in a separate process then try to import it
+    on a subsequent check in this process,there be segfaults. So to avoid
     segfaults, use this.
-    '''
-    test_process = subprocess.Popen([sys.executable,'-c','import {:s}'.format(pkg_name)],stderr=subprocess.PIPE)
-    stderr = test_process.communicate()[1]
-    return len(stderr) == 0
+    """
+    try:
+        subprocess.check_call([sys.executable, '-c',test_cmd],stderr=subprocess.DEVNULL)
+        return True
+    except subprocess.CalledProcessError:
+        return False
 
 
 def pip_install(pkg_name):
-    '''
-    A small utility function to call pip externally to install a given package.
-    Sadly, this seems to be needed because setuptools.setup cannot be trusted to 
-    locate some dependencies, or their correct versions, and pip works more reliably.
-    '''    
+    """
+    A small utility function to call pip in a new process to install a given package.
+    It seems setuptools cannot be trusted to locate some dependencies, or their correct versions,
+    and pip works more reliably. Also I pass through the "--user" option from this setup.py but that's all.
+    """
     if '--user' in [arg.lower() for arg in sys.argv]:
         extra_opts = ['--user']
     else:
         extra_opts = []
 
     try:
-        subprocess.check_call([sys.executable, '-m', 'pip', 'install',pkg_name] + extra_opts)
+        subprocess.check_call([sys.executable, '-m', 'pip', 'install',pkg_name] + extra_opts,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
         return True
-    except:
+    except subprocess.CalledProcessError:
         return False
 
 
 
 if 'install' in sys.argv or 'develop' in sys.argv:
-    # Organise dependencies, in a sadly manual way (I can't 
-    # find a suitably portable way to do it more automatically)
 
-    # Essential dependencies
-    for prettyname,pkgname,importname in [ ('SciPy','scipy','scipy') ,('MatPlobLib','matplotlib','matplotlib'),('OpenCV','opencv-python-headless','cv2')]:
+    print('Dealing with more difficult dependencies\nbefore handing over to setuptools...\n')
 
-        if check_dependency(importname):
-            print('Dependency {:s}: OK!'.format(prettyname))
-        else:
-            print('Dependency {:s}: trying to install using pip...\n'.format(prettyname))
-            if not pip_install(pkgname):
-                print('Could not install essential dependency {:s}. Please install it before installing Calcam.'.format(prettyname))
-                exit()
-            else:
-                print('\n{:s} installed OK!'.format(prettyname))
-
-
-    # Slightly less essential dependencies
-    vtk = False
-    if check_dependency('vtk'):
-        import vtk
-        if vtk.vtkVersion.GetVTKMajorVersion() >= 6:
-            print('Dependency VTK: OK!')
-            vtk = True
-
-    if not vtk:
-        print('Dependency VTK: trying to install using pip...\n')
-        if pip_install('vtk>=6,<9.0.2'):
-            print('\nVTK installed OK!')
-            vtk = True
-        else:
-            print('\nFailed to install VTK :(')
-
-
-    pyqt = True
-    if check_dependency('PyQt6'):
-        print('Dependency PyQt: PyQt6 OK!')
-    if check_dependency('PyQt5'):
-        print('Dependency PyQt: PyQt5 OK!')
-    elif check_dependency('PyQt4'):
-        print('Dependency PyQt: PyQt4 OK!')
+    if test_dependency('from cv2 import __version__'):
+        print('OpenCV-Python installation found.')
     else:
-        print('Dependency PyQt: trying to install PyQt6 using pip...\n')
-        if not pip_install('PyQt6'):
-            print('Dependency PyQt: trying to install PyQt5 using pip...\n')
-            if not pip_install('PyQt5'):
-                print('\nDependency PyQt: trying to install PyQt4 using pip...\n')
-                if not pip_install('PyQt4'):
-                    print('\nFailed to install any PyQt :(')
-                    pyqt = False
-                else:
-                    print('\nPyQt4 installed OK!')
-            else:
-                print('\nPyQt5 installed OK!')
+        print('No OpenCV-Python installation found - trying to install opencv-python-headless using pip...')
+        pip_install('opencv-python-headless')
+        if test_dependency('from cv2 import __version__'):
+           print('   OK!')
         else:
-            print('\nPyQt6 installed OK!')
+            print('\nCould not install opencv-python-headless using pip. Please install OpenCV for python (cv2) manually then try installing Calcam again.')
+            exit()
 
 
+    # Check if any supported version of PyQt is already present
+    pyqt = test_dependency('from PyQt6.QtCore import *')
+    if not pyqt:
+        pyqt = test_dependency('from PyQt5.QtCore import *')
+    if not pyqt:
+        pyqt = test_dependency('from PyQt4.QtCore import *')
+
+    if pyqt:
+        print('Compatible PyQt installation found.')
+    else:
+        print('No compatible PyQt installation found.')
+
+    # If not, try to install one with pip. Any will do.
+    if not pyqt:
+        print('   Trying to install PyQt6 using pip...')
+        pip_install('PyQt6')
+        pyqt = test_dependency('from PyQt6.QtCore import *')
+        if pyqt: print('      OK!')
+    if not pyqt:
+        print('      Failed.\n   Trying PyQt5 instead...')
+        pip_install('PyQt5')
+        pyqt = test_dependency('from PyQt5.QtCore import *')
+        if pyqt: print('      OK!')
+    if not pyqt:
+        print('      Failed.\n   Trying PyQt4 instead...')
+        pip_install('PyQt4')
+        pyqt = test_dependency('from PyQt4.QtCore import *')
+        if pyqt:
+            print('      OK!')
+        else:
+            print('      Failed.')
+
+    # VTK
+    if test_dependency('from vtk import vtkVersion;ver=vtkVersion();v=ver.GetVTKMajorVersion()*100+ver.GetVTKMinorVersion();assert v>600 & v<901'):
+        print('Compatible VTK installation found.')
+        vtk = True
+    else:
+        print('No compatible VTK installation found - trying to install with pip...')
+        pip_install('vtk>=6,<9.1')
+        if test_dependency('from vtk import vtkVersion;ver=vtkVersion();v=ver.GetVTKMajorVersion()*100+ver.GetVTKMinorVersion();assert v>600 & v<901'):
+            print('   OK!\n')
+            vtk = True
+        else:
+            print('   Failed.\n')
+            vtk = False
+
+    # Make sure a file exists at calcam/gui/__executable_path__ before calling setup() - this makes sure it gets marked as part of the package
+    # so allows clean uninnstallation, but without having to keep a blank copy of the file in the git repo which causes git confusion.
+    open(os.path.join(os.path.split(__file__)[0],'calcam','gui','__executable_path__'), 'a').close()
+
+    print('\nNow handing over to setuptools...\n')
 
 # Actually do the requested setup actions
 s = setup(
-          name='Calcam',
-          version='2.8.3',
-          url='https://euratom-software.github.io/calcam/',
-          license='European Union Public License 1.1',
-          author='Scott Silburn et.al.',
-          packages=find_packages(),
-          package_data={'calcam':['gui/icons/*','gui/qt_designer_files/*.ui','gui/logo.png','builtin_image_sources/*.py']},
-          entry_points={ 'gui_scripts': [ 'calcam = calcam:start_gui'] },
-          zip_safe=False
-         )
+        name='calcam',
+        version=version,
+        license='European Union Public License 1.1',
+        author='Scott Silburn et. al.',
+        author_email='scott.silburn@ukaea.uk',
+        description='Spatial calibration tools for science & engineering camera systems.',
+        long_description=readme,
+        long_description_content_type='text/markdown',
+        classifiers=[
+                    "Development Status :: 5 - Production/Stable",
+                    "Operating System :: Microsoft :: Windows",
+                    "Operating System :: MacOS :: MacOS X",
+                    "Operating System :: POSIX :: Linux",
+                    "Environment :: Console",
+                    "Environment :: X11 Applications :: Qt",
+                    "Intended Audience :: Science/Research",
+                    "Intended Audience :: Developers",
+                    "License :: OSI Approved :: European Union Public Licence 1.1 (EUPL 1.1)",
+                    "Natural Language :: English",
+                    "Programming Language :: Python :: 3",
+                    "Topic :: Scientific/Engineering :: Physics",
+                    "Topic :: Scientific/Engineering :: Visualization",
+                    "Topic :: Scientific/Engineering :: Image Processing"
+                    ],
+        project_urls={
+                    'Documentation': 'https://euratom-software.github.io/calcam',
+                    'Source': 'https://github.com/euratom-software/calcam/',
+                    'Issue Tracker': 'https://github.com/euratom-software/calcam/issues',
+                    'Zenodo':'https://doi.org/10.5281/zenodo.1478554'
+                    },
+        license_files = ('LICENCE.txt',),
+        packages=find_packages(),
+        package_data={'calcam':['gui/icons/*','gui/qt_designer_files/*.ui','gui/logo.png','builtin_image_sources/*.py','__version__','gui/__executable_path__']},
+        entry_points={ 'gui_scripts': [ 'calcam = calcam:start_gui'] },
+        zip_safe=False,
+        install_requires=['scipy','matplotlib']
+        )
 
 
-# Offer the user some useful and informative statements about what just happened.
 if 'install' in sys.argv or 'develop' in sys.argv:
-
+    # Find out where setup() put the the GUI launcher script / executable and do 2 things with it:
+    # (1) Print a message telling the user about it,
+    # (2) Write it down in a file in the code path so that the user can easily look it up later.
     if 'install' in sys.argv:
         script_dir = s.command_obj['install'].install_scripts
+        code_dir = s.command_obj['install'].install_lib
     elif 'develop' in sys.argv:
         script_dir = s.command_obj['develop'].script_dir
+        code_dir = os.path.split(__file__)[0]
 
+    executable_path = os.path.join(script_dir.replace('/',os.path.sep),'calcam')
+    if sys.platform == 'win32':
+        executable_path = executable_path + '.exe'
+
+    extra_msg = '\n\nThe GUI can be launched using the executable:\n{:s}'.format(executable_path)
+
+    try:
+        with open(os.path.join(code_dir,'calcam','gui','__executable_path__'),'w') as f:
+            f.write(executable_path)
+    except Exception:
+        pass
+
+    # Check if the executable path is included in the PATH environment variable which makes the GUI easier to run
     try:
         env_path = os.environ['PATH']
     except KeyError:
         env_path = ''
-    
-    extra_msg = '\n\nIt can be imported as a Python module with "import calcam"'
-    if pyqt and vtk:
-        extra_msg = extra_msg + '\n\nThe GUI can be launched using the executable:\n{:s}'.format(os.path.join(script_dir.replace('/',os.path.sep),'calcam'))
-        if sys.platform == 'win32':
-            extra_msg = extra_msg + '.exe'
-        if script_dir in env_path:
-            extra_msg = extra_msg + '\nor just by typing "calcam" at a terminal.'
 
-    if not vtk:
-        extra_msg = extra_msg + '\n\nNOTE: Dependency VTK (6.0+; < 8.2) is not installed and could\n      not be installed automatically; the Calcam GUI, rendering\n      and ray casting features will not work until this is installed.'
+    if script_dir in env_path:
+        extra_msg = extra_msg + '\nor just by typing "calcam" at a terminal.'
 
-    if not pyqt:
-        extra_msg = extra_msg + '\n\nNOTE: Dependency PyQt (4 or 5) is not installed and\n      could not be installed automatically; the Calcam \n      GUI will not work until this is installed.'
+    print('\n***************************************************************\n\nCalcam installation complete.\n\nIt can be imported as a Python module with "import calcam"{:s}\n\n***************************************************************\n'.format(extra_msg))
 
-
-    print('\n***************************************************************\n\nCalcam installation complete.{:s}\n\n***************************************************************\n'.format(extra_msg))
+else:
+    print('\n***************************************************************\n')

@@ -11,7 +11,7 @@ A screenshot of the calibration tool GUI is shown below, with the main areas ann
 
 
 Loading an Image to Calibrate
------------------------------------------
+------------------------------
 At the top of the :guilabel:`Camera Image` control tab is a group of controls for loading an image you want to calibrate. The :guilabel:`From` dropdown list selects the source from which you want to load the image. The options available as standard are loading from an image file (default) or loading an image from another Calcam calibration. If you define any custom image sources (see :doc:`dev_imsources`), they will also appear in this dropdown menu. Once an image source is selected, the relevant inputs to set up the image loading appear below the dropdown list. Once the relevant fields are completed, click the :guilabel:`Load` button to load the image.
 
 If loading an image with an existing calibration already open, e.g. to update a calibration using a more recent reference image, the loaded image must have the same dimensions as the one it is replacing. If you try to load an image with different dimensions, a dialog box will appear asking whether you want to start a new calibration or cancel loading the image. If the new image is compatible with the existing calibration, a dialog will open asking if you want to use the :doc:`gui_movement` tool to determine the movement between the existing image and newly loaded one. If you do this, the movement found using the :doc:`gui_movement` tool will be used to update all calibration points at once to align them with the new image.
@@ -28,32 +28,59 @@ Current Image Settings
 -----------------------
 With an image loaded, the :guilabel:`Current Image` section appears on the :guilabel:`Camera Image` tab, containing information and settings for the current image. Controls include
 
-* **Known Pixel Size**: If you know the pixel size of the camera, it can be entered here. This does not make any difference to the calibration except that focal lengths can be displayed in mm instead of pixels, which can be useful for sanity checking results e.g. comparing with optical designs or known lenses.
+* **Known Pixel Size**: If you know the pixel size of the camera, it can be entered here. This does not make any difference to the calibration except that focal lengths can be displayed in units of mm instead of pixels, which can be useful for sanity checking results e.g. comparing with optical designs or known lenses.
 
-* **Geometrical Transformations**: Controls for transforming the image to get it the "right way up". It is recommended to always load images in to Calcam the way they come out of the camera as raw, then use these controls to get the image right-way-up for calibration. The :guilabell:Stretch Vertically by' button is provided for cameras with non-square pixels or anamorphic optics.
+* **Geometrical Transformations**: Controls for transforming the image to get it the "right way up". It is recommended to always load images in to Calcam the way they come out straight from the camera, then use these controls to get the image right-way-up for calibration. The :guilabell:Stretch Vertically by' button is provided for cameras with non-square pixels or anamorphic optics. Although images can still be calibrated if you leave them rotated, you must use these controls to remove any horizontal or vertical flip from the image, otherwise the calibration will not work.
 
-* **Histogram Equilise** (only available with OpenCV 3.0+): Toggle adaptive histogram equilistion on the image display; turning this on will increase the image contrast to mak it easier to see features in the image.
+* **Apply Image Enhancement**: Enabling this option will attempt to enhance the displayed image to increase the contrast and visibility of image features which might be useful for calibration.
 
 
-Images with multiple sub-views
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-If the image to be calibrated contains multiple :ref:`subviews_intro`, this can be set up by clicking the :guilabel:`Define Sub-Views` button at the bottom of the image controls, which opens the below window:
+View Masking
+~~~~~~~~~~~~
+For many camera systems, not every pixel on the detector should have the same calibration applied. In some systems the image projected by the optics does not fill the whole sensor, and some systems consist of multiple views in different directions, optically combined on to a single detector. Calcam supports these types of systems by allowing you to set up a mask specifying which pixels contain what image. This can be set up by clicking the :guilabel:`Define...` button beside the text :guilabel:`Image masking and & sub-views`. Pressing the button opens the following dialog box:
+
+.. image:: images/screenshots/subviews_start.png
+   :alt: Sub-view window screenshot
+   :align: left
+
+This window shows the image on the left, with any mask shown by different coloured shading. Below the image is a slider which can be used to control the opacity of the shading. Mouse navigation controls for the image are the same as for the image in the main calibration window. On the right-of the window are the different options you can select for defining the image masking:
+
+No Masking
+**********
+This is the default for a newly loaded image. Use this option if you have a straightforward image with all of the sensor area used.
+
+Image Surrounded by Dark Border
+*******************************
+This option is used for cases where the optical image does not fill the whole sensor - the image takes up some of the sensor area but is surrounded by a dark border where there is no real image. When selected, this option lets you click on areas where there is no image to "flood fill" a mask excluding those pixels from calibration. When you select this option, the entire image is shown shaded in colour. As you click on areas to mark them as not containing image, these ares become shaded grey. Clicking on the image multiple times adds whatever area is clicked to the excluded area. If the flood fill algorithm selects too little or too much of the image, you can adjust the threshold and median filter size for the flood fill algorithm with the provided controls. Increasing these values means a larger area will be selected with each click. If you select too much area to exclude and need to start again, use the :guilabel:`Reset` button to clear the masking and start again. When finished, the part of the sensor containing the image should be shown with a colour overlay while the part containing no image should be shaded grey, like the example below.
+
+.. image:: images/screenshots/subviews2.png
+   :alt: Sub-view window screenshot
+   :align: left
+
+2 Sub-views separated by a straight line
+****************************************
+This option can be used where there are 2 different fields of view ('sub-views') optically combined on to a single detector, with a straight line border between the two. When this option is selected, you can click two points on the image to define the line which separates the two sub-views. Once the points are placed, clicking on the image again moves the selected point (shown in green) to the clicked position. The other point can be selected by clicking it.
+
+* **Custom mask** for images with more than 2 sub-views or where the boundary between the sub-views is not a straight line. To use this function, prepare an image file the same size as the image to be calibrated with blocks of different solid colours representing each sub-view. You can then load this image file and the blocks of different colours will be used to define the coverage of the different sub-views.
+
+Once the positions of the sub-views have been configured, on the lower-right of the window are boxes to enter human-friendly names for the different sub-views (see screenshot below). These will be used to identify the sub-views elsewhere in the GUI and calibration information.
+
+Arbitrary Mask
+**************
+This option can be used to treat more complicated situations, like if there are more than 2 different 'sub-views' combined on the sensor; multiple views plus some parts of the image with no image; or parts of the image are blocked by features not included in the CAD model and you wish to mark them as not containing useful images. In this case, you should prepare an image file, the same dimensions as the image being calibrated, where the distinct regions are flood-filled with different colours. You can then load this image using the :guilabel:`Load Mask Image` button and it will be used to define the image mask. The example below shows a case of an image from JET where the detector includes 2 different optically-combined views, plus some unused area:
+It is often useful to save a copy of the image being calibrated to use as a template / layer when creating the mask image. You can save a copy of the image being calibrated using the :guilabel:`Save Calibration Image...` button.
+
+Once the mask image is loaded, you can give each region of the image a human-friendly name using the boxes on the right, and use the tick boxes to indicate which regions contain image to be calibrated and which do not contain image data:
 
 .. image:: images/screenshots/subviews.png
    :alt: Sub-view window screenshot
    :align: left
 
-This window shows the image on the left, with the different sub-views tinted in different colours. Below the image is a slider which can be used to control the opacity of this tint effect to. Mouse navigation controls for the image are the same as for the image in the main calibration window. On the right-of the window are 3 options for defining which pixels in the image belong to which sub-view:
+When you are happy with the image masking configuration, click :guilabel:`Apply`. If you click :guilabel:`cancel`, no change will be applied to the masking configuration.
 
-* **No Split Field-of-View**: If the image does not have a split field-of-view (i.e. only contains a single subview) as is the case for most images. This is the default for images loaded from image files.
+.. note::
+    After changing the masking configuration, any existing calibration fit(s) will be reset so you will have to re-run the calibration fitting.
 
-* **2 Sub-views separated by a straight line**: The simplest case for a split-view image. If this option is selected, click two points on the image to define the line which separates the two sub-views. Once the points are placed, clicking on the image again moves the selected point (shown in green) to the clicked position. The other point can be selected by clicking it.
-
-* **Custom mask** for images with more than 2 sub-views or where the boundary between the sub-views is not a straight line. To use this function, prepare an image file the same size as the image to be calibrated with blocks of different solid colours representing each sub-view. You can then load this image file and the blocks of different colours will be used to define the coverage of the different sub-views.
-
-Once the positions of the sub-views have been configured, on the lower-right of the window are boxes to enter human-friendly names for the different sub-views. These will be used to identify the sub-views elsewhere in the GUI and calibration information.
-
-Once this is all set to your satisfaction, click :guilabel:`Apply` to apply the sub-view configuration and return to the main window. Clicking :guilabel:`Cancel` will return to the main window without making any changes.
 
 Loading and manipulating a CAD model
 ------------------------------------
@@ -167,7 +194,7 @@ It may sometimes be desirable to compare the current calibration fit with a diff
 
 Saving / Loading and viewing calibration information
 ----------------------------------------------------
-Once a satisfactory calibration has been obtained, the calibration can be saved to a Calcam calibration (``.ccc``) file using the :guilabel:`Save` / :guilabel:`Save As` buttons on the toolbar at the top of the window. The resulting file can then be loaded in the image analyser tool or using the Calcam :doc:`Python API <api_analysis>` to make use of the calibration. As with any computer application, it is advised to save your work regularly in case of computer crash or user error. You do not have to have a complete calibration in order to save; a calibration containing just an image, an image and point pairs or a full set of image, point pairs and fit can be saved and returned to later.
+Once a satisfactory calibration has been obtained, the calibration can be saved to a Calcam calibration (``.ccc``) file using the :guilabel:`Save` / :guilabel:`Save As` buttons on the toolbar at the top of the window. The resulting file can then be loaded in the :doc:`gui_image_analyser` tool or in Python with the :class:`calcam.Calibration` class to make use of the calibration. As with any computer application, it is advised to save your work regularly in case of computer crash or user error. You do not have to have a complete calibration in order to save; a calibration containing just an image, an image and point pairs or a full set of image, point pairs and fit can be saved and returned to later.
 
 Existing calibrations can be loaded using the :guilabel:`Open` button in the toolbar at the top of the window. This will load the image, point pairs and fit results from the selected calibration file. If the CAD model which was last used for thet calibration is available, it will also load and set up the CAD model as it was the last time that file was edited.
 

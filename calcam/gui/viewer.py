@@ -859,7 +859,7 @@ class Viewer(CalcamGUIWindow):
                             actor_type = 'volume'
                         elif self.sightline_type_lines.isChecked():
                             actor_type = 'lines'
-                        elif self.sightine_type_wallcoverage.isChecked():
+                        elif self.sightline_type_wallcoverage.isChecked():
                             actor_type = 'wall_coverage'
                         if cal.n_subviews > 1:
                             sv = subview

@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                Version 2.8
+                Version 2.9
               </div>
             
           
@@ -117,8 +117,9 @@
 </ul>
 <p class="caption"><span class="caption-text">API User Guide</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="api_analysis.html">Using Calibration Results</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_calib.html">The Calibration Class</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_cadmodel.html">CAD Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_raycast.html">Ray Casting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_rendering.html">Rendering Images</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_geom_matrix.html">Tomography Geometry Matrices</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_movement.html">Camera Movement Correction</a></li>
@@ -206,11 +207,33 @@
 <li><p><strong>Known Pixel Size</strong>: If you know the pixel size of the camera, it can be entered here. This does not make any difference to the calibration except that focal lengths can be displayed in mm instead of pixels, which can be useful if you know the expected effective focal length of the camera optics.</p></li>
 <li><p><strong>Geometrical Transformations</strong>: Controls for transforming the image to get it the “right way up”. It is recommended to always load images in to Calcam the way they come out of the camera as raw, then use these controls to get the image right-way-up for calibration. The :guilabell:Stretch Vertically by’ button is provided for cameras with non-square pixels or anamorphic optics.</p></li>
 </ul>
+<div class="section" id="view-masking">
+<h3>View Masking<a class="headerlink" href="#view-masking" title="Permalink to this headline">¶</a></h3>
+<p>View masking can be used where the optical image does not fill the entire detector, to mark which parts of the image contain the actual image. This can be set up by clicking the <span class="guilabel">Define…</span> button beside the text <span class="guilabel">Image masking</span>. Pressing the button opens the following dialog box:</p>
+<img alt="Sub-view window screenshot" class="align-left" src="_images/subviews.png" />
+<p>This window shows the image on the left, with any mask shown by different coloured shading. Below the image is a slider which can be used to control the opacity of the shading. Mouse navigation controls for the image are the same as for the image in the main calibration window. On the right-of the window are the different options you can select for defining the image masking:</p>
+<div class="section" id="no-masking">
+<h4>No Masking<a class="headerlink" href="#no-masking" title="Permalink to this headline">¶</a></h4>
+<p>This is the default for a newly loaded image. Use this option if you have a straightforward image with all of the sensor area used.</p>
+</div>
+<div class="section" id="image-surrounded-by-dark-border">
+<h4>Image Surrounded by Dark Border<a class="headerlink" href="#image-surrounded-by-dark-border" title="Permalink to this headline">¶</a></h4>
+<p>This option can be used to mask the image using a flood-fill method. When selected, this option lets you click on areas where there is no image to “flood fill” a mask excluding those pixels from calibration. When you select this option, the entire image is shown shaded in colour. As you click on areas to mark them as not containing image, these ares become shaded grey. Clicking on the image multiple times adds whatever area is clicked to the excluded area. If the flood fill algorithm selects too little or too much of the image, you can adjust the threshold and median filter size for the flood fill algorithm with the provided controls. Increasing these values means a larger area will be selected with each click. If you select too much area to exclude and need to start again, use the <span class="guilabel">Reset</span> button to clear the masking and start again. When finished, the part of the sensor containing the image should be shown with a colour overlay while the part containing no image should be shaded grey, like the example below.</p>
+</div>
+<div class="section" id="arbitrary-mask">
+<h4>Arbitrary Mask<a class="headerlink" href="#arbitrary-mask" title="Permalink to this headline">¶</a></h4>
+<p>This option can be used to load in an arbitrary image mask, if the flood fill method cannot be used to define the mask sufficiently. To do this, prepare an image file where the pixels containing the image are filled in a single colour and pixels containing no image are filled a different colour. It is often useful to save a copy of the image being calibrated to use as a template / layer when creating the mask image. You can save a copy of the image being calibrated using the <span class="guilabel">Save Calibration Image…</span> button.</p>
+<p>When you are happy with the image masking configuration, click <span class="guilabel">Apply</span>. If you click <span class="guilabel">cancel</span>, no change will be applied to the masking configuration.</p>
+<blockquote>
+<div><p>Note that the image masking configuration will not affect the GUI display when you are doing the calibration, but the masking is applied to the resulting calibration.</p>
+</div></blockquote>
+</div>
+</div>
 <div class="section" id="image-display-effects">
 <h3>Image display effects<a class="headerlink" href="#image-display-effects" title="Permalink to this headline">¶</a></h3>
 <p>Applying effects to the image can make it easier to align the image and CAD. The <span class="guilabel">Image Display</span> box appears below the <span class="guilabel">Current Image</span> box when an image is loaded. Settings available are:
 * <strong>No effect</strong>: Display the image, without further processing, semi-transparently on top of the CAD view.
-* <strong>Histogram equilisation</strong>: Apply local histogram equilisation to improve the contrast of image features.
+* <strong>Enhance</strong>: Apply image enhancement to improve the contrast of image features.
 * <strong>Edge Detection</strong>: Apply a Canny edge detector to the image and display the detected edges only overlaid on the CAD image. When this option is selected, the following extra controls are available: sliders for the edge detection thresholds which can be adjusted to improve the edge detection, and a colour picker to choose the colour of the displayed edges.
 * <strong>Display opacity</strong>:  For manual calibration, the image is displayed semi-transparently over the CAD model. When no effect or histogram equilisation are detected, this slider controls the image opacity: slide to the left to make the image less visible, slide to the right to make the image more opaque over the CAD. This slider is not displayed when edge detecion is used, when the edges are displayed at full opacity.</p>
 </div>
@@ -235,7 +258,7 @@
 <p>The camera intrinsics are set using the top part of the <span class="guilabel">Alignment Calibration</span> control tab. Camera intrinsics can be set 3 different ways: using intrinsics from an existing calibration (e.g. to calibrate an existing camera &amp; lens setup moved to a new view), using chessboard calibration pattern images from lab measurements, or using a simple pinhole camera model. It is highly recommended to use chessboard images, if possible, or another calcam calibration since this is likely to give much better results and will probably be easier.</p>
 <div class="section" id="existing-calibration-intrinsics">
 <h4>Existing Calibration Intrinsics<a class="headerlink" href="#existing-calibration-intrinsics" title="Permalink to this headline">¶</a></h4>
-<p>To use intrinsics from an existing Calcam calibration, select <span class="guilabel">Use intrinsics from existing calibration</span> and browse for the calibration you want to use. The loaded calibration can be changed using the <span class="guilabel">Load…</span> button.</p>
+<p>To use intrinsics from an existing Calcam calibration, select <span class="guilabel">Use intrinsics from existing calibration</span> and browse for the calibration you want to use. The loaded calibration can be changed using the <span class="guilabel">Load…</span> button. Any image masking in the loaded calibration will also be applied (this can be edited as described in the view masking section, above).</p>
 </div>
 <div class="section" id="chessboard-calibration-intrinsics">
 <h4>Chessboard Calibration Intrinsics<a class="headerlink" href="#chessboard-calibration-intrinsics" title="Permalink to this headline">¶</a></h4>
@@ -275,7 +298,12 @@
 </div>
 <div class="section" id="saving-loading-and-viewing-calibration-information">
 <h2>Saving / Loading and viewing calibration information<a class="headerlink" href="#saving-loading-and-viewing-calibration-information" title="Permalink to this headline">¶</a></h2>
-<p>Once a satisfactory calibration has been obtained, the calibration can be saved to a Calcam calibration (<code class="docutils literal notranslate"><span class="pre">.ccc</span></code>) file using the <span class="guilabel">Save</span> / <span class="guilabel">Save As</span> buttons on the toolbar at the top of the window. The resulting file can then be loaded in the image analyser tool or using the Calcam <a class="reference internal" href="api_analysis.html"><span class="doc">Python API</span></a> to make use of the calibration. As with any computer application, it is advised to save your work regularly in case of computer crash or user error. Note: whenever the save button is clicked, the camera extrinsics in the saved calibration will be whatever the current CAD view alignment show.</p>
+<p>Once a satisfactory calibration has been obtained, the calibration can be saved to a Calcam calibration (<code class="docutils literal notranslate"><span class="pre">.ccc</span></code>) file using the <span class="guilabel">Save</span> / <span class="guilabel">Save As</span> buttons on the toolbar at the top of the window. The resulting file can then be loaded in the <a class="reference internal" href="gui_image_analyser.html"><span class="doc">Image Analyser</span></a> tool or in Python with the <a class="reference internal" href="api_calib.html#calcam.Calibration" title="calcam.Calibration"><code class="xref py py-class docutils literal notranslate"><span class="pre">calcam.Calibration</span></code></a> class to make use of the calibration.</p>
+<p>As with any application, it is advised to save your work regularly to reduce the risk of software or user errors.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Whenever the save button is clicked, the camera extrinsics in the saved calibration will correspond go the current view in the GUI window.</p>
+</div>
 <p>Existing manual alignment calibrations can be loaded using the <span class="guilabel">Open</span> button in the toolbar at the top of the window. This will load the image, extrinsics and intrinsics from the saved calibration. If the CAD model which was last used for thet calibration is available, it will also load and set up the CAD model as it was the last time that file was edited.</p>
 <p>Information about the current calibration can be viewed using the <span class="guilabel">Calibration Information</span> button on the toolbar.</p>
 </div>
@@ -302,7 +330,7 @@
   <div role="contentinfo">
     <p>
         
-        &copy; Copyright 2015-2020, European Atomic Energy Community (EURATOM)
+        &copy; Copyright 2015-2022, European Atomic Energy Community (EURATOM)
 
     </p>
   </div>

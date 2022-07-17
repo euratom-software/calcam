@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                Version 2.8
+                Version 2.9
               </div>
             
           
@@ -113,8 +113,9 @@
 </ul>
 <p class="caption"><span class="caption-text">API User Guide</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="api_analysis.html">Using Calibration Results</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_calib.html">The Calibration Class</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_cadmodel.html">CAD Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_raycast.html">Ray Casting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_rendering.html">Rendering Images</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_geom_matrix.html">Tomography Geometry Matrices</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_movement.html">Camera Movement Correction</a></li>
@@ -191,23 +192,29 @@
 <h1>Introduction &amp; Launcher<a class="headerlink" href="#introduction-launcher" title="Permalink to this headline">¶</a></h1>
 <p>Calcam consists of 5 main GUI tools both for performing calibrations and visualising the results / doing some basic image position analysis, which can all be conveniently accessed via the Calcam GUI launcher interface. The launcher is shown below:</p>
 <img alt="Calcam Launcher Screenshot" class="align-left" src="_images/launcher.png" />
-<p>The buttons to the right-hand side of the Calcam logo each open a new python instance running the selected GUI, and a link to the online copy of this documentation is provided under the logo. The launcher will also check whether you are using the most recent release version of Calcam and will display a message at the bottom of the window alerting you if a newer version is available. More details of each of the tools are given below.</p>
+<p>The buttons to the right-hand side of the Calcam logo each open a new python instance running the selected GUI. The details of what each one does and how to use it are given on the other pages in this section.</p>
+<p>A link to the online copy of this documentation is provided under the logo in the launcher. The launcher will also check whether you are using the most recent release version of Calcam, and will display a message at the bottom of the window alerting you if a newer version is available. More details of each of the tools are given below.</p>
 <div class="section" id="starting-the-launcher">
 <h2>Starting the launcher<a class="headerlink" href="#starting-the-launcher" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="from-the-command-line">
-<h3>From the command line<a class="headerlink" href="#from-the-command-line" title="Permalink to this headline">¶</a></h3>
-<p>At installation, the setup script will create a launcher for the Calcam GUI in your Python environment’s script directory. If this directory is in your OS’s <code class="docutils literal notranslate"><span class="pre">PATH</span></code> environment variable, this enables the Calcam GUI to be started directly from a terminal or command prompt simply by typing:</p>
+<div class="section" id="from-the-executable">
+<h3>From the executable<a class="headerlink" href="#from-the-executable" title="Permalink to this headline">¶</a></h3>
+<p>At installation, the setup script will create a launcher for the Calcam GUI in your Python environment’s script directory.</p>
+<p>If this directory is in your OS’s <code class="docutils literal notranslate"><span class="pre">PATH</span></code> environment variable, this enables the Calcam GUI to be started directly from a terminal or command prompt simply by typing:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">calcam</span>
 </pre></div>
 </div>
-<p>On Windows, it should also be possible to create a shortcut to start Calcam by creating a new shortcut with the target “calcam”.</p>
-<p>The setup script will check at the time of installation whether the location of the launcher is in your <code class="docutils literal notranslate"><span class="pre">PATH</span></code> environment variable, to enable the above functionality. If it is not, the setup script will tell you what path needs to be added to your <code class="docutils literal notranslate"><span class="pre">PATH</span></code> to enable this, which is highly recommended for convenience.</p>
+<p>If the directory is not in the <code class="docutils literal notranslate"><span class="pre">PATH</span></code> environment variable, you will have to use the full path to the calcam executable. If you will use the GUI often, it is recommended to make a graphical shortcut to it for easy access.</p>
+<p>If you need to check the location of the calcam executable, you can find it from within python using the following code:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">calcam</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">calcam</span><span class="o">.</span><span class="n">gui</span><span class="o">.</span><span class="n">executable_path</span><span class="p">)</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="from-within-python">
 <h3>From within Python<a class="headerlink" href="#from-within-python" title="Permalink to this headline">¶</a></h3>
 <p>Alternatively, the Calcam GUI launcher can be opened by calling the <code class="xref py py-func docutils literal notranslate"><span class="pre">start_gui()</span></code> function in the Calcam Python package:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">&gt;&gt;&gt;import calcam</span>
-<span class="go">&gt;&gt;&gt;calcam.start_gui()</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">calcam</span>
+<span class="n">calcam</span><span class="o">.</span><span class="n">start_gui</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
@@ -235,7 +242,7 @@
   <div role="contentinfo">
     <p>
         
-        &copy; Copyright 2015-2020, European Atomic Energy Community (EURATOM)
+        &copy; Copyright 2015-2022, European Atomic Energy Community (EURATOM)
 
     </p>
   </div>
