@@ -77,7 +77,6 @@ if PyQtImpl == "PyQt6":
     from PyQt6.QtWidgets import QApplication
     from PyQt6.QtCore import Qt
     from PyQt6.QtCore import QTimer
-    from PyQt6.QtCore import QObject
     from PyQt6.QtCore import QSize
     from PyQt6.QtCore import QEvent
 
@@ -109,7 +108,6 @@ elif PyQtImpl == "PyQt5":
     from PyQt5.QtWidgets import QApplication
     from PyQt5.QtCore import Qt
     from PyQt5.QtCore import QTimer
-    from PyQt5.QtCore import QObject
     from PyQt5.QtCore import QSize
     from PyQt5.QtCore import QEvent
     MouseButtonDblClick = QEvent.MouseButtonDblClick
@@ -127,7 +125,6 @@ elif PyQtImpl == "PyQt4":
     from PyQt4.QtGui import QApplication
     from PyQt4.QtCore import Qt
     from PyQt4.QtCore import QTimer
-    from PyQt4.QtCore import QObject
     from PyQt4.QtCore import QSize
     from PyQt4.QtCore import QEvent
 
@@ -260,8 +257,10 @@ class QVTKRenderWindowInteractor(QVTKRWIBaseClass):
         if QVTKRWIBase == "QWidget":
             if "wflags" in kw:
                 wflags = kw['wflags']
+
             else:
-                wflags = Qt.WindowFlags()
+                wflags = 0
+
             QWidget.__init__(self, parent, wflags | Qt.MSWindowsOwnDC)
         elif QVTKRWIBase == "QGLWidget":
             QGLWidget.__init__(self, parent)
