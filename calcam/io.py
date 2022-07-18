@@ -21,12 +21,10 @@
 
 import zipfile
 import tempfile
-import sys
 import os
 import shutil
 import hashlib
 import atexit
-import inspect
 
 from .misc import import_source,unload_source
 
@@ -172,6 +170,8 @@ class ZipSaveFile():
             # Tidy up the temp directory after ourselves
             shutil.rmtree(self.tempdir)
             self.tempdir = None
+
+        atexit.unregister(self.close)
 
 
 
