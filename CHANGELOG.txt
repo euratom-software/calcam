@@ -1,6 +1,18 @@
 Calcam Changelog
 ================
 
+
+Patch Release 2.9.1 (23rd July 2022)
+------------------------------------
+
+Fixes:
+* Fixed bug which caused the Settings GUI to fail to open under PyQt6 in some circumstances.
+* Fixed bug in RayData class where getting a data array from a Raydata object loaded from disk could produce garbled results.
+* Fixed exception raised by QVTKRenderWindowInteractor in PyQt6 if QGLWidget is not available.
+* Fixed (hopefully) invalid .zenodo.json so future releases get successfully published on Zenodo.
+* Try to save a little memory by adding de-registration of ZipSaveFile.close() method from atexit when the file is closed.
+
+
 Minor Release 2.9.0 (17th July 2022)
 ------------------------------------
 

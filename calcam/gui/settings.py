@@ -30,6 +30,11 @@ from ..config import CalcamConfig
 from . import qt_wrapper as qt
 from .launcher import launch
 
+if qt.qt_ver < 6:
+    red = qt.Qt.red
+else:
+    red = qt.QColor('red')
+
 class Settings(qt.QMainWindow):
 
 
@@ -185,7 +190,7 @@ class Settings(qt.QMainWindow):
             listitem.setFlags(listitem.flags() | qt.Qt.ItemIsEditable | qt.Qt.ItemIsSelectable)
 
             if not os.path.isdir(path):
-                listitem.setForeground(qt.Qt.red)
+                listitem.setForeground(red)
                 listitem.setToolTip('Path does not exist or cannot be accessed.')
             
             self.cad_path_list.addItem(listitem)
@@ -218,7 +223,7 @@ class Settings(qt.QMainWindow):
             listitem.setFlags(listitem.flags() | qt.Qt.ItemIsEditable | qt.Qt.ItemIsSelectable)
 
             if not os.path.isdir(path):
-                listitem.setForeground(qt.Qt.red)
+                listitem.setForeground(red)
                 listitem.setToolTip('Path does not exist or cannot be accessed.')
                 
             self.imsource_path_list.addItem(listitem)
@@ -237,7 +242,7 @@ class Settings(qt.QMainWindow):
             listitem = qt.QListWidgetItem(imsource[0])
             self.imsource_paths[listitem] = imsource[1]
             if imsource[2]:
-                listitem.setForeground(qt.Qt.red)
+                listitem.setForeground(red)
                 listitem.setToolTip(imsource[2])
             elif imsource[1]:
                 listitem.setToolTip(imsource[1])

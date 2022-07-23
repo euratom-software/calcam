@@ -2,13 +2,6 @@
     "language": "eng",
     "license": "EUPL-1.1",
     "title": "Calcam",
-    "related_identifiers": [
-        {
-            "scheme": "doi",
-            "identifier": "10.5281/zenodo.1478554",
-            "relation": "isVersionOf"
-        }
-    ],
     "upload_type": "software",
     "creators": [
         {

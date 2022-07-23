@@ -5,6 +5,7 @@
 *.synctex.gz
 *.toc
 docs/html/.doctrees
+calcam.egg-info/*
 Calcam.egg-info/*
 build/
 dist/

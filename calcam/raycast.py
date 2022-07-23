@@ -407,8 +407,8 @@ class RayData:
         f = netcdf_file(filename, 'r',mmap=False)
         self.filename = filename
                
-        self.ray_end_coords = f.variables['RayEndCoords'].data
-        self.ray_start_coords = f.variables['RayStartCoords'].data
+        self.ray_end_coords = f.variables['RayEndCoords'].data.astype(np.float32)
+        self.ray_start_coords = f.variables['RayStartCoords'].data.astype(np.float32)
         self.binning = f.variables['Binning'].data[()]
 
         self.transform = coordtransformer.CoordTransformer()
@@ -423,7 +423,7 @@ class RayData:
             pass
 
         try:
-            self.model_normals = f.variables['ModelNormals'].data
+            self.model_normals = f.variables['ModelNormals'].data.astype(np.float32)
         except KeyError:
             self.model_normals = None
 
