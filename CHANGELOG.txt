@@ -2,8 +2,8 @@ Calcam Changelog
 ================
 
 
-Future Patch Release 2.9.1
---------------------------
+Patch Release 2.9.1 (23rd July 2022)
+------------------------------------
 
 Fixes:
 * Fixed bug which caused the Settings GUI to fail to open under PyQt6 in some circumstances.
