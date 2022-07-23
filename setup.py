@@ -39,7 +39,7 @@ import os
 import subprocess
 
 if 'bdist_wheel' in sys.argv:
-    raise Exception("Looks like you are trying to build a wheel for Calcam. That would skip setup.py at install time which contains important setup logic, so I'm afraid I can't let you do that.")
+    raise Exception("Calcam currently cannot be distributed as wheels due to having important install-time logic in setup.py.")
 
 # Read version from the version file.
 with open(os.path.join(os.path.split(os.path.abspath(__file__))[0],'calcam','__version__'),'r') as ver_file:

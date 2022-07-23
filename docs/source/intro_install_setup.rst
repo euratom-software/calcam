@@ -141,11 +141,14 @@ You should then be able to import the calcam module in Python and start the GUI 
 
 Insufficient Persmissions to install
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-The setup process may try to install Calcam in the python library paths for your system. If your user account does not have permissions to write to these paths (e.g. root or admin permissions), the setup will fail with an error about permissions. In this case, adding the ``--user`` option to the installation command will install the package for your user account only, which does not require root or admin permissions.
+If installing on a multi-user system, your account may not have permissions to install calcam in the system-wide python library paths. Typically ``pip`` will handle this for you and install Calcam just for your user account if this is the case. If this does not happen and the setup fails with an error about permissions, adding the ``--user`` option to the installation command will try to install the package for your user account only, which does not require root or admin permissions.
 
 
 Problems trying to start Calcam
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Dependencies
+************
 If you cannot import or start Calcam after installation, the most common problems are due to one or more of Calcam's dependencies not working properly. In most cases, Calcam should give an error message which makes it clear which dependency is not working properly. If this is not clear, open a python prompt and try the following import commands, which all need to work for Calcam to be able to work:
 
 .. code-block:: python
@@ -165,7 +168,7 @@ In addition to these, at least one of the following PyQt imports must work for t
 
 If any of the required imports fail with errors, you will need to fix the relevant Python module installation before Calcam will work (re-installing the relevant module is a good first thing to try). If all of the required imports work properly, there could be a bug or issue with Calcam.
 
-If troubleshooting dependencies or strange / broken behaviour of Calcam, the table below gives some information on known issues with some versions of Calcam's dependencies:
+If troubleshooting dependencies or strange / broken behaviour of Calcam, the table below gives some information on known issues with some versions of Calcam's dependencies. You can check which versions OpenCV, VTK and PyQt you are using in the :doc:`gui_settings` interface.
 
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Module / Library    | Versions Tested / comments                                                                                                                                         |
@@ -183,27 +186,33 @@ If troubleshooting dependencies or strange / broken behaviour of Calcam, the tab
 |                     | If running under OSX older than 10.12, versions of OpenCV newer than 3.2 may cause crashes on import (downgrade to OpenCV < 3.3 to fix this).                      |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | VTK                 | Requires >6, OK with versions < 9.1. With VTK 9.1+, setting CAD models to wireframe can cause Python to exit unexpectedly (see GitHub issue #78)                   |
+|                     |                                                                                                                                                                    |
+|                     | VTK9 + PyQt6 known to cause black / blank CAD and image views on some systems (e.g. Windows sytems with Intel garphics) - solve by downgrading to VTK 8 or PyQt5.  |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | PyQt                | Works with PyQt4, PyQt5 or PyQt6 (tested up to 6.2.2)                                                                                                              |
 |                     |                                                                                                                                                                    |
 |                     | PyQt5 versions 5.11 and older are known to cause unreadable text in the GUI on OSX when using dark theme.                                                          |
 |                     |                                                                                                                                                                    |
 |                     | Some versions can result in click positions being registsred wrong on OSX using High DPI mode; not clear what version ranges this affects (see GitHub issue #79)   |
+|                     |                                                                                                                                                                    |
+|                     | PyQt6 + VTK9 known to cause black / blank CAD and image views on some systems (e.g. Windows sytems with Intel garphics) - solve by downgrading to PyQt5 or VTK 8.  |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
-You can check which versions OpenCV, VTK and PyQt you are using in the :doc:`gui_settings` interface.
+Also check the  `GitHub issues page <https://github.com/euratom-software/calcam/issues>`_ for more details about known issues.
+
 
 OpenGL related error messages
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-If the Calcam GUI fails to start with a message about OpenGL environment etc, either there is a problem with your installation of VTK, or the graphics setup of your system. Sometimes this can be a result of using Calcam on a remote system using some remote connection software. If you have a different way to connect to the computer running Calcam, try that - if the results don't change, see the section below on graphics problems.
+*****************************
+If the Calcam GUI fails to start with a message about OpenGL environment etc, either there is a problem with your installation of VTK, or the graphics setup of your system. Sometimes this can be a result of using Calcam on a remote system with some remote desktop software. If you have a different way to connect to the computer running Calcam, try that - if the results don't change, see the section below on graphics problems.
+
 
 Black screen / corrupted graphics
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-If you get blank / black displays in Calcam where the CAD model and image are supposed to be displayed, or get a corrupted view of the CAD model, this is an issue with VTK (the OpenGL visualisation library which Calcam uses to display the CAD and some images). To confirm if your VTK installation is working, you can try running the VTK example code on `this page <https://kitware.github.io/vtk-examples/site/Python/GeometricObjects/CylinderExample/>`_ to check if it gives a result like the picture. If you do have a problem with VTK, the easiest thing to try is installing a different version. You can check the current version of VTK in the calcam :doc:`gui_settings` interface. For example, if you have VTK 9.0.3 installed but are getting non-working graphics, you can try installing VTK 8 instead with the command::
+If you get blank / black displays in Calcam where the CAD model and image are supposed to be displayed, or get a corrupted view of the CAD model, this could be an issue with VTK (the OpenGL visualisation library which Calcam uses to display the CAD and some images). To confirm if your VTK installation is working, you can try running the VTK example code on `this page <https://kitware.github.io/vtk-examples/site/Python/GeometricObjects/CylinderExample/>`_ to check if it gives a result like the picture. If you get correct display testing VTK on its own but not in Calcam, it could be caused by your particilar combination of VTK, PyQt and graphics drivers - see the above section about dependencies. If you do have a problem with VTK, the easiest thing to try is installing a different version (you can check the current version of VTK in the calcam :doc:`gui_settings` interface). You can try installing different versions using `pip`, for example if VTK 9 is acusing issues, you can install an older version with the command::
 
     pip install "vtk<9"
 
-If you cannot get VTK working properly, you may need to try using Calcam on a different computer with a different hardware / software environment.
+If you cannot get VTK working properly, you may need to try using Calcam on a different computer with a different graphics hardware / software environment.
 
 Reporting Problems
 ~~~~~~~~~~~~~~~~~~
@@ -212,6 +221,20 @@ If you find bugs / problems, please check the `GitHub issues page <https://githu
 
 Updating
 --------
+
+Updating using pip
+~~~~~~~~~~~~~~~~~~
+To update to the latest release version of calcam using ``pip``, use the command::
+
+    pip install --upgrade calcam
+
+From source
+~~~~~~~~~~~
+To upgrade from manually downloaded source, follow the installation instructions near the top of this page to download the version you want and install.
+
+.. note::
+    If installing older versions of Calcam < 2.9, installing with pip may not take care of Calcam's dependencies properly. If you have problems with the instructions on this page for older versions, refer to the offline version of this documentation in the ``docs/html/`` folder of the particular code version.
+
 
 Version Cross-Compatibility
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -233,18 +256,6 @@ Newer ``minor`` versions of Calcam will maintain backwards compatibility with fi
 
     Calibration files created with Calcam 2.6 or newer cannot be loaded properly in Calcam versions < 2.6
 
-Updating using pip
-~~~~~~~~~~~~~~~~~~
-To update to the latest release version of calcam using ``pip``, use the command::
-
-    pip install --upgrade calcam
-
-From source
-~~~~~~~~~~~
-To upgrade from manually downloaded source, follow the instructions near the top of this page to download the version you want and install.
-
-.. note::
-    If installing older versions of Calcam < 2.9, installing with pip may not take care of Calcam's dependencies properly. If you have problems with the instructions on this page for older versions, refer to the offline version of this documentation in the ``docs/html/`` folder of the particular code version.
 
 Updating from Calcam 1.x
 ~~~~~~~~~~~~~~~~~~~~~~~~

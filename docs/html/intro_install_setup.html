@@ -311,10 +311,12 @@
 <p>You should then be able to import the calcam module in Python and start the GUI via the executable or via Python (see the GUI user guide). If instead you get error messages, or get errors when trying to start or import calcam, the following sections provide some guidance on fixing common problems.</p>
 <div class="section" id="insufficient-persmissions-to-install">
 <h3>Insufficient Persmissions to install<a class="headerlink" href="#insufficient-persmissions-to-install" title="Permalink to this headline">¶</a></h3>
-<p>The setup process may try to install Calcam in the python library paths for your system. If your user account does not have permissions to write to these paths (e.g. root or admin permissions), the setup will fail with an error about permissions. In this case, adding the <code class="docutils literal notranslate"><span class="pre">--user</span></code> option to the installation command will install the package for your user account only, which does not require root or admin permissions.</p>
+<p>If installing on a multi-user system, your account may not have permissions to install calcam in the system-wide python library paths. Typically <code class="docutils literal notranslate"><span class="pre">pip</span></code> will handle this for you and install Calcam just for your user account if this is the case. If this does not happen and the setup fails with an error about permissions, adding the <code class="docutils literal notranslate"><span class="pre">--user</span></code> option to the installation command will try to install the package for your user account only, which does not require root or admin permissions.</p>
 </div>
 <div class="section" id="problems-trying-to-start-calcam">
 <h3>Problems trying to start Calcam<a class="headerlink" href="#problems-trying-to-start-calcam" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="dependencies">
+<h4>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h4>
 <p>If you cannot import or start Calcam after installation, the most common problems are due to one or more of Calcam’s dependencies not working properly. In most cases, Calcam should give an error message which makes it clear which dependency is not working properly. If this is not clear, open a python prompt and try the following import commands, which all need to work for Calcam to be able to work:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">vtk</span> <span class="kn">import</span> <span class="n">vtkVersion</span>
 <span class="kn">from</span> <span class="nn">cv2</span> <span class="kn">import</span> <span class="n">__version__</span>
@@ -329,7 +331,7 @@
 </pre></div>
 </div>
 <p>If any of the required imports fail with errors, you will need to fix the relevant Python module installation before Calcam will work (re-installing the relevant module is a good first thing to try). If all of the required imports work properly, there could be a bug or issue with Calcam.</p>
-<p>If troubleshooting dependencies or strange / broken behaviour of Calcam, the table below gives some information on known issues with some versions of Calcam’s dependencies:</p>
+<p>If troubleshooting dependencies or strange / broken behaviour of Calcam, the table below gives some information on known issues with some versions of Calcam’s dependencies. You can check which versions OpenCV, VTK and PyQt you are using in the <a class="reference internal" href="gui_settings.html"><span class="doc">Calcam Settings</span></a> interface.</p>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 11%" />
@@ -357,29 +359,33 @@
 </td>
 </tr>
 <tr class="row-even"><td><p>VTK</p></td>
-<td><p>Requires &gt;6, OK with versions &lt; 9.1. With VTK 9.1+, setting CAD models to wireframe can cause Python to exit unexpectedly (see GitHub issue #78)</p></td>
+<td><p>Requires &gt;6, OK with versions &lt; 9.1. With VTK 9.1+, setting CAD models to wireframe can cause Python to exit unexpectedly (see GitHub issue #78)</p>
+<p>VTK9 + PyQt6 known to cause black / blank CAD and image views on some systems (e.g. Windows sytems with Intel garphics) - solve by downgrading to VTK 8 or PyQt5.</p>
+</td>
 </tr>
 <tr class="row-odd"><td><p>PyQt</p></td>
 <td><p>Works with PyQt4, PyQt5 or PyQt6 (tested up to 6.2.2)</p>
 <p>PyQt5 versions 5.11 and older are known to cause unreadable text in the GUI on OSX when using dark theme.</p>
 <p>Some versions can result in click positions being registsred wrong on OSX using High DPI mode; not clear what version ranges this affects (see GitHub issue #79)</p>
+<p>PyQt6 + VTK9 known to cause black / blank CAD and image views on some systems (e.g. Windows sytems with Intel garphics) - solve by downgrading to PyQt5 or VTK 8.</p>
 </td>
 </tr>
 </tbody>
 </table>
-<p>You can check which versions OpenCV, VTK and PyQt you are using in the <a class="reference internal" href="gui_settings.html"><span class="doc">Calcam Settings</span></a> interface.</p>
+<p>Also check the  <a class="reference external" href="https://github.com/euratom-software/calcam/issues">GitHub issues page</a> for more details about known issues.</p>
 </div>
 <div class="section" id="opengl-related-error-messages">
-<h3>OpenGL related error messages<a class="headerlink" href="#opengl-related-error-messages" title="Permalink to this headline">¶</a></h3>
-<p>If the Calcam GUI fails to start with a message about OpenGL environment etc, either there is a problem with your installation of VTK, or the graphics setup of your system. Sometimes this can be a result of using Calcam on a remote system using some remote connection software. If you have a different way to connect to the computer running Calcam, try that - if the results don’t change, see the section below on graphics problems.</p>
+<h4>OpenGL related error messages<a class="headerlink" href="#opengl-related-error-messages" title="Permalink to this headline">¶</a></h4>
+<p>If the Calcam GUI fails to start with a message about OpenGL environment etc, either there is a problem with your installation of VTK, or the graphics setup of your system. Sometimes this can be a result of using Calcam on a remote system with some remote desktop software. If you have a different way to connect to the computer running Calcam, try that - if the results don’t change, see the section below on graphics problems.</p>
+</div>
 </div>
 <div class="section" id="black-screen-corrupted-graphics">
 <h3>Black screen / corrupted graphics<a class="headerlink" href="#black-screen-corrupted-graphics" title="Permalink to this headline">¶</a></h3>
-<p>If you get blank / black displays in Calcam where the CAD model and image are supposed to be displayed, or get a corrupted view of the CAD model, this is an issue with VTK (the OpenGL visualisation library which Calcam uses to display the CAD and some images). To confirm if your VTK installation is working, you can try running the VTK example code on <a class="reference external" href="https://kitware.github.io/vtk-examples/site/Python/GeometricObjects/CylinderExample/">this page</a> to check if it gives a result like the picture. If you do have a problem with VTK, the easiest thing to try is installing a different version. You can check the current version of VTK in the calcam <a class="reference internal" href="gui_settings.html"><span class="doc">Calcam Settings</span></a> interface. For example, if you have VTK 9.0.3 installed but are getting non-working graphics, you can try installing VTK 8 instead with the command:</p>
+<p>If you get blank / black displays in Calcam where the CAD model and image are supposed to be displayed, or get a corrupted view of the CAD model, this could be an issue with VTK (the OpenGL visualisation library which Calcam uses to display the CAD and some images). To confirm if your VTK installation is working, you can try running the VTK example code on <a class="reference external" href="https://kitware.github.io/vtk-examples/site/Python/GeometricObjects/CylinderExample/">this page</a> to check if it gives a result like the picture. If you get correct display testing VTK on its own but not in Calcam, it could be caused by your particilar combination of VTK, PyQt and graphics drivers - see the above section about dependencies. If you do have a problem with VTK, the easiest thing to try is installing a different version (you can check the current version of VTK in the calcam <a class="reference internal" href="gui_settings.html"><span class="doc">Calcam Settings</span></a> interface). You can try installing different versions using <cite>pip</cite>, for example if VTK 9 is acusing issues, you can install an older version with the command:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="s2">&quot;vtk&lt;9&quot;</span>
 </pre></div>
 </div>
-<p>If you cannot get VTK working properly, you may need to try using Calcam on a different computer with a different hardware / software environment.</p>
+<p>If you cannot get VTK working properly, you may need to try using Calcam on a different computer with a different graphics hardware / software environment.</p>
 </div>
 <div class="section" id="reporting-problems">
 <h3>Reporting Problems<a class="headerlink" href="#reporting-problems" title="Permalink to this headline">¶</a></h3>
@@ -388,6 +394,21 @@
 </div>
 <div class="section" id="updating">
 <h2>Updating<a class="headerlink" href="#updating" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="updating-using-pip">
+<h3>Updating using pip<a class="headerlink" href="#updating-using-pip" title="Permalink to this headline">¶</a></h3>
+<p>To update to the latest release version of calcam using <code class="docutils literal notranslate"><span class="pre">pip</span></code>, use the command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">upgrade</span> <span class="n">calcam</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="from-source">
+<h3>From source<a class="headerlink" href="#from-source" title="Permalink to this headline">¶</a></h3>
+<p>To upgrade from manually downloaded source, follow the installation instructions near the top of this page to download the version you want and install.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If installing older versions of Calcam &lt; 2.9, installing with pip may not take care of Calcam’s dependencies properly. If you have problems with the instructions on this page for older versions, refer to the offline version of this documentation in the <code class="docutils literal notranslate"><span class="pre">docs/html/</span></code> folder of the particular code version.</p>
+</div>
+</div>
 <div class="section" id="version-cross-compatibility">
 <h3>Version Cross-Compatibility<a class="headerlink" href="#version-cross-compatibility" title="Permalink to this headline">¶</a></h3>
 <p>Calcam uses something close to semanic versioning, to try to make it clear for users to decide when to update. The version number consists of 3 numbers separated by points, in the format <code class="docutils literal notranslate"><span class="pre">major.minor.patch</span></code>:</p>
@@ -405,21 +426,6 @@
 <p>Calibration files created with Calcam 2.9 or newer which make use of the image masking feature will cause errors if used with Calcam versions &lt; 2.9</p>
 <p>Calibration files created with Calcam 2.6 or newer cannot be loaded properly in Calcam versions &lt; 2.6</p>
 </div>
-</div>
-</div>
-<div class="section" id="updating-using-pip">
-<h3>Updating using pip<a class="headerlink" href="#updating-using-pip" title="Permalink to this headline">¶</a></h3>
-<p>To update to the latest release version of calcam using <code class="docutils literal notranslate"><span class="pre">pip</span></code>, use the command:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">upgrade</span> <span class="n">calcam</span>
-</pre></div>
-</div>
-</div>
-<div class="section" id="from-source">
-<h3>From source<a class="headerlink" href="#from-source" title="Permalink to this headline">¶</a></h3>
-<p>To upgrade from manually downloaded source, follow the instructions near the top of this page to download the version you want and install.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>If installing older versions of Calcam &lt; 2.9, installing with pip may not take care of Calcam’s dependencies properly. If you have problems with the instructions on this page for older versions, refer to the offline version of this documentation in the <code class="docutils literal notranslate"><span class="pre">docs/html/</span></code> folder of the particular code version.</p>
 </div>
 </div>
 <div class="section" id="updating-from-calcam-1-x">
