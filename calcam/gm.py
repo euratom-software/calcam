@@ -35,6 +35,7 @@ import random
 import numpy as np
 import scipy.sparse
 import scipy.io
+import pandas as pd
 
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
@@ -1529,6 +1530,81 @@ def trigrid(wall_contour,max_cell_scale,rmin=None,rmax=None,zmin=None,zmax=None,
     return PoloidalVolumeGrid(mesh['vertices'],mesh['cells'],wall_contour,src='Wall-conforming triangular mesh with ~{:.1f}cm cells generated with trigrid()'.format(max_cell_scale*1e2))
 
 
+def load_solps_grid(solps_file,wall_contour,rmin=None,rmax=None,zmin=None,zmax=None,centres_out=False,**kwargs):
+    """
+    Load a reconstruction grid from SOLPS-ITER DivGeo-Carre file.
+
+    Parameters:
+
+        solps_file (str)                    : DivGeo-Carre .geo file containing grid coordinates
+
+        wall_contour (str or numpy.ndarray) : Either the name of a Calcam CAD model \
+                                              from which to use the wall contour, or an \
+                                              N x 2 array of R,Z points defining the machine wall.
+
+        rmin, rmax, zmin, zmax (float)      : Optional limits of the grid extent in the R, Z plane. \
+                                              Any combination of these may or may not be given; if none \
+                                              are given the entire SOLPS-ITER grid is loaded.
+
+        centres_out (bool)                  : Toggle to output the cell centres coords as provided by SOLPS-ITER
+
+    Returns:
+
+        calcam.PoloidalVolumeGrid    : Generated grid.
+
+    """
+
+    # If given a machine name for the wall contour, get the R,Z contour
+    if type(wall_contour) is str:
+        wall_contour = _get_ccm_wall(wall_contour)
+
+    # If we have a wall contour which joins back up with itself, remove
+    # the last point.
+    if np.abs(wall_contour[0,:] - wall_contour[-1,:]).max() < 1e-15:
+        wall_contour = wall_contour[:-1]
+
+    npol, nrad = pd.read_csv(solps_file, delim_whitespace=True, header=None, nrows=1).values[0] + 2
+    ncells = npol*nrad
+
+    grid = pd.read_csv(solps_file, delim_whitespace=True, header=None, skiprows=[0], nrows=ncells)
+    vertices = []
+    cells = []
+    centres = []
+
+    for index, row in grid.iterrows():
+        R,Z = row[4:12:2].values, row[5:13:2].values
+        cell_centre = row[2:4].values
+
+        if rmin and cell_centre[0] < rmin:
+            continue
+        if rmax and cell_centre[0] > rmax:
+            continue
+        if zmin and cell_centre[1] < zmin:
+            continue
+        if zmax and cell_centre[1] > zmax:
+            continue
+
+        verts = list(zip(R,Z))
+        indices = []
+        for vert in verts:
+            if vert in vertices:
+                indices.append(vertices.index(vert))
+            else:
+                vertices.append(vert)
+                indices.append(vertices.index(vert))
+        cells.append(indices)
+        centres.append(cell_centre)
+
+    vertices = np.array(vertices)
+    cells = np.array(cells)
+    centres = np.array(centres)
+
+    cells[:, [2,3]] = cells[:,[3,2]]  # Swap coords order to match Calcam convention
+
+    if centres_out:
+        return PoloidalVolumeGrid(vertices, cells, wall_contour, src="Grid load from SOLPS-ITER DivGeo-Carre file: {0}".format(solps_file)), centres
+    else:
+        return PoloidalVolumeGrid(vertices, cells, wall_contour, src="Grid load from SOLPS-ITER DivGeo-Carre file: {0}".format(solps_file))
 
 
 def _get_ccm_wall(model_name):
