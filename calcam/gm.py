@@ -83,10 +83,12 @@ class PoloidalVolumeGrid:
                                    
         src (str)                   : Human readable string describing where the grid came from, \
                                       for data provenance purposes.
+
+        solps (bool)                : Flag to show that grid was loaded from SOLPS-ITER
                                    
     '''
     
-    def __init__(self,vertices,cells,wall_contour=None,src=None):
+    def __init__(self,vertices,cells,wall_contour=None,src=None,solps=False):
 
         self.vertices = vertices.copy()
         self.cells = cells.copy()
@@ -103,7 +105,10 @@ class PoloidalVolumeGrid:
         self._build_edge_list()
         self._cull_unused_verts()
 
-        self.gridtype = 'Polyogn Cell Grid'
+        if solps:
+            self.gridtype = 'SOLPS-ITER'
+        else:
+            self.gridtype = 'Polyogn Cell Grid'
 
 
     @property
@@ -1530,7 +1535,7 @@ def trigrid(wall_contour,max_cell_scale,rmin=None,rmax=None,zmin=None,zmax=None,
     return PoloidalVolumeGrid(mesh['vertices'],mesh['cells'],wall_contour,src='Wall-conforming triangular mesh with ~{:.1f}cm cells generated with trigrid()'.format(max_cell_scale*1e2))
 
 
-def load_solps_grid(solps_file,wall_contour,rmin=None,rmax=None,zmin=None,zmax=None,centres_out=False,**kwargs):
+def load_solps_grid(solps_file,wall_contour,rmin=None,rmax=None,zmin=None,zmax=None,cell_attrs=False):
     """
     Load a reconstruction grid from SOLPS-ITER DivGeo-Carre file.
 
@@ -1546,7 +1551,8 @@ def load_solps_grid(solps_file,wall_contour,rmin=None,rmax=None,zmin=None,zmax=N
                                               Any combination of these may or may not be given; if none \
                                               are given the entire SOLPS-ITER grid is loaded.
 
-        centres_out (bool)                  : Toggle to output the cell centres coords as provided by SOLPS-ITER
+        cell_attrs (bool)                  : Toggle to output the cell centres coords and cell indices as provided
+                                             by SOLPS-ITER
 
     Returns:
 
@@ -1570,19 +1576,26 @@ def load_solps_grid(solps_file,wall_contour,rmin=None,rmax=None,zmin=None,zmax=N
     vertices = []
     cells = []
     centres = []
+    pol_inds = []
+    rad_inds = []
 
     for index, row in grid.iterrows():
+        pol,rad = np.array(row[0:2].values)  # Poloidal and radial index on SOLPS grid
         R,Z = row[4:12:2].values, row[5:13:2].values
         cell_centre = row[2:4].values
 
-        if rmin and cell_centre[0] < rmin:
-            continue
-        if rmax and cell_centre[0] > rmax:
-            continue
-        if zmin and cell_centre[1] < zmin:
-            continue
-        if zmax and cell_centre[1] > zmax:
-            continue
+        if not pol in pol_inds and not rad in rad_inds:
+            if rmin and cell_centre[0] < rmin:
+                continue
+            if rmax and cell_centre[0] > rmax:
+                continue
+            if zmin and cell_centre[1] < zmin:
+                continue
+            if zmax and cell_centre[1] > zmax:
+                continue
+
+        pol_inds.append(pol)
+        rad_inds.append(rad)
 
         verts = list(zip(R,Z))
         indices = []
@@ -1596,15 +1609,18 @@ def load_solps_grid(solps_file,wall_contour,rmin=None,rmax=None,zmin=None,zmax=N
         centres.append(cell_centre)
 
     vertices = np.array(vertices)
-    cells = np.array(cells)
-    centres = np.array(centres)
+    cell_info = np.column_stack((pol_inds,rad_inds, centres, cells))
+    cell_info = cell_info[cell_info[:,0].argsort()]
+    cell_info = cell_info[cell_info[:,1].argsort(kind='mergesort')]
 
-    cells[:, [2,3]] = cells[:,[3,2]]  # Swap coords order to match Calcam convention
+    cell_info[:, [-2,-1]] = cell_info[:,[-1,-2]]  # Swap coords order to match Calcam convention
 
-    if centres_out:
-        return PoloidalVolumeGrid(vertices, cells, wall_contour, src="Grid load from SOLPS-ITER DivGeo-Carre file: {0}".format(solps_file)), centres
+    if cell_attrs:
+        return PoloidalVolumeGrid(vertices, cell_info[:, -4:].astype(int), wall_contour,
+                                  src="Grid load from SOLPS-ITER DivGeo-Carre file: {0}".format(solps_file), solps=True), cell_info
     else:
-        return PoloidalVolumeGrid(vertices, cells, wall_contour, src="Grid load from SOLPS-ITER DivGeo-Carre file: {0}".format(solps_file))
+        return PoloidalVolumeGrid(vertices, cell_info[:, -4:].astype(int), wall_contour,
+                                  src="Grid load from SOLPS-ITER DivGeo-Carre file: {0}".format(solps_file), solps=True)
 
 
 def _get_ccm_wall(model_name):
