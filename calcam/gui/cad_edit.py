@@ -80,7 +80,7 @@ class CADEdit(CalcamGUIWindow):
         self.rename_variant_button.clicked.connect(self.rename_variant)
         self.model_variant.currentIndexChanged.connect(self.change_variant)
 
-        self.control_sensitivity_slider.setValue(self.config.mouse_sensitivity)
+        self.control_sensitivity_slider.setValue(int(self.config.mouse_sensitivity))
         self.remove_variant_button.clicked.connect(self.remove_variant)
 
         self.feature_tree.itemChanged.connect(self.on_featuretree_change)

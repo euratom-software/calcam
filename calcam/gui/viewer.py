@@ -124,7 +124,7 @@ class Viewer(CalcamGUIWindow):
         self.remove_lines_button.clicked.connect(self.update_lines)
         self.coords_legend_checkbox.toggled.connect(self.update_legend)
 
-        self.control_sensitivity_slider.setValue(self.config.mouse_sensitivity)
+        self.control_sensitivity_slider.setValue(int(self.config.mouse_sensitivity))
 
         self.proj_perspective.toggled.connect(self.set_projection)
 
@@ -343,7 +343,7 @@ class Viewer(CalcamGUIWindow):
         opacity = opacity**(1/gamma)
 
         self.sightline_opacity_slider.blockSignals(True)
-        self.sightline_opacity_slider.setValue(opacity * 100)
+        self.sightline_opacity_slider.setValue(int(opacity * 100))
         self.sightline_opacity_slider.blockSignals(False)
 
 

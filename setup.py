@@ -156,7 +156,7 @@ if 'install' in sys.argv or 'develop' in sys.argv:
         vtk = True
     else:
         print('No compatible VTK installation found - trying to install with pip...')
-        pip_install('vtk>=6,<9.1')
+        pip_install('vtk>=6')
         if test_dependency('from vtk import vtkVersion;ver=vtkVersion();v=ver.GetVTKMajorVersion()*100+ver.GetVTKMinorVersion();assert v>600 & v<901'):
             print('   OK!\n')
             vtk = True

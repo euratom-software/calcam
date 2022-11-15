@@ -5,7 +5,7 @@ Getting Up & Running
 
 Calcam works with Python 3.5 or newer on Windows, Linux or OSX. You can download Python installers for Windows or OSX from `Python.org <https://www.python.org/downloads/>`_ , or get it from your favourite software repository on Linux.
 
-As of June 2022, suitable versions of VTK (one of Calcam's major dependencies) are not available from the Python Package Index for Python >3.9, so it currently it is much easier to install Calcam in Python 3.5 - 3.9 than anything newer (for newer versions you will have to build and install VTK and its Python bindings yourself, which can be quite involved).
+As of November 2022, suitable versions of VTK (one of Calcam's major dependencies) are not available from the Python Package Index for Python >3.10, so it currently it is much easier to install Calcam in Python 3.5 - 3.10 than anything newer (for newer versions you will have to build and install VTK and its Python bindings yourself, which can be quite involved).
 
 The calcam setup script requires the ``pip`` and ``setuptools`` packages to do the installation, and will tell you if either of these are missing (on most configurations they should be installed as standard). Documentation for how to get pip can be found `here <https://pip.pypa.io/en/stable/installing/>`_, and you can then use ``pip`` to install ``setuptools``.
 
@@ -185,9 +185,9 @@ If troubleshooting dependencies or strange / broken behaviour of Calcam, the tab
 |                     |                                                                                                                                                                    |
 |                     | If running under OSX older than 10.12, versions of OpenCV newer than 3.2 may cause crashes on import (downgrade to OpenCV < 3.3 to fix this).                      |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| VTK                 | Requires >6, OK with versions < 9.1. With VTK 9.1+, setting CAD models to wireframe can cause Python to exit unexpectedly (see GitHub issue #78)                   |
+| VTK                 | Requires >6, tested up to 9.2.2.                                                                                                                                   |
 |                     |                                                                                                                                                                    |
-|                     | VTK9 + PyQt6 known to cause black / blank CAD and image views on some systems (e.g. Windows sytems with Intel garphics) - solve by downgrading to VTK 8 or PyQt5.  |
+|                     | VTK9 + PyQt6 known to cause black or flickery CAD and image views on some systems (see GitHub issue #90) - solve by downgrading to either VTK 8 or PyQt5.          |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | PyQt                | Works with PyQt4, PyQt5 or PyQt6 (tested up to 6.2.2)                                                                                                              |
 |                     |                                                                                                                                                                    |
@@ -195,7 +195,7 @@ If troubleshooting dependencies or strange / broken behaviour of Calcam, the tab
 |                     |                                                                                                                                                                    |
 |                     | Some versions can result in click positions being registsred wrong on OSX using High DPI mode; not clear what version ranges this affects (see GitHub issue #79)   |
 |                     |                                                                                                                                                                    |
-|                     | PyQt6 + VTK9 known to cause black / blank CAD and image views on some systems (e.g. Windows sytems with Intel garphics) - solve by downgrading to PyQt5 or VTK 8.  |
+|                     | PyQt6 + VTK9 known to cause black or flickery CAD and image views on some systems (see GitHub issue #90) - solve by downgrading to either VTK 8 or PyQt5.          |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 Also check the  `GitHub issues page <https://github.com/euratom-software/calcam/issues>`_ for more details about known issues.

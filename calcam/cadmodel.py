@@ -854,6 +854,11 @@ class ModelFeature():
 
             self.polydata = scaler.GetOutput()
 
+            # Remove all the lines from the PolyData. As far as I can tell for "normal" mesh files this shouldn't
+            # remove anything visually important, but it avoids running in to issues with vtkFeatureEdges trying to allocate
+            # way too much memory in VTK 9.1+.
+            self.polydata.SetLines(vtk.vtkCellArray())
+
             if self.parent.status_callback is not None:
                 self.parent.status_callback(None)
 

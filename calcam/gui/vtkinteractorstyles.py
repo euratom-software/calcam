@@ -114,12 +114,14 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
         self.focus_cursor = None
         self.legend = None
         self.xsection_coords = None
-    
+
 
         # We will use this for converting from 3D to screen coords.
         self.vtk_coord_transformer = vtk.vtkCoordinate()
         self.vtk_coord_transformer.SetCoordinateSystemToWorld()
 
+        # I want to make sure the resize callback is always called when we start up, because it sets up some state used by the GUI windows.
+        self.on_resize()
 
     def set_rmb_rotate(self,rmb_rotate):
 

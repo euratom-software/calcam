@@ -1,6 +1,21 @@
 Calcam Changelog
 ================
 
+Changes since last release
+------------------------------------
+
+Fixes:
+* Improved handling of errors which prevent the GUI from starting, so the user should always get an error message instead of silent failure.
+* Fixed a bug which caused adding CAD viewports from a calibration to raise an exception if the user had not manually resized the window since it was opened. (#96)
+* Fixed a bug in Calibration.project_points() for fisheye calibrations which raised an exception if it was called with a single 3D point to project.
+* Add missing documentation for calcam.movement.phase_correlation_movement()
+
+Compatibility Updates:
+* Fixed an issue which prevented the main GUI windows from opening (silent failure) under Python 3.10. (#94)
+* Fixed non-working colour choosing under Python 3.10. (#95)
+* Fix exceptions raised related to sliders in the GUI under Python 3.10 (#78 and others)
+* Added workaround for issue where setting CAD model to wireframe caused silent crashes with VTK => 9.1 (due to vtkFeatureEdges trying to allocate huge amounts of memory). Hopefully this fixes compatibility with VTK > 9.1 (#78)
+
 
 Patch Release 2.9.1 (23rd July 2022)
 ------------------------------------
