@@ -1061,7 +1061,7 @@ class RenderUnfoldedDialog(qt.QDialog):
         self.parent.app.processEvents()
         self.repaint()
         try:
-            self.progressbar.setValue(progress*100)
+            self.progressbar.setValue(int(progress*100))
             if self.progress_ref is None:
                 self.progress_ref = (time.time(),progress)
             else:

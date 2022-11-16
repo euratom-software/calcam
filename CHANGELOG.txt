@@ -4,17 +4,22 @@ Calcam Changelog
 Changes since last release
 ------------------------------------
 
-Fixes:
+New & Enhancements:
 * Improved handling of errors which prevent the GUI from starting, so the user should always get an error message instead of silent failure.
-* Fixed a bug which caused adding CAD viewports from a calibration to raise an exception if the user had not manually resized the window since it was opened. (#96)
-* Fixed a bug in Calibration.project_points() for fisheye calibrations which raised an exception if it was called with a single 3D point to project.
-* Add missing documentation for calcam.movement.phase_correlation_movement()
+* Add missing documentation for calcam.movement.phase_correlation_movement() so this is now part of the public API.
 
-Compatibility Updates:
-* Fixed an issue which prevented the main GUI windows from opening (silent failure) under Python 3.10. (#94)
-* Fixed non-working colour choosing under Python 3.10. (#95)
-* Fix exceptions raised related to sliders in the GUI under Python 3.10 (#78 and others)
-* Added workaround for issue where setting CAD model to wireframe caused silent crashes with VTK => 9.1 (due to vtkFeatureEdges trying to allocate huge amounts of memory). Hopefully this fixes compatibility with VTK > 9.1 (#78)
+Compatibility:
+* Various fixes to make the GUI work properly under Python 3.10:
+   * Fixed an issue which prevented the main GUI tools from opening at alll (silent failure) (#94)
+   * Fixed non-working colour chooser (#95)
+   * Fix exceptions related to sliders (part of #78)
+   * Fixed exception raised when rendering unfolded wall in Viewer tool
+* Added workaround / mitigation for silent Python crashes with VTK => 9.1 when setting some CAD models to wireframe (#78)
+	* Removed restriction of VTK version < 9.1 in setup.py and updated docs accordingly.
+
+Fixes:
+* Fixed an exception raised when adding CAD viewports from a calibration file in the Viewer GUI if the user had not manually resized the window since it was opened. (#96)
+* Fixed an exception raised by Calibration.project_points() for fisheye lens calibrations if it was called with only a single 3D point to project.
 
 
 Patch Release 2.9.1 (23rd July 2022)
