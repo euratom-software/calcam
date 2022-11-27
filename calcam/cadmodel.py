@@ -141,7 +141,7 @@ class CADModel():
                         self.def_file.close()
                         raise
 
-                    if type(test_out) == str or type(test_out) == unicode:
+                    if type(test_out) in [str,bytes]:
                         self.usermodule = usermodule
                     else:
                         self.def_file.close()
@@ -444,7 +444,7 @@ class CADModel():
             elif feature in self.features.keys():
                 self.features[feature].set_colour(self.features[feature].default_colour)
             else:
-                raise ValueError('Unknown feature "{:s}"!'.format(requested))
+                raise ValueError('Unknown feature "{:s}"!'.format(feature))
 
 
 
@@ -596,7 +596,7 @@ class CADModel():
         
             appender.Update()
 
-            self.cell_locator = vtk.vtkCellLocator()
+            self.cell_locator = vtk.vtkStaticCellLocator()
             self.cell_locator.SetTolerance(1e-6)
             self.cell_locator.SetDataSet(appender.GetOutput())
             self.cell_locator.BuildLocator()

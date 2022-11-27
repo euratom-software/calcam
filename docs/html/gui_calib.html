@@ -175,8 +175,8 @@ It is often useful to save a copy of the image being calibrated to use as a temp
 <section id="loading-and-manipulating-a-cad-model">
 <h2>Loading and manipulating a CAD model<a class="headerlink" href="#loading-and-manipulating-a-cad-model" title="Permalink to this heading"></a></h2>
 <p>At the top the <span class="guilabel">Machine Model</span> control tab are controls for loading a CAD model to calibrate against. Two dropdown boxes are provided to select the CAD model to load and the <a class="reference internal" href="intro_conventions.html#cadmodel-intro"><span class="std std-ref">model variant</span></a>. The <span class="guilabel">Load</span> button to the right of the model variant then loads the model. Underneath the model variant dropdown box is a checkbox labeled <cite>Enable default model features on load</cite>: if checked, the default parts of the CAD model are all loaded as soon as the model itself is loaded. If not checked, the model definition will be loaded but none of the 3D mesh data will be loaded, and instead you can turn on features individually. This is useful if working with a large model on a slow computer where you don’t want to wait for the whole model to load if not needed. You can change to a different CAD model or variant at any time by selecting a different item from the dropdown boxes and clicking <span class="guilabel">Load</span> again.</p>
-<section id="cad-mouse-navigation">
-<h3>CAD Mouse Navigation<a class="headerlink" href="#cad-mouse-navigation" title="Permalink to this heading"></a></h3>
+<section id="cad-mouse-keyboard-navigation">
+<h3>CAD Mouse &amp; Keyboard Navigation<a class="headerlink" href="#cad-mouse-keyboard-navigation" title="Permalink to this heading"></a></h3>
 <p>You can interactively navigate around the CAD model using the following mouse controls:</p>
 <ul class="simple">
 <li><p><kbd class="kbd compound docutils literal notranslate"><kbd class="kbd docutils literal notranslate">Right</kbd> <kbd class="kbd docutils literal notranslate">Click</kbd> <kbd class="kbd docutils literal notranslate"></kbd>+<kbd class="kbd docutils literal notranslate"></kbd> <kbd class="kbd docutils literal notranslate">Drag</kbd></kbd> - Look around (first-person shooter style control; default) or rotate CAD model depending on settings</p></li>
@@ -184,6 +184,10 @@ It is often useful to save a copy of the image being calibrated to use as a temp
 <li><p><kbd class="kbd compound docutils literal notranslate"><kbd class="kbd docutils literal notranslate">Scroll</kbd> <kbd class="kbd docutils literal notranslate">Wheel</kbd></kbd> - Move forwards or backwards.</p></li>
 <li><p><kbd class="kbd compound docutils literal notranslate"><kbd class="kbd docutils literal notranslate">Ctrl</kbd> <kbd class="kbd docutils literal notranslate"></kbd>+<kbd class="kbd docutils literal notranslate"></kbd> <kbd class="kbd docutils literal notranslate">Scroll</kbd> <kbd class="kbd docutils literal notranslate">Wheel</kbd></kbd> Reduce or increase the CAD field-of-view angle (i.e. Zoom)</p></li>
 <li><p><kbd class="kbd compound docutils literal notranslate"><kbd class="kbd docutils literal notranslate">Ctrl</kbd> <kbd class="kbd docutils literal notranslate"></kbd>+<kbd class="kbd docutils literal notranslate"></kbd> <kbd class="kbd docutils literal notranslate">Right</kbd> <kbd class="kbd docutils literal notranslate">Click</kbd> <kbd class="kbd docutils literal notranslate"></kbd>+<kbd class="kbd docutils literal notranslate"></kbd> <kbd class="kbd docutils literal notranslate">Drag</kbd></kbd> - Roll the camera (rotate about the direction of view)</p></li>
+</ul>
+<p>and on the keyboard:</p>
+<ul class="simple">
+<li><p><kbd class="kbd docutils literal notranslate">W/A/S/D</kbd> or <kbd class="kbd docutils literal notranslate">↑/←/↓/→</kbd> - Move the camera around as if walking, similar to first-person game controls.</p></li>
 </ul>
 </section>
 <section id="turning-cad-model-parts-on-off">

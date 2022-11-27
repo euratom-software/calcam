@@ -24,8 +24,8 @@ Wall contour display
 ~~~~~~~~~~~~~~~~~~~~
 If the CAD model dfinition includes an :math:`(R,Z)` wall contour, this can be displayed using the controls in the :guilabel:`Show R,Z Wall Contour` box. Here you can select between not showing the wall contour, showing it as a line at the toroidal position of the cursor, or revolving the R,Z contour in 3D to show a simplified, toroidally symmetric wall shape.
 
-Mouse Navigation
------------------
+Mouse & Keyboard Navigation
+---------------------------
 You can interactively navigate around the 3D view using the following mouse controls:
 
 - :kbd:`Left Click` - Place a cursor on the 3D model, or move the cursor if one already exists. This will display information about the cursor position in the window status bar and can be used by cross-sectioning / wall contour display features.
@@ -34,6 +34,10 @@ You can interactively navigate around the 3D view using the following mouse cont
 - :kbd:`Scroll Wheel` - Move forwards or backwards.
 - :kbd:`Ctrl + Scroll Wheel` Reduce or increase the CAD field-of-view angle (i.e. Zoom)
 - :kbd:`Ctrl + Right Click + Drag` - Roll the camera (rotate about the direction of view)
+
+and on the keyboard:
+
+- :kbd:`W/A/S/D` or :kbd:`↑/←/↓/→` - Move the camera around as if walking, similar to first-person game controls.
 
 Mouse Control Settings
 ~~~~~~~~~~~~~~~~~~~~~~

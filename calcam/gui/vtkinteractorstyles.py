@@ -43,9 +43,8 @@ import time
 class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
  
     def __init__(self,parent=None,viewport_callback=None,resize_callback=None,newpick_callback=None,cursor_move_callback=None,focus_changed_callback=None,refresh_callback=None,pre_move_callback=None):
-        
-        # Set callbacks for all the mouse controls
 
+        # Set callbacks for all the mouse controls
         self.AddObserver("LeftButtonPressEvent",self.on_left_click)
         self.AddObserver("RightButtonPressEvent",self.right_press)
         self.AddObserver("RightButtonReleaseEvent",self.right_release)
@@ -54,6 +53,7 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
         self.AddObserver("MouseWheelForwardEvent",self.zoom_in)
         self.AddObserver("MouseWheelBackwardEvent",self.zoom_out)
         self.AddObserver("MouseMoveEvent",self.on_mouse_move)
+
         self.viewport_callback = viewport_callback
         self.pick_callback = newpick_callback
         self.resize_callback = resize_callback
@@ -95,10 +95,6 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
 
         self.SetAutoAdjustCameraClippingRange(False)
 
-        # Turn off any VTK responses to keyboard input (all necessary keyboard shortcuts etc are done in Q)
-        self.interactor.RemoveObservers('KeyPressEvent')
-        self.interactor.RemoveObservers('CharEvent')
-
         # Add observer for catching window resizing
         self.vtkwindow.AddObserver("ModifiedEvent",self.on_resize)
 
@@ -114,6 +110,11 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
         self.focus_cursor = None
         self.legend = None
         self.xsection_coords = None
+
+        # Remove the VTK default keyboard handing, we just want our own
+        self.interactor.RemoveObservers("KeyPressEvent")
+        self.interactor.RemoveObservers('CharEvent')
+        self.interactor.AddObserver("KeyPressEvent", self.on_keyboard)
 
 
         # We will use this for converting from 3D to screen coords.
@@ -143,6 +144,63 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
         else:
             self.control_sensitivity = sensitivity + 0.05
 
+    def on_keyboard(self,obj,event):
+        """
+        Handing of keyboard controls.
+
+        Currently this is providing WSAD or Up-Down-Left-Right walking.
+        """
+
+        direction = None
+        key = self.interactor.GetKeySym().upper()
+
+        # -------------------- WSAD WALKING --------------------
+        if key in ['W','UP']:
+            direction = 'fwd'
+        elif key in ['S','DOWN']:
+            direction = 'back'
+        elif key in ['A','LEFT']:
+            direction = 'left'
+        elif key in ['D','RIGHT']:
+            direction = 'right'
+
+        if direction is not None:
+            current_fp = self.camera.GetFocalPoint()
+            view_vect = np.array(current_fp) - np.array(self.camera.GetPosition())
+            view_centre = np.zeros(3)
+            new_fp = np.zeros(4)
+
+            dist_px = self.control_sensitivity * 33
+
+            self.ComputeWorldToDisplay(self.renderer,*current_fp,view_centre)
+
+            if direction in ['right','left']:
+                if direction == 'right':
+                    view_centre[0] = view_centre[0] + dist_px
+                elif direction == 'left':
+                    view_centre[0] = view_centre[0] - dist_px
+
+                self.ComputeDisplayToWorld(self.renderer,view_centre[0],view_centre[1],view_centre[2],new_fp)
+
+                self.camera.SetFocalPoint(new_fp[:3])
+
+            elif direction in ['fwd','back']:
+
+                view_centre[0] = view_centre[0] - dist_px
+                self.ComputeDisplayToWorld(self.renderer,view_centre[0],view_centre[1],view_centre[2],new_fp)
+                v = np.sqrt(np.sum((new_fp[:3] - current_fp)**2))
+                view_dir = view_vect /  np.sqrt(np.sum(view_vect**2))
+
+                if direction == 'fwd':
+                    new_fp = current_fp + view_dir*v
+                elif direction == 'back':
+                    new_fp = current_fp - view_dir*v
+
+                self.camera.SetFocalPoint(new_fp)
+
+            self.camera.SetPosition(np.array(new_fp[:3]) - view_vect)
+            self.on_cam_moved()
+        # ------------------------------------------------------
 
     def set_projection(self,projection,fov=None):
 

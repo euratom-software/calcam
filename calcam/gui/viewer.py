@@ -889,7 +889,7 @@ class Viewer(CalcamGUIWindow):
                     self.statusbar.showMessage('Ray casting camera sight lines...')
                     self.app.processEvents()
                     if self.sightlines[data][2] == 'wall_coverage':
-                        actor = render.get_wall_coverage_actor(self.sightlines[data][0],self.cadmodel,resolution=256,subview=self.sightlines[data][3])
+                        actor = render.get_wall_coverage_actor(self.sightlines[data][0],self.cadmodel,subview=self.sightlines[data][3],clearance=1e-2,resolution=256)
                     else:
                         actor = render.get_fov_actor(self.cadmodel,self.sightlines[data][0],self.sightlines[data][2],subview=self.sightlines[data][3])
                     self.statusbar.clearMessage()

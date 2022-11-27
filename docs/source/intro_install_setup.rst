@@ -1,22 +1,21 @@
 ====================
 Getting Up & Running
 ====================
+.. highlight:: none
+Calcam works with Python 3.5 or newer on Windows, Linux or OSX. As of November 2022, Python 3.10 or older is recommended, because suitable versions of VTK (one of Calcam's major dependencies) are not available from the Python Package Index (PyPi) for newer versions (for newer Python versions you will have to build and install VTK and its Python bindings yourself, which can be quite involved).
 
+You can download Python installers for Windows or OSX from `Python.org <https://www.python.org/downloads/>`_ , or get it from your favourite software repository on Linux.
 
-Calcam works with Python 3.5 or newer on Windows, Linux or OSX. You can download Python installers for Windows or OSX from `Python.org <https://www.python.org/downloads/>`_ , or get it from your favourite software repository on Linux.
-
-As of November 2022, suitable versions of VTK (one of Calcam's major dependencies) are not available from the Python Package Index for Python >3.10, so it currently it is much easier to install Calcam in Python 3.5 - 3.10 than anything newer (for newer versions you will have to build and install VTK and its Python bindings yourself, which can be quite involved).
-
-The calcam setup script requires the ``pip`` and ``setuptools`` packages to do the installation, and will tell you if either of these are missing (on most configurations they should be installed as standard). Documentation for how to get pip can be found `here <https://pip.pypa.io/en/stable/installing/>`_, and you can then use ``pip`` to install ``setuptools``.
+The calcam setup script requires the ``pip`` and ``setuptools`` packages to do the installation, and will tell you if either of these are missing (on most configurations they should come with Python as standard). Documentation for how to get pip can be found `here <https://pip.pypa.io/en/stable/installing/>`_, and you can then use ``pip`` to install ``setuptools``.
 
 
 Installing using pip
 --------------------
 The easiest way to install Calcam is using ``pip``.
 
-Option 1: From PyPi
-~~~~~~~~~~~~~~~~~~~
-As of version 2.9, the current release version of Calcam is available on the Python Package Index (PyPi), so can be installed with the single command::
+Option 1: From PyPi (recommended)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The current release version of Calcam is available on the Python Package Index (PyPi), so can be installed with the single command::
 
     pip install -v calcam
 
@@ -40,11 +39,11 @@ Alternatively, the "cutting edge" live development version (which is not guarant
 
 If you prefer to use Git, which is recommended if you want to do any development on Calcam, the source can be cloned from the GitHub reporepository with the command::
 
-	git clone -b release https://github.com/euratom-software/calcam.git
+	git clone -b release git@github.com/euratom-software/calcam.git
 
 for the latest release version, or::
 
-	git clone https://github.com/euratom-software/calcam.git
+	git clone git@github.com/euratom-software/calcam.git
 
 for the development version (which may contain some bugs or incomplete features at any given time).
 
@@ -57,13 +56,13 @@ Once the setup is complete, you can delete the downloaded source code.
 
 Installing for Development
 --------------------------
-If you plan to make any modifications to /  do any development work on Calcam, and want to be able to edit the Calcam source code without having to run the setup script again to have your changes take effect, you can install Calcam in development / eidtable mode.
+If you plan to make any modifications to /  do any development work on Calcam, and want to be able to edit the Calcam source code without having to run the setup script again to have your changes take effect, you can install Calcam in development / eidtable mode. It is also recommended to clone the Calcam source using SSH in this case so that you can push back to GitHub.
 
 Option 1: Using Git
 ~~~~~~~~~~~~~~~~~~~
 If you want to clone the project directly from GuitHub and install in editable mode, this can be done with the command::
 
-	pip install -v -e git+https://github.com/euratom-software/calcam.git@master#egg=calcam
+	pip install -v -e git+ssh://git@github.com/euratom-software/calcam.git@master#egg=calcam
 
 This will clone the calcam git repository and install in editable mode, so you can make changes to the downloaded code which will take effect without reinstalling.
 
@@ -162,7 +161,6 @@ In addition to these, at least one of the following PyQt imports must work for t
 
 .. code-block:: python
 
-    from PyQt6 import QtCore
     from PyQt5 import QtCore
     from PyQt4 import QtCore
 
@@ -185,17 +183,15 @@ If troubleshooting dependencies or strange / broken behaviour of Calcam, the tab
 |                     |                                                                                                                                                                    |
 |                     | If running under OSX older than 10.12, versions of OpenCV newer than 3.2 may cause crashes on import (downgrade to OpenCV < 3.3 to fix this).                      |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| VTK                 | Requires >6, tested up to 9.2.2.                                                                                                                                   |
-|                     |                                                                                                                                                                    |
-|                     | VTK9 + PyQt6 known to cause black or flickery CAD and image views on some systems (see GitHub issue #90) - solve by downgrading to either VTK 8 or PyQt5.          |
+| VTK                 | Requires =>7, tested up to 9.2.2.                                                                                                                                  |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| PyQt                | Works with PyQt4, PyQt5 or PyQt6 (tested up to 6.2.2)                                                                                                              |
+| PyQt                | Works with PyQt4 or PyQt5.                                                                                                                                         |
+|                     |                                                                                                                                                                    |
+|                     | PyQt6 support will be added at some point but currently the combination of PyQt6 + VTK9 often causes problems.                                                     |
 |                     |                                                                                                                                                                    |
 |                     | PyQt5 versions 5.11 and older are known to cause unreadable text in the GUI on OSX when using dark theme.                                                          |
 |                     |                                                                                                                                                                    |
 |                     | Some versions can result in click positions being registsred wrong on OSX using High DPI mode; not clear what version ranges this affects (see GitHub issue #79)   |
-|                     |                                                                                                                                                                    |
-|                     | PyQt6 + VTK9 known to cause black or flickery CAD and image views on some systems (see GitHub issue #90) - solve by downgrading to either VTK 8 or PyQt5.          |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 Also check the  `GitHub issues page <https://github.com/euratom-software/calcam/issues>`_ for more details about known issues.
@@ -255,42 +251,3 @@ Newer ``minor`` versions of Calcam will maintain backwards compatibility with fi
     Calibration files created with Calcam 2.9 or newer which make use of the image masking feature will cause errors if used with Calcam versions < 2.9
 
     Calibration files created with Calcam 2.6 or newer cannot be loaded properly in Calcam versions < 2.6
-
-
-Updating from Calcam 1.x
-~~~~~~~~~~~~~~~~~~~~~~~~
-The update from Calcam 1.x to Calcam 2 includes large overhauls to the file formats, file storage conventions and Python API. This section covers the main things users need to know when upgrading from Calcam 1.x to Calcam 2.
-
-File Storage
-~~~~~~~~~~~~
-In Calcam 1, CAD model definitions, other user-defined code, calibration input and results files were stored in a pre-prescribed directory structure. In Calcam 2 this is no longer the case; these files can be stored wherever you want and are opened either by graphical file browsing in the Calcam GUI or by file path in the Calcam API. The main change required to code calling Calcam to accommodate this will be that calibration results will now need to be loaded by supplying the relative or full path to the results file, rather than just the identifying name as before.
-
-File Formats
-~~~~~~~~~~~~
-Whereas in Calcam 1, imported images, point pairs, calibration and fit results were all stored in separate files, in Calcam 2 all of these elements are stored together as a calibration. This is to maintain better traceability of calcam calibrations and make it easier for users to share data. Except for ``.csv`` point pair files, Calcam 2 is not backwards compatible with Calcam 1 files, therefore to use existing data from Calcam 1 you must convert your Calcam 1 data to the new Calcam 2 formats. This can be done in bulk using the file converter utility provided in the ``calcam1_file_converter`` directory of the calcam 2 repo. Running ``convert_files.py`` from this directory as a script will open the tool, which is shown below:
-
-.. image:: images/screenshots/file_converter.png
-   :alt: Calcam 1.x file converter screenshot
-
-At the top of this window, the "Source Directory", where the tool will look for Calcam 1.x files to convert, is displayed. This is typically detected automatically, but you can also manually set the source directory manually using the :guilabel:`Browse...` button (this should be the complete Calcam 1.x data directory, i.e. the location of the ``FitResults``, ``Images``, ``PointPairs`` etc directories). 
-
-Below this are 2 main sections: the top section for converting existing calibrations, and the bottom section for converting existing CAD model definitions. When the :guilabel:`Convert!` button is clicked in the relevant section, the large status bar at the bottom of the window will show the current progress during the conversion. The three text boxes containing file paths are used to specify where the output Calcam 2 calibration files should be saved to, since in Calcam 2 this can be wherever you want.
-
-When converting calibrations, if the :guilabel:`Try to match with image files based on name` checkbox is ticked, the tool will try to match up calibration results with images by looking for Calcam image save files whose name also appears in the name of the calibration result being converted. If such an image is found, the image will be added to the resulting Calcam 2 save file. To disable this auto-matching, un-tick this checkbox, and Calcam 2 calibration results converted from Calcam 1 files will simply not contain any images.
-
-**Note:** the conversion process does not alter or remove any of the original Calcam 1 data, so if anything goes wrong and you have to, or want to, go back to using Calcam 1.x, the data will still be intact, and it is left to the user to remove the old Calcam 1 data when you feel sufficiently comfortable to do so.
-
-
-API Changes Summary
-~~~~~~~~~~~~~~~~~~~
-The change from Calcam 1 to Calcam 2 includes several compatibility breaking API changes. The main changes to the API are:
-
-* The old :class:`calcam.CalibResults` class has been superceded by the new :class:`calcam.Calibration` class. This maintains the methods for working with calibration results which existed in :class:`calcam.CalibResults`, with the addition that :class:`calcam.Calibration` now contains data on the entire calibration process: image, point pairs, fit results and metadata. 
-
-* The old :class:`calcam.VirtualCalib` class has been removed: virtual calibration results are now represented by the new :class:`calcam.Calibration` class, meaning all types of calibration use the same class in Calcam 2.
-
-* The :class:`RayCaster` class has been removed. This is because although more functionality was originally envisaged for this class, that additional functionality is no longer planned for Calcam and therefore only a single method of this class was ever useful. In addition, the important element of this class' state was already being held by other objects. The functionality of the :class:`RayCaster` class has been moved to the function :func:`calcam.raycast_sightlines()`
-
-* The :class:`machine_geometry` module has been removed. Now instead of every CAD modeling having its own class inside calcam.machine_geometry, the :class:`calcam.CADModel` class is used for all CAD models and is instanciated with string arguments to specify the name of the model you want. Also there have been various changes to method names and call signatures in the CAD model class.
-
-* Naming conventions: to be more Pythonic, throughout the API argument or function names which previously used capital letters and ``PascalCase`` or ``camelCase`` have been changed to ``lowercase_with_underscores``, while class names keep ``PascalCase``.

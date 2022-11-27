@@ -65,6 +65,9 @@ You can interactively navigate around the CAD model using the following mouse co
 - :kbd:`Ctrl + Scroll Wheel` Reduce or increase the CAD field-of-view angle (i.e. Zoom)
 - :kbd:`Ctrl + Right Click + Drag` - Roll the camera (rotate about the direction of view)
 
+and on the keyboard:
+
+- :kbd:`W/A/S/D` or :kbd:`↑/←/↓/→` - Move the camera around as if walking, similar to first-person game controls.
 
 In addition to the mouse controls, the :guilabel:`3D Viewport` tab  can be used to control the current view of the CAD model. At the top of this tab is a list of viewports defined in the CAD model definition. Clicking on a view in this pane immediately changes the CAD viewport to that view. Additional view positions can be added to this list from a Calcam calibration file using the :guilabel:`Add from calibration(s)...` button below the viewport list. You can then select one or more Calcam calibration files to load, and the views defined by the calibration will be added to the viewport list on the 3D Viewport tab.
 

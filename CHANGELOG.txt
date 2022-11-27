@@ -1,15 +1,19 @@
 Calcam Changelog
 ================
 
-Changes since last release
+Minor Release 2.10.0 (November 2022)
 ------------------------------------
 
 New & Enhancements:
-* Improved handling of errors which prevent the GUI from starting, so the user should always get an error message instead of silent failure.
-* Add missing documentation for calcam.movement.phase_correlation_movement() so this is now part of the public API.
+* Improved handling of errors which prevent the GUI from starting, so the user should always at least get an error message instead of silent failure.
+* Added missing documentation for calcam.movement.phase_correlation_movement() so this is now part of the public API.
+* Added WSAD & Up/Down/Left/Right keyboard controls for "walking" in the 3D views (#93)
+* Switched to using vtkStaticCellLocator() for ray-casting because it's much faster but also for some reason much more accurate with newer versions of VTK.
+* Minor documentation improvements
 
 Compatibility:
-* Various fixes to make the GUI work properly under Python 3.10:
+* Removed support for PyQt6, because it causes more problems than it's worth on most platforms so sticking with PyQt5 for now gives an easier / more reliable user experience.
+* Fixed various problems with the GUI under Python 3.10:
    * Fixed an issue which prevented the main GUI tools from opening at alll (silent failure) (#94)
    * Fixed non-working colour chooser (#95)
    * Fix exceptions related to sliders (part of #78)
@@ -20,6 +24,8 @@ Compatibility:
 Fixes:
 * Fixed an exception raised when adding CAD viewports from a calibration file in the Viewer GUI if the user had not manually resized the window since it was opened. (#96)
 * Fixed an exception raised by Calibration.project_points() for fisheye lens calibrations if it was called with only a single 3D point to project.
+* Fixed a bug where calling get_model_normals() on a raycast result with no model normals would return an exception class, instead of raising an exception.
+* Fixed a couple of left-over legacy variable names in the CADModel class
 
 
 Patch Release 2.9.1 (23rd July 2022)
@@ -40,7 +46,7 @@ New & Enhancements:
 * Calcam now available on PyPi (but could use improvements to make distribution more PEP compliant in future) (#83)
 * Support masking of images (i.e marking parts of the image which do not contain any actual image) in fitting and manual alignment calibration tools (#46).
 * Add vertical field of view input in virtual calibration editor as an alternative to focal length (#85).
-* Remove error message if fitting determines the camera is upside-down; camera roll not settable in range -180,180 instead of -90,90 degrees.
+* Remove error message if fitting determines the camera is upside-down; camera roll now settable in range -180,180 instead of -90,90 degrees.
 * In the virtual calibration editor, hide pinhole model parameters if another intrinsics type is selected (otherwise could be misleading).
 * In the virtual calibration editor, when using intrinsics from an existing calibration, display the filename of that calibration.
 * Add button to save image to use as a template for creating image masks.

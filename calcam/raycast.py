@@ -720,7 +720,7 @@ class RayData:
         '''
 
         if self.model_normals is None:
-            return Exception('Model normals were not calculated when doing the ray-cast. To use this function you must use raycast_sightlines() with calc_normals=True.')
+            raise Exception('Model normals were not calculated when doing the ray-cast. To use this function you must use raycast_sightlines() with calc_normals=True.')
 
         if x is None and y is None:
             if self.fullchip:

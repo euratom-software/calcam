@@ -59,12 +59,14 @@ Starting from an existing view
 ******************************
 It can be convenient to start from a view either defined in the CAD model definition or from another Calcam calibration. In the :guilabel:`Camera Positioning` box, the list of views defined in the CAD model are displayed, and clicking on one of these will immediately set the camera position and orientation to match that view. The field of view from the preset view will not be set, since this is determined by the camera intrinsics which are set separately. To use the extrinsics from an existing Calcam calibration, click the :guilabel:`Load...` button underneath the view list to choose a calibration file to load. This will set the camera extrinsics to match the loaded calibration, and add that calibration to the list view box so it can be returned to easily.
 
-Mouse Controls
-**************
+Mouse & Keyboard Controls
+*************************
 - :kbd:`Right Click + Drag` - Look around (first-person shooter style control; default) or rotate CAD model depending on settings
 - :kbd:`Middle Click + Drag` - Pan (translate) sideways i.e. in the plane of the monitor.
 - :kbd:`Scroll Wheel` - Move forwards or backwards.
 - :kbd:`Ctrl + Right Click + Drag` - Roll the camera (rotate about the direction of view)
+
+- :kbd:`W/A/S/D` or :kbd:`↑/←/↓/→` - Move the camera around as if walking, similar to first-person game controls.
 
 For finer control, the mouse movement sensitivity can be adjusted using the slider in the :guilabel:`Mouse Control Settings` box at the bottom of the control tab.
 
