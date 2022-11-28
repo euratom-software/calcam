@@ -148,7 +148,9 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
         """
         Handing of keyboard controls.
 
-        Currently this is providing WSAD or Up-Down-Left-Right walking.
+        Currently this is providing WSAD or Up-Down-Left-Right walking, but note: only the most
+        recently pressed key has an effect (i.e. can't walk diagonally. I tried implementing diagonal
+        walking but VTK was not seeing KeyReleaseEvent for every key release so it didn't work properly).
         """
 
         direction = None

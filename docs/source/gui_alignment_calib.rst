@@ -111,14 +111,16 @@ It will often make the alignment easier to start from a view either defined in t
 Mouse & Keyboard Controls
 *************************
 
-Adjustment of the CAD view to match the image view is via the mouse and keyboard:
+Adjustment of the CAD view to match the image view is via the mouse:
 
-- :kbd:`Right Click + Drag` - Look around (first-person shooter style control; default) or rotate CAD model depending on settings
-- :kbd:`Middle Click + Drag` - Pan (translate) sideways i.e. in the plane of the monitor.
+- :kbd:`Right Click` + :kbd:`Move mouse` - Look around (first-person game stype control; default) or rotate CAD model depending on settings
+- :kbd:`Middle Click` + :kbd:`Move mouse` - Pan (translate) sideways i.e. in the plane of the monitor.
 - :kbd:`Scroll Wheel` - Move forwards or backwards.
-- :kbd:`Ctrl + Right Click + Drag` - Roll the camera (rotate about the direction of view)
+- :kbd:`Ctrl` + :kbd:`Right Click` + :kbd:`Move mouse` - Roll the camera (rotate about the direction of view)
 
-- :kbd:`W/A/S/D` or :kbd:`↑/←/↓/→` - Move the camera around as if walking, similar to first-person game controls.
+and keyboard:
+
+- :kbd:`W` :kbd:`A` :kbd:`S` :kbd:`D` or :kbd:`↑` :kbd:`←` :kbd:`↓` :kbd:`→` - Move the camera around as if walking forward, backward left or right. Note the camera only moves in one direction at once (not diagonally) according to the most recently pressed key.
 
 For finer control, the mouse and keyboard movement sensitivity can be adjusted using the slider in the :guilabel:`Mouse Control Settings` box at the bottom of the control tab.
 

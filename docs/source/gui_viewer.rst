@@ -26,18 +26,17 @@ If the CAD model dfinition includes an :math:`(R,Z)` wall contour, this can be d
 
 Mouse & Keyboard Navigation
 ---------------------------
-You can interactively navigate around the 3D view using the following mouse controls:
+You can interactively navigate around the CAD model using the following mouse controls:
 
-- :kbd:`Left Click` - Place a cursor on the 3D model, or move the cursor if one already exists. This will display information about the cursor position in the window status bar and can be used by cross-sectioning / wall contour display features.
-- :kbd:`Right Click + Drag` - Look around (first-person shooter style control; default) or rotate CAD model depending on settings
-- :kbd:`Middle Click + Drag` - Pan (translate) sideways i.e. in the plane of the monitor.
+- :kbd:`Right Click` + :kbd:`Move mouse` - Look around (first-person game stype control; default) or rotate CAD model depending on settings
+- :kbd:`Middle Click` + :kbd:`Move mouse` - Pan (translate) sideways i.e. in the plane of the monitor.
 - :kbd:`Scroll Wheel` - Move forwards or backwards.
-- :kbd:`Ctrl + Scroll Wheel` Reduce or increase the CAD field-of-view angle (i.e. Zoom)
-- :kbd:`Ctrl + Right Click + Drag` - Roll the camera (rotate about the direction of view)
+- :kbd:`Ctrl` + :kbd:`Scroll Wheel` - Reduce or increase the CAD field-of-view angle (i.e. Zoom)
+- :kbd:`Ctrl` + :kbd:`Right Click` + :kbd:`Move mouse` - Roll the camera (rotate about the direction of view)
 
-and on the keyboard:
+and keyboard keys:
 
-- :kbd:`W/A/S/D` or :kbd:`↑/←/↓/→` - Move the camera around as if walking, similar to first-person game controls.
+- :kbd:`W` :kbd:`A` :kbd:`S` :kbd:`D` or :kbd:`↑` :kbd:`←` :kbd:`↓` :kbd:`→` - Move the camera around as if walking forward, backward left or right. Note the camera only moves in one direction at once (not diagonally) according to the most recently pressed key.
 
 Mouse Control Settings
 ~~~~~~~~~~~~~~~~~~~~~~

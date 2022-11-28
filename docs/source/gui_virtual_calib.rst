@@ -61,12 +61,17 @@ It can be convenient to start from a view either defined in the CAD model defini
 
 Mouse & Keyboard Controls
 *************************
-- :kbd:`Right Click + Drag` - Look around (first-person shooter style control; default) or rotate CAD model depending on settings
-- :kbd:`Middle Click + Drag` - Pan (translate) sideways i.e. in the plane of the monitor.
-- :kbd:`Scroll Wheel` - Move forwards or backwards.
-- :kbd:`Ctrl + Right Click + Drag` - Roll the camera (rotate about the direction of view)
+You can adjust the position of the virtual camera using  the following mouse controls:
 
-- :kbd:`W/A/S/D` or :kbd:`↑/←/↓/→` - Move the camera around as if walking, similar to first-person game controls.
+- :kbd:`Right Click` + :kbd:`Move mouse` - Look around (first-person game stype control; default) or rotate CAD model depending on settings
+- :kbd:`Middle Click` + :kbd:`Move mouse` - Pan (translate) sideways i.e. in the plane of the monitor.
+- :kbd:`Scroll Wheel` - Move forwards or backwards.
+- :kbd:`Ctrl` + :kbd:`Scroll Wheel` - Change the camera focal length (i.e. Zoom)
+- :kbd:`Ctrl` + :kbd:`Right Click` + :kbd:`Move mouse` - Roll the camera (rotate about the direction of view)
+
+and keyboard keys:
+
+- :kbd:`W` :kbd:`A` :kbd:`S` :kbd:`D` or :kbd:`↑` :kbd:`←` :kbd:`↓` :kbd:`→` - Move the camera around as if walking forward, backward left or right. Note the camera only moves in one direction at once (not diagonally) according to the most recently pressed key.
 
 For finer control, the mouse movement sensitivity can be adjusted using the slider in the :guilabel:`Mouse Control Settings` box at the bottom of the control tab.
 

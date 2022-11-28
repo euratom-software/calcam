@@ -136,11 +136,11 @@
 <p>If you prefer to download the calcam source code manually, the latest release version can be downloaded from the <a class="reference external" href="https://github.com/euratom-software/calcam/releases">Releases page on GitHub</a>.</p>
 <p>Alternatively, the “cutting edge” live development version (which is not guaranteed to be in a fully working state at all times) can be downloaded using the green <span class="guilabel">Code</span> button on the <a class="reference external" href="https://github.com/euratom-software/calcam">GitHub repository page</a>.</p>
 <p>If you prefer to use Git, which is recommended if you want to do any development on Calcam, the source can be cloned from the GitHub reporepository with the command:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>git clone -b release git@github.com/euratom-software/calcam.git
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>git clone -b release https://github.com/euratom-software/calcam.git
 </pre></div>
 </div>
 <p>for the latest release version, or:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>git clone git@github.com/euratom-software/calcam.git
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/euratom-software/calcam.git
 </pre></div>
 </div>
 <p>for the development version (which may contain some bugs or incomplete features at any given time).</p>
@@ -153,11 +153,11 @@
 </section>
 <section id="installing-for-development">
 <h2>Installing for Development<a class="headerlink" href="#installing-for-development" title="Permalink to this heading"></a></h2>
-<p>If you plan to make any modifications to /  do any development work on Calcam, and want to be able to edit the Calcam source code without having to run the setup script again to have your changes take effect, you can install Calcam in development / eidtable mode. It is also recommended to clone the Calcam source using SSH in this case so that you can push back to GitHub.</p>
+<p>If you plan to make any modifications to /  do any development work on Calcam, and want to be able to edit the Calcam source code without having to run the setup script again to have your changes take effect, you can install Calcam in development / eidtable mode.</p>
 <section id="option-1-using-git">
 <h3>Option 1: Using Git<a class="headerlink" href="#option-1-using-git" title="Permalink to this heading"></a></h3>
 <p>If you want to clone the project directly from GuitHub and install in editable mode, this can be done with the command:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>pip install -v -e git+ssh://git@github.com/euratom-software/calcam.git@master#egg=calcam
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>pip install -v -e git+https://github.com/euratom-software/calcam.git@master#egg=calcam
 </pre></div>
 </div>
 <p>This will clone the calcam git repository and install in editable mode, so you can make changes to the downloaded code which will take effect without reinstalling.</p>

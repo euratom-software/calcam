@@ -2,6 +2,7 @@
 Getting Up & Running
 ====================
 .. highlight:: none
+
 Calcam works with Python 3.5 or newer on Windows, Linux or OSX. As of November 2022, Python 3.10 or older is recommended, because suitable versions of VTK (one of Calcam's major dependencies) are not available from the Python Package Index (PyPi) for newer versions (for newer Python versions you will have to build and install VTK and its Python bindings yourself, which can be quite involved).
 
 You can download Python installers for Windows or OSX from `Python.org <https://www.python.org/downloads/>`_ , or get it from your favourite software repository on Linux.
@@ -39,11 +40,11 @@ Alternatively, the "cutting edge" live development version (which is not guarant
 
 If you prefer to use Git, which is recommended if you want to do any development on Calcam, the source can be cloned from the GitHub reporepository with the command::
 
-	git clone -b release git@github.com/euratom-software/calcam.git
+	git clone -b release https://github.com/euratom-software/calcam.git
 
 for the latest release version, or::
 
-	git clone git@github.com/euratom-software/calcam.git
+	git clone https://github.com/euratom-software/calcam.git
 
 for the development version (which may contain some bugs or incomplete features at any given time).
 
@@ -56,13 +57,13 @@ Once the setup is complete, you can delete the downloaded source code.
 
 Installing for Development
 --------------------------
-If you plan to make any modifications to /  do any development work on Calcam, and want to be able to edit the Calcam source code without having to run the setup script again to have your changes take effect, you can install Calcam in development / eidtable mode. It is also recommended to clone the Calcam source using SSH in this case so that you can push back to GitHub.
+If you plan to make any modifications to /  do any development work on Calcam, and want to be able to edit the Calcam source code without having to run the setup script again to have your changes take effect, you can install Calcam in development / eidtable mode.
 
 Option 1: Using Git
 ~~~~~~~~~~~~~~~~~~~
 If you want to clone the project directly from GuitHub and install in editable mode, this can be done with the command::
 
-	pip install -v -e git+ssh://git@github.com/euratom-software/calcam.git@master#egg=calcam
+	pip install -v -e git+https://github.com/euratom-software/calcam.git@master#egg=calcam
 
 This will clone the calcam git repository and install in editable mode, so you can make changes to the downloaded code which will take effect without reinstalling.
 
