@@ -195,7 +195,7 @@ class FittingCalib(CalcamGUIWindow):
 
         self.fit_initted = False
 
-        self.overlay_opacity_slider.setValue(self.config.main_overlay_colour[3]*100)
+        self.overlay_opacity_slider.setValue(int(self.config.main_overlay_colour[3]*100))
         self.overlay_appearance_controls.hide()
         self.comparison_overlay_appearance.hide()
 

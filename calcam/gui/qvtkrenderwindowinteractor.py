@@ -500,8 +500,7 @@ class QVTKRenderWindowInteractor(QVTKRWIBaseClass):
         if keySym is not None and shift and len(keySym) == 1 and keySym.isalpha():
             keySym = keySym.upper()
 
-        self._Iren.SetEventInformationFlipY(self.__saveX, self.__saveY,
-                                            ctrl, shift, key, 0, keySym)
+        self._Iren.SetEventInformationFlipY(self.__saveX, self.__saveY,ctrl, shift, key[-1], 0, keySym)
         self._Iren.KeyPressEvent()
         self._Iren.CharEvent()
 

@@ -687,21 +687,20 @@ def get_wall_coverage_actor(cal,cadmodel=None,image=None,imagecoords='Original',
         x = np.linspace(- 0.5, w - 0.5, int(w/binning) + 1)
         y = np.linspace(- 0.5, h - 0.5, int(h/binning) + 1)
         x,y = np.meshgrid(x,y)
-        rd = raycast_sightlines(cal,cadmodel,x=x,y=y,coords=imagecoords,calc_normals=True,verbose=verbose)
+        rd = raycast_sightlines(cal,cadmodel,x=x,y=y,coords=imagecoords,verbose=verbose,calc_normals=True)
         
     elif isinstance(cal,RayData):
         # If already given a raydata object, just use that!
         rd = cal
 
-    ray_start = rd.get_ray_start()
     ray_dir = rd.get_ray_directions()
-    ray_len = rd.get_ray_lengths()
     normals = rd.get_model_normals()
+    ray_end = rd.get_ray_end()
 
 
-    # Ray end coordinates at the wall: put them 2mm in front of the wall to make sure the resulting actor
-    # is not part buried in the CAD model
-    ray_end = ray_start + np.tile(ray_len[:,:,np.newaxis],(1,1,3)) * ray_dir + normals * clearance
+    # Ray end coordinates at the wall: put them "clearance" away from the wall so the actor doesn't get buried inside the CAD model.
+    # Shift the end coords in the direction of the surface normal by clearance amount
+    ray_end = ray_end + normals * clearance
 
     # VTK objects with coordinates of each pixel corner.
     # Which index in the VTK array corresponds to which pixel is tracked in pointinds
@@ -714,7 +713,6 @@ def get_wall_coverage_actor(cal,cadmodel=None,image=None,imagecoords='Original',
             pointinds[i,j] = ci
             ci += 1
 
-    ray_end = ray_end - normals * clearance
 
     # Create VTK polygon array
     polys  = vtk.vtkCellArray()

@@ -28,6 +28,8 @@ correct backend.
 """
 
 # Import all the Qt bits and pieces from the relevant module
+
+''' PyQt6 support removed because it works very poorly with VTK, and PyQt5 is still readily available.
 try:
     from PyQt6.QtCore import *
     from PyQt6.QtGui import *
@@ -42,36 +44,37 @@ except Exception:
         pyqt6_broken=True
     except Exception:
         pyqt6_broken=False
+'''
 
+try:
+    from PyQt5.QtCore import *
+    from PyQt5.QtGui import *
+    from PyQt5.QtWidgets import *
+    from PyQt5.QtWidgets import QTreeWidgetItem as QTreeWidgetItem_class
+    from PyQt5 import uic
+    qt_ver = 5
+
+except Exception:
     try:
-        from PyQt5.QtCore import *
-        from PyQt5.QtGui import *
-        from PyQt5.QtWidgets import *
-        from PyQt5.QtWidgets import QTreeWidgetItem as QTreeWidgetItem_class
-        from PyQt5 import uic
-        qt_ver = 5
-
+        import PyQt5
+        pyqt5_broken=True
+    except:
+        pyqt5_broken=False
+    try:
+        from PyQt4.QtCore import *
+        from PyQt4.QtGui import *
+        from PyQt4.QtGui import QTreeWidgetItem as QTreeWidgetItem_class
+        from PyQt4 import uic
+        qt_ver = 4
     except Exception:
-        try:
-            import PyQt5
-            pyqt5_broken=True
-        except:
-            pyqt5_broken=False
-        try:
-            from PyQt4.QtCore import *
-            from PyQt4.QtGui import *
-            from PyQt4.QtGui import QTreeWidgetItem as QTreeWidgetItem_class
-            from PyQt4 import uic
-            qt_ver = 4
-        except Exception:
 
-            if pyqt6_broken:
-                raise ImportError('Could not import required GUI library: Python package "PyQt6" is present but seems to be broken.')
+        #if pyqt6_broken:
+        #    raise ImportError('Could not import required GUI library: Python package "PyQt6" is present but seems to be broken.')
 
-            if pyqt5_broken:
-                raise ImportError('Could not import required GUI library: Python package "PyQt5" is present but seems to be broken.')
+        if pyqt5_broken:
+            raise ImportError('Could not import required GUI library: Python package "PyQt5" is present but seems to be broken.')
 
-            raise ImportError('Could not import required GUI library: could not import either "PyQt6", "PyQt5" or "PyQt4" python packages successfully.')
+        raise ImportError('Could not import required GUI library: could not import either "PyQt6", "PyQt5" or "PyQt4" python packages successfully.')
 
 
 if qt_ver == 6:

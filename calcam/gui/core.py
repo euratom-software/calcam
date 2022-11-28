@@ -55,6 +55,9 @@ class CalcamGUIWindow(qt.QMainWindow):
 
         self.app = app
 
+         # Let's show helpful dialog boxes if we have unhandled exceptions:
+        sys.excepthook = self.show_exception_dialog
+
         self.config = CalcamConfig()
 
         self.manual_exc = False
@@ -66,12 +69,10 @@ class CalcamGUIWindow(qt.QMainWindow):
             available_space = self.app.primaryScreen().availableGeometry()
 
         # Open the window with same aspect ratio as the screen, and no fewer than 500px tall.
-        win_height = max(500,min(780,0.75*available_space.height()))
-        win_width = win_height * available_space.width() / available_space.height() 
+        win_height = int(max(500,min(780,0.75*available_space.height())))
+        win_width = int(win_height * available_space.width() / available_space.height())
         self.resize(win_width,win_height)
 
-         # Let's show helpful dialog boxes if we have unhandled exceptions:
-        sys.excepthook = self.show_exception_dialog
 
         try:
             self.action_new.setIcon( qt.QIcon(os.path.join(guipath,'icons','new.png')) )
@@ -320,6 +321,8 @@ class CalcamGUIWindow(qt.QMainWindow):
     def pick_colour(self,init_colour,pick_alpha=False):
 
         col_init = np.array(init_colour) * 255
+
+        col_init = np.round(col_init).astype(int)
 
         if pick_alpha:
             if col_init.size < 4:

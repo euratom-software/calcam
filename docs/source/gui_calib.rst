@@ -86,15 +86,19 @@ Loading and manipulating a CAD model
 ------------------------------------
 At the top the :guilabel:`Machine Model` control tab are controls for loading a CAD model to calibrate against. Two dropdown boxes are provided to select the CAD model to load and the :ref:`model variant <cadmodel_intro>`. The :guilabel:`Load` button to the right of the model variant then loads the model. Underneath the model variant dropdown box is a checkbox labeled `Enable default model features on load`: if checked, the default parts of the CAD model are all loaded as soon as the model itself is loaded. If not checked, the model definition will be loaded but none of the 3D mesh data will be loaded, and instead you can turn on features individually. This is useful if working with a large model on a slow computer where you don't want to wait for the whole model to load if not needed. You can change to a different CAD model or variant at any time by selecting a different item from the dropdown boxes and clicking :guilabel:`Load` again.
 
-CAD Mouse Navigation
-~~~~~~~~~~~~~~~~~~~~
+CAD Mouse & Keyboard Navigation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 You can interactively navigate around the CAD model using the following mouse controls:
 
-- :kbd:`Right Click + Drag` - Look around (first-person shooter style control; default) or rotate CAD model depending on settings
-- :kbd:`Middle Click + Drag` - Pan (translate) sideways i.e. in the plane of the monitor.
+- :kbd:`Right Click` + :kbd:`Move mouse` - Look around (first-person game stype control; default) or rotate CAD model depending on settings
+- :kbd:`Middle Click` + :kbd:`Move mouse` - Pan (translate) sideways i.e. in the plane of the monitor.
 - :kbd:`Scroll Wheel` - Move forwards or backwards.
-- :kbd:`Ctrl + Scroll Wheel` Reduce or increase the CAD field-of-view angle (i.e. Zoom)
-- :kbd:`Ctrl + Right Click + Drag` - Roll the camera (rotate about the direction of view)
+- :kbd:`Ctrl` + :kbd:`Scroll Wheel` - Reduce or increase the CAD field-of-view angle (i.e. Zoom)
+- :kbd:`Ctrl` + :kbd:`Right Click` + :kbd:`Move mouse` - Roll the camera (rotate about the direction of view)
+
+and keyboard keys:
+
+- :kbd:`W` :kbd:`A` :kbd:`S` :kbd:`D` or :kbd:`↑` :kbd:`←` :kbd:`↓` :kbd:`→` - Move the camera around as if walking forward, backward left or right. Note the camera only moves in one direction at once (not diagonally) according to the most recently pressed key.
 
 Turning CAD model parts On/Off
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

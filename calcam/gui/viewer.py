@@ -124,7 +124,7 @@ class Viewer(CalcamGUIWindow):
         self.remove_lines_button.clicked.connect(self.update_lines)
         self.coords_legend_checkbox.toggled.connect(self.update_legend)
 
-        self.control_sensitivity_slider.setValue(self.config.mouse_sensitivity)
+        self.control_sensitivity_slider.setValue(int(self.config.mouse_sensitivity))
 
         self.proj_perspective.toggled.connect(self.set_projection)
 
@@ -343,7 +343,7 @@ class Viewer(CalcamGUIWindow):
         opacity = opacity**(1/gamma)
 
         self.sightline_opacity_slider.blockSignals(True)
-        self.sightline_opacity_slider.setValue(opacity * 100)
+        self.sightline_opacity_slider.setValue(int(opacity * 100))
         self.sightline_opacity_slider.blockSignals(False)
 
 
@@ -889,7 +889,7 @@ class Viewer(CalcamGUIWindow):
                     self.statusbar.showMessage('Ray casting camera sight lines...')
                     self.app.processEvents()
                     if self.sightlines[data][2] == 'wall_coverage':
-                        actor = render.get_wall_coverage_actor(self.sightlines[data][0],self.cadmodel,resolution=256,subview=self.sightlines[data][3])
+                        actor = render.get_wall_coverage_actor(self.sightlines[data][0],self.cadmodel,subview=self.sightlines[data][3],clearance=1e-2,resolution=256)
                     else:
                         actor = render.get_fov_actor(self.cadmodel,self.sightlines[data][0],self.sightlines[data][2],subview=self.sightlines[data][3])
                     self.statusbar.clearMessage()
@@ -1061,7 +1061,7 @@ class RenderUnfoldedDialog(qt.QDialog):
         self.parent.app.processEvents()
         self.repaint()
         try:
-            self.progressbar.setValue(progress*100)
+            self.progressbar.setValue(int(progress*100))
             if self.progress_ref is None:
                 self.progress_ref = (time.time(),progress)
             else:

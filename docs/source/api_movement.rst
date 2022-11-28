@@ -18,6 +18,8 @@ Calcam can try to detect the movement between two images automatically, or there
 
 .. autofunction:: calcam.movement.detect_movement
 
+.. autofunction:: calcam.movement.phase_correlation_movement
+
 .. autofunction:: calcam.movement.manual_movement
 
 The MovementCorrection class
@@ -32,3 +34,8 @@ Adjusting calibrations for image movement
 Having obtained a movement correction object describing the movement, you can update an exicting calcam calibration to apply to the new image:
 
 .. autofunction:: calcam.movement.update_calibration
+
+Exceptions
+----------
+
+.. autoclass:: calcam.movement.DetectionFailedError

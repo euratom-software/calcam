@@ -23,6 +23,7 @@
 CalCam package.
 """
 import os
+import sys
 import warnings
 
 # Calcam version
@@ -65,4 +66,14 @@ from . import gm
 
 # If we have no GUI available, put a placeholder function to print a message about why where the GUI launcher would normally be.
 if no_gui_reason is not None:
-    start_gui = lambda : print('Could not start calcam GUI: {:s}'.format(no_gui_reason))
+
+    start_gui = lambda: print('Could not start calcam GUI: {:s}'.format(no_gui_reason))
+
+    # If we're running under pythonw, that print statement won't do anything, so try to make a simple tkinter dialog box to tell the user about the error.
+    if 'pythonw' in os.path.split(sys.executable)[-1]:
+        try:
+            from tkinter import messagebox
+            start_gui = lambda: messagebox.showerror(title='Cannot start Calcam GUI',message='Cannot start Calcam GUI: {:s}'.format(no_gui_reason))
+        except Exception as e:
+            pass
+

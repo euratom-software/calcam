@@ -119,7 +119,7 @@ if 'install' in sys.argv or 'develop' in sys.argv:
 
 
     # Check if any supported version of PyQt is already present
-    pyqt = test_dependency('from PyQt6.QtCore import *')
+    pyqt = False#test_dependency('from PyQt6.QtCore import *')
     if not pyqt:
         pyqt = test_dependency('from PyQt5.QtCore import *')
     if not pyqt:
@@ -130,14 +130,15 @@ if 'install' in sys.argv or 'develop' in sys.argv:
     else:
         print('No compatible PyQt installation found.')
 
-    # If not, try to install one with pip. Any will do.
+    # If not, try to install one with pip. PyQt6 removed because it does not work reliably enough with VTK.
+    #if not pyqt:
+    #    print('   Trying to install PyQt6 using pip...')
+    #    pip_install('PyQt6')
+    #    pyqt = test_dependency('from PyQt6.QtCore import *')
+    #    if pyqt: print('      OK!')
     if not pyqt:
-        print('   Trying to install PyQt6 using pip...')
-        pip_install('PyQt6')
-        pyqt = test_dependency('from PyQt6.QtCore import *')
-        if pyqt: print('      OK!')
-    if not pyqt:
-        print('      Failed.\n   Trying PyQt5 instead...')
+        # print('      Failed.\n   Trying PyQt5 instead...')
+        print('   Trying to install PyQt5 using pip...')
         pip_install('PyQt5')
         pyqt = test_dependency('from PyQt5.QtCore import *')
         if pyqt: print('      OK!')
@@ -151,13 +152,13 @@ if 'install' in sys.argv or 'develop' in sys.argv:
             print('      Failed.')
 
     # VTK
-    if test_dependency('from vtk import vtkVersion;ver=vtkVersion();v=ver.GetVTKMajorVersion()*100+ver.GetVTKMinorVersion();assert v>600 & v<901'):
+    if test_dependency('from vtk import vtkVersion;ver=vtkVersion();v=ver.GetVTKMajorVersion()*100+ver.GetVTKMinorVersion();assert v>700'):
         print('Compatible VTK installation found.')
         vtk = True
     else:
         print('No compatible VTK installation found - trying to install with pip...')
-        pip_install('vtk>=6,<9.1')
-        if test_dependency('from vtk import vtkVersion;ver=vtkVersion();v=ver.GetVTKMajorVersion()*100+ver.GetVTKMinorVersion();assert v>600 & v<901'):
+        pip_install('vtk>=7')
+        if test_dependency('from vtk import vtkVersion;ver=vtkVersion();v=ver.GetVTKMajorVersion()*100+ver.GetVTKMinorVersion();assert v>700'):
             print('   OK!\n')
             vtk = True
         else:
