@@ -1,6 +1,13 @@
 Calcam Changelog
 ================
 
+Current head of MASTER (2.10.1.dev0)
+------------------------------------
+
+Fixes:
+* Fix compatibility with VTK7 which was inadvertently broken by 2.10.0
+
+
 Minor Release 2.10.0 (November 2022)
 ------------------------------------
 

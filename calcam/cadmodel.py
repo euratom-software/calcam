@@ -595,8 +595,11 @@ class CADModel():
                 appender.AddInputData(self.features[fname].get_polydata())
         
             appender.Update()
+            try:
+                self.cell_locator = vtk.vtkStaticCellLocator()
+            except AttributeError:
+                self.cell_locator = vtk.vtkCellLocator()
 
-            self.cell_locator = vtk.vtkStaticCellLocator()
             self.cell_locator.SetTolerance(1e-6)
             self.cell_locator.SetDataSet(appender.GetOutput())
             self.cell_locator.BuildLocator()
