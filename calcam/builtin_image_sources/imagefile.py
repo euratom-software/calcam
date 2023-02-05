@@ -75,12 +75,12 @@ get_image_arguments =  [
                             'arg_name': 'offset_x',
                             'gui_label': 'Detector X Offset',
                             'type': 'int',
-                            'limits':[0,1e4]
+                            'limits':[0,10000]
                         },
                         {
                             'arg_name': 'offset_y',
                             'gui_label': 'Detector Y Offset',
                             'type': 'int',
-                            'limits': [0, 1e4]
+                            'limits': [0, 10000]
                         },
                         ]
