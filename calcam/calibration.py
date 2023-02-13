@@ -2073,10 +2073,10 @@ class Calibration():
         # Model info for alignment or virtual selfs
         if self._type in ['alignment','virtual']:
             msg = msg + '------------\nCamera Model\n------------\n\n'
-            if self.intrinsics_type == 'calibration':
+            if isinstance(self.history['intrinsics'], (list, tuple)):
                 hist_str = self.history['intrinsics'][1]
             else:
-                hist_str = self.history['intrinsics'][1]
+                hist_str = self.history['intrinsics']
             msg = msg + 'Intrinsics\n~~~~~~~~~~\nType: {:s}\n{:s}\n\n'.format(self.intrinsics_type.capitalize(),hist_str)
             if self.pixel_size is not None:
                 msg = msg + 'Camera pixel size:           {:.1f} x {:.1f} um\n'.format(1e6*self.pixel_size,1e6*self.pixel_size*self.geometry.pixel_aspectratio)
