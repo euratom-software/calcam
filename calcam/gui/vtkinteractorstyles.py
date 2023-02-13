@@ -154,7 +154,11 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
         """
 
         direction = None
-        key = self.interactor.GetKeySym().upper()
+
+        try:
+            key = self.interactor.GetKeySym().upper()
+        except AttributeError:
+            return
 
         # -------------------- WSAD WALKING --------------------
         if key in ['W','UP']:

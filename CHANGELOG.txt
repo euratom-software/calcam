@@ -4,8 +4,15 @@ Calcam Changelog
 Current head of MASTER (2.10.1.dev0)
 ------------------------------------
 
+Compatibility:
+* Fixed various additional compatibility issues under Python 3.10 which raised exceptions due to floats being passed to PyQt calls that now require ints.
+* Fixed ray casting compatibility with VTK7 which was inadvertently broken by 2.10.0
+* Fixed compatibility of movement correction with newer versions of OpenCV.
+
 Fixes:
-* Fix compatibility with VTK7 which was inadvertently broken by 2.10.0
+* Fixed a bug which caused erratic behaviour in image analyser when using a calibration with multiple sub-views and movement correction.
+* Fixed an exception which could be raised by certain combinations of clicks & key presses on VTK GUI elements.
+* Fixed an issue which could raise exceptions if trying to perform a calibration fit with < 6 points (fit button is now disabled in this case).
 
 
 Minor Release 2.10.0 (November 2022)

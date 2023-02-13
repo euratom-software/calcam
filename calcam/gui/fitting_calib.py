@@ -1042,8 +1042,8 @@ class FittingCalib(CalcamGUIWindow):
         for i in range(self.calibration.n_subviews):
             enable = True
 
-            # We need at least 4 extrinsics points and at least as many total points as free parameters
-            if self.n_points[i][0] < 4 or np.sum(self.n_points[i]) < 6:
+            # We need at least 6 extrinsics points
+            if self.n_points[i][0] < 6:
                 enable = False
 
             self.fit_buttons[i].setEnabled(enable)

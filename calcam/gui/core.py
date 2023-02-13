@@ -396,10 +396,10 @@ class CalcamGUIWindow(qt.QMainWindow):
                 valbox = qt.QSpinBox()
                 valbox.setButtonSymbols(qt.QAbstractSpinBox.NoButtons)
                 if 'limits' in option:
-                    valbox.setMinimum(option['limits'][0])
-                    valbox.setMaximum(option['limits'][1])
+                    valbox.setMinimum(int(option['limits'][0]))
+                    valbox.setMaximum(int(option['limits'][1]))
                 if 'default' in option:
-                    valbox.setValue(option['default'])
+                    valbox.setValue(int(option['default']))
                 layout.addWidget(valbox,row,1)
                 self.imload_inputs[option['arg_name']] = ([labelwidget,valbox],valbox.value )
                 row = row + 1
