@@ -2048,7 +2048,7 @@ class CalibInfoDialog(qt.QDialog):
 
         self.setWindowTitle('Calibration Information.')
 
-        self.resize(parent.size().width()/2,parent.size().height()/2)
+        self.resize(parent.size().width()//2,parent.size().height()//2)
 
         self.setModal(False)
 
