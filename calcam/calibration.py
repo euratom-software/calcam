@@ -2073,7 +2073,7 @@ class Calibration():
         # Model info for alignment or virtual selfs
         if self._type in ['alignment','virtual']:
             msg = msg + '------------\nCamera Model\n------------\n\n'
-            if self.intrinsics_type == 'calibration':
+            if isinstance(self.history['intrinsics'], (list, tuple)):
                 hist_str = self.history['intrinsics'][1]
             else:
                 hist_str = self.history['intrinsics']
