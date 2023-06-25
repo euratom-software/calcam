@@ -185,7 +185,7 @@ class VirtualCalib(CalcamGUIWindow):
                 fl = self.y_pixels_box.value() * self.pixel_size_box.value() * 1e-3 / (2*np.tan(self.fov_box.value()/360 * np.pi))
                 self.focal_length_box.setValue(fl)
                 self.focal_length_box.blockSignals(False)
-            elif self.sender() is self.focal_length_box:
+            else:
                 self.fov_box.blockSignals(True)
                 fov = 360*np.arctan(self.y_pixels_box.value() * self.pixel_size_box.value() * 1e-3 / (2*self.focal_length_box.value())) / np.pi
                 self.fov_box.setValue(fov)

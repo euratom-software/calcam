@@ -577,11 +577,15 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
             # Camera view wider than VTK panel
             if self.force_aspect <= vtk_aspect:
                 h = self.force_aspect / vtk_aspect
+                self.renderer.Clear()
+                self.vtkwindow.Render()
                 self.renderer.SetViewport([0.,0.5-h/2.,1.0,0.5+h/2.])
 
             # Camera view taller than VTK panel
             elif self.force_aspect > vtk_aspect:
                 w = vtk_aspect / self.force_aspect
+                self.renderer.Clear()
+                self.vtkwindow.Render()
                 self.renderer.SetViewport([0.5-w/2.,0.,0.5+w/2.,1.])
 
         # Sizing of the legend
@@ -623,6 +627,7 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
 
         if self.legend is not None:
             self.renderer.RemoveActor(self.legend)
+            self.legend = None
 
         if len(legend_items) > 0:
 

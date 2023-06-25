@@ -1,8 +1,11 @@
 Calcam Changelog
 ================
 
-Current head of MASTER (2.10.1.dev0)
+Current head of MASTER (2.11.0.dev0)
 ------------------------------------
+
+New & Enhancements:
+* Added ability to turn off automatic trimming of geometry matrix rows and columns when creating GeometryMatrix objects.
 
 Compatibility:
 * Fixed various additional compatibility issues under Python 3.10 which raised exceptions due to floats being passed to PyQt calls that now require ints.
@@ -13,6 +16,9 @@ Fixes:
 * Fixed a bug which caused erratic behaviour in image analyser when using a calibration with multiple sub-views and movement correction.
 * Fixed an exception which could be raised by certain combinations of clicks & key presses on VTK GUI elements.
 * Fixed an issue which could raise exceptions if trying to perform a calibration fit with < 6 points (fit button is now disabled in this case).
+* Field of view now updates correctly when changing pixel size or number of pixels in virtual calibration editor.
+* Fixed issue with "lefover image" staying visible when changing sensor aspect ratio in the virtual calibration editor.
+* Fixed a bug in the 3D viewer which caused a calibration legend with multiple entries to appear when rendering images with only 1 calibration visible.
 
 
 Minor Release 2.10.0 (November 2022)

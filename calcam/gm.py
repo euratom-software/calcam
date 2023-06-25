@@ -577,6 +577,12 @@ class GeometryMatrix:
                                                the 2D image array in to the 1D data vector. \
                                                Default 'C' goes left-to-right, then row-by-row (NumPy default), \
                                                alternatively 'F' goes top-to-bottom, then column-by-column (MATLAB default).
+
+        trim_rows (bool)                     : Whether to automatically remove all-zero matrix rows, i.e. rows corresponding to pixels \
+                                               which don't see any of the cells in the inversion grid.
+
+        trim_columns (bool)                  : Whether to automatically remove all-zero matrix columns, i.e. columns corresponding \
+                                               to grid cells not seen by any pixel. This will also remove these cells from the grid object.
         
         calc_status_callback (callable)      : Callable which takes a single argument, which will be called with \
                                                status updates about the calculation. It will be called with either \
@@ -585,7 +591,7 @@ class GeometryMatrix:
                                                to stdout.  If set to None, no status updates are issued.
 
     '''
-    def __init__(self,grid,raydata,pixel_order='C',calc_status_callback = misc.LoopProgPrinter().update):
+    def __init__(self,grid,raydata,pixel_order='C',trim_rows=True,trim_columns=True,calc_status_callback = misc.LoopProgPrinter().update):
 
         if grid is not None and raydata is not None:
 
@@ -662,19 +668,20 @@ class GeometryMatrix:
             if calc_status_callback is not None:
                 calc_status_callback(1.)
             
-            
-            # Remove any grid cells + matrix columns which have no sight-line coverage.
-            unused_cells = np.where(np.abs(self.data.sum(axis=0)) == 0)[1]
-            self.grid.remove_cells(unused_cells)
+            if trim_columns:
+                # Remove any grid cells + matrix columns which have no sight-line coverage.
+                unused_cells = np.where(np.abs(self.data.sum(axis=0)) == 0)[1]
+                self.grid.remove_cells(unused_cells)
 
-            used_cols = np.where(self.data.sum(axis=0) > 0)[1]
-            self.data = self.data[:,used_cols]
+                used_cols = np.where(self.data.sum(axis=0) > 0)[1]
+                self.data = self.data[:,used_cols]
 
-            # Set the pixel mask to exclude pixels which do not contribute to any grid cells and remove corresponding rows.
-            if self.pixel_mask is not None:
-                used_pixels = np.squeeze(np.array(np.abs(self.data.sum(axis=1))) > 1e-14)
-                self.pixel_mask = used_pixels.reshape(imdims,order=self.pixel_order)
-                self.data = self.data[used_pixels,:]
+            if trim_rows:
+                # Set the pixel mask to exclude pixels which do not contribute to any grid cells and remove corresponding rows.
+                if self.pixel_mask is not None:
+                    used_pixels = np.squeeze(np.array(np.abs(self.data.sum(axis=1))) > 1e-14)
+                    self.pixel_mask = used_pixels.reshape(imdims,order=self.pixel_order)
+                    self.data = self.data[used_pixels,:]
 
 
 
