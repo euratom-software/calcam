@@ -6,6 +6,7 @@ Current head of MASTER (2.11.0.dev0)
 
 New & Enhancements:
 * Added ability to turn off automatic trimming of geometry matrix rows and columns when creating GeometryMatrix objects.
+* Improved behaviour of "Set CAD view to match fit" button when using images with multiple sub-views in the fitting calibration tool.
 
 Compatibility:
 * Fixed various additional compatibility issues under Python 3.10 which raised exceptions due to floats being passed to PyQt calls that now require ints.
@@ -19,6 +20,9 @@ Fixes:
 * Field of view now updates correctly when changing pixel size or number of pixels in virtual calibration editor.
 * Fixed issue with "lefover image" staying visible when changing sensor aspect ratio in the virtual calibration editor.
 * Fixed a bug in the 3D viewer which caused a calibration legend with multiple entries to appear when rendering images with only 1 calibration visible.
+* Fixed a bug which raised exceptions when using the "Set CAD view to match fit" button in the fitting calibration editor, for images with multiple sub-views if not all sub-views were fitted.
+* Improved reliability of fitting calibration for high resolution images.
+* Fixed PyQt error message to correctly reflect supported PyQt versions.
 
 
 Minor Release 2.10.0 (November 2022)

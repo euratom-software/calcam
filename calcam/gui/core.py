@@ -26,6 +26,7 @@ import traceback
 
 # External module imports
 import numpy as np
+from scipy.ndimage.measurements import center_of_mass as CoM
 import vtk
 import cv2
 
@@ -768,7 +769,9 @@ class CalcamGUIWindow(qt.QMainWindow):
             mat = calibration.get_cam_matrix(subview=subfield)
             self.camera_3d.SetFocalPoint(calibration.get_pupilpos(subview=subfield) + calibration.get_los_direction(mat[0,2],mat[1,2]))
         else:
-            self.camera_3d.SetFocalPoint(calibration.get_pupilpos(subview=subfield) + calibration.get_los_direction(calibration.geometry.get_display_shape()[0]/2,calibration.geometry.get_display_shape()[1]/2))
+            ypx,xpx = CoM( calibration.get_subview_mask(coords='Display') == subfield)
+            los_centre = calibration.get_los_direction(xpx,ypx)
+            self.camera_3d.SetFocalPoint(calibration.get_pupilpos(subview=subfield) + los_centre)
 
         self.interactor3d.set_roll(calibration.get_cam_roll(subview=subfield,centre='subview'))
 

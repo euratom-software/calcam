@@ -1418,10 +1418,12 @@ class Calibration():
             subview_mask = self.subview_lookup(x,y)
             subview_mask = np.tile( subview_mask, [3] + [1]*x.ndim )
             subview_mask = np.squeeze(np.swapaxes(np.expand_dims(subview_mask,-1),0,subview_mask.ndim),axis=0) # Changed to support old numpy versions. Simpler modern version: np.moveaxis(subview_mask,0,subview_mask.ndim-1)
-            
-            for nview in range(self.n_subviews):
-                losdir = self.view_models[nview].get_los_direction(x,y)
-                output[subview_mask == nview] = losdir[subview_mask == nview]
+            subview_list = np.unique(subview_mask)
+            subview_list = subview_list[subview_list > -1].astype(int)
+            for nview in subview_list:
+                if self.view_models[nview] is not None:
+                    losdir = self.view_models[nview].get_los_direction(x,y)
+                    output[subview_mask == nview] = losdir[subview_mask == nview]
 
         else:
 
@@ -2028,7 +2030,7 @@ class Calibration():
             msg = msg + '\nSub-views:           {:d} ({:s})\n\n'.format(self.n_subviews,', '.join(['"{:s}"'.format(name) for name in self.subview_names]))
 
 
-        # Point paiir info for fitting selfs
+        # Point pair info for fitting calibs
         if self.pointpairs is not None:
             msg = msg + '------------------\nCalibration Points\n------------------\n{:s}\n'.format(self.history['pointpairs'][0])
             if self.history['pointpairs'][1] is not None:
@@ -2053,7 +2055,7 @@ class Calibration():
             msg = msg + '\n\n'
 
 
-        # Fit info for fitting selfs.
+        # Fit info for fitting calibs.
         if self._type == 'fit':
             if self.view_models.count(None) < len(self.view_models):
                 msg = msg + '----------------------\nFitted Camera Model(s)\n----------------------\n'
@@ -2484,11 +2486,17 @@ class Fitter:
     def set_image_shape(self,im_shape):
 
         self.image_display_shape = tuple(im_shape)
+        
+        longest_side = max(self.image_display_shape[0],self.image_display_shape[1])
 
-        # Initialise initial values for fitting
+        # Initial guess for fitting camera matrix
+        # Note the guess for the focal length is 2 * sensor longet side,
+        # since this seems to be a reasonable value for most currently used
+        # systems and allows the fitting to work well for both very low and 
+        # very high pixel density sensors.
         initial_matrix = np.zeros((3,3))
-        initial_matrix[0,0] = 1200    # Fx
-        initial_matrix[1,1] = 1200    # Fy
+        initial_matrix[0,0] = longest_side*2    # Fx
+        initial_matrix[1,1] = longest_side*2    # Fy
         initial_matrix[2,2] = 1
         initial_matrix[0,2] = self.image_display_shape[0]/2    # Cx
         initial_matrix[1,2] = self.image_display_shape[1]/2    # Cy
