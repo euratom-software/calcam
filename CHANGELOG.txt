@@ -7,6 +7,7 @@ Current head of MASTER (2.11.0.dev0)
 New & Enhancements:
 * Added ability to turn off automatic trimming of geometry matrix rows and columns when creating GeometryMatrix objects.
 * Improved behaviour of "Set CAD view to match fit" button when using images with multiple sub-views in the fitting calibration tool.
+* Add input fields for both vertical and horizontal FOV in virtual calibration editor so the user can specify either instead of only vertical.
 
 Compatibility:
 * Fixed various additional compatibility issues under Python 3.10 which raised exceptions due to floats being passed to PyQt calls that now require ints.

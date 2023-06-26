@@ -174,6 +174,12 @@
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
          <widget class="QGroupBox" name="groupBox_3">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="title">
            <string>Camera Intrinsics</string>
           </property>
@@ -212,6 +218,13 @@
               <enum>QFrame::Raised</enum>
              </property>
              <layout class="QGridLayout" name="gridLayout_5">
+              <item row="4" column="0">
+               <widget class="QLabel" name="label_19">
+                <property name="text">
+                 <string>Field of view:</string>
+                </property>
+               </widget>
+              </item>
               <item row="1" column="0">
                <widget class="QLabel" name="label_2">
                 <property name="text">
@@ -269,9 +282,6 @@
                 <property name="keyboardTracking">
                  <bool>false</bool>
                 </property>
-                <property name="showGroupSeparator" stdset="0">
-                 <bool>false</bool>
-                </property>
                 <property name="suffix">
                  <string> mm</string>
                 </property>
@@ -290,50 +300,15 @@
                 <property name="value">
                  <double>6.000000000000000</double>
                 </property>
+                <property name="showGroupSeparator" stdset="0">
+                 <bool>false</bool>
+                </property>
                </widget>
               </item>
               <item row="0" column="0">
                <widget class="QLabel" name="label">
                 <property name="text">
                  <string>Pixel Size:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="3">
-               <widget class="QLabel" name="label_17">
-                <property name="text">
-                 <string>(vert. FOV:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="4">
-               <widget class="QDoubleSpinBox" name="fov_box">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="buttonSymbols">
-                 <enum>QAbstractSpinBox::NoButtons</enum>
-                </property>
-                <property name="keyboardTracking">
-                 <bool>false</bool>
-                </property>
-                <property name="suffix">
-                 <string>°</string>
-                </property>
-                <property name="decimals">
-                 <number>1</number>
-                </property>
-                <property name="minimum">
-                 <double>0.100000000000000</double>
-                </property>
-                <property name="maximum">
-                 <double>179.000000000000000</double>
-                </property>
-                <property name="value">
-                 <double>81.000000000000000</double>
                 </property>
                </widget>
               </item>
@@ -356,14 +331,17 @@
                 </property>
                </widget>
               </item>
-              <item row="2" column="5">
-               <widget class="QLabel" name="label_18">
+              <item row="4" column="3">
+               <widget class="QLabel" name="label_17">
                 <property name="text">
-                 <string>)</string>
+                 <string>x</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
                 </property>
                </widget>
               </item>
-              <item row="1" column="4" colspan="2">
+              <item row="1" column="4">
                <widget class="QSpinBox" name="y_pixels_box">
                 <property name="buttonSymbols">
                  <enum>QAbstractSpinBox::NoButtons</enum>
@@ -379,6 +357,69 @@
                 </property>
                 <property name="value">
                  <number>1024</number>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="4">
+               <widget class="QDoubleSpinBox" name="vfov_box">
+                <property name="buttonSymbols">
+                 <enum>QAbstractSpinBox::NoButtons</enum>
+                </property>
+                <property name="keyboardTracking">
+                 <bool>false</bool>
+                </property>
+                <property name="suffix">
+                 <string>°</string>
+                </property>
+                <property name="decimals">
+                 <number>0</number>
+                </property>
+                <property name="minimum">
+                 <double>0.000000000000000</double>
+                </property>
+                <property name="maximum">
+                 <double>179.000000000000000</double>
+                </property>
+                <property name="value">
+                 <double>81.000000000000000</double>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="2">
+               <widget class="QDoubleSpinBox" name="hfov_box">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="buttonSymbols">
+                 <enum>QAbstractSpinBox::NoButtons</enum>
+                </property>
+                <property name="keyboardTracking">
+                 <bool>false</bool>
+                </property>
+                <property name="suffix">
+                 <string>°</string>
+                </property>
+                <property name="decimals">
+                 <number>0</number>
+                </property>
+                <property name="minimum">
+                 <double>0.000000000000000</double>
+                </property>
+                <property name="maximum">
+                 <double>179.000000000000000</double>
+                </property>
+                <property name="value">
+                 <double>81.000000000000000</double>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="0" colspan="5">
+               <widget class="Line" name="line">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
                 </property>
                </widget>
               </item>
@@ -446,12 +487,24 @@
         </item>
         <item>
          <widget class="QGroupBox" name="groupBox_4">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="title">
            <string>Camera Positioning</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_7">
            <item row="2" column="0" colspan="2">
             <widget class="QTreeWidget" name="viewlist">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <attribute name="headerVisible">
               <bool>false</bool>
              </attribute>

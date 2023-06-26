@@ -78,7 +78,8 @@ class VirtualCalib(CalcamGUIWindow):
         self.x_pixels_box.valueChanged.connect(self.update_intrinsics)
         self.y_pixels_box.valueChanged.connect(self.update_intrinsics)
         self.focal_length_box.valueChanged.connect(self.update_intrinsics)
-        self.fov_box.valueChanged.connect(self.update_intrinsics)
+        self.hfov_box.valueChanged.connect(self.update_intrinsics)
+        self.vfov_box.valueChanged.connect(self.update_intrinsics)
         self.load_chessboard_button.clicked.connect(self.update_chessboard_intrinsics)
         self.load_intrinsics_button.clicked.connect(self.update_intrinsics)
         self.load_extrinsics_button.clicked.connect(self.load_viewport_calib)
@@ -180,16 +181,25 @@ class VirtualCalib(CalcamGUIWindow):
             self.load_intrinsics_button.setEnabled(False)
             self.pinhole_params_box.show()
 
-            if self.sender() is self.fov_box:
+            if self.sender() is self.vfov_box:
                 self.focal_length_box.blockSignals(True)
-                fl = self.y_pixels_box.value() * self.pixel_size_box.value() * 1e-3 / (2*np.tan(self.fov_box.value()/360 * np.pi))
+                fl = self.y_pixels_box.value() * self.pixel_size_box.value() * 1e-3 / (2*np.tan(self.vfov_box.value()/360 * np.pi))
                 self.focal_length_box.setValue(fl)
                 self.focal_length_box.blockSignals(False)
-            else:
-                self.fov_box.blockSignals(True)
-                fov = 360*np.arctan(self.y_pixels_box.value() * self.pixel_size_box.value() * 1e-3 / (2*self.focal_length_box.value())) / np.pi
-                self.fov_box.setValue(fov)
-                self.fov_box.blockSignals(False)
+            elif self.sender() is self.hfov_box:
+                self.focal_length_box.blockSignals(True)
+                fl = self.x_pixels_box.value() * self.pixel_size_box.value() * 1e-3 / (2*np.tan(self.hfov_box.value()/360 * np.pi))
+                self.focal_length_box.setValue(fl)
+                self.focal_length_box.blockSignals(False)
+
+            self.hfov_box.blockSignals(True)
+            self.vfov_box.blockSignals(True)
+            hfov = 360*np.arctan(self.x_pixels_box.value() * self.pixel_size_box.value() * 1e-3 / (2*self.focal_length_box.value())) / np.pi
+            vfov = 360 * np.arctan(self.y_pixels_box.value() * self.pixel_size_box.value() * 1e-3 / (2 * self.focal_length_box.value())) / np.pi
+            self.hfov_box.setValue(hfov)
+            self.vfov_box.setValue(vfov)
+            self.hfov_box.blockSignals(False)
+            self.vfov_box.blockSignals(False)
 
             nx = self.x_pixels_box.value()
             ny = self.y_pixels_box.value()
