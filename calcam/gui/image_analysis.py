@@ -245,7 +245,7 @@ class ImageAnalyser(CalcamGUIWindow):
             im = np.hstack((im,render_hires(self.renderer_3d,oversampling=oversampling)))
 
         im[:,:,:3] = im[:,:,2::-1]
-        cv2.imwrite(filename,im)
+        self.save_image(filename,im)
 
         if c3d is not None:
             self.renderer_3d.AddActor(c3d)

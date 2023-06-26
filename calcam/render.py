@@ -384,9 +384,11 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
         # Re-shuffle the colour channels for saving (openCV needs BGR / BGRA)
         save_im = copy.copy(output)
         save_im[:,:,:3] = save_im[:,:,2::-1]
-        cv2.imwrite(filename,save_im)
-        if verbose:
+        result = cv2.imwrite(filename,save_im)
+        if verbose and result:
             print('[Calcam Renderer] Result saved as {:s}'.format(filename))
+        if not result:
+            print('[Calcam Renderer] WARNING: Could not write to image file {:s}'.format(filename))
 
 
     # Tidy up after ourselves!
@@ -1379,10 +1381,16 @@ def render_unfolded_wall(cadmodel,calibrations=[],labels = [],colours=None,cal_o
         # Re-shuffle the colour channels for saving (openCV needs BGR / BGRA)
         save_im = copy.copy(out_im)
         save_im[:,:,:3] = save_im[:,:,2::-1]
-        cv2.imwrite(filename,save_im)
-        try:
-            progress_callback('Result saved as {:s}'.format(filename))
-        except Exception:
-            print('Result saved as {:s}'.format(filename))
+        result = cv2.imwrite(filename,save_im)
+        if result:
+            try:
+                progress_callback('Result saved as {:s}'.format(filename))
+            except Exception:
+                print('Result saved as {:s}'.format(filename))
+        else:
+            try:
+                progress_callback('Warning: could not write to image file {:s}'.format(filename))
+            except Exception:
+                print('Warning: could not write to image file {:s}'.format(filename))
 
     return out_im

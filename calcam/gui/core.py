@@ -1261,7 +1261,32 @@ class CalcamGUIWindow(qt.QMainWindow):
         self.camera_3d.SetViewUp(0,0,1)
         self.camera_3d.SetRoll(cam_roll)
 
-        self.calibration.set_extrinsics(campos,upvec,camtar = camtar,src=self.extrinsics_src) 
+        self.calibration.set_extrinsics(campos,upvec,camtar = camtar,src=self.extrinsics_src)
+
+
+    def save_image(self,image,filename=None):
+
+        if filename is None:
+            filename = self.get_save_filename('image')
+
+        result = cv2.imwrite(filename, image)
+
+        if not result:
+            dialog = qt.QMessageBox(self)
+            dialog.setWindowFlags(dialog.windowFlags() | qt.Qt.CustomizeWindowHint)
+            dialog.setWindowFlags(dialog.windowFlags() & ~qt.Qt.WindowCloseButtonHint)
+            dialog.setStandardButtons(dialog.Save | dialog.Discard)
+            dialog.button(dialog.Save).setText('Save As...')
+            dialog.button(dialog.Discard).setText('Cancel')
+            dialog.setTextFormat(qt.Qt.RichText)
+            dialog.setWindowTitle('Error saving image')
+            dialog.setText('Could not write to file {:s}.'.format(filename))
+            dialog.setInformativeText('Click "Save As..." to select another location / filename and try again, or "Cancel" to give up.')
+            dialog.setIcon(qt.QMessageBox.Warning)
+            dialog.exec()
+
+            if dialog.result() == dialog.Save:
+                self.save_image(image)
 
 
 class ChessboardDialog(qt.QDialog):
@@ -2038,7 +2063,24 @@ class ImageMaskDialog(qt.QDialog):
             if not selected_path.endswith(fext):
                 selected_path = selected_path + fext
 
-            cv2.imwrite(selected_path,self.image)
+            result = cv2.imwrite(selected_path,self.image)
+
+            if not result:
+                dialog = qt.QMessageBox(self)
+                dialog.setWindowFlags(dialog.windowFlags() | qt.Qt.CustomizeWindowHint)
+                dialog.setWindowFlags(dialog.windowFlags() & ~qt.Qt.WindowCloseButtonHint)
+                dialog.setStandardButtons(dialog.Save | dialog.Discard)
+                dialog.button(dialog.Save).setText('Save As...')
+                dialog.button(dialog.Discard).setText('Cancel')
+                dialog.setTextFormat(qt.Qt.RichText)
+                dialog.setWindowTitle('Error saving image')
+                dialog.setText('Could not write to file {:s}.'.format(selected_path))
+                dialog.setInformativeText('Click "Save As..." to select another location / filename and try again, or "Cancel" to give up.')
+                dialog.setIcon(qt.QMessageBox.Warning)
+                dialog.exec()
+
+                if dialog.result() == dialog.Save:
+                    self.save_image()
 
 
 class CalibInfoDialog(qt.QDialog):

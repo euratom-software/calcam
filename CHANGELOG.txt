@@ -15,6 +15,7 @@ Compatibility:
 * Fixed compatibility of movement correction with newer versions of OpenCV.
 
 Fixes:
+* When trying to save images, if an image file cannot be written (e.g. no disk space, permissions wrong etc) the user now gets an error message instead of silent failure.
 * Fixed a bug which caused erratic behaviour in image analyser when using a calibration with multiple sub-views and movement correction.
 * Fixed an exception which could be raised by certain combinations of clicks & key presses on VTK GUI elements.
 * Fixed an issue which could raise exceptions if trying to perform a calibration fit with < 6 points (fit button is now disabled in this case).

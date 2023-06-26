@@ -824,12 +824,29 @@ class Viewer(CalcamGUIWindow):
 
         # Save the image!
         im[:,:,:3] = im[:,:,2::-1]
-        cv2.imwrite(filename,im)
+        result = cv2.imwrite(filename,im)
 
         self.renderer_3d.Render()
 
         self.app.restoreOverrideCursor()
         self.statusbar.clearMessage()
+
+        if not result:
+            dialog = qt.QMessageBox(self)
+            dialog.setWindowFlags(dialog.windowFlags() | qt.Qt.CustomizeWindowHint)
+            dialog.setWindowFlags(dialog.windowFlags() & ~qt.Qt.WindowCloseButtonHint)
+            dialog.setStandardButtons(dialog.Save | dialog.Discard)
+            dialog.button(dialog.Save).setText('Save As...')
+            dialog.button(dialog.Discard).setText('Cancel')
+            dialog.setTextFormat(qt.Qt.RichText)
+            dialog.setWindowTitle('Error saving image')
+            dialog.setText('Could not write to file {:s}.'.format(filename))
+            dialog.setInformativeText('Click "Save As..." to select another location / filename and try again, or "Cancel" to give up.')
+            dialog.setIcon(qt.QMessageBox.Warning)
+            dialog.exec()
+
+            if dialog.result() == dialog.Save:
+                self.save_image(im)
 
 
         
