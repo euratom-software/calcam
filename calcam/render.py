@@ -519,6 +519,8 @@ def get_fov_actor(cadmodel,calib,actor_type='volume',resolution=None,subview=Non
 
     raydata = raycast_sightlines(calib,cadmodel,binning=max(calib.geometry.get_display_shape())/resolution,verbose=False)
 
+    subview_lookup = calib.subview_lookup(raydata.x,raydata.y)
+
     # Before we do anything, we need to arrange our triangle corners
     points = vtk.vtkPoints()
 
@@ -535,7 +537,7 @@ def get_fov_actor(cadmodel,calib,actor_type='volume',resolution=None,subview=Non
         for n in range(len(x_horiz)):
             if np.abs(raydata.ray_start_coords[y_horiz[n],x_horiz[n],:] - raydata.ray_start_coords[y_horiz[n],x_horiz[n]+1,:]).max() < 1e-3:
                 if subview is not None:
-                    if calib.subview_lookup(raydata.x[y_horiz[n],x_horiz[n]],raydata.y[y_horiz[n],x_horiz[n]]) != subview:
+                    if subview_lookup[y_horiz[n],x_horiz[n]] != subview:
                         continue
                 points.InsertNextPoint(raydata.ray_start_coords[y_horiz[n],x_horiz[n],:])
                 points.InsertNextPoint(raydata.ray_end_coords[y_horiz[n],x_horiz[n],:])
@@ -544,7 +546,7 @@ def get_fov_actor(cadmodel,calib,actor_type='volume',resolution=None,subview=Non
         for n in range(len(x_vert)):
             if np.abs( raydata.ray_start_coords[y_vert[n],x_vert[n],:] - raydata.ray_start_coords[y_vert[n]+1,x_vert[n],:] ).max() < 1e-3:
                 if subview is not None:
-                    if calib.subview_lookup(raydata.x[y_vert[n],x_vert[n]],raydata.y[y_vert[n],x_vert[n]]) != subview:
+                    if subview_lookup[y_vert[n],x_vert[n]] != subview:
                         continue
                 points.InsertNextPoint(raydata.ray_start_coords[y_vert[n],x_vert[n],:])
                 points.InsertNextPoint(raydata.ray_end_coords[y_vert[n],x_vert[n],:])
@@ -574,7 +576,7 @@ def get_fov_actor(cadmodel,calib,actor_type='volume',resolution=None,subview=Non
         for i in range(raydata.ray_end_coords.shape[0]):
             for j in range(raydata.ray_end_coords.shape[1]):
                 if subview is not None:
-                    if calib.subview_lookup(raydata.x[i,j],raydata.y[i,j]) != subview:
+                    if subview_lookup[i,j] != subview:
                         continue
 
                 points.InsertNextPoint(raydata.ray_end_coords[i,j,:])
@@ -738,6 +740,8 @@ def get_wall_coverage_actor(cal,cadmodel=None,image=None,imagecoords='Original',
         i = -1
         tot_px = (ray_end.shape[1]-1) * (ray_end.shape[0] - 1)
 
+    subview_lookup = cal.subview_lookup(rd.x,rd.y)
+
     # Go through the image
     for xi in range(ray_end.shape[1]-1):
         for yi in range(ray_end.shape[0] - 1):
@@ -752,9 +756,9 @@ def get_wall_coverage_actor(cal,cadmodel=None,image=None,imagecoords='Original',
                     continue
 
             if subview is not None:
-                if np.any(cal.subview_lookup(rd.x[yi:yi+2,xi:xi+2],rd.y[yi:yi+2,xi:xi+2]) != subview):
+                if np.any(subview_lookup[yi:yi+2,xi:xi+2] != subview):
                     continue
-            elif np.unique( cal.subview_lookup(rd.x[yi:yi+2,xi:xi+2],rd.y[yi:yi+2,xi:xi+2])).size > 1:
+            elif np.unique(subview_lookup[yi:yi+2,xi:xi+2]).size > 1:
                 # Also don't do any cells which are split across subviews.
                 continue
 

@@ -8,6 +8,7 @@ New & Enhancements:
 * Added ability to turn off automatic trimming of geometry matrix rows and columns when creating GeometryMatrix objects.
 * Improved behaviour of "Set CAD view to match fit" button when using images with multiple sub-views in the fitting calibration tool.
 * Add input fields for both vertical and horizontal FOV in virtual calibration editor so the user can specify either instead of only vertical.
+* Improved performance of generating field of view representations and mapping camera images to CAD surface.
 
 Compatibility:
 * Fixed various additional compatibility issues under Python 3.10 which raised exceptions due to floats being passed to PyQt calls that now require ints.
@@ -27,7 +28,7 @@ Fixes:
 * Fixed PyQt error message to correctly reflect supported PyQt versions.
 * Fixed bug in render.get_wall_coverage_actor() which caused status not to be reported properly when verbose=True
 * Fixed bug in render.get_wall_coverage_actor() where providing a binned image caused the calculation to happen at higher instead of lower resolution.
-
+* Fixed bug with 60s / 1min roll-over in duration estimate for long calculations which caused estimated times such as "0 min 60 sec"
 
 Minor Release 2.10.0 (November 2022)
 ------------------------------------
