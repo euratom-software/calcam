@@ -25,6 +25,8 @@ Fixes:
 * Fixed a bug which raised exceptions when using the "Set CAD view to match fit" button in the fitting calibration editor, for images with multiple sub-views if not all sub-views were fitted.
 * Improved reliability of fitting calibration for high resolution images.
 * Fixed PyQt error message to correctly reflect supported PyQt versions.
+* Fixed bug in render.get_wall_coverage_actor() which caused status not to be reported properly when verbose=True
+* Fixed bug in render.get_wall_coverage_actor() where providing a binned image caused the calculation to happen at higher instead of lower resolution.
 
 
 Minor Release 2.10.0 (November 2022)

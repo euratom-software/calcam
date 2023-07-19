@@ -665,7 +665,7 @@ def get_wall_coverage_actor(cal,cadmodel=None,image=None,imagecoords='Original',
         else:
             expected_shape = np.array(cal.x.shape[::-1]) - 1
 
-        factor = np.array(image.shape[1::-1]) / expected_shape
+        factor = expected_shape / np.array(image.shape[1::-1])
 
         if factor[0] != factor[1]:
             raise ValueError('Image size ({:d}x{:d} px) does not match expected ({:s} image shape for this calibration ({:d}x{:d} px)'.format(image.shape[1],image.shape[0],imagecoords,expected_shape[0],expected_shape[1]))
@@ -735,13 +735,17 @@ def get_wall_coverage_actor(cal,cadmodel=None,image=None,imagecoords='Original',
     if verbose:
         lp = LoopProgPrinter()
         lp.update('Constructing 3D mesh...')
-        i = 0
+        i = -1
         tot_px = (ray_end.shape[1]-1) * (ray_end.shape[0] - 1)
 
     # Go through the image
     for xi in range(ray_end.shape[1]-1):
         for yi in range(ray_end.shape[0] - 1):
-            i += 1
+
+            if verbose:
+                i += 1
+                lp.update(i/tot_px)
+
             # Don't map any pixels which are NaN
             if image is not None:
                 if isnan[yi,xi]:
@@ -802,9 +806,6 @@ def get_wall_coverage_actor(cal,cadmodel=None,image=None,imagecoords='Original',
                     colours.InsertNextTypedTuple(rgb)
                 else:
                     colours.InsertNextTypedTuple(fr[yi,xi,:])
-
-            if verbose:
-                lp.update(i/tot_px)
 
     if verbose:
         lp.update(1.)
