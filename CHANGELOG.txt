@@ -11,7 +11,8 @@ New & Enhancements:
 * Improved performance of generating field of view representations and mapping camera images to CAD surface.
 
 Compatibility:
-* Fixed various additional compatibility issues under Python 3.10 which raised exceptions due to floats being passed to PyQt calls that now require ints.
+* Move to new style packaging with pyproject.toml. This means less flexible dependency management, but the dependencies are readily available enough now that this should be OK.
+* Fixed various additional compatibility issues under Python 3.9+ which raised exceptions due to floats being passed to PyQt calls that now require ints.
 * Fixed ray casting compatibility with VTK7 which was inadvertently broken by 2.10.0
 * Fixed compatibility of movement correction with newer versions of OpenCV.
 
