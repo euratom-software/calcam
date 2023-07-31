@@ -9,7 +9,7 @@ authors = [{name = "Scott Silburn et. al.", email = "scott.silburn@ukaea.uk"}]
 
 license = {file = "LICENSE.txt"}
 readme = {file = "README.md", content-type='text/markdown'}
-requires-python = ">=3.3"
+requires-python = ">=3.5"
 classifiers = [
                     "Development Status :: 5 - Production/Stable",
                     "Operating System :: Microsoft :: Windows",
@@ -57,7 +57,6 @@ calcam = [
             'gui/logo.png',
             'builtin_image_sources/*.py',
             '__version__',
-            'gui/__executable_path__'
 ]
 
 [tool.setuptools.dynamic]
