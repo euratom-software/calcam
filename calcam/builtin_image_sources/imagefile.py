@@ -25,7 +25,7 @@ import os
 # A function which actually gets the image.
 # This can take as many arguments as you want.
 # It must return a dictionary, see below
-def get_image(filename,coords,offset_x,offset_y):
+def get_image(filename,coords,offset_x=0,offset_y=0):
 
     # Get the image data from a file
     dat = cv2.imread(filename)
