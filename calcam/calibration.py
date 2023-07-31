@@ -2435,9 +2435,15 @@ class Fitter:
 
             obj_points[-1] = np.array(obj_points[-1],dtype='float32')
             img_points[-1] = np.array(img_points[-1],dtype='float32')
-            
-        obj_points = np.array(obj_points)
-        img_points = np.array(img_points)
+
+        try:
+            obj_points = np.array(obj_points)
+            img_points = np.array(img_points)
+        except ValueError:
+            # If we have extrinsics images with different numbers of points, each set of points
+            # might not have the same number, so we have to make these object arrays.
+            obj_points = np.array(obj_points,dtype=object)
+            img_points = np.array(img_points,dtype=object)
 
 
         # Do the fit!
