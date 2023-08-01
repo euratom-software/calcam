@@ -573,17 +573,10 @@ class Calibration():
                     elif bounds_error.lower() == 'warn':
                         warnings.warn('Requested calibration crop of {:d}x{:d} at offset {:d}x{:d} exceeds the bounds of the original calibration ({:d}x{:d} at offset {:d}x{:d}). All pixels outside the originally calibrated area will be assumed to contain no image.'.format(window[2],window[3],window[0],window[1],self.geometry.x_pixels,self.geometry.y_pixels,self.geometry.offset[0],self.geometry.offset[1]))
 
-                    new_subview_mask = np.zeros((window[3],window[2]),dtype=np.int8) - 1
+                    padded_subview_mask = np.zeros((max(self.geometry.offset[1] + orig_shape[1],window[1]+window[3]),max(self.geometry.offset[0] + orig_shape[0],window[0]+window[2])),dtype=np.int8) - 1
+                    padded_subview_mask[self.geometry.offset[1]:self.geometry.offset[1]+orig_shape[1],self.geometry.offset[0]:self.geometry.offset[0]+orig_shape[0]] = self.native_subview_mask[:,:]
 
-                    xstart_newmask = max(0,self.geometry.offset[0] - window[0])
-                    ystart_newmask = max(0,self.geometry.offset[1] - window[1])
-
-                    xstart_oldmask = max(0,window[0] - self.geometry.offset[0])
-                    ystart_oldmask = max(0,window[1] - self.geometry.offset[1])
-                    w = min(orig_shape[0] - xstart_oldmask,window[2] - xstart_newmask)
-                    h = min(orig_shape[1] - ystart_oldmask,window[3] - ystart_newmask)
-
-                    new_subview_mask[ystart_newmask:ystart_newmask+h,xstart_newmask:xstart_newmask+w] = orig_subview_mask[ystart_oldmask:ystart_oldmask+h,xstart_oldmask:xstart_oldmask+w]
+                    new_subview_mask = padded_subview_mask[window[1]:window[1]+window[3],window[0]:window[0]+window[2]]
 
                 else:
                     new_subview_mask = orig_subview_mask[window[1] - self.geometry.offset[1]:window[1] - self.geometry.offset[1] + window[3],window[0] - self.geometry.offset[0]:window[0] - self.geometry.offset[0] + window[2]]
@@ -610,16 +603,9 @@ class Calibration():
                 # Case where the requested crop has parts outside the original image
                 if window[0] < self.geometry.offset[0] or window[1] < self.geometry.offset[1] or window[0] + window[2] > self.geometry.offset[0] + orig_shape[0] or window[1] + window[3] > self.geometry.offset[1] + orig_shape[1]:
 
-                    xstart_newim = max(0,self.geometry.offset[0] - window[0])
-                    ystart_newim = max(0,self.geometry.offset[1] - window[1])
-
-                    xstart_oldim = max(0,window[0] - self.geometry.offset[0])
-                    ystart_oldim = max(0,window[1] - self.geometry.offset[1])
-                    w = min(orig_shape[0] - xstart_oldim,window[2] - xstart_newim)
-                    h = min(orig_shape[1] - ystart_oldim,window[3] - ystart_newim)
-
-                    self.image = np.zeros((window[3],window[2],self.native_image.shape[2]),dtype=self.native_image.dtype)
-                    self.image[ystart_newim:ystart_newim+h,xstart_newim:xstart_newim+w,:] = self.native_image[ystart_oldim:ystart_oldim+h,xstart_oldim:xstart_oldim+w,:]
+                    padded_im = np.zeros((max(self.geometry.offset[1] + orig_shape[1],window[1]+window[3]),max(self.geometry.offset[0] + orig_shape[0],window[0]+window[2]),self.native_image.shape[2]),self.native_image.dtype)
+                    padded_im[self.geometry.offset[1]:self.geometry.offset[1]+orig_shape[1],self.geometry.offset[0]:self.geometry.offset[0]+orig_shape[0],:] = self.native_image[:,:,:]
+                    self.image = padded_im[window[1]:window[1]+window[3],window[0]:window[0]+window[2]]
 
                 else:
                     # Simply crop the original
@@ -1128,7 +1114,6 @@ class Calibration():
 
 
         good_mask = (x >= -0.5) & (y >= -0.5) & (x < shape[0] - 0.5) & (y < shape[1] - 0.5)
-        
         try:
             x[ good_mask == 0 ] = 0
             y[ good_mask == 0 ] = 0

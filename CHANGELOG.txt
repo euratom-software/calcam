@@ -11,7 +11,7 @@ New & Enhancements:
 * Improved performance of generating field of view representations and mapping camera images to CAD surface.
 * Improved behaviour of "Set CAD view to match fit" button when using images with multiple sub-views in the fitting calibration tool.
 * Added basic documentation of file formats.
-
+* Improved image enhancement for some images where it previously had little effect
 
 Compatibility:
 * Move to new style packaging with pyproject.toml for compatibility with pip > 23. This means less flexible dependency management, but the dependencies are readily available enough now that this should be OK. (#83, #100)
@@ -37,6 +37,9 @@ Fixes:
 * Fixed some typos / wording issues in GUI
 * Switch from using 32bit int to 32bit float for saving pixel coordinates and binning values in Raycast NetCDF files, to allow correct saving & loading of raycasting witj sub-pixel sampling.
 * Fixed bug in detection of monochrome images in enhance_image.scale_to_8bit()
+* Fixed a bug in Calibration.set_detector_window() when using a detector window not completely overlapping the originally calibrated one.
+* Fixed a bug which could raise exceptions in the image analyser if using a detector sub-window and movement correction.
+* Removed some RuntimeWarnings raised by enhance_image() for some images.
 
 
 Minor Release 2.10.0 (November 2022)

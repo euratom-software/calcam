@@ -200,8 +200,8 @@ def raycast_sightlines(calibration,cadmodel,x=None,y=None,exclusion_radius=0.0,b
         raystart = results.ray_start_coords[ind] + exclusion_radius * LOSDir[ind]
         rayend = results.ray_start_coords[ind] + max_ray_length * LOSDir[ind]
 
-        #retval = cell_locator.IntersectWithLine(raystart,rayend,1.e-6,t,pos,coords_,subid,cellid,cell)
         ret_vals = cadmodel.intersect_with_line(raystart,rayend,calc_normals)
+
         if ret_vals[0]:
             results.ray_end_coords[ind,:] = ret_vals[1][:]
             if calc_normals:

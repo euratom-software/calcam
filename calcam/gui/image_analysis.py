@@ -425,12 +425,12 @@ class ImageAnalyser(CalcamGUIWindow):
 
             for i,coords in enumerate(coords_2d):
                 if coords is not None:
+                    if self.mov_correction is not None:
+                        coords = self.mov_correction.moved_to_ref_coords(*coords)
 
                     if self.calibration.subview_lookup(*coords) == -1:
                         raise UserWarning('The clicked position is outside the calibrated field of view.')
                     elif np.any(coords != self.coords_2d[i]):
-                        if self.mov_correction is not None:
-                            coords = self.mov_correction.moved_to_ref_coords(*coords)
                         raydata = raycast_sightlines(self.calibration,self.cadmodel,coords[0],coords[1],coords='Display',verbose=False)
                         self.update_from_3d(raydata.ray_end_coords[0,:])
                         break

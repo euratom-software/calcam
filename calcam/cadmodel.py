@@ -584,9 +584,6 @@ class CADModel():
 
         if self.cell_locator is None:
 
-            if self.status_callback is not None:
-                self.status_callback('Building CAD model octree...')
-
             appender = vtk.vtkAppendPolyData()
 
             for fname in self.get_enabled_features():
@@ -607,7 +604,6 @@ class CADModel():
             self.raycast_args = (vtk.mutable(0), np.zeros(3), np.zeros(3), vtk.mutable(0), vtk.mutable(0), vtk.vtkGenericCell())
 
 
-
     def intersect_with_line(self,line_start,line_end,surface_normal=False):
         """
         Find the first intersection of a straight line segment with the CAD geometry, if one
@@ -623,10 +619,10 @@ class CADModel():
         Returns:
 
             Multiple return values:
-                - bool                : Whether or not the line segment intersects the CAD geometry
-                - np.array            : 3-element NumPy array with x,y,z position of the intersection. If there is \
+                - bool              : Whether or not the line segment intersects the CAD geometry
+                - np.array          : 3-element NumPy array with x,y,z position of the intersection. If there is \
                                       no intersection, `line_end` is returned.
-                - np.array or None    : Only returned if surface_normal = True; the surface normal at the intersection. \
+                - np.array or None  : Only returned if surface_normal = True; the surface normal at the intersection. \
                                       If there is no intersection, returns `None`.
 
         """
