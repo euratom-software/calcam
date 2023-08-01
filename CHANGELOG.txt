@@ -1,18 +1,21 @@
 Calcam Changelog
 ================
 
-Current head of MASTER (2.11.0.dev0)
-------------------------------------
+Minor Release 2.11.0 (August 2023)
+----------------------------------
 
 New & Enhancements:
 * Added ability to turn off automatic trimming of geometry matrix rows and columns when creating GeometryMatrix objects.
-* Improved behaviour of "Set CAD view to match fit" button when using images with multiple sub-views in the fitting calibration tool.
 * Add input fields for both vertical and horizontal FOV in virtual calibration editor so the user can specify either instead of only vertical.
+* Added function intersect_with_line() to CADModel class and include in pbulic API.
 * Improved performance of generating field of view representations and mapping camera images to CAD surface.
+* Improved behaviour of "Set CAD view to match fit" button when using images with multiple sub-views in the fitting calibration tool.
+* Added basic documentation of file formats.
+
 
 Compatibility:
-* Move to new style packaging with pyproject.toml. This means less flexible dependency management, but the dependencies are readily available enough now that this should be OK. (#83, #100)
-* Fixed various additional compatibility issues under Python 3.9+ which raised exceptions due to floats being passed to PyQt calls that now require ints.
+* Move to new style packaging with pyproject.toml for compatibility with pip > 23. This means less flexible dependency management, but the dependencies are readily available enough now that this should be OK. (#83, #100)
+* Fixed various additional compatibility issues under Python 3.9+ which raised exceptions due to floats being passed to PyQt calls which now require ints.
 * Fixed ray casting compatibility with VTK7 which was inadvertently broken by 2.10.0
 * Fixed compatibility of movement correction with newer versions of OpenCV.
 * Fixed compatibility with NumPy >=1.24 which previously caused exceptions when using chessboard images (#99)
@@ -31,6 +34,9 @@ Fixes:
 * Fixed bug in render.get_wall_coverage_actor() which caused status not to be reported properly when verbose=True
 * Fixed bug in render.get_wall_coverage_actor() where providing a binned image caused the calculation to happen at higher instead of lower resolution.
 * Fixed bug with 60s / 1min roll-over in duration estimate for long calculations which caused estimated times such as "0 min 60 sec"
+* Fixed some typos / wording issues in GUI
+* Switch from using 32bit int to 32bit float for saving pixel coordinates and binning values in Raycast NetCDF files, to allow correct saving & loading of raycasting witj sub-pixel sampling.
+* Fixed bug in detection of monochrome images in enhance_image.scale_to_8bit()
 
 
 Minor Release 2.10.0 (November 2022)

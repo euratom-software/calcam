@@ -46,9 +46,9 @@ To use the chessboard images to define the camera intrinsics, select :guilabel:`
 
 Chessboard loading consists of 4 steps, done in order by working down the right hand side of this window. First, browse for and select all of the chessboard images to use. Then, enter the details of the chessboard pattern: number of squares and square size. Next, select the :guilabel:`Detect Chessboard Corners` button to run an automatic detection of the boundaries between the chessboard squares. If the automatic detection fails on some images, a dialog box will open telling you which images the detection failed for, and that those cannot be used. If all images fail, check that the number of squares input is correct. Once the corner detection has been completed, cursors will be added to the image displayed on the left hand side of the window. You can pan and zoom to inspect the cursor positions using the usual image mouse controls, and look at different images using the :guilabel:`<<` and :guilabel:`>>` buttons above the image. Finally, select whether to use the rectilinear lens model or fisheye lens model. To complete loading of the images and use these to define the camera intrinsics constraints, click :guilabel:`Apply`.
 
-Pinhole Intrinsics
-******************
-If not using intrinsics from an existing camera system, an idealised pinhole camera model can be used. In this case, the detector size and focal length are user-specified, and the model assumes no distortion and that the centre of perspective is at the detector centre. To use this model, select :guilabel:`Use ideal pinhole camera model` in the :guilabel:`Camera Intrinsics` box. There are then boxes to enter the physical pixel size, number of detector pixels and focal length of the virtual camera.
+Pinhole Model Intrinsics
+************************
+If not using intrinsics from an existing camera system, an idealised pinhole camera model can be used. In this case, the detector size and either focal length or field-of-view are user-specified, and the model assumes an idealised pinhole camera with no distortion and the centre of perspective is at the detector centre. To use this model, select :guilabel:`Use ideal pinhole camera model` in the :guilabel:`Camera Intrinsics` box. Boxes will appear to enter the physical pixel size, number of detector pixels, and focal length. You can also specify the horizontal or vertical field of view, which will update the focal length accordingly.
 
 
 Camera Extrinsics

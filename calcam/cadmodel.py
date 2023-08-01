@@ -572,28 +572,26 @@ class CADModel():
                 raise ValueError('Unknown feature "{:s}"!'.format(requested))
 
 
-
-
-    def get_cell_locator(self):
+    def build_octree(self):
         '''
-        Get a vtkCellLocator object used for ray casting.
-
-        Returns:
-
-            vtk.vtkCellLocator : VTK cell locator.
+        Create a vtkCellLocator object used for testing
+        the intersection of the CAD model with line segments.
         '''
 
         # Don't return anything if we have no enabled geometry
         if len(self.get_enabled_features()) == 0:
-            return None
+            return
 
         if self.cell_locator is None:
+
+            if self.status_callback is not None:
+                self.status_callback('Building CAD model octree...')
 
             appender = vtk.vtkAppendPolyData()
 
             for fname in self.get_enabled_features():
                 appender.AddInputData(self.features[fname].get_polydata())
-        
+
             appender.Update()
             if vtk.vtkVersion().GetVTKMajorVersion() > 8:
                 self.cell_locator = vtk.vtkStaticCellLocator()
@@ -604,7 +602,67 @@ class CADModel():
             self.cell_locator.SetDataSet(appender.GetOutput())
             self.cell_locator.BuildLocator()
 
-        return self.cell_locator
+            # Initialise some faffy input variables for c-like interface of cellLocator's IntersectWithLine()
+            # Keep these as properties so we only have to bother once
+            self.raycast_args = (vtk.mutable(0), np.zeros(3), np.zeros(3), vtk.mutable(0), vtk.mutable(0), vtk.vtkGenericCell())
+
+
+
+    def intersect_with_line(self,line_start,line_end,surface_normal=False):
+        """
+        Find the first intersection of a straight line segment with the CAD geometry, if one
+        occurs ("first" meaning first when moving from the start to the end of the line segment).
+        Optionally also calculates the surface normal vector of the CAD model at the intersection point.
+
+        Parameters:
+
+            line_start (sequence) : 3-element sequence x,y,z of the line segment start coordinates (in metres)
+            line_end   (sequence) : 3-element sequence x,y,z of the line segment end coordinates (in metres)
+            surface_normal (bool) : Whether or not to calculate the surface normal vector of the CAD model at the intersection.
+
+        Returns:
+
+            Multiple return values:
+                - bool                : Whether or not the line segment intersects the CAD geometry
+                - np.array            : 3-element NumPy array with x,y,z position of the intersection. If there is \
+                                      no intersection, `line_end` is returned.
+                - np.array or None    : Only returned if surface_normal = True; the surface normal at the intersection. \
+                                      If there is no intersection, returns `None`.
+
+        """
+
+        if len(self.get_enabled_features()) == 0:
+            # Don't return anything if we have no enabled geometry
+            intersects = False
+            position = line_end
+            n = None
+
+        else:
+            # Make sure we have an octree
+            self.build_octree()
+
+            # Actually do the intersection using VTK
+            result = self.cell_locator.IntersectWithLine(line_start, line_end, 1.e-6, *self.raycast_args)
+
+            if abs(result) > 0:
+                intersects = True
+                position = self.raycast_args[1].copy()
+                if surface_normal:
+                    v0 = np.array(self.raycast_args[5].GetPoints().GetPoint(2)) - np.array(self.raycast_args[5].GetPoints().GetPoint(0))
+                    v1 = np.array(self.raycast_args[5].GetPoints().GetPoint(2)) - np.array(self.raycast_args[5].GetPoints().GetPoint(1))
+                    n = np.cross(v0,v1)
+                    n = n / np.sqrt(np.sum(n**2))
+                    if np.dot(line_end - line_start,n) > 0:
+                        n = -n
+            else:
+                intersects = False
+                position = line_end
+                n = None
+
+        if surface_normal:
+            return intersects,position,n
+        else:
+            return intersects, position
 
 
 

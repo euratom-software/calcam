@@ -35,10 +35,6 @@ from scipy.optimize import curve_fit
 
 def scale_to_8bit(image,cutoff=0.999):
 
-    # If we already have an 8-bit image, don't do anything
-    if image.dtype == np.uint8:
-        return image
-
     # If we have a multi-channel image
     if len(image.shape) == 3:
 
@@ -47,8 +43,13 @@ def scale_to_8bit(image,cutoff=0.999):
             image = image[:, :, :-1]
 
         # If it's actually monochrome, throw away the colour
-        if (np.diff(image.reshape(image.shape[2],-1),axis=0)==0).all():
+        if np.diff(image.reshape(-1,image.shape[2]),axis=1).max() == 0:
             image = image[:,:,0]
+
+
+    # If we already have an 8-bit image, don't do anything
+    if image.dtype == np.uint8:
+        return image
 
     # Do the subtraction & normalisation as float to avoid
     # overflows or quantisation problems.

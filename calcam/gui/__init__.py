@@ -83,4 +83,9 @@ else:
     if os.access(os.path.join(script_path, exe_name), os.X_OK):
         executable_path = os.path.join(script_path, exe_name)
 
+if executable_path is not None:
+    executable_path = os.path.realpath(executable_path)
+
 del exe_name, script_path
+
+icons_path = os.path.join(os.path.split(os.path.abspath(__file__))[0],'icons')

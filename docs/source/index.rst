@@ -54,5 +54,6 @@ Welcome to the Calcam documentation index page. If you want to know what it's al
    :maxdepth: 1
    :name: devtoc
 
+   dev_fileformats
    dev_imsources
    dev_coord_formatter
