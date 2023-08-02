@@ -35,10 +35,6 @@ from scipy.optimize import curve_fit
 
 def scale_to_8bit(image,cutoff=0.999):
 
-    # If we already have an 8-bit image, don't do anything
-    if image.dtype == np.uint8:
-        return image
-
     # If we have a multi-channel image
     if len(image.shape) == 3:
 
@@ -47,8 +43,13 @@ def scale_to_8bit(image,cutoff=0.999):
             image = image[:, :, :-1]
 
         # If it's actually monochrome, throw away the colour
-        if (np.diff(image.reshape(image.shape[2],-1),axis=0)==0).all():
+        if np.diff(image.reshape(-1,image.shape[2]),axis=1).max() == 0:
             image = image[:,:,0]
+
+
+    # If we already have an 8-bit image, don't do anything
+    if image.dtype == np.uint8:
+        return image
 
     # Do the subtraction & normalisation as float to avoid
     # overflows or quantisation problems.
@@ -126,7 +127,8 @@ def enhance_image(image,target_msb=25,target_noise=500,tiles=(20,20),downsample=
         best_cliplim = np.polyval(coefs,target_msb)
         if best_cliplim > 0:
             result = cv2.createCLAHE(best_cliplim, tiles).apply(image)
-
+    else:
+        result = cv2.createCLAHE(1, tiles).apply(image)
 
     if bilateral:
         result = cv2.bilateralFilter(result,d=-1,sigmaColor=25,sigmaSpace=25)
@@ -179,7 +181,12 @@ def local_contrast(image,tilegridsize=(20,20)):
 
     for i in range(tilegridsize[1]):
         for j in range(tilegridsize[0]):
-            sb.append(image[i*tile_height:(i+1)*tile_height,j*tile_width:(j+1)*tile_width].std())
+            sample = image[i*tile_height:(i+1)*tile_height,j*tile_width:(j+1)*tile_width]
+            if len(np.unique(sample)) > 1:
+                sb.append(sample.std())
+
+    if len(sb) == 0:
+        sb = [0]
 
     return np.nanmean(sb)
 

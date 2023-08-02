@@ -573,17 +573,10 @@ class Calibration():
                     elif bounds_error.lower() == 'warn':
                         warnings.warn('Requested calibration crop of {:d}x{:d} at offset {:d}x{:d} exceeds the bounds of the original calibration ({:d}x{:d} at offset {:d}x{:d}). All pixels outside the originally calibrated area will be assumed to contain no image.'.format(window[2],window[3],window[0],window[1],self.geometry.x_pixels,self.geometry.y_pixels,self.geometry.offset[0],self.geometry.offset[1]))
 
-                    new_subview_mask = np.zeros((window[3],window[2]),dtype=np.int8) - 1
+                    padded_subview_mask = np.zeros((max(self.geometry.offset[1] + orig_shape[1],window[1]+window[3]),max(self.geometry.offset[0] + orig_shape[0],window[0]+window[2])),dtype=np.int8) - 1
+                    padded_subview_mask[self.geometry.offset[1]:self.geometry.offset[1]+orig_shape[1],self.geometry.offset[0]:self.geometry.offset[0]+orig_shape[0]] = self.native_subview_mask[:,:]
 
-                    xstart_newmask = max(0,self.geometry.offset[0] - window[0])
-                    ystart_newmask = max(0,self.geometry.offset[1] - window[1])
-
-                    xstart_oldmask = max(0,window[0] - self.geometry.offset[0])
-                    ystart_oldmask = max(0,window[1] - self.geometry.offset[1])
-                    w = min(orig_shape[0] - xstart_oldmask,window[2] - xstart_newmask)
-                    h = min(orig_shape[1] - ystart_oldmask,window[3] - ystart_newmask)
-
-                    new_subview_mask[ystart_newmask:ystart_newmask+h,xstart_newmask:xstart_newmask+w] = orig_subview_mask[ystart_oldmask:ystart_oldmask+h,xstart_oldmask:xstart_oldmask+w]
+                    new_subview_mask = padded_subview_mask[window[1]:window[1]+window[3],window[0]:window[0]+window[2]]
 
                 else:
                     new_subview_mask = orig_subview_mask[window[1] - self.geometry.offset[1]:window[1] - self.geometry.offset[1] + window[3],window[0] - self.geometry.offset[0]:window[0] - self.geometry.offset[0] + window[2]]
@@ -610,16 +603,9 @@ class Calibration():
                 # Case where the requested crop has parts outside the original image
                 if window[0] < self.geometry.offset[0] or window[1] < self.geometry.offset[1] or window[0] + window[2] > self.geometry.offset[0] + orig_shape[0] or window[1] + window[3] > self.geometry.offset[1] + orig_shape[1]:
 
-                    xstart_newim = max(0,self.geometry.offset[0] - window[0])
-                    ystart_newim = max(0,self.geometry.offset[1] - window[1])
-
-                    xstart_oldim = max(0,window[0] - self.geometry.offset[0])
-                    ystart_oldim = max(0,window[1] - self.geometry.offset[1])
-                    w = min(orig_shape[0] - xstart_oldim,window[2] - xstart_newim)
-                    h = min(orig_shape[1] - ystart_oldim,window[3] - ystart_newim)
-
-                    self.image = np.zeros((window[3],window[2],self.native_image.shape[2]),dtype=self.native_image.dtype)
-                    self.image[ystart_newim:ystart_newim+h,xstart_newim:xstart_newim+w,:] = self.native_image[ystart_oldim:ystart_oldim+h,xstart_oldim:xstart_oldim+w,:]
+                    padded_im = np.zeros((max(self.geometry.offset[1] + orig_shape[1],window[1]+window[3]),max(self.geometry.offset[0] + orig_shape[0],window[0]+window[2]),self.native_image.shape[2]),self.native_image.dtype)
+                    padded_im[self.geometry.offset[1]:self.geometry.offset[1]+orig_shape[1],self.geometry.offset[0]:self.geometry.offset[0]+orig_shape[0],:] = self.native_image[:,:,:]
+                    self.image = padded_im[window[1]:window[1]+window[3],window[0]:window[0]+window[2]]
 
                 else:
                     # Simply crop the original
@@ -1128,7 +1114,6 @@ class Calibration():
 
 
         good_mask = (x >= -0.5) & (y >= -0.5) & (x < shape[0] - 0.5) & (y < shape[1] - 0.5)
-        
         try:
             x[ good_mask == 0 ] = 0
             y[ good_mask == 0 ] = 0
@@ -1418,10 +1403,12 @@ class Calibration():
             subview_mask = self.subview_lookup(x,y)
             subview_mask = np.tile( subview_mask, [3] + [1]*x.ndim )
             subview_mask = np.squeeze(np.swapaxes(np.expand_dims(subview_mask,-1),0,subview_mask.ndim),axis=0) # Changed to support old numpy versions. Simpler modern version: np.moveaxis(subview_mask,0,subview_mask.ndim-1)
-            
-            for nview in range(self.n_subviews):
-                losdir = self.view_models[nview].get_los_direction(x,y)
-                output[subview_mask == nview] = losdir[subview_mask == nview]
+            subview_list = np.unique(subview_mask)
+            subview_list = subview_list[subview_list > -1].astype(int)
+            for nview in subview_list:
+                if self.view_models[nview] is not None:
+                    losdir = self.view_models[nview].get_los_direction(x,y)
+                    output[subview_mask == nview] = losdir[subview_mask == nview]
 
         else:
 
@@ -2028,7 +2015,7 @@ class Calibration():
             msg = msg + '\nSub-views:           {:d} ({:s})\n\n'.format(self.n_subviews,', '.join(['"{:s}"'.format(name) for name in self.subview_names]))
 
 
-        # Point paiir info for fitting selfs
+        # Point pair info for fitting calibs
         if self.pointpairs is not None:
             msg = msg + '------------------\nCalibration Points\n------------------\n{:s}\n'.format(self.history['pointpairs'][0])
             if self.history['pointpairs'][1] is not None:
@@ -2053,7 +2040,7 @@ class Calibration():
             msg = msg + '\n\n'
 
 
-        # Fit info for fitting selfs.
+        # Fit info for fitting calibs.
         if self._type == 'fit':
             if self.view_models.count(None) < len(self.view_models):
                 msg = msg + '----------------------\nFitted Camera Model(s)\n----------------------\n'
@@ -2073,7 +2060,7 @@ class Calibration():
         # Model info for alignment or virtual selfs
         if self._type in ['alignment','virtual']:
             msg = msg + '------------\nCamera Model\n------------\n\n'
-            if self.intrinsics_type == 'calibration':
+            if isinstance(self.history['intrinsics'], (list, tuple)):
                 hist_str = self.history['intrinsics'][1]
             else:
                 hist_str = self.history['intrinsics']
@@ -2433,9 +2420,15 @@ class Fitter:
 
             obj_points[-1] = np.array(obj_points[-1],dtype='float32')
             img_points[-1] = np.array(img_points[-1],dtype='float32')
-            
-        obj_points = np.array(obj_points)
-        img_points = np.array(img_points)
+
+        try:
+            obj_points = np.array(obj_points)
+            img_points = np.array(img_points)
+        except ValueError:
+            # If we have extrinsics images with different numbers of points, each set of points
+            # might not have the same number, so we have to make these object arrays.
+            obj_points = np.array(obj_points,dtype=object)
+            img_points = np.array(img_points,dtype=object)
 
 
         # Do the fit!
@@ -2484,11 +2477,17 @@ class Fitter:
     def set_image_shape(self,im_shape):
 
         self.image_display_shape = tuple(im_shape)
+        
+        longest_side = max(self.image_display_shape[0],self.image_display_shape[1])
 
-        # Initialise initial values for fitting
+        # Initial guess for fitting camera matrix
+        # Note the guess for the focal length is 2 * sensor longet side,
+        # since this seems to be a reasonable value for most currently used
+        # systems and allows the fitting to work well for both very low and 
+        # very high pixel density sensors.
         initial_matrix = np.zeros((3,3))
-        initial_matrix[0,0] = 1200    # Fx
-        initial_matrix[1,1] = 1200    # Fy
+        initial_matrix[0,0] = longest_side*2    # Fx
+        initial_matrix[1,1] = longest_side*2    # Fy
         initial_matrix[2,2] = 1
         initial_matrix[0,2] = self.image_display_shape[0]/2    # Cx
         initial_matrix[1,2] = self.image_display_shape[1]/2    # Cy

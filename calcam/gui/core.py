@@ -26,6 +26,7 @@ import traceback
 
 # External module imports
 import numpy as np
+from scipy.ndimage.measurements import center_of_mass as CoM
 import vtk
 import cv2
 
@@ -396,10 +397,10 @@ class CalcamGUIWindow(qt.QMainWindow):
                 valbox = qt.QSpinBox()
                 valbox.setButtonSymbols(qt.QAbstractSpinBox.NoButtons)
                 if 'limits' in option:
-                    valbox.setMinimum(option['limits'][0])
-                    valbox.setMaximum(option['limits'][1])
+                    valbox.setMinimum(int(option['limits'][0]))
+                    valbox.setMaximum(int(option['limits'][1]))
                 if 'default' in option:
-                    valbox.setValue(option['default'])
+                    valbox.setValue(int(option['default']))
                 layout.addWidget(valbox,row,1)
                 self.imload_inputs[option['arg_name']] = ([labelwidget,valbox],valbox.value )
                 row = row + 1
@@ -768,7 +769,9 @@ class CalcamGUIWindow(qt.QMainWindow):
             mat = calibration.get_cam_matrix(subview=subfield)
             self.camera_3d.SetFocalPoint(calibration.get_pupilpos(subview=subfield) + calibration.get_los_direction(mat[0,2],mat[1,2]))
         else:
-            self.camera_3d.SetFocalPoint(calibration.get_pupilpos(subview=subfield) + calibration.get_los_direction(calibration.geometry.get_display_shape()[0]/2,calibration.geometry.get_display_shape()[1]/2))
+            ypx,xpx = CoM( calibration.get_subview_mask(coords='Display') == subfield)
+            los_centre = calibration.get_los_direction(xpx,ypx)
+            self.camera_3d.SetFocalPoint(calibration.get_pupilpos(subview=subfield) + los_centre)
 
         self.interactor3d.set_roll(calibration.get_cam_roll(subview=subfield,centre='subview'))
 
@@ -1258,7 +1261,32 @@ class CalcamGUIWindow(qt.QMainWindow):
         self.camera_3d.SetViewUp(0,0,1)
         self.camera_3d.SetRoll(cam_roll)
 
-        self.calibration.set_extrinsics(campos,upvec,camtar = camtar,src=self.extrinsics_src) 
+        self.calibration.set_extrinsics(campos,upvec,camtar = camtar,src=self.extrinsics_src)
+
+
+    def save_image(self,image,filename=None):
+
+        if filename is None:
+            filename = self.get_save_filename('image')
+
+        result = cv2.imwrite(filename, image)
+
+        if not result:
+            dialog = qt.QMessageBox(self)
+            dialog.setWindowFlags(dialog.windowFlags() | qt.Qt.CustomizeWindowHint)
+            dialog.setWindowFlags(dialog.windowFlags() & ~qt.Qt.WindowCloseButtonHint)
+            dialog.setStandardButtons(dialog.Save | dialog.Discard)
+            dialog.button(dialog.Save).setText('Save As...')
+            dialog.button(dialog.Discard).setText('Cancel')
+            dialog.setTextFormat(qt.Qt.RichText)
+            dialog.setWindowTitle('Error saving image')
+            dialog.setText('Could not write to file {:s}.'.format(filename))
+            dialog.setInformativeText('Click "Save As..." to select another location / filename and try again, or "Cancel" to give up.')
+            dialog.setIcon(qt.QMessageBox.Warning)
+            dialog.exec()
+
+            if dialog.result() == dialog.Save:
+                self.save_image(image)
 
 
 class ChessboardDialog(qt.QDialog):
@@ -2035,7 +2063,24 @@ class ImageMaskDialog(qt.QDialog):
             if not selected_path.endswith(fext):
                 selected_path = selected_path + fext
 
-            cv2.imwrite(selected_path,self.image)
+            result = cv2.imwrite(selected_path,self.image)
+
+            if not result:
+                dialog = qt.QMessageBox(self)
+                dialog.setWindowFlags(dialog.windowFlags() | qt.Qt.CustomizeWindowHint)
+                dialog.setWindowFlags(dialog.windowFlags() & ~qt.Qt.WindowCloseButtonHint)
+                dialog.setStandardButtons(dialog.Save | dialog.Discard)
+                dialog.button(dialog.Save).setText('Save As...')
+                dialog.button(dialog.Discard).setText('Cancel')
+                dialog.setTextFormat(qt.Qt.RichText)
+                dialog.setWindowTitle('Error saving image')
+                dialog.setText('Could not write to file {:s}.'.format(selected_path))
+                dialog.setInformativeText('Click "Save As..." to select another location / filename and try again, or "Cancel" to give up.')
+                dialog.setIcon(qt.QMessageBox.Warning)
+                dialog.exec()
+
+                if dialog.result() == dialog.Save:
+                    self.save_image()
 
 
 class CalibInfoDialog(qt.QDialog):
@@ -2048,7 +2093,7 @@ class CalibInfoDialog(qt.QDialog):
 
         self.setWindowTitle('Calibration Information.')
 
-        self.resize(parent.size().width()/2,parent.size().height()/2)
+        self.resize(parent.size().width()//2,parent.size().height()//2)
 
         self.setModal(False)
 

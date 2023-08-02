@@ -1,5 +1,5 @@
 '''
-* Copyright 2015-2018 European Atomic Energy Community (EURATOM)
+* Copyright 2015-2023 European Atomic Energy Community (EURATOM)
 *
 * Licensed under the EUPL, Version 1.1 or - as soon they
   will be approved by the European Commission - subsequent
@@ -19,14 +19,6 @@
   permissions and limitations under the Licence.
 '''
 
-""" 
-Ray tracing tools for CalCam_py
-
-Written by Scott Silburn
-2015-05-17
-"""
-
-import time
 import os
 import random
 import copy
@@ -116,12 +108,6 @@ def raycast_sightlines(calibration,cadmodel,x=None,y=None,exclusion_radius=0.0,b
     model_extent = cadmodel.get_extent()
     model_size = model_extent[1::2] - model_extent[::2]
     max_ray_length = model_size.max() * 4
-    
-    if status_callback is not None:
-        status_callback('Getting CAD model octree...')
-
-    # Get the CAD model's octree
-    cell_locator = cadmodel.get_cell_locator()
 
     # If no pixels are specified, do the whole chip at the specified binning level.
     fullchip = False
@@ -192,19 +178,10 @@ def raycast_sightlines(calibration,cadmodel,x=None,y=None,exclusion_radius=0.0,b
 
     
     if status_callback is not None:
-        oom = np.floor( np.log(np.size(x)) / np.log(10) / 3. )
+        oom = np.floor( np.log(np.size(x)) / np.log(10) / 3. ) # Order of magnitude of number of points to do
         status_callback('Casting {:s} rays...'.format( ['{:.0f}','{:.1f}k','{:.2f}M'][int(oom)].format(np.size(x)/10**(3*oom)) ) )
 
 
-    # Some variables to give to VTK becasue of its annoying C-like interface
-    t = vtk.mutable(0)
-    pos = np.zeros(3)
-    coords_ = np.zeros(3)
-    subid = vtk.mutable(0)
-    cellid = vtk.mutable(0)
-    cell = vtk.vtkGenericCell()
-
-    last_status_update = 0.
     n_done = 0
     
     # We will do the ray casting in a random order,
@@ -223,18 +200,12 @@ def raycast_sightlines(calibration,cadmodel,x=None,y=None,exclusion_radius=0.0,b
         raystart = results.ray_start_coords[ind] + exclusion_radius * LOSDir[ind]
         rayend = results.ray_start_coords[ind] + max_ray_length * LOSDir[ind]
 
-        retval = cell_locator.IntersectWithLine(raystart,rayend,1.e-6,t,pos,coords_,subid,cellid,cell)
+        ret_vals = cadmodel.intersect_with_line(raystart,rayend,calc_normals)
 
-        if abs(retval) > 0:
-            results.ray_end_coords[ind,:] = pos[:]
+        if ret_vals[0]:
+            results.ray_end_coords[ind,:] = ret_vals[1][:]
             if calc_normals:
-                v0 = np.array(cell.GetPoints().GetPoint(2)) - np.array(cell.GetPoints().GetPoint(0))
-                v1 = np.array(cell.GetPoints().GetPoint(2)) - np.array(cell.GetPoints().GetPoint(1))
-                n = np.cross(v0,v1)
-                n = n / np.sqrt(np.sum(n**2))
-                if np.dot(LOSDir[ind],n) > 0:
-                    n = -n
-                results.model_normals[ind,:] = n
+                results.model_normals[ind,:] = ret_vals[2]
 
         elif intersecting_only:
             results.ray_end_coords[ind,:] = np.nan
@@ -243,9 +214,8 @@ def raycast_sightlines(calibration,cadmodel,x=None,y=None,exclusion_radius=0.0,b
 
         n_done = n_done + 1
         
-        if time.time() - last_status_update > 1 and status_callback is not None:
+        if status_callback is not None:
             status_callback(n_done / len(inds))
-            last_status_update = time.time()
 
     if status_callback is not None:
         status_callback(1.)
@@ -336,8 +306,8 @@ class RayData:
             f.createDimension('vdim',self.x.shape[0])
             rayhit = f.createVariable('RayEndCoords','f4',('vdim','udim','pointdim'))
             raystart = f.createVariable('RayStartCoords','f4',('vdim','udim','pointdim'))
-            x = f.createVariable('PixelXLocation','i4',('vdim','udim'))
-            y = f.createVariable('PixelYLocation','i4',('vdim','udim'))
+            x = f.createVariable('PixelXLocation','f4',('vdim','udim'))
+            y = f.createVariable('PixelYLocation','f4',('vdim','udim'))
             if self.model_normals is not None:
                 normals = f.createVariable('ModelNormals', 'f4', ('vdim', 'udim', 'pointdim'))
             
@@ -355,8 +325,8 @@ class RayData:
             if self.model_normals is not None:
                 normals = f.createVariable('ModelNormals','f4',('udim','pointdim'))
 
-            x = f.createVariable('PixelXLocation','i4',('udim',))
-            y = f.createVariable('PixelYLocation','i4',('udim',))
+            x = f.createVariable('PixelXLocation','f4',('udim',))
+            y = f.createVariable('PixelYLocation','f4',('udim',))
 
             rayhit[:,:] = self.ray_end_coords
             raystart[:,:] = self.ray_start_coords
@@ -367,7 +337,7 @@ class RayData:
         else:
             raise Exception('Cannot save RayData with >2D x and y arrays!')
 
-        binning = f.createVariable('Binning','i4',())
+        binning = f.createVariable('Binning','f4',())
 
         if self.binning is not None:
             binning.assignValue(self.binning)

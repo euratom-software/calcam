@@ -1,5 +1,5 @@
 '''
-* Copyright 2015-2022 European Atomic Energy Community (EURATOM)
+* Copyright 2015-2023 European Atomic Energy Community (EURATOM)
 *
 * Licensed under the EUPL, Version 1.1 or - as soon they
   will be approved by the European Commission - subsequent
@@ -20,6 +20,7 @@
 '''
 import sys
 import os
+import sysconfig
 
 from .viewer import Viewer
 from .launcher import Launcher
@@ -33,13 +34,17 @@ from .movement_correction import ImageAlignDialog
 from . import qt_wrapper as qt
 from ..calibration import Calibration
 
-try:
-    with open(os.path.join(os.path.split(__file__)[0],'__executable_path__'),'r') as f:
-        executable_path = f.readline()
-except Exception:
-    executable_path = None
 
 def open_window(window_class,*args):
+    """
+    Open a GUI window.
+
+    Parameters:
+         window_class : Calcam window class.
+
+    Returns:
+        PyQt return value after GUI execution
+    """
     app = qt.QApplication([])
     win = window_class(app,None,*args)
     if qt.QDialog in window_class.__bases__:
@@ -48,7 +53,9 @@ def open_window(window_class,*args):
         return app.exec(),win
 
 def start_gui():
-
+    """
+    Starts the Calcam launcher GUI.
+    """
     try:
         cal = Calibration(sys.argv[1])
         if cal._type == 'alignment':
@@ -59,3 +66,26 @@ def start_gui():
             open_window(FittingCalib,cal.filename)
     except:
         open_window(Launcher)
+
+
+# Locate the calcam executable and put its path in a handy string variable for the user.
+executable_path = None
+if sys.platform == 'win32':
+    exe_name = 'calcam.exe'
+else:
+    exe_name = 'calcam'
+
+script_path = sysconfig.get_path('scripts')
+if os.access(os.path.join(script_path,exe_name),os.X_OK):
+    executable_path = os.path.join(script_path, exe_name)
+else:
+    script_path = sysconfig.get_path('scripts','{:s}_user'.format(os.name))
+    if os.access(os.path.join(script_path, exe_name), os.X_OK):
+        executable_path = os.path.join(script_path, exe_name)
+
+if executable_path is not None:
+    executable_path = os.path.realpath(executable_path)
+
+del exe_name, script_path
+
+icons_path = os.path.join(os.path.split(os.path.abspath(__file__))[0],'icons')

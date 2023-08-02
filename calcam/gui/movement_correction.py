@@ -59,7 +59,7 @@ class ImageAlignDialog(qt.QDialog):
         # Open the window with same aspect ratio as the screen, and no fewer than 500px tall.
         win_height = min(780,0.75*available_space.height())
         win_width = win_height * available_space.width() / available_space.height()
-        self.resize(win_width,win_height)
+        self.resize(int(win_width),int(win_height))
 
         self.qvtkwidget_ref = qt.QVTKRenderWindowInteractor(self.ref_frame)
         self.ref_frame.layout().addWidget(self.qvtkwidget_ref)
@@ -276,7 +276,13 @@ class ImageAlignDialog(qt.QDialog):
                 ref_points[i,:] = self.interactor_ref.get_cursor_coords(pp[0])[0]
                 new_points[i,:] = self.interactor_new.get_cursor_coords(pp[1])[0]
 
-        m = np.matrix(cv2.cv2.estimateAffinePartial2D(new_points, ref_points)[0])
+
+        try:
+            # First try the call for newer versions of OpenCV (not sure exactly when it changed?)
+            m = np.matrix(cv2.estimateAffinePartial2D(new_points, ref_points)[0])
+        except AttributeError:
+            # If that fails, try the older style call instead
+            m = np.matrix(cv2.cv2.estimateAffinePartial2D(new_points, ref_points)[0])
 
         if m[0,0] is None:
             self.transform = None

@@ -245,7 +245,7 @@ class ImageAnalyser(CalcamGUIWindow):
             im = np.hstack((im,render_hires(self.renderer_3d,oversampling=oversampling)))
 
         im[:,:,:3] = im[:,:,2::-1]
-        cv2.imwrite(filename,im)
+        self.save_image(filename,im)
 
         if c3d is not None:
             self.renderer_3d.AddActor(c3d)
@@ -433,7 +433,7 @@ class ImageAnalyser(CalcamGUIWindow):
                     elif np.any(coords != self.coords_2d[i]):
                         raydata = raycast_sightlines(self.calibration,self.cadmodel,coords[0],coords[1],coords='Display',verbose=False)
                         self.update_from_3d(raydata.ray_end_coords[0,:])
-                        return
+                        break
 
 
     def on_close(self):
@@ -650,7 +650,7 @@ class ImageAnalyser(CalcamGUIWindow):
 
         self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
         self.statusbar.showMessage('Generating model octree...')
-        self.cadmodel.get_cell_locator()
+        self.cadmodel.build_octree()
         self.statusbar.clearMessage()
         self.app.restoreOverrideCursor()
         self.overlay = None
@@ -954,7 +954,7 @@ class ImageAnalyser(CalcamGUIWindow):
     def on_change_cad_features(self):
         self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
         self.statusbar.showMessage('Updating model octree...')
-        self.cadmodel.get_cell_locator()
+        self.cadmodel.build_octree()
         self.statusbar.clearMessage()
         self.app.restoreOverrideCursor()
         if self.overlay_checkbox.isChecked():

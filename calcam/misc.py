@@ -240,15 +240,25 @@ class LoopProgPrinter:
                 est_time = (elapsed_time / self.frac_done)
                 
                 if est_time - elapsed_time > self.min_remaining_length:
-                    est_time_string = ''
+
                     if est_time > 3600:
-                        est_time_string = est_time_string + '{:.0f} hr '.format(np.floor(est_time/3600))
-                    if est_time > 600:
-                        est_time_string = est_time_string + '{:.0f} min.'.format((est_time - 3600*np.floor(est_time/3600))/60)
-                    elif est_time > 59:
-                        est_time_string = est_time_string + '{:.0f} min {:.0f} sec.'.format(np.floor(est_time/60),est_time % 60)
+                        hrs = np.floor(est_time/3600)
+                        mins = (est_time - 3600*np.floor(est_time/3600))/60
+                        if mins >= 59.5:
+                            mins = 0
+                            hrs = hrs + 1
+                        est_time_string = '{:.0f} hr {:.0f} min.'.format(hrs,mins)
+                    elif est_time > 600:
+                        est_time_string = '{:.0f} min.'.format((est_time - 3600*np.floor(est_time/3600))/60)
+                    elif est_time > 59.5:
+                        mins = np.floor(est_time/60)
+                        sec = est_time % 60
+                        if sec >= 59.5:
+                            sec = 0
+                            mins = mins + 1
+                        est_time_string = '{:.0f} min {:.0f} sec.'.format(mins,sec)
                     else:
-                        est_time_string ='{:.0f} sec.'.format(est_time)
+                        est_time_string = '{:.0f} sec.'.format(est_time)
                     print(self.startdatetime.strftime('Started on:         %Y-%m-%d at %H:%M:%S'))
                     print('Estimated duration: {:s}'.format(est_time_string))
                     

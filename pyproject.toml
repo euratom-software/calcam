@@ -1,0 +1,63 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "calcam"
+description = "Spatial calibration tools for science & engineering camera systems."
+authors = [{name = "Scott Silburn et. al.", email = "scott.silburn@ukaea.uk"}]
+
+license = {file = "LICENSE.txt"}
+readme = {file = "README.md", content-type='text/markdown'}
+requires-python = ">=3.5"
+classifiers = [
+                    "Development Status :: 5 - Production/Stable",
+                    "Operating System :: Microsoft :: Windows",
+                    "Operating System :: MacOS :: MacOS X",
+                    "Operating System :: POSIX :: Linux",
+                    "Environment :: Console",
+                    "Environment :: X11 Applications :: Qt",
+                    "Intended Audience :: Science/Research",
+                    "Intended Audience :: Developers",
+                    "License :: OSI Approved :: European Union Public Licence 1.1 (EUPL 1.1)",
+                    "Natural Language :: English",
+                    "Programming Language :: Python :: 3",
+                    "Topic :: Scientific/Engineering :: Physics",
+                    "Topic :: Scientific/Engineering :: Visualization",
+                    "Topic :: Scientific/Engineering :: Image Processing"
+]
+
+dependencies = [
+    "scipy",
+    "matplotlib",
+    "vtk>=7,!=9.1.*",
+    "PyQt5",
+    "opencv-python-headless"
+]
+
+dynamic = ["version"]
+
+[project.gui-scripts]
+calcam = "calcam:start_gui"
+
+[project.urls]
+"Documentation" = 'https://euratom-software.github.io/calcam'
+"Source" = 'https://github.com/euratom-software/calcam/'
+"Issue Tracker" = 'https://github.com/euratom-software/calcam/issues'
+"Zenodo" = 'https://doi.org/10.5281/zenodo.1478554'
+
+[tool.setuptools]
+zip-safe = false
+packages = ["calcam"]
+
+[tool.setuptools.package-data]
+calcam = [
+            'gui/icons/*',
+            'gui/qt_designer_files/*.ui',
+            'gui/logo.png',
+            'builtin_image_sources/*.py',
+            '__version__',
+]
+
+[tool.setuptools.dynamic]
+version = {file = ["calcam/__version__"]}

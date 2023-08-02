@@ -384,9 +384,11 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
         # Re-shuffle the colour channels for saving (openCV needs BGR / BGRA)
         save_im = copy.copy(output)
         save_im[:,:,:3] = save_im[:,:,2::-1]
-        cv2.imwrite(filename,save_im)
-        if verbose:
+        result = cv2.imwrite(filename,save_im)
+        if verbose and result:
             print('[Calcam Renderer] Result saved as {:s}'.format(filename))
+        if not result:
+            print('[Calcam Renderer] WARNING: Could not write to image file {:s}'.format(filename))
 
 
     # Tidy up after ourselves!
@@ -517,6 +519,8 @@ def get_fov_actor(cadmodel,calib,actor_type='volume',resolution=None,subview=Non
 
     raydata = raycast_sightlines(calib,cadmodel,binning=max(calib.geometry.get_display_shape())/resolution,verbose=False)
 
+    subview_lookup = calib.subview_lookup(raydata.x,raydata.y)
+
     # Before we do anything, we need to arrange our triangle corners
     points = vtk.vtkPoints()
 
@@ -533,7 +537,7 @@ def get_fov_actor(cadmodel,calib,actor_type='volume',resolution=None,subview=Non
         for n in range(len(x_horiz)):
             if np.abs(raydata.ray_start_coords[y_horiz[n],x_horiz[n],:] - raydata.ray_start_coords[y_horiz[n],x_horiz[n]+1,:]).max() < 1e-3:
                 if subview is not None:
-                    if calib.subview_lookup(raydata.x[y_horiz[n],x_horiz[n]],raydata.y[y_horiz[n],x_horiz[n]]) != subview:
+                    if subview_lookup[y_horiz[n],x_horiz[n]] != subview:
                         continue
                 points.InsertNextPoint(raydata.ray_start_coords[y_horiz[n],x_horiz[n],:])
                 points.InsertNextPoint(raydata.ray_end_coords[y_horiz[n],x_horiz[n],:])
@@ -542,7 +546,7 @@ def get_fov_actor(cadmodel,calib,actor_type='volume',resolution=None,subview=Non
         for n in range(len(x_vert)):
             if np.abs( raydata.ray_start_coords[y_vert[n],x_vert[n],:] - raydata.ray_start_coords[y_vert[n]+1,x_vert[n],:] ).max() < 1e-3:
                 if subview is not None:
-                    if calib.subview_lookup(raydata.x[y_vert[n],x_vert[n]],raydata.y[y_vert[n],x_vert[n]]) != subview:
+                    if subview_lookup[y_vert[n],x_vert[n]] != subview:
                         continue
                 points.InsertNextPoint(raydata.ray_start_coords[y_vert[n],x_vert[n],:])
                 points.InsertNextPoint(raydata.ray_end_coords[y_vert[n],x_vert[n],:])
@@ -572,7 +576,7 @@ def get_fov_actor(cadmodel,calib,actor_type='volume',resolution=None,subview=Non
         for i in range(raydata.ray_end_coords.shape[0]):
             for j in range(raydata.ray_end_coords.shape[1]):
                 if subview is not None:
-                    if calib.subview_lookup(raydata.x[i,j],raydata.y[i,j]) != subview:
+                    if subview_lookup[i,j] != subview:
                         continue
 
                 points.InsertNextPoint(raydata.ray_end_coords[i,j,:])
@@ -663,7 +667,7 @@ def get_wall_coverage_actor(cal,cadmodel=None,image=None,imagecoords='Original',
         else:
             expected_shape = np.array(cal.x.shape[::-1]) - 1
 
-        factor = np.array(image.shape[1::-1]) / expected_shape
+        factor = expected_shape / np.array(image.shape[1::-1])
 
         if factor[0] != factor[1]:
             raise ValueError('Image size ({:d}x{:d} px) does not match expected ({:s} image shape for this calibration ({:d}x{:d} px)'.format(image.shape[1],image.shape[0],imagecoords,expected_shape[0],expected_shape[1]))
@@ -733,22 +737,28 @@ def get_wall_coverage_actor(cal,cadmodel=None,image=None,imagecoords='Original',
     if verbose:
         lp = LoopProgPrinter()
         lp.update('Constructing 3D mesh...')
-        i = 0
+        i = -1
         tot_px = (ray_end.shape[1]-1) * (ray_end.shape[0] - 1)
+
+    subview_lookup = cal.subview_lookup(rd.x,rd.y)
 
     # Go through the image
     for xi in range(ray_end.shape[1]-1):
         for yi in range(ray_end.shape[0] - 1):
-            i += 1
+
+            if verbose:
+                i += 1
+                lp.update(i/tot_px)
+
             # Don't map any pixels which are NaN
             if image is not None:
                 if isnan[yi,xi]:
                     continue
 
             if subview is not None:
-                if np.any(cal.subview_lookup(rd.x[yi:yi+2,xi:xi+2],rd.y[yi:yi+2,xi:xi+2]) != subview):
+                if np.any(subview_lookup[yi:yi+2,xi:xi+2] != subview):
                     continue
-            elif np.unique( cal.subview_lookup(rd.x[yi:yi+2,xi:xi+2],rd.y[yi:yi+2,xi:xi+2])).size > 1:
+            elif np.unique(subview_lookup[yi:yi+2,xi:xi+2]).size > 1:
                 # Also don't do any cells which are split across subviews.
                 continue
 
@@ -800,9 +810,6 @@ def get_wall_coverage_actor(cal,cadmodel=None,image=None,imagecoords='Original',
                     colours.InsertNextTypedTuple(rgb)
                 else:
                     colours.InsertNextTypedTuple(fr[yi,xi,:])
-
-            if verbose:
-                lp.update(i/tot_px)
 
     if verbose:
         lp.update(1.)
@@ -1379,10 +1386,16 @@ def render_unfolded_wall(cadmodel,calibrations=[],labels = [],colours=None,cal_o
         # Re-shuffle the colour channels for saving (openCV needs BGR / BGRA)
         save_im = copy.copy(out_im)
         save_im[:,:,:3] = save_im[:,:,2::-1]
-        cv2.imwrite(filename,save_im)
-        try:
-            progress_callback('Result saved as {:s}'.format(filename))
-        except Exception:
-            print('Result saved as {:s}'.format(filename))
+        result = cv2.imwrite(filename,save_im)
+        if result:
+            try:
+                progress_callback('Result saved as {:s}'.format(filename))
+            except Exception:
+                print('Result saved as {:s}'.format(filename))
+        else:
+            try:
+                progress_callback('Warning: could not write to image file {:s}'.format(filename))
+            except Exception:
+                print('Warning: could not write to image file {:s}'.format(filename))
 
     return out_im
