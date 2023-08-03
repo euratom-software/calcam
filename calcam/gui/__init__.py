@@ -88,4 +88,4 @@ if executable_path is not None:
 
 del exe_name, script_path
 
-icons_path = os.path.join(os.path.split(os.path.abspath(__file__))[0],'icons')
+icons_path = os.path.realpath(os.path.join(os.path.split(os.path.abspath(__file__))[0],'icons'))

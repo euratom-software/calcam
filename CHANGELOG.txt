@@ -1,6 +1,11 @@
 Calcam Changelog
 ================
 
+Changes on Master branch since last release
+-------------------------------------------
+
+* Fix issue where calcam.gui.icons_path could be inaccurate on Windows if Python was installed from the Microsoft Store.
+
 Minor Release 2.11.0 (August 2023)
 ----------------------------------
 
