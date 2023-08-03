@@ -48,7 +48,7 @@ calcam = "calcam:start_gui"
 
 [tool.setuptools]
 zip-safe = false
-packages = ["calcam"]
+packages = ["calcam","calcam.gui","calcam.builtin_image_sources"]
 
 [tool.setuptools.package-data]
 calcam = [
