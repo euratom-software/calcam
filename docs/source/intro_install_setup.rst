@@ -80,7 +80,7 @@ If you will be using the Calcam GUI often, it is highly recommended to make a sh
 .. code-block:: python
 
     import calcam
-    print(calcam.gui.executable_path)
+    print(calcam.gui.exe_path)
 
 Calcam is also provided with icons which can be used for program shortcuts or icons for associated file types. You can find the location of these icons similarly with:
 

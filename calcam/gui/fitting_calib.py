@@ -121,6 +121,7 @@ class FittingCalib(CalcamGUIWindow):
         self.overlay_type.currentIndexChanged.connect(self.update_overlay)
         self.comparison_overlay_type.currentIndexChanged.connect(self.update_overlay)
         self.comparison_overlay_opacity_slider.valueChanged.connect(self.change_comparison_colour)
+        self.rendertype_edges.toggled.connect(self.toggle_wireframe)
 
         self.control_sensitivity_slider.valueChanged.connect(lambda x: self.interactor3d.set_control_sensitivity(x*0.01))
         self.rmb_rotate.toggled.connect(self.interactor3d.set_rmb_rotate)
@@ -280,6 +281,15 @@ class FittingCalib(CalcamGUIWindow):
             self.app.restoreOverrideCursor()
             self.comparison_overlay_checkbox.setEnabled(True)
             self.comparison_overlay_checkbox.setChecked(True)
+
+
+    def toggle_wireframe(self,wireframe):
+
+        if self.cadmodel is not None:
+
+            self.cadmodel.set_wireframe( wireframe )
+
+            self.refresh_3d()
 
 
     def on_close(self):
@@ -514,6 +524,7 @@ class FittingCalib(CalcamGUIWindow):
 
     def on_model_load(self):
         # Enable the other tabs!
+        self.toggle_wireframe(self.rendertype_edges.isChecked())
         self.tabWidget.setTabEnabled(2,True)
         self.update_fit_results()
         #self.tabWidget.setTabEnabled(2,True)
@@ -1271,7 +1282,7 @@ class FittingCalib(CalcamGUIWindow):
         self.cadmodel.set_colour((1, 1, 1))
         image = render_cam_view(self.cadmodel, calibration, transparency=True, verbose=False, aa=2,oversampling=oversampling)
         self.cadmodel.set_colour(orig_colours)
-        self.cadmodel.set_wireframe(False)
+        self.cadmodel.set_wireframe(self.rendertype_edges.isChecked())
 
         self.statusbar.clearMessage()
         self.app.restoreOverrideCursor()

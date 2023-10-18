@@ -4,7 +4,17 @@ Calcam Changelog
 Changes on Master branch since last release
 -------------------------------------------
 
+
+Minor Release 2.11.0 (August 2023)
+----------------------------------
+
+New & Enhancements:
+* Added option in fitting calibration tool to display CAD model as either wireframe or solid model.
+* Change name of calcam.gui.executable_path to calcam.gui.exe_path to make it easier to type.
+
+Fixes:
 * Fix issue where calcam.gui.icons_path could be inaccurate on Windows if Python was installed from the Microsoft Store.
+
 
 Minor Release 2.11.0 (August 2023)
 ----------------------------------
