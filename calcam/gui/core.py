@@ -923,11 +923,14 @@ class CalcamGUIWindow(qt.QMainWindow):
             self.cadmodel.remove_from_renderer(self.renderer_3d)
             self.cadmodel.unload()
 
-            del self.cadmodel
+            self.cadmodel = None
 
 
         # Create a new one
-        self.cadmodel = CADModel( str(self.model_name.currentText()) , str(self.model_variant.currentText()) , self.update_cad_status)
+        try:
+            self.cadmodel = CADModel( str(self.model_name.currentText()) , str(self.model_variant.currentText()) , self.update_cad_status)
+        except Exception as e:
+            raise UserWarning('Error loading CAD Model: {:}'.format(e))
 
         self.config.default_model = (str(self.model_name.currentText()),str(self.model_variant.currentText()))
 

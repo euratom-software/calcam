@@ -123,7 +123,7 @@ class ImageAnalyser(CalcamGUIWindow):
         self.movement_correction_button.clicked.connect(self.update_movement_correction)
         self.im_mapping_checkbox.toggled.connect(self.update_mapped_image)
         self.mapped_im_opacity_slider.valueChanged.connect(self.update_mapped_image)
-        self.render_button.clicked.connect(self.save_image)
+        self.render_button.clicked.connect(self.export_image)
         self.render_image_checkbox.toggled.connect(self.update_render_resolution)
         self.render_cad_checkbox.toggled.connect(self.update_render_resolution)
         self.overlay_opacity_slider.valueChanged.connect(self.change_overlay_colour)
@@ -212,7 +212,7 @@ class ImageAnalyser(CalcamGUIWindow):
         self.update_render_resolution()
 
 
-    def save_image(self):
+    def export_image(self):
 
         filename = self.get_save_filename('image')
         if filename is None:
@@ -245,7 +245,7 @@ class ImageAnalyser(CalcamGUIWindow):
             im = np.hstack((im,render_hires(self.renderer_3d,oversampling=oversampling)))
 
         im[:,:,:3] = im[:,:,2::-1]
-        self.save_image(filename,im)
+        self.save_image(im,filename)
 
         if c3d is not None:
             self.renderer_3d.AddActor(c3d)

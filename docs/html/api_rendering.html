@@ -1,70 +1,40 @@
-
-
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Rendering Images &mdash; Calcam  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
-
-  
-  
-  
-  
-
-  
-
-  
-  
-    
-
-  
-
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Tomography Geometry Matrices" href="api_geom_matrix.html" />
     <link rel="prev" title="Ray Casting" href="api_raycast.html" /> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
-          
-
-          
+        <div class="wy-side-nav-search" >
             <a href="index.html">
-          
-
-          
-            
             <img src="_static/logo.png" class="logo" alt="Logo"/>
-          
           </a>
-
-          
-            
-            
               <div class="version">
-                Version 2.11
+                Version 2.12
               </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -72,254 +42,165 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
-              <p class="caption"><span class="caption-text">Introduction</span></p>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="intro_general.html">General Introduction to Calcam</a></li>
 <li class="toctree-l1"><a class="reference internal" href="intro_install_setup.html">Getting Up &amp; Running</a></li>
 <li class="toctree-l1"><a class="reference internal" href="intro_theory.html">Camera Calibration Theory</a></li>
 <li class="toctree-l1"><a class="reference internal" href="intro_conventions.html">Concepts &amp; Conventions</a></li>
 </ul>
-<p class="caption"><span class="caption-text">GUI App User Guide</span></p>
+<p class="caption" role="heading"><span class="caption-text">GUI App User Guide</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="gui_intro.html">Introduction &amp; Launcher</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_settings.html">Calcam Settings</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_calib.html">Calibration by point fitting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_alignment_calib.html">Calibration by manual alignment</a></li>
-<li class="toctree-l1"><a class="reference internal" href="gui_virtual_calib.html">&#8220;Virtual&#8221; Calibrations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui_virtual_calib.html">“Virtual” Calibrations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_image_analyser.html">Image Analyser</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_viewer.html">3D Viewer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_movement.html">Camera Movement Determination</a></li>
 </ul>
-<p class="caption"><span class="caption-text">API User Guide</span></p>
+<p class="caption" role="heading"><span class="caption-text">API User Guide</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="api_calib.html">The Calibration Class</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_cadmodel.html">CAD Models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_raycast.html">Ray Casting</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Rendering Images</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Rendering Images</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#calcam.render_cam_view"><code class="docutils literal notranslate"><span class="pre">render_cam_view()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#calcam.render_unfolded_wall"><code class="docutils literal notranslate"><span class="pre">render_unfolded_wall()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="api_geom_matrix.html">Tomography Geometry Matrices</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_movement.html">Camera Movement Correction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_examples.html">Examples</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Developer Documentation</span></p>
+<p class="caption" role="heading"><span class="caption-text">Developer Documentation</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="dev_fileformats.html">File Formats</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dev_imsources.html">Image Sources</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dev_coord_formatter.html">3D Coordinate Formatters</a></li>
 </ul>
 
-            
-          
         </div>
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">Calcam</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="index.html">Docs</a> &raquo;</li>
-        
-      <li>Rendering Images</li>
-    
-    
+      <li><a href="index.html" class="icon icon-home"></a></li>
+      <li class="breadcrumb-item active">Rendering Images</li>
       <li class="wy-breadcrumbs-aside">
-        
-            
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="rendering-images">
-<h1>Rendering Images<a class="headerlink" href="#rendering-images" title="Permalink to this headline">¶</a></h1>
-<p>Calcam can be used to render images of a CAD model from a calibrated camera&#8217;s point of view. This includes all lens distortion in the camera model, so for calibrated real camera images, the rendered images should match exactly with the camera images. The appearance of the CAD model (colour, wireframe, which parts are loaded etc) is configured using the features of the <a class="reference internal" href="api_cadmodel.html"><span class="doc">CAD Models</span></a> class.</p>
+             
+  <section id="rendering-images">
+<h1>Rendering Images<a class="headerlink" href="#rendering-images" title="Permalink to this heading"></a></h1>
+<p>Calcam can be used to render images of a CAD model from a calibrated camera’s point of view. This includes all lens distortion in the camera model, so for calibrated real camera images, the rendered images should match exactly with the camera images. The appearance of the CAD model (colour, wireframe, which parts are loaded etc) is configured using the features of the <a class="reference internal" href="api_cadmodel.html"><span class="doc">CAD Models</span></a> class.</p>
 <p>For examples of using these features, see the <a class="reference internal" href="api_examples.html"><span class="doc">Examples</span></a> page.</p>
-<dl class="function">
-<dt id="calcam.render_cam_view">
-<code class="descclassname">calcam.</code><code class="descname">render_cam_view</code><span class="sig-paren">(</span><em>cadmodel</em>, <em>calibration</em>, <em>extra_actors=[]</em>, <em>filename=None</em>, <em>oversampling=1</em>, <em>aa=1</em>, <em>transparency=False</em>, <em>verbose=True</em>, <em>coords='display'</em>, <em>interpolation='cubic'</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.render_cam_view" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="calcam.render_cam_view">
+<span class="sig-prename descclassname"><span class="pre">calcam.</span></span><span class="sig-name descname"><span class="pre">render_cam_view</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cadmodel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calibration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_actors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">oversampling</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aa</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transparency</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'display'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interpolation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cubic'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.render_cam_view" title="Permalink to this definition"></a></dt>
 <dd><p>Render an image of a given CAD model from the point of view of a given calibration.</p>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This function uses off-screen OpenGL rendering which fails above some image dimension which depends on the system.
-The workaround for this is that above a render dimension set by <code class="docutils literal"><span class="pre">calcam.render.max_render_dimension</span></code>, the image is rendered
+<p class="admonition-title">Note</p>
+<p>This function uses off-screen OpenGL rendering which fails above some image dimension which depends on the system.
+The workaround for this is that above a render dimension set by <code class="docutils literal notranslate"><span class="pre">calcam.render.max_render_dimension</span></code>, the image is rendered
 at lower resolution and then scaled up using nearest-neighbour scaling. For this reason, when rendering very high
 resolution images, the rendered image quality may be lower than expected.</p>
 </div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>cadmodel</strong> (<a class="reference internal" href="api_cadmodel.html#calcam.CADModel" title="calcam.CADModel"><em>calcam.CADModel</em></a>) &#8211; CAD model of scene</li>
-<li><strong>calibration</strong> (<a class="reference internal" href="api_calib.html#calcam.Calibration" title="calcam.Calibration"><em>calcam.Calibration</em></a>) &#8211; Calibration whose point-of-view to render from.</li>
-<li><strong>extra_actors</strong> (<em>list of vtk.vtkActor</em>) &#8211; List containing any additional vtkActors to add to the scene                                               in addition to the CAD model.</li>
-<li><strong>filename</strong> (<em>str</em>) &#8211; Filename to which to save the resulting image. If not given, no file is saved.</li>
-<li><strong>oversampling</strong> (<em>float</em>) &#8211; Used to render the image at higher (if &gt; 1) or lower (if &lt; 1) resolution than the                                               calibrated camera. Must be an integer if &gt; 1 or if &lt;1, 1/oversampling must be a                                               factor of both image width and height.</li>
-<li><strong>aa</strong> (<em>int</em>) &#8211; Anti-aliasing factor, 1 = no anti-aliasing.</li>
-<li><strong>transparency</strong> (<em>bool</em>) &#8211; If true, empty areas of the image are set transparent. Otherwise they are black.</li>
-<li><strong>verbose</strong> (<em>bool</em>) &#8211; Whether to print status updates while rendering.</li>
-<li><strong>coords</strong> (<em>str</em>) &#8211; Either <code class="docutils literal"><span class="pre">Display</span></code> or <code class="docutils literal"><span class="pre">Original</span></code>, the image orientation in which to return the image.</li>
-<li><strong>interpolation</strong> (<em>str</em>) &#8211; Either <code class="docutils literal"><span class="pre">nearest</span></code> or <code class="docutils literal"><span class="pre">cubic</span></code>, inerpolation used when applying lens distortion.</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cadmodel</strong> (<a class="reference internal" href="api_cadmodel.html#calcam.CADModel" title="calcam.CADModel"><em>calcam.CADModel</em></a>) – CAD model of scene</p></li>
+<li><p><strong>calibration</strong> (<a class="reference internal" href="api_calib.html#calcam.Calibration" title="calcam.Calibration"><em>calcam.Calibration</em></a>) – Calibration whose point-of-view to render from.</p></li>
+<li><p><strong>extra_actors</strong> (<em>list</em><em> of </em><em>vtk.vtkActor</em>) – List containing any additional vtkActors to add to the scene                                               in addition to the CAD model.</p></li>
+<li><p><strong>filename</strong> (<em>str</em>) – Filename to which to save the resulting image. If not given, no file is saved.</p></li>
+<li><p><strong>oversampling</strong> (<em>float</em>) – Used to render the image at higher (if &gt; 1) or lower (if &lt; 1) resolution than the                                               calibrated camera. Must be an integer if &gt; 1 or if &lt;1, 1/oversampling must be a                                               factor of both image width and height.</p></li>
+<li><p><strong>aa</strong> (<em>int</em>) – Anti-aliasing factor, 1 = no anti-aliasing.</p></li>
+<li><p><strong>transparency</strong> (<em>bool</em>) – If true, empty areas of the image are set transparent. Otherwise they are black.</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em>) – Whether to print status updates while rendering.</p></li>
+<li><p><strong>coords</strong> (<em>str</em>) – Either <code class="docutils literal notranslate"><span class="pre">Display</span></code> or <code class="docutils literal notranslate"><span class="pre">Original</span></code>, the image orientation in which to return the image.</p></li>
+<li><p><strong>interpolation</strong> (<em>str</em>) – Either <code class="docutils literal notranslate"><span class="pre">nearest</span></code> or <code class="docutils literal notranslate"><span class="pre">cubic</span></code>, inerpolation used when applying lens distortion.</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Array containing the rendered 8-bit per channel RGB (h x w x 3) or RGBA (h x w x 4) image.                                              Also saves the result to disk if the filename parameter is set.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">np.ndarray</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Array containing the rendered 8-bit per channel RGB (h x w x 3) or RGBA (h x w x 4) image.                                              Also saves the result to disk if the filename parameter is set.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="calcam.render_unfolded_wall">
-<code class="descclassname">calcam.</code><code class="descname">render_unfolded_wall</code><span class="sig-paren">(</span><em>cadmodel</em>, <em>calibrations=[]</em>, <em>labels=[]</em>, <em>colours=None</em>, <em>cal_opacity=0.7</em>, <em>w=None</em>, <em>theta_start=90</em>, <em>phi_start=0</em>, <em>progress_callback=&lt;bound method LoopProgPrinter.update of &lt;calcam.misc.LoopProgPrinter object at 0x7f982d0bae80&gt;&gt;</em>, <em>cancel=&lt;function &lt;lambda&gt;&gt;</em>, <em>theta_steps=18</em>, <em>phi_steps=360</em>, <em>r_equiscale=None</em>, <em>extra_actors=[]</em>, <em>filename=None</em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.render_unfolded_wall" title="Permalink to this definition">¶</a></dt>
-<dd><p>Render an image of the tokamak wall &#8220;flattened&#8221; out. Creates an image where the horizontal direction is the toroidal direction and
+<dl class="py function">
+<dt class="sig sig-object py" id="calcam.render_unfolded_wall">
+<span class="sig-prename descclassname"><span class="pre">calcam.</span></span><span class="sig-name descname"><span class="pre">render_unfolded_wall</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cadmodel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calibrations=[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels=[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colours=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cal_opacity=0.7</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta_start=90</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_start=0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress_callback=&lt;bound</span> <span class="pre">method</span> <span class="pre">LoopProgPrinter.update</span> <span class="pre">of</span> <span class="pre">&lt;calcam.misc.LoopProgPrinter</span> <span class="pre">object&gt;&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cancel=&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta_steps=18</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_steps=360</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r_equiscale=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_actors=[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename=None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.render_unfolded_wall" title="Permalink to this definition"></a></dt>
+<dd><p>Render an image of the tokamak wall “flattened” out. Creates an image where the horizontal direction is the toroidal direction and
 vertical direction is poloidal.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>cadmodel</strong> (<a class="reference internal" href="api_cadmodel.html#calcam.CADModel" title="calcam.CADModel"><em>calcam.CADModel</em></a>) &#8211; CAD Model to render. The CAD model must have an R, Z wall contour embedded in it (this is                                                       ued in the wall flattening calculations), which can be added in the CAD model editor.</li>
-<li><strong>calibrations</strong> (<em>list of calcam.Calibration</em>) &#8211; List of camera calibrations to visualise on the wall. If provided, each camera calibration                                                       will be shown on the image as a colour shaded area indicating which parts of the wall                                                       the camera can see.</li>
-<li><strong>labels</strong> (<em>list of strings</em>) &#8211; List of strings containing legend text for the calibrations. If not provided, no legend will be added                                                       to the image. If provided, must be the same length as the list of calibrations.</li>
-<li><strong>colours</strong> (<em>list of tuple</em>) &#8211; List of 3-element tuples specifying the colours to use for the displayed calibrations. Each element of the                                                       list must have the format (R, G, B) where 0 &lt;= R, G and B &lt;= 1.</li>
-<li><strong>cal_opcity</strong> (<em>float</em>) &#8211; How opaque to make the wall shading when showing calibrations. 0 = completely invisible, 1 = complete opaque.                                                       Default is 0.7.</li>
-<li><strong>w</strong> (<em>int</em>) &#8211; Desired approximate width of the rendered image in pixels. If not given, the image width will be chosen                                                       to give a scale of about 2mm/pixel.</li>
-<li><strong>theta_start</strong> (<em>float</em>) &#8211; Poloidal angle in degrees to &#8220;split&#8221; the image i.e. this angle will be at the top and bottom of the image.                                                       0 corresponds to the outboard midplane. Default is 90 degrees i.e. the top of the machine.</li>
-<li><strong>phi_start</strong> (<em>float</em>) &#8211; Toroidal angle in degrees to &#8220;split&#8221; the image i.e. this angle will be at the left and right of the image.</li>
-<li><strong>progress_callback</strong> (<em>callable</em>) &#8211; Used for GUI integration - a callable which will be called with the fraction of the render completed.                                                       Default is to print an estimate of how long the render will take.</li>
-<li><strong>cancel</strong> (<em>ref to bool</em>) &#8211; Used for GUI integration - a booleam which starts False, and if set to True during the calculation, the function                                                       will stop and return.</li>
-<li><strong>theta_steps</strong> (<em>int</em>) &#8211; Number of tiles to use in the poloidal direction. The default is optimised for image quality so it is advised not                                                       to change this. Effects the calculation time linearly.</li>
-<li><strong>phi_steps</strong> (<em>int</em>) &#8211; Number of tiles to use in the toroidal direction. The default is optimised for image quality so it is advised not                                                       to change this. Effects the calculation time linearly.</li>
-<li><strong>r_equiscale</strong> (<em>float</em>) &#8211; Due to the unwrapping of the torus to a rectangle, objects will appear stretched or compressed depending on their major                                                       radius. This parameter sets at what major radius objects appear at their correct shape. If not specified, the                                                       centre of the wall contour is used so objects on the inboard side appear &#8220;fatter&#8221; than in real life and objects on the                                                       outboard side will be &#8220;skinnier&#8221;.</li>
-<li><strong>filename</strong> (<em>string</em>) &#8211; If provided, the result will be saved to an image file with this name in addition to being returned as an array.                                                       Must include file extension.</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cadmodel</strong> (<a class="reference internal" href="api_cadmodel.html#calcam.CADModel" title="calcam.CADModel"><em>calcam.CADModel</em></a>) – CAD Model to render. The CAD model must have an R, Z wall contour embedded in it (this is                                                       ued in the wall flattening calculations), which can be added in the CAD model editor.</p></li>
+<li><p><strong>calibrations</strong> (<em>list</em><em> of </em><a class="reference internal" href="api_calib.html#calcam.Calibration" title="calcam.Calibration"><em>calcam.Calibration</em></a>) – List of camera calibrations to visualise on the wall. If provided, each camera calibration                                                       will be shown on the image as a colour shaded area indicating which parts of the wall                                                       the camera can see.</p></li>
+<li><p><strong>labels</strong> (<em>list</em><em> of </em><em>strings</em>) – List of strings containing legend text for the calibrations. If not provided, no legend will be added                                                       to the image. If provided, must be the same length as the list of calibrations.</p></li>
+<li><p><strong>colours</strong> (<em>list</em><em> of </em><em>tuple</em>) – List of 3-element tuples specifying the colours to use for the displayed calibrations. Each element of the                                                       list must have the format (R, G, B) where 0 &lt;= R, G and B &lt;= 1.</p></li>
+<li><p><strong>cal_opcity</strong> (<em>float</em>) – How opaque to make the wall shading when showing calibrations. 0 = completely invisible, 1 = complete opaque.                                                       Default is 0.7.</p></li>
+<li><p><strong>w</strong> (<em>int</em>) – Desired approximate width of the rendered image in pixels. If not given, the image width will be chosen                                                       to give a scale of about 2mm/pixel.</p></li>
+<li><p><strong>theta_start</strong> (<em>float</em>) – Poloidal angle in degrees to “split” the image i.e. this angle will be at the top and bottom of the image.                                                       0 corresponds to the outboard midplane. Default is 90 degrees i.e. the top of the machine.</p></li>
+<li><p><strong>phi_start</strong> (<em>float</em>) – Toroidal angle in degrees to “split” the image i.e. this angle will be at the left and right of the image.</p></li>
+<li><p><strong>progress_callback</strong> (<em>callable</em>) – Used for GUI integration - a callable which will be called with the fraction of the render completed.                                                       Default is to print an estimate of how long the render will take.</p></li>
+<li><p><strong>cancel</strong> (<em>ref to bool</em>) – Used for GUI integration - a booleam which starts False, and if set to True during the calculation, the function                                                       will stop and return.</p></li>
+<li><p><strong>theta_steps</strong> (<em>int</em>) – Number of tiles to use in the poloidal direction. The default is optimised for image quality so it is advised not                                                       to change this. Effects the calculation time linearly.</p></li>
+<li><p><strong>phi_steps</strong> (<em>int</em>) – Number of tiles to use in the toroidal direction. The default is optimised for image quality so it is advised not                                                       to change this. Effects the calculation time linearly.</p></li>
+<li><p><strong>r_equiscale</strong> (<em>float</em>) – Due to the unwrapping of the torus to a rectangle, objects will appear stretched or compressed depending on their major                                                       radius. This parameter sets at what major radius objects appear at their correct shape. If not specified, the                                                       centre of the wall contour is used so objects on the inboard side appear “fatter” than in real life and objects on the                                                       outboard side will be “skinnier”.</p></li>
+<li><p><strong>filename</strong> (<em>string</em>) – If provided, the result will be saved to an image file with this name in addition to being returned as an array.                                                       Must include file extension.</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A NumPy array of size ( h * w * 3 ) and dtype uint8 containing the RGB image result.</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A NumPy array of size ( h * w * 3 ) and dtype uint8 containing the RGB image result.</p>
+</dd>
+</dl>
 </dd></dl>
 
-</div>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="api_geom_matrix.html" class="btn btn-neutral float-right" title="Tomography Geometry Matrices" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="api_raycast.html" class="btn btn-neutral" title="Ray Casting" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="api_raycast.html" class="btn btn-neutral float-left" title="Ray Casting" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="api_geom_matrix.html" class="btn btn-neutral float-right" title="Tomography Geometry Matrices" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &copy; Copyright 2015-2023, European Atomic Energy Community (EURATOM)
-
-    </p>
+    <p>&#169; Copyright 2015-2023, European Atomic Energy Community (EURATOM).</p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
-
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-
-  
-
-    
-    
-      <script type="text/javascript">
-          var DOCUMENTATION_OPTIONS = {
-              URL_ROOT:'./',
-              VERSION:'',
-              LANGUAGE:'en',
-              COLLAPSE_INDEX:false,
-              FILE_SUFFIX:'.html',
-              HAS_SOURCE:  false,
-              SOURCELINK_SUFFIX: ''
-          };
-      </script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
-
-  
-
-  <script type="text/javascript" src="_static/js/theme.js"></script>
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
