@@ -1,12 +1,9 @@
 Calcam Changelog
 ================
 
-Changes on Master branch since last release
--------------------------------------------
 
-
-Changes since last release in 2.12.dev1 (HEAD)
-----------------------------------------------
+Changes on Master branch (2.12.dev1) since last release
+-------------------------------------------------------
 
 New & Enhancements:
 * Add ability to create tomographic reconstruction grids based on SOLPS-ITER DivGeo-Carre files (#109; contribution from Rhys Doyle).
