@@ -486,7 +486,7 @@ plot the grid itself.</p>
 <dd class="field-even"><p>Generated grid.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>calcam.PoloidalVolumeGrid</p>
+<dd class="field-odd"><p><a class="reference internal" href="#calcam.gm.PoloidalVolumeGrid" title="calcam.gm.PoloidalVolumeGrid">calcam.gm.PoloidalVolumeGrid</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -517,7 +517,34 @@ This can be used to further control the meshing; see the MeshPy documentation fo
 <dd class="field-odd"><p>Generated grid.</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p>calcam.PoloidalVolumeGrid</p>
+<dd class="field-even"><p><a class="reference internal" href="#calcam.gm.PoloidalVolumeGrid" title="calcam.gm.PoloidalVolumeGrid">calcam.gm.PoloidalVolumeGrid</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="calcam.gm.solps_grid">
+<span class="sig-prename descclassname"><span class="pre">calcam.gm.</span></span><span class="sig-name descname"><span class="pre">solps_grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">solps_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_contour</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell_attrs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.solps_grid" title="Permalink to this definition"></a></dt>
+<dd><p>Load a grid from a SOLPS-ITER DivGeo-Carre file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>solps_file</strong> (<em>str</em>) – Filename of DivGeo-Carre .geo file containing grid coordinates to load.</p></li>
+<li><p><strong>wall_contour</strong> (<em>str</em><em> or </em><em>numpy.ndarray</em>) – Either the name of a Calcam CAD model                                               from which to use the wall contour, or an                                               N x 2 array of R,Z points defining the machine wall.</p></li>
+<li><p><strong>rmin</strong> (<em>float</em>) – Optional limits of the grid extent in the R, Z plane.                                               Any combination of these may or may not be given; if none                                               are given the entire SOLPS-ITER grid is loaded.</p></li>
+<li><p><strong>rmax</strong> (<em>float</em>) – Optional limits of the grid extent in the R, Z plane.                                               Any combination of these may or may not be given; if none                                               are given the entire SOLPS-ITER grid is loaded.</p></li>
+<li><p><strong>zmin</strong> (<em>float</em>) – Optional limits of the grid extent in the R, Z plane.                                               Any combination of these may or may not be given; if none                                               are given the entire SOLPS-ITER grid is loaded.</p></li>
+<li><p><strong>zmax</strong> (<em>float</em>) – Optional limits of the grid extent in the R, Z plane.                                               Any combination of these may or may not be given; if none                                               are given the entire SOLPS-ITER grid is loaded.</p></li>
+<li><p><strong>cell_attrs</strong> (<em>bool</em>) – Whether to return the cell centre coordinates and cell                                               indices as provided by SOLPS-ITER.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>The reconstruction grid.</p>
+<p>if cell_attrs is set to true, also returns an Nx8 NumPy array with cell info.</p>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#calcam.gm.PoloidalVolumeGrid" title="calcam.gm.PoloidalVolumeGrid">calcam.gm.PoloidalVolumeGrid</a></p>
 </dd>
 </dl>
 </dd></dl>

@@ -5,10 +5,11 @@ Changes on Master branch since last release
 -------------------------------------------
 
 
-Changes since last release in 2.12.dev0 (HEAD)
+Changes since last release in 2.12.dev1 (HEAD)
 ----------------------------------------------
 
 New & Enhancements:
+* Add ability to create tomographic reconstruction grids based on SOLPS-ITER DivGeo-Carre files (#109; contribution from Rhys Doyle).
 * Added option in fitting calibration tool to display CAD model as either wireframe or solid model.
 * Change name of calcam.gui.executable_path to calcam.gui.exe_path to make it easier to type.
 
