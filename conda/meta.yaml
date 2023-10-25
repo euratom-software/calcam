@@ -1,0 +1,33 @@
+package:
+  name: calcam
+  version: {{ GIT_DESCRIBE_TAG }}
+ 
+source:
+  path: ../calcam
+  git_url: ../
+
+build:
+  script: python -m pip install . -vv
+  entry_points:
+    - calcam = calcam:start_gui
+
+requirements:
+  run:
+    - python >=3.5
+    - matplotlib-base
+    - opencv
+    - pyqt
+    - scipy
+    - vtk !=9.1.*,>=7
+
+about:
+  home: https://euratom-software.github.io/calcam/html/index.html
+  summary: Spatial calibration tools for science & engineering camera systems.
+  dev_url: https://github.com/euratom-software/calcam/
+  license: EUPL v1.1
+  license_file: LICENSE.txt
+  
+app:
+  entry: calcam
+  icon: logo.png
+  summary: "The Calcam GUI for performing camera view calibrations, setting up synthetic diagnostics and working with calibration results."
