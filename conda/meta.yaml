@@ -3,7 +3,7 @@ package:
   version: {{ GIT_DESCRIBE_TAG }}
  
 source:
-  path: ../calcam
+  path: ../
   git_url: ../
 
 build:
@@ -12,12 +12,15 @@ build:
     - calcam = calcam:start_gui
 
 requirements:
+  build:
+    - python
   run:
     - python >=3.5
     - matplotlib-base
     - opencv
     - pyqt
     - scipy
+    - libstdcxx-ng >=13.0 # [linux64 or aarch64 or ppc64le or s390x]
     - vtk !=9.1.*,>=7
 
 about:
