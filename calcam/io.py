@@ -134,7 +134,7 @@ class ZipSaveFile():
             except:
                 if 'w' not in self.mode:
                     shutil.rmtree(self.tempdir)
-                raise
+                    raise
 
         self.file_handles = []
         self.is_open = True

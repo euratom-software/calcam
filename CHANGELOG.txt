@@ -2,13 +2,14 @@ Calcam Changelog
 ================
 
 
-Changes on Master branch (2.12.dev1) since last release
+Changes on Master branch (2.12.dev2) since last release
 -------------------------------------------------------
 
 New & Enhancements:
 * Add ability to create tomographic reconstruction grids based on SOLPS-ITER DivGeo-Carre files (#109; contribution from Rhys Doyle).
 * Added option in fitting calibration tool to display CAD model as either wireframe or solid model.
 * Change name of calcam.gui.executable_path to calcam.gui.exe_path to make it easier to type.
+* Add Anaconda build recipe
 
 Fixes:
 * Fix issue where calcam.gui.icons_path could be inaccurate on Windows if Python was installed from the Microsoft Store.
