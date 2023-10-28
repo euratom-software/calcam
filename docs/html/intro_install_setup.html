@@ -48,6 +48,7 @@
 <li class="toctree-l1"><a class="reference internal" href="intro_general.html">General Introduction to Calcam</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Getting Up &amp; Running</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#installing-using-pip">Installing using pip</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installing-with-anaconda">Installing with Anaconda</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#installing-for-development">Installing for Development</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#initial-configuration">Initial Configuration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
@@ -111,10 +112,10 @@
   <section id="getting-up-running">
 <h1>Getting Up &amp; Running<a class="headerlink" href="#getting-up-running" title="Permalink to this heading"></a></h1>
 <p>Calcam runs under Python 3.5 or newer on Windows, Linux or OSX. As of August 2023, Python 3.11 or older is recommended, because suitable versions of VTK (one of Calcam’s major dependencies) are not available from the Python Package Index (PyPi) for newer versions (for newer Python versions you will have to build and install VTK and its Python bindings yourself, which can be quite involved).</p>
-<p>You can download Python installers for Windows or OSX from <a class="reference external" href="https://www.python.org/downloads/">Python.org</a> , or get it from your favourite software repository on Linux or Windows store.</p>
+<p>You can download Python installers for Windows or OSX from <a class="reference external" href="https://www.python.org/downloads/">Python.org</a> ; get it from your favourite software repository on Linux; get it from the Microsoft Store on Windows; or use a python environment manager such as <a class="reference external" href="https://www.anaconda.com">Anaconda</a>.</p>
 <section id="installing-using-pip">
 <h2>Installing using pip<a class="headerlink" href="#installing-using-pip" title="Permalink to this heading"></a></h2>
-<p>Once you have Python installed, the preferred way to install Calcam as described in this documentation is to use <code class="docutils literal notranslate"><span class="pre">pip</span></code>, which on most configurations should come installed with Python as standard. If not, documentation for how to get <code class="docutils literal notranslate"><span class="pre">pip</span></code> can be found <a class="reference external" href="https://pip.pypa.io/en/stable/installing/">here</a>.</p>
+<p>Once you have Python installed, the recommended way to install Calcam is to use <code class="docutils literal notranslate"><span class="pre">pip</span></code> (unless you are using Anaconda, in which case see <a class="reference internal" href="#conda-install"><span class="std std-ref">below</span></a>), which on most configurations should come installed with Python as standard . If not, documentation for how to get <code class="docutils literal notranslate"><span class="pre">pip</span></code> can be found <a class="reference external" href="https://pip.pypa.io/en/stable/installing/">here</a>.</p>
 <section id="option-1-from-pypi-recommended">
 <h3>Option 1: From PyPi (recommended)<a class="headerlink" href="#option-1-from-pypi-recommended" title="Permalink to this heading"></a></h3>
 <p>The current release version of Calcam is available on the Python Package Index (PyPi), so can be installed with the single command:</p>
@@ -149,6 +150,14 @@
 </div>
 <p>Once the setup is complete, you can delete the downloaded source code.</p>
 </section>
+</section>
+<section id="installing-with-anaconda">
+<span id="conda-install"></span><h2>Installing with Anaconda<a class="headerlink" href="#installing-with-anaconda" title="Permalink to this heading"></a></h2>
+<p>If you are using <a class="reference external" href="https://www.anaconda.com">Anaconda</a> to manage your Python environment, you can install Calcam as a conda package with the command:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>conda install -c calcam -c conda-forge calcam
+</pre></div>
+</div>
+<p>This will install Calcam in your current conda environment, and add a launcher for the Calcam GUI to the Anaconda Navigator.</p>
 </section>
 <section id="installing-for-development">
 <h2>Installing for Development<a class="headerlink" href="#installing-for-development" title="Permalink to this heading"></a></h2>
@@ -311,6 +320,13 @@
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>If installing older versions of Calcam &lt; 2.9, installing with pip may not take care of Calcam’s dependencies properly. If you have problems with the instructions on this page for older versions, refer to the offline version of this documentation in the <code class="docutils literal notranslate"><span class="pre">docs/html/</span></code> folder of the particular code version.</p>
+</div>
+</section>
+<section id="updating-with-anaconda">
+<h3>Updating with Anaconda<a class="headerlink" href="#updating-with-anaconda" title="Permalink to this heading"></a></h3>
+<p>For Anaconda users, you can update the Calcam package with the command:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>conda update -c calcam calcam
+</pre></div>
 </div>
 </section>
 <section id="version-cross-compatibility">

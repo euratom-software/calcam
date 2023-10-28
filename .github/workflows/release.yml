@@ -1,4 +1,4 @@
-name: Release to PyPi
+name: Publish Releases
 
 on:
   release:
@@ -25,3 +25,18 @@ jobs:
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
       run: twine upload dist/*
+      
+  update-anaconda:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build & publish to Anaconda.org
+      uses: paskino/conda-package-publish-action@master
+      with:
+        subDir: 'conda'
+        channels: 'conda-forge'
+        AnacondaToken: ${{ secrets.ANACONDA_TOKEN }}
+        publish: true
+        test_all: true
+        convert_win: true
+        convert_osx: true

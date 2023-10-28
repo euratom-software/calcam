@@ -5,12 +5,12 @@ Getting Up & Running
 
 Calcam runs under Python 3.5 or newer on Windows, Linux or OSX. As of August 2023, Python 3.11 or older is recommended, because suitable versions of VTK (one of Calcam's major dependencies) are not available from the Python Package Index (PyPi) for newer versions (for newer Python versions you will have to build and install VTK and its Python bindings yourself, which can be quite involved).
 
-You can download Python installers for Windows or OSX from `Python.org <https://www.python.org/downloads/>`_ , or get it from your favourite software repository on Linux or Windows store.
+You can download Python installers for Windows or OSX from `Python.org <https://www.python.org/downloads/>`_ ; get it from your favourite software repository on Linux; get it from the Microsoft Store on Windows; or use a python environment manager such as `Anaconda <https://www.anaconda.com>`_. 
 
 
 Installing using pip
 --------------------
-Once you have Python installed, the preferred way to install Calcam as described in this documentation is to use ``pip``, which on most configurations should come installed with Python as standard. If not, documentation for how to get ``pip`` can be found `here <https://pip.pypa.io/en/stable/installing/>`_.
+Once you have Python installed, the recommended way to install Calcam is to use ``pip`` (unless you are using Anaconda, in which case see :ref:`below <conda_install>`), which on most configurations should come installed with Python as standard . If not, documentation for how to get ``pip`` can be found `here <https://pip.pypa.io/en/stable/installing/>`_.
 
 
 Option 1: From PyPi (recommended)
@@ -51,6 +51,17 @@ Once you have a copy of the source files on your computer, navigate to the direc
 	pip install .
 
 Once the setup is complete, you can delete the downloaded source code.
+
+.. _conda_install:
+
+Installing with Anaconda
+------------------------
+If you are using `Anaconda <https://www.anaconda.com>`_ to manage your Python environment, you can install Calcam as a conda package with the command::
+
+	conda install -c calcam -c conda-forge calcam
+	
+This will install Calcam in your current conda environment, and add a launcher for the Calcam GUI to the Anaconda Navigator.
+
 
 Installing for Development
 --------------------------
@@ -222,6 +233,13 @@ To upgrade from manually downloaded source, follow the installation instructions
 
 .. note::
     If installing older versions of Calcam < 2.9, installing with pip may not take care of Calcam's dependencies properly. If you have problems with the instructions on this page for older versions, refer to the offline version of this documentation in the ``docs/html/`` folder of the particular code version.
+
+Updating with Anaconda
+~~~~~~~~~~~~~~~~~~~~~~
+
+For Anaconda users, you can update the Calcam package with the command::
+
+	conda update -c calcam calcam
 
 
 Version Cross-Compatibility
