@@ -49,11 +49,19 @@ def update_prompt_string(queue):
     # Get full version strings of current version and latest release tag from GitHub
     response = request.urlopen('https://api.github.com/repos/euratom-software/calcam/tags',timeout=0.5)
     data = json.loads(response.read().decode('utf-8'))
-    latest_version_str = data[0]['name'].replace('v','')
-    latest_ver_base10 = sum([(10**(i*3))*int(num) for i,num in enumerate(reversed(latest_version_str.split('.')))])
+    latest_ver_base10 = 0
+
+    for git_tag in data:
+        version_str = git_tag['name'].replace('v','')
+        ver_base10 = sum([(10**(i*3))*int(num) for i,num in enumerate(reversed(version_str.split('.')))])
+        if ver_base10 > latest_ver_base10:
+            latest_ver_base10 = ver_base10
+            latest_tag = git_tag
+
 
     # Strip any pre-release or dev identifier from the current version nuber.
     this_ver_base10 = 0
+    dev_version = False
     for i,substring in enumerate(reversed(__version__.split('.'))):
         number = None
         while number is None and len(substring) > 0:
@@ -61,13 +69,15 @@ def update_prompt_string(queue):
                 number = int(substring)
             except ValueError:
                 substring = substring[:-1]
+                dev_version = True
+
         if number is not None:
             this_ver_base10 = this_ver_base10 + (10**(i*3))*number
 
     # If a newer version is available, return a string to tell the user that.
     updatestring = None
-    if latest_ver_base10 > this_ver_base10:
-        updatestring = '<b>Calcam {:} now available! Find out what changed <a href=https://github.com/euratom-software/calcam/blob/{:s}/CHANGELOG.txt>here</a>; update with pip or download the <a href={:s}>source zip</a>; or read more about updating <a href=https://euratom-software.github.io/calcam/html/intro_install_setup.html#updating>here</a>!</b>'.format(data[0]['name'],data[0]['commit']['sha'],data[0]['zipball_url'])
+    if (latest_ver_base10 > this_ver_base10) or (latest_ver_base10 == this_ver_base10 and dev_version):
+        updatestring = '<b>Calcam {:} now available! Find out what changed <a href=https://github.com/euratom-software/calcam/blob/{:s}/CHANGELOG.txt>here</a>; check out the <a href=https://euratom-software.github.io/calcam/html/intro_install_setup.html#updating>update instructions</a> or download the <a href={:s}>source zip</a>!</b>'.format(latest_tag['name'],latest_tag['commit']['sha'],latest_tag['zipball_url'])
 
     queue.put(updatestring)
 

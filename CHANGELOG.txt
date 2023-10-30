@@ -2,19 +2,20 @@ Calcam Changelog
 ================
 
 
-Changes on Master branch (2.12.dev2) since last release
+Changes on Master branch (2.12.dev3) since last release
 -------------------------------------------------------
 
 New & Enhancements:
 * Add ability to create tomographic reconstruction grids based on SOLPS-ITER DivGeo-Carre files (#109; contribution from Rhys Doyle).
 * Added option in fitting calibration tool to display CAD model as either wireframe or solid model.
 * Change name of calcam.gui.executable_path to calcam.gui.exe_path to make it easier to type.
-* Add Anaconda build recipe
+* Added options for adjusting coordinates when importing mesh files in the cad definition editor: free choice of 'up' axis, coordinate handedness and toroidal rotation (#108)
 
 Fixes:
 * Fix issue where calcam.gui.icons_path could be inaccurate on Windows if Python was installed from the Microsoft Store.
 * Improve handling of insufficient disk space errors so now the error message makes the cause of the problem much clearer. (#110)
 * Fixed image export from Image Analyser tool which was broken (raised an exception) (#111)
+* Fixed a bug which caused new version notifications not to work since v2.8.3, or if using a pre-release of the current version.
 
 
 Minor Release 2.11.0 (August 2023)
