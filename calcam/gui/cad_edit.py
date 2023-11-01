@@ -436,6 +436,9 @@ class CADEdit(CalcamGUIWindow):
         self.handedness_box.blockSignals(True)
         self.handedness_box.setCurrentIndex(0 if feature.coord_handedness == 'right' else 1)
         self.handedness_box.blockSignals(False)
+        self.z_rotate_box.blockSignals(True)
+        self.z_rotate_box.setValue(feature.toroidal_rotation)
+        self.z_rotate_box.blockSignals(False)
 
         feature_extent = feature.get_polydata().GetBounds()
 
@@ -900,6 +903,13 @@ class CADEdit(CalcamGUIWindow):
                 self.cadmodel.groups[self.current_group].append(init_name)
 
             feature_dict = {'mesh_file':mesh_path,'default_enable':False,'mesh_scale':self.mesh_scale_box.value(),'colour':(0.75,0.75,0.75),'mesh_up_direction':self.meshup_box.currentText(),'rotate_toroidal':self.z_rotate_box.value(),'coord_handedness':'right' if self.handedness_box.currentIndex() == 0 else 'left'}
+
+            # If adding a duplicate, append number to the end of the feature name to create unique names
+            if init_name in self.model_features[self.cadmodel.model_variant]:
+                n = 1
+                while init_name + ' ({:d})'.format(n) in self.model_features[self.cadmodel.model_variant]:
+                    n += 1
+                init_name = init_name + ' ({:d})'.format(n)
 
             self.model_features[self.cadmodel.model_variant][init_name] = copy.copy(feature_dict)
             self.cadmodel.features[init_name] = ModelFeature(self.cadmodel,feature_dict,abs_path=True)

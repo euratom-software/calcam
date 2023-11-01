@@ -7,7 +7,7 @@ Image Pixel Coordinates
 -----------------------
 Calcam follows the convention of using matrix/linear algebra style pixel coordinates for images, which is consistent with the way 2D arrays are handled by default in Python. In this convention, the origin ``(0,0)`` is in the centre of the top-left pixel in the image. The *y* axis runs from top to bottom down the image and the *x* axis runs horizontally left to right.
 
-It is important to note that since 2D arrays are indexed ``[row, column]``, arrays containing images are indexed as ``[y,x]``. However, Calcam functions which deal with image coordinates are called as ``function(x,y)``. This is consistent with the way image coordinates are delt with in OpenCV.
+It is important to note that since 2D arrays are indexed ``[row, column]``, arrays containing images are indexed as ``[y,x]``. However, Calcam functions which deal with image coordinates are called as ``function(x,y)``. This is consistent with the way image coordinates are delt with in other Python libraries including OpenCV.
 
 
 "Original" and "Display" Pixel Coordinates
@@ -30,4 +30,8 @@ Some camera diagnostic systems include optics such that multiple views share the
 
 CAD Models
 ----------
-In Calcam, a CAD model consists of a collection of different 3D mesh files plus metadata. A CAD model can have multiple variants, which can be used to represent different machine configurations or to provide different levels of detail in the mesh files to trade off with performance. Each variant consists of model features or parts, each of which comes from a single 3D mesh file and represents part of the machine. The features can be collected in to groups to make models with many features easier to work with.
+In Calcam, a CAD model consists of a collection of different 3D mesh files plus metadata. The current version supports importing ``.stl`` or ``.obj`` format 3D mesh files. It's usually convenient to split the model in to several individual mesh files containing different parts of the scene, and these can then be turned on or off individually when working with the model. The features can be collected in to groups to make models with many features easier to work with. Calcam packages all the mesh files in to a custom zipped file format (.ccm) along with various metadata to create a Calcam CAD model file. You can have several such files and easily switch between them at any time. A CAD model definition can have multiple variants, which can be used to represent different machine configurations (e.g. if some machine features were changed over time), or to provide different levels of detail in the mesh files to trade off with performance.
+
+3D coordinate system
+~~~~~~~~~~~~~~~~~~~~~
+For working with machine CAD, Calcam uses a right-handed cartesian coordinate system with the vertical 'up' direction along the +Z axis.

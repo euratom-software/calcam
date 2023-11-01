@@ -28,6 +28,7 @@ Welcome to the Calcam documentation index page. If you want to know what it's al
 
    gui_intro
    gui_settings
+   gui_cad_editor
    gui_calib
    gui_alignment_calib
    gui_virtual_calib
