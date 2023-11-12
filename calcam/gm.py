@@ -1559,7 +1559,9 @@ def solps_grid(solps_file,wall_contour,rmin=None,rmax=None,zmin=None,zmax=None,c
 
         calcam.gm.PoloidalVolumeGrid    : The reconstruction grid.
 
-        if cell_attrs is set to true, also returns an Nx8 NumPy array with cell info.
+        if cell_attrs is set to true, also returns an Nx8 NumPy array where N is the number of \
+        grid cells. The 8 columns of this array contain for each cell: Poloidal index, Radial index, R centre,\
+        Z centre, and indices in to the resulting grid object's vertex list of the 4 vertices of the cell.
 
     """
 

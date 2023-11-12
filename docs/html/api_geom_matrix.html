@@ -55,6 +55,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="gui_intro.html">Introduction &amp; Launcher</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_settings.html">Calcam Settings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui_cad_editor.html">CAD Model Definition Editor</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_calib.html">Calibration by point fitting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_alignment_calib.html">Calibration by manual alignment</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_virtual_calib.html">“Virtual” Calibrations</a></li>
@@ -540,7 +541,7 @@ This can be used to further control the meshing; see the MeshPy documentation fo
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p><p>The reconstruction grid.</p>
-<p>if cell_attrs is set to true, also returns an Nx8 NumPy array with cell info.</p>
+<p>if cell_attrs is set to true, also returns an Nx8 NumPy array where N is the number of         grid cells. The 8 columns of this array contain for each cell: Poloidal index, Radial index, R centre,        Z centre, and indices in to the resulting grid object’s vertex list of the 4 vertices of the cell.</p>
 </p>
 </dd>
 <dt class="field-odd">Return type</dt>
