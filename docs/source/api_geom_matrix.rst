@@ -31,3 +31,5 @@ The following functions are provided for convenience to easily generate some com
 .. autofunction:: calcam.gm.squaregrid
 
 .. autofunction:: calcam.gm.trigrid
+
+.. autofunction:: calcam.gm.solps_grid

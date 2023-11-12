@@ -81,7 +81,7 @@ There are 2 header rows, then each numerical row consists of, from left-to-right
 CAD Models
 ----------
 
-Similarly to calibrations, CAD model definition files are zip archives but with extension `.ccm`. The easiest (and recommended) way to construct or edit them is with the :ref:`cad_editor`. The contents of the zip file follow the structure shown below::
+Similarly to calibrations, CAD model definition files are zip archives but with extension `.ccm`. The easiest (and recommended) way to construct or edit them is with the :doc:`gui_cad_editor`. The contents of the zip file follow the structure shown below::
 
     CAD Definition File (.ccm)
     |

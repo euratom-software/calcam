@@ -90,6 +90,10 @@ class CADEdit(CalcamGUIWindow):
         self.replace_file_button.clicked.connect(self.edit_feature)
         self.mesh_scale_box.valueChanged.connect(self.edit_feature)
         self.del_feature_button.clicked.connect(self.edit_feature)
+        self.meshup_box.currentIndexChanged.connect(self.edit_feature)
+        self.z_rotate_box.valueChanged.connect(self.edit_feature)
+        self.z_rotate_box.valueChanged.connect(self.edit_feature)
+        self.handedness_box.currentIndexChanged.connect(self.edit_feature)
 
         self.new_group_button.clicked.connect(self.add_group)
 
@@ -257,34 +261,7 @@ class CADEdit(CalcamGUIWindow):
 
     def edit_feature(self):
 
-        if self.sender() is self.replace_file_button:
-            mesh_path = self.browse_for_mesh()
-
-            if mesh_path is not None:
-                self.cadmodel.set_features_enabled(False,self.selected_feature)
-                if self.cadmodel.def_file is not None:
-                    old_path = self.model_features[self.cadmodel.model_variant][self.selected_feature]['mesh_file']
-                    if self.cadmodel.def_file.get_temp_path() in old_path:
-                        self.removed_mesh_files.append(old_path.replace(self.cadmodel.def_file.get_temp_path() + os.sep,''))
-
-                self.model_features[self.cadmodel.model_variant][self.selected_feature]['mesh_file'] = mesh_path
-                self.cadmodel.features[self.selected_feature].filename = mesh_path
-                self.cadmodel.features[self.selected_feature].filetype = mesh_path.split('.')[-1].lower()
-                self.cadmodel.features[self.selected_feature].polydata = None
-                self.cadmodel.features[self.selected_feature].solid_actor = None
-                self.cadmodel.features[self.selected_feature].edge_actor = None
-                self.cadmodel.set_features_enabled(True,self.selected_feature)
-
-        elif self.sender() is self.mesh_scale_box:
-            self.cadmodel.set_features_enabled(False,self.selected_feature)
-            self.model_features[self.cadmodel.model_variant][self.selected_feature]['mesh_scale'] = self.mesh_scale_box.value()
-            self.cadmodel.features[self.selected_feature].scale = self.mesh_scale_box.value()
-            self.cadmodel.features[self.selected_feature].polydata = None
-            self.cadmodel.features[self.selected_feature].solid_actor = None
-            self.cadmodel.features[self.selected_feature].edge_actor = None
-            self.cadmodel.set_features_enabled(True,self.selected_feature)
-
-        elif self.sender() is self.cad_colour_choose_button:
+        if self.sender() is self.cad_colour_choose_button:
 
             self.set_cad_colour()
             self.model_features[self.cadmodel.model_variant][self.selected_feature]['colour'] = self.cadmodel.features[self.selected_feature].colour
@@ -306,7 +283,51 @@ class CADEdit(CalcamGUIWindow):
                 if self.current_group is not None:
                     self.cadmodel.groups[self.current_group].remove(self.selected_feature)
                 self.update_feature_tree()
-    
+
+        else:
+            if self.sender() is self.replace_file_button:
+                mesh_path = self.browse_for_mesh()
+
+                if mesh_path is not None:
+                    self.cadmodel.set_features_enabled(False,self.selected_feature)
+                    if self.cadmodel.def_file is not None:
+                        old_path = self.model_features[self.cadmodel.model_variant][self.selected_feature]['mesh_file']
+                        if self.cadmodel.def_file.get_temp_path() in old_path:
+                            self.removed_mesh_files.append(old_path.replace(self.cadmodel.def_file.get_temp_path() + os.sep,''))
+
+                    self.model_features[self.cadmodel.model_variant][self.selected_feature]['mesh_file'] = mesh_path
+                    self.cadmodel.features[self.selected_feature].filename = mesh_path
+                    self.cadmodel.features[self.selected_feature].filetype = mesh_path.split('.')[-1].lower()
+
+            elif self.sender() is self.mesh_scale_box:
+                self.cadmodel.set_features_enabled(False,self.selected_feature)
+                self.model_features[self.cadmodel.model_variant][self.selected_feature]['mesh_scale'] = self.mesh_scale_box.value()
+                self.cadmodel.features[self.selected_feature].scale = self.mesh_scale_box.value()
+
+
+            elif self.sender() is self.meshup_box:
+                self.cadmodel.set_features_enabled(False,self.selected_feature)
+                self.model_features[self.cadmodel.model_variant][self.selected_feature]['mesh_up_direction'] = self.meshup_box.currentText()
+                self.cadmodel.features[self.selected_feature].mesh_up = self.meshup_box.currentText()
+
+
+            elif self.sender() is self.z_rotate_box:
+                self.cadmodel.set_features_enabled(False,self.selected_feature)
+                self.model_features[self.cadmodel.model_variant][self.selected_feature]['rotate_toroidal'] = self.z_rotate_box.value()
+                self.cadmodel.features[self.selected_feature].toroidal_rotation = self.z_rotate_box.value()
+
+
+            elif self.sender() is self.handedness_box:
+                self.cadmodel.set_features_enabled(False,self.selected_feature)
+                self.model_features[self.cadmodel.model_variant][self.selected_feature]['coord_handedness'] = 'right' if self.handedness_box.currentIndex() == 0 else 'left'
+                self.cadmodel.features[self.selected_feature].coord_handedness = 'right' if self.handedness_box.currentIndex() == 0 else 'left'
+
+            self.cadmodel.features[self.selected_feature].polydata = None
+            self.cadmodel.features[self.selected_feature].solid_actor = None
+            self.cadmodel.features[self.selected_feature].edge_actor = None
+            self.cadmodel.set_features_enabled(True, self.selected_feature)
+
+
         self.update_current_feature()
         self.unsaved_changes = True
         self.refresh_3d()
@@ -379,6 +400,7 @@ class CADEdit(CalcamGUIWindow):
         try:
             feature = self.cadmodel.features[self.selected_feature]
             self.component_settings.setEnabled(True)
+            self.coords_settings.setEnabled(True)
             self.del_feature_button.setEnabled(True)
             self.cad_colour_choose_button.setEnabled(True)
         except KeyError:
@@ -395,6 +417,7 @@ class CADEdit(CalcamGUIWindow):
 
         filename = feature.filename
         scale = feature.scale
+        upax = feature.mesh_up
 
         filesize = os.path.getsize(filename) / 1024.**2
 
@@ -407,6 +430,15 @@ class CADEdit(CalcamGUIWindow):
         self.mesh_scale_box.blockSignals(True)
         self.mesh_scale_box.setValue(scale)
         self.mesh_scale_box.blockSignals(False)
+        self.meshup_box.blockSignals(True)
+        self.meshup_box.setCurrentText(upax)
+        self.meshup_box.blockSignals(False)
+        self.handedness_box.blockSignals(True)
+        self.handedness_box.setCurrentIndex(0 if feature.coord_handedness == 'right' else 1)
+        self.handedness_box.blockSignals(False)
+        self.z_rotate_box.blockSignals(True)
+        self.z_rotate_box.setValue(feature.toroidal_rotation)
+        self.z_rotate_box.blockSignals(False)
 
         feature_extent = feature.get_polydata().GetBounds()
 
@@ -870,7 +902,14 @@ class CADEdit(CalcamGUIWindow):
                 init_name = '{:s}/{:s}'.format(self.current_group,init_name)
                 self.cadmodel.groups[self.current_group].append(init_name)
 
-            feature_dict = {'mesh_file':mesh_path,'default_enable':False,'mesh_scale':self.mesh_scale_box.value(),'colour':(0.75,0.75,0.75)}
+            feature_dict = {'mesh_file':mesh_path,'default_enable':False,'mesh_scale':self.mesh_scale_box.value(),'colour':(0.75,0.75,0.75),'mesh_up_direction':self.meshup_box.currentText(),'rotate_toroidal':self.z_rotate_box.value(),'coord_handedness':'right' if self.handedness_box.currentIndex() == 0 else 'left'}
+
+            # If adding a duplicate, append number to the end of the feature name to create unique names
+            if init_name in self.model_features[self.cadmodel.model_variant]:
+                n = 1
+                while init_name + ' ({:d})'.format(n) in self.model_features[self.cadmodel.model_variant]:
+                    n += 1
+                init_name = init_name + ' ({:d})'.format(n)
 
             self.model_features[self.cadmodel.model_variant][init_name] = copy.copy(feature_dict)
             self.cadmodel.features[init_name] = ModelFeature(self.cadmodel,feature_dict,abs_path=True)

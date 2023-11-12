@@ -104,6 +104,9 @@ Turning CAD model parts On/Off
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 For CAD models composed of multiple parts in separate mesh files, individual mesh files can be turned on or off by ticking/unticking them in the :guilabel:`Enable / Disable Features` panel. This can be done for individual parts, groups of parts (if defined in the CAD model) or the entire model. This can be helpful to improve performance when working with large models if not all parts are necessary for a particular calibration, or for removing parts which are in the way and make the calibration more difficult.
 
+CAD Rendering Style
+~~~~~~~~~~~~~~~~~~~
+By default the CAD model will be shown as a solid body, however for some models it can be useful to view it with a "wireframe-like" style to highlight edges which could be identifiable features for fitting. The appearance of the CAD model can be toggled between solid body and wireframe at any time using the options in the :guilabel:`Rendering Type` box on the :guilabel:`Machine Model` control tab.
 
 3D ViewPort Tab
 ~~~~~~~~~~~~~~~~

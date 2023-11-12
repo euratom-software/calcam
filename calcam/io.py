@@ -91,7 +91,7 @@ class ZipSaveFile():
         # that we have the necessary permissions.
         if 'w' in self.mode:
             if os.path.isfile(self.filename):
-                if not os.access(self.filename,os.W_OK):
+                if self.is_readonly():
                     raise IOError('Write permission denied on {:s}'.format(self.filename))
             elif os.path.isdir(self.filename):
                 raise IOError('Specified filename already exists but is a directory!')
@@ -118,6 +118,16 @@ class ZipSaveFile():
                         loadlist = zf.namelist()    
                     else:
                         loadlist = [name for name in zf.namelist() if not name.startswith('.large/')]
+
+                    # Check there is enough disk space and raise appropriate exception if not
+                    size_to_load = 0
+                    for fname in loadlist:
+                        size_to_load += zf.getinfo(fname).file_size
+
+                    _, _, total_avail = shutil.disk_usage(self.tempdir)
+
+                    if total_avail < size_to_load:
+                        raise IOError('Not enough free space in {:s} for temporary files ({:.0f} MiB required, {:.0f} MiB available).'.format(os.path.split(self.tempdir)[0],size_to_load/1024**2,total_avail/1024**2))
 
                     zf.extractall(self.tempdir,members=loadlist)
             

@@ -69,7 +69,7 @@ def start_gui():
 
 
 # Locate the calcam executable and put its path in a handy string variable for the user.
-executable_path = None
+exe_path = None
 if sys.platform == 'win32':
     exe_name = 'calcam.exe'
 else:
@@ -77,15 +77,15 @@ else:
 
 script_path = sysconfig.get_path('scripts')
 if os.access(os.path.join(script_path,exe_name),os.X_OK):
-    executable_path = os.path.join(script_path, exe_name)
+    exe_path = os.path.join(script_path, exe_name)
 else:
     script_path = sysconfig.get_path('scripts','{:s}_user'.format(os.name))
     if os.access(os.path.join(script_path, exe_name), os.X_OK):
-        executable_path = os.path.join(script_path, exe_name)
+        exe_path = os.path.join(script_path, exe_name)
 
-if executable_path is not None:
-    executable_path = os.path.realpath(executable_path)
+if exe_path is not None:
+    exe_path = os.path.realpath(exe_path)
 
 del exe_name, script_path
 
-icons_path = os.path.join(os.path.split(os.path.abspath(__file__))[0],'icons')
+icons_path = os.path.realpath(os.path.join(os.path.split(os.path.abspath(__file__))[0],'icons'))

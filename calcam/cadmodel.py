@@ -872,6 +872,21 @@ class ModelFeature():
 
         self.scale = definition_dict['mesh_scale']
 
+        try:
+            self.mesh_up = definition_dict['mesh_up_direction']
+        except KeyError:
+            self.mesh_up = '+Z'
+
+        try:
+            self.toroidal_rotation = definition_dict['rotate_toroidal']
+        except KeyError:
+            self.toroidal_rotation = 0.
+
+        try:
+            self.coord_handedness = definition_dict['coord_handedness']
+        except KeyError:
+            self.coord_handedness = 'right'
+
         self.polydata = None
         self.solid_actor = None
         self.edge_actor = None
@@ -899,17 +914,48 @@ class ModelFeature():
             reader.SetFileName(self.filename)
             reader.Update()
 
-            scaler = vtk.vtkTransformPolyDataFilter()
+            transformer = vtk.vtkTransformPolyDataFilter()
 
-            scale_transform = vtk.vtkTransform()
-            scale_transform.Scale(self.scale,self.scale,self.scale)
+            transform = vtk.vtkTransform()
+            transform.PostMultiply()
+
+            if self.coord_handedness == 'left':
+                transform.Scale(self.scale,self.scale,-self.scale)
+            elif self.coord_handedness == 'right':
+                transform.Scale(self.scale, self.scale, self.scale)
+
+            if self.mesh_up == '+X':
+                transform.RotateY(-90)
+            elif self.mesh_up == '-X':
+                transform.RotateY(90)
+            elif self.mesh_up == '+Y':
+                transform.RotateX(90)
+            elif self.mesh_up == '-Y':
+                transform.RotateX(-90)
+            elif self.mesh_up == '-Z' and self.coord_handedness == 'right':
+                transform.RotateX(180)
+            elif self.mesh_up == '+Z' and self.coord_handedness == 'left':
+                transform.RotateX(180)
+
+            transform.RotateZ(self.toroidal_rotation)
+            transformer.SetInputData(reader.GetOutput())
+            transformer.SetTransform(transform)
+            transformer.Update()
+
+            if self.coord_handedness == 'left':
+                reverser = vtk.vtkReverseSense()
+                reverser.ReverseNormalsOff()
+                reverser.ReverseCellsOn()
+                reverser.SetInputData(transformer.GetOutput())
+                reverser.Update()
+                self.polydata = reverser.GetOutput()
+                transformer.SetInputData(reverser.GetOutput())
+            elif self.coord_handedness == 'right':
+                self.polydata = transformer.GetOutput()
 
 
-            scaler.SetInputData(reader.GetOutput())
-            scaler.SetTransform(scale_transform)
-            scaler.Update()
 
-            self.polydata = scaler.GetOutput()
+
 
             # Remove all the lines from the PolyData. As far as I can tell for "normal" mesh files this shouldn't
             # remove anything visually important, but it avoids running in to issues with vtkFeatureEdges trying to allocate

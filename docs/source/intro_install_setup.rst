@@ -5,12 +5,12 @@ Getting Up & Running
 
 Calcam runs under Python 3.5 or newer on Windows, Linux or OSX. As of August 2023, Python 3.11 or older is recommended, because suitable versions of VTK (one of Calcam's major dependencies) are not available from the Python Package Index (PyPi) for newer versions (for newer Python versions you will have to build and install VTK and its Python bindings yourself, which can be quite involved).
 
-You can download Python installers for Windows or OSX from `Python.org <https://www.python.org/downloads/>`_ , or get it from your favourite software repository on Linux or Windows store.
+You can download Python installers for Windows or OSX from `Python.org <https://www.python.org/downloads/>`_ ; get it from your favourite software repository on Linux; get it from the Microsoft Store on Windows; or use a python environment manager such as `Anaconda <https://www.anaconda.com>`_. 
 
 
 Installing using pip
 --------------------
-Once you have Python installed, the preferred way to install Calcam as described in this documentation is to use ``pip``, which on most configurations should come installed with Python as standard. If not, documentation for how to get ``pip`` can be found `here <https://pip.pypa.io/en/stable/installing/>`_.
+Once you have Python installed, the recommended way to install Calcam is to use ``pip`` (unless you are using Anaconda, in which case see :ref:`below <conda_install>`), which on most configurations should come installed with Python as standard . If not, documentation for how to get ``pip`` can be found `here <https://pip.pypa.io/en/stable/installing/>`_.
 
 
 Option 1: From PyPi (recommended)
@@ -52,6 +52,17 @@ Once you have a copy of the source files on your computer, navigate to the direc
 
 Once the setup is complete, you can delete the downloaded source code.
 
+.. _conda_install:
+
+Installing with Anaconda
+------------------------
+If you are using `Anaconda <https://www.anaconda.com>`_ to manage your Python environment, you can install Calcam as a conda package with the command::
+
+	conda install -c calcam -c conda-forge calcam
+	
+This will install Calcam in your current conda environment, and add a launcher for the Calcam GUI to the Anaconda Navigator.
+
+
 Installing for Development
 --------------------------
 If you plan to make any modifications to /  do any development work on Calcam, and want to be able to edit the Calcam source code without having to run the setup script again to have your changes take effect, you can install Calcam in development / eidtable mode.
@@ -80,7 +91,7 @@ If you will be using the Calcam GUI often, it is highly recommended to make a sh
 .. code-block:: python
 
     import calcam
-    print(calcam.gui.executable_path)
+    print(calcam.gui.exe_path)
 
 Calcam is also provided with icons which can be used for program shortcuts or icons for associated file types. You can find the location of these icons similarly with:
 
@@ -93,9 +104,7 @@ Setting up CAD Model Definitions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Camera calibration in Calcam is based on matching features between camera images and a CAD model of the scene viewed by the camera. As such, it is necessary to define one or more CAD models for use in calcam.
 
-The current version supports importing ``.stl`` or ``.obj`` format 3D mesh files. It's usually convenient to split the model in to several individual mesh files containing different parts of the scene, and these can then be turned on or off individually when working with the model. Calcam packages these mesh files in to a custom zipped file format (.ccm) along with various metadata to create a Calcam CAD model file. You can have several such files and easily switch between them at any time.
-
-When you first start one of the Calcam GUI tools which requires CAD models, you will be prompted to either browse for a folder containing existing Calcam CAD model files or create a new one by importing mesh files. For creating CAD model definitions from mesh files, it is recommended to read the :ref:`cadmodel_intro` section in concepts and conventions, then consult the user guide for the :ref:`cad_editor` for details of how to use the CAD model definition editing tool.
+When you first start one of the Calcam GUI tools which requires CAD models, you will be prompted to either browse for a folder containing existing Calcam CAD model files or create a new one by importing mesh files. For creating CAD model definitions from mesh files, it is recommended to read the :ref:`cadmodel_intro` section in concepts and conventions, then consult the user guide for the :doc:`gui_cad_editor` for details of how to use the CAD model definition editing tool.
 
 Setting up custom image sources (optional)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -222,6 +231,13 @@ To upgrade from manually downloaded source, follow the installation instructions
 
 .. note::
     If installing older versions of Calcam < 2.9, installing with pip may not take care of Calcam's dependencies properly. If you have problems with the instructions on this page for older versions, refer to the offline version of this documentation in the ``docs/html/`` folder of the particular code version.
+
+Updating with Anaconda
+~~~~~~~~~~~~~~~~~~~~~~
+
+For Anaconda users, you can update the Calcam package with the command::
+
+	conda update -c calcam calcam
 
 
 Version Cross-Compatibility
