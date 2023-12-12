@@ -41,6 +41,7 @@ import matplotlib.cm as cm
 from matplotlib.patches import Polygon as PolyPatch
 from matplotlib.collections import PatchCollection
 import matplotlib.path as mplpath
+import h5py
 
 try:
     import meshpy.triangle
@@ -1146,7 +1147,7 @@ class GeometryMatrix:
                            'grid_history':self.history['grid'],
                            'pixel_mask':self.pixel_mask,
                            'grid_type':self.grid.__class__.__name__,
-                           'im_transforms': np.array(self.image_geometry.transform_actions,dtype=np.object),
+                           'im_transforms': np.array(self.image_geometry.transform_actions,dtype=object),
                            'im_px_aspect':self.image_geometry.pixel_aspectratio,
                            'im_coords':self.image_coords
                          }
@@ -1157,24 +1158,125 @@ class GeometryMatrix:
         '''
         Load geometry matrix from a MATLAB file.
         '''
-        f = scipy.io.loadmat(filename)
-        
-        
-        
-        self.binning = float(f['binning'][0,0])
-        self.pixel_order = str(f['pixel_order'][0])
-        self.pixel_mask = f['pixel_mask']
-        self.history = {'los':str(f['sightline_history'][0]),'grid':str(f['grid_history'][0]),'matrix':str(f['matrix_history'][0])}
-        self.image_coords = str(f['im_coords'][0])
+        try:
+            # Try to load with scipy for older .mat formats
+            f = scipy.io.loadmat(filename)
+            is_v73 = False
+        except NotImplementedError:
+            # If scipy fails, try with h5py for v7.3 .mat files
+            try:
+                f = h5py.File(filename, 'r')
+                is_v73 = True
+            except Exception as e:
+                # Handle failure to open file with both methods
+                raise Exception(f"Failed to load the file '{filename}' with both scipy and h5py. Error: {e}")
 
-        self.grid = PoloidalVolumeGrid(f['grid_verts'],f['grid_cells'],f['grid_wall'],src=self.history['grid'])
-        self.data = f['geom_mat'].tocsr()
-        
-        self.image_geometry = CoordTransformer()
-        self.image_geometry.set_transform_actions(f['im_transforms'])
-        self.image_geometry.set_pixel_aspect(f['im_px_aspect'],relative_to='Original')
-        self.image_geometry.set_image_shape(*self.binning*np.array(self.pixel_mask.shape[::-1]),coords=self.image_coords)
+        if is_v73:
+            # Load scalar values
+            self.binning = float(f['binning'][0][0])
+            print(f"Binning: {self.binning}")
+            self.image_coords = f['im_coords'][()].tobytes().decode('utf-16')
+            print(f"Image Coordinates: {self.image_coords}")
 
+            self.image_geometry = CoordTransformer()  
+
+            image_pixel_aspect_data = np.array(f['im_px_aspect'])
+
+            # Use the extracted data to set the pixel aspect in the image geometry
+            self.image_geometry.set_pixel_aspect(image_pixel_aspect_data[0, 0], relative_to='Original')
+
+            # Print the numerical data in the numpy array format
+            print(f"Image Pixel Aspect: {image_pixel_aspect_data}")
+            print(f"Image Pixel Aspect data type: {image_pixel_aspect_data.dtype}")
+
+            self.pixel_mask = f['pixel_mask'][:].T
+            print(f"Pixel Mask shape: {self.pixel_mask.shape}")
+
+            # Load 2D arrays and transpose them
+            grid_verts_transposed = f['grid_verts'][:].T
+            grid_cells_transposed = f['grid_cells'][:].T
+            grid_wall_transposed = f['grid_wall'][:].T
+            print("Loaded and transposed grid data.")
+
+            # Convert numerical arrays to ASCII strings
+            self.pixel_order = ''.join(chr(int(i)) for i in f['pixel_order'][:, 0])
+            print(f"Pixel Order: {self.pixel_order}")
+
+            # Load historical data
+            self.history = {
+                'los': ''.join(chr(int(i)) for i in f['sightline_history'][:, 0]),
+                'grid': ''.join(chr(int(i)) for i in f['grid_history'][:, 0]),
+                'matrix': ''.join(chr(int(i)) for i in f['matrix_history'][:, 0])
+            }
+            print("Loaded historical data.")
+
+            # Initialize PoloidalVolumeGrid with transposed arrays
+            self.grid = PoloidalVolumeGrid(grid_verts_transposed, grid_cells_transposed, grid_wall_transposed, src=self.history['grid'])
+            print("Initialized PoloidalVolumeGrid.")
+
+            # Load sparse matrix data
+            data = f['geom_mat/data'][:]
+            ir = f['geom_mat/ir'][:]
+            jc = f['geom_mat/jc'][:]
+            print("Loaded sparse matrix data.")
+
+            # Check and adjust the shape of the sparse matrix
+            expected_rows = np.prod(self.pixel_mask.shape)
+            self.data = scipy.sparse.csr_matrix((data, ir, jc))
+            self.data = self.data.T
+            print(f"Initial sparse matrix shape: {self.data.shape}")
+
+            if self.data.shape[0] < expected_rows:
+                rows_to_add = expected_rows - self.data.shape[0]
+                zeros_matrix = scipy.sparse.csr_matrix((rows_to_add, self.data.shape[1]))
+                self.data = scipy.sparse.vstack([self.data, zeros_matrix])
+                print(f"Adjusted sparse matrix shape: {self.data.shape}")
+
+            # Set image geometry
+            self.image_geometry.set_image_shape(*self.binning * np.array(self.pixel_mask.shape[::-1]), coords=self.image_coords)
+            print("Set image geometry.")
+
+            # Close the HDF5 file
+            f.close()
+
+        else:    
+        # Processing for older .mat formats
+            self.binning = float(f['binning'][0,0])
+            print(f"Binning: {self.binning}")
+
+            self.pixel_order = str(f['pixel_order'][0])
+            print(f"Pixel Order: {self.pixel_order}")
+
+            self.pixel_mask = f['pixel_mask']
+            print(f"Pixel Mask shape: {self.pixel_mask.shape}")
+
+            self.history = {
+                'los': str(f['sightline_history'][0]),
+                'grid': str(f['grid_history'][0]),
+                'matrix': str(f['matrix_history'][0])
+            }
+            print("Loaded historical data.")
+
+            self.image_coords = str(f['im_coords'][0])
+            print(f"Image Coordinates: {self.image_coords}")
+
+            self.grid = PoloidalVolumeGrid(f['grid_verts'], f['grid_cells'], f['grid_wall'], src=self.history['grid'])
+            print("Initialized PoloidalVolumeGrid.")
+
+            self.data = f['geom_mat'].tocsr()
+            print(f"Sparse matrix shape: {self.data.shape}")
+
+            self.image_geometry = CoordTransformer()  # Ensure CoordTransformer is defined/imported
+            self.image_geometry.set_transform_actions(f['im_transforms'])
+            print("Set transform actions for image geometry.")
+
+            self.image_geometry.set_pixel_aspect(f['im_px_aspect'], relative_to='Original')
+            print(f"Image Pixel Aspect: {f['im_px_aspect']}")
+            print(f"Image Pixel Aspect data type: {f['im_px_aspect'].dtype}")
+
+
+            self.image_geometry.set_image_shape(*self.binning * np.array(self.pixel_mask.shape[::-1]), coords=self.image_coords)
+            print("Set image geometry.")
 
     def _save_txt(self,filename):
         '''
