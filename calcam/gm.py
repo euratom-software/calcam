@@ -1186,6 +1186,7 @@ class GeometryMatrix:
             # Print the numerical data in the numpy array format
 
             self.pixel_mask = f['pixel_mask'][:].T
+            self.pixel_mask = np.array(self.pixel_mask, dtype=bool)
  
             # Load 2D arrays and transpose them
             grid_verts_transposed = f['grid_verts'][:].T
