@@ -1162,7 +1162,7 @@ class GeometryMatrix:
             # Try to load with scipy for older .mat formats
             f = scipy.io.loadmat(filename)
             is_v73 = False
-        except NotImplementedError:
+        except:
             # If scipy fails, try with h5py for v7.3 .mat files
             try:
                 f = h5py.File(filename, 'r')
