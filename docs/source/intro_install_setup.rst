@@ -154,7 +154,7 @@ Installation may fail, or you may encounter errors when first trying to import o
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | NumPy               | Tested up to v1.26                                                                                                                                                 |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| MatPlotLib          | Tested u[ to v3.7.2                                                                                                                                                |
+| MatPlotLib          | Tested up to v3.7.2                                                                                                                                                |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | OpenCV (a.k.a. cv2) | Tested up to to v4.8                                                                                                                                               |
 |                     |                                                                                                                                                                    |
@@ -171,6 +171,8 @@ Installation may fail, or you may encounter errors when first trying to import o
 |                     | PyQt5 versions 5.11 and older are known to cause unreadable text in the GUI on OSX when using dark theme.                                                          |
 |                     |                                                                                                                                                                    |
 |                     | Some versions can result in click positions being registsred wrong on OSX using High DPI mode; not clear what version ranges this affects (see GitHub issue #79)   |
++---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| h5py                | Tested with 3.10.0. Used for MATLAB 7.3 file support in calcam.gm.GeometryMatrix.                                                                                  |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 Also check the  `GitHub issues page <https://github.com/euratom-software/calcam/issues>`_ for any more known compatibility issues not yet updated here.

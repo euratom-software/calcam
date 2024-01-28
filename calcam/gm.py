@@ -1162,14 +1162,14 @@ class GeometryMatrix:
             # Try to load with scipy for older .mat formats
             f = scipy.io.loadmat(filename)
             is_v73 = False
-        except:
+        except Exception:
             # If scipy fails, try with h5py for v7.3 .mat files
             try:
                 f = h5py.File(filename, 'r')
                 is_v73 = True
             except Exception as e:
                 # Handle failure to open file with both methods
-                raise Exception(f"Failed to load the file '{filename}' with both scipy and h5py. Error: {e}")
+                raise Exception(f"Failed to load the file '{filename}' with either scipy or h5py. Error: {e}")
 
         if is_v73:
             # Load scalar values
