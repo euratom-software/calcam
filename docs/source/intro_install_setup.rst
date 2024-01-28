@@ -174,6 +174,8 @@ Installation may fail, or you may encounter errors when first trying to import o
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | h5py                | Tested with 3.10.0. Used for MATLAB 7.3 file support in calcam.gm.GeometryMatrix.                                                                                  |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| triangle            | Tested with 20230923. Used for generating triangular meshes in calcam.gm module.                                                                                   |
++---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 Also check the  `GitHub issues page <https://github.com/euratom-software/calcam/issues>`_ for any more known compatibility issues not yet updated here.
 

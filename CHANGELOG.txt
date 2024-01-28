@@ -7,6 +7,8 @@ Changes on master branch (2.13.dev0) since last release
 New & Enhancements:
 * Support MATLAB 7.3 HDF5 files when loading geometry matrices from MATLAB format (#118, contributiobn from Artur Perek).
 
+Compatibility:
+* Changed from MeshPy for triangular grid generation in calcam.gm to using "triangle" module directly (#115)
 
 Minor Release 2.12 (November 2023)
 ----------------------------------

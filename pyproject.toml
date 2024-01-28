@@ -33,7 +33,8 @@ dependencies = [
     "vtk>=7,!=9.1.*",
     "PyQt5",
     "opencv-python-headless",
-    "h5py"
+    "h5py",
+    "triangle"
 ]
 
 dynamic = ["version"]

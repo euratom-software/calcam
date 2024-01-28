@@ -22,6 +22,8 @@ requirements:
     - pyqt
     - scipy
     - vtk !=9.1.*,>=7
+    - h5py
+    - triangle
   run_constrained:
     - libstdcxx-ng >=13
     

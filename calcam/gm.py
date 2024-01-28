@@ -23,7 +23,7 @@
 '''
 Geometry matrix module for Calcam.
 
-Written by Scott Silburn & James Harrison.
+Written by Scott Silburn, James Harrison & Artur Perek.
 '''
 import multiprocessing
 import copy
@@ -35,19 +35,15 @@ import random
 import numpy as np
 import scipy.sparse
 import scipy.io
+import h5py
+
+import triangle
 
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from matplotlib.patches import Polygon as PolyPatch
 from matplotlib.collections import PatchCollection
 import matplotlib.path as mplpath
-import h5py
-
-try:
-    import meshpy.triangle
-    meshpy_err = None
-except Exception as e:
-    meshpy_err = '{:}'.format(e)
 
 from . import config
 from . import misc
@@ -1476,12 +1472,10 @@ def squaregrid(wall_contour,cell_size,rmin=None,rmax=None,zmin=None,zmax=None):
 
 
 
-def trigrid(wall_contour,max_cell_scale,rmin=None,rmax=None,zmin=None,zmax=None,**kwargs):
+def trigrid(wall_contour,max_cell_scale,rmin=None,rmax=None,zmin=None,zmax=None,triopts=[]):
     '''
     Create a reconstruction grid with triangular grid cells conforming to the 
-    wall contour. Requires the MeshPy package (https://pypi.org/project/MeshPy/) 
-    to be installed, since it uses J. Shewchuk's "triangle" via the MeshPy to 
-    generate the grid.
+    wall contour, using Jonathan Richard Shewchuk’s "triangle" triangulation library.
     
     Parameters:
         
@@ -1495,19 +1489,15 @@ def trigrid(wall_contour,max_cell_scale,rmin=None,rmax=None,zmin=None,zmax=None,
         floats rmin, rmax, zmin, zmax       : Optional limits of the grid extent in the R, Z plane. \
                                               Any combination of these may or may not be given; if none \
                                               are given the entire wall contour interior is gridded.
-                                           
-    Any additional keyword arguments will be passed directly to the triangle mesher, meshpy.triangle.build().
-    This can be used to further control the meshing; see the MeshPy documentation for available arguments.
-    
-                                           
+
+        trioppts (list of str)              : List of string options to pass to triangle.triangulate(), see triangle \
+                                              `trignale documentation page <https://rufat.be/triangle/API.html>`_ for possible options.
+
     Returns:
         
         calcam.gm.PoloidalVolumeGrid    : Generated grid.
         
     '''
-    # Before trying to generate a triangular grid, check we have the meshpy package available.
-    if meshpy_err is not None:
-        raise Exception('This function requires the MeshPy module (https://pypi.org/project/MeshPy), which could not be imported: {:s}'.format(meshpy_err))
 
     # If given a machine name for the wall contour, get the R,Z contour
     if type(wall_contour) is str:
@@ -1582,27 +1572,15 @@ def trigrid(wall_contour,max_cell_scale,rmin=None,rmax=None,zmin=None,zmax=None,
 
         geometry = {'vertices': verts, 'segments' : segments}
 
+    opts = 'pa{:.6f}'.format(max_cell_area)
 
-    mesher_kwargs = dict(kwargs)
-    mesher_kwargs['max_volume'] = max_cell_area
+    for user_opt in triopts:
+        if not (user_opt.startswith('p') or user_opt.startswith('a')):
+            opts = opts + user_opt
 
-    # Run triangle to make the grid!
-    # Do this in a separate process so that if the triangle library has a fail,
-    # it doesn't drag this whole python process down with it.
-    q = multiprocessing.Queue()
-    triprocess = multiprocessing.Process(target=_run_triangle_python,args=(geometry,q),kwargs=mesher_kwargs)
-    triprocess.start()
-    while triprocess.is_alive() and q.empty():
-        time.sleep(0.05)
-    
-    if not q.empty():
-        mesh = q.get()
-        if isinstance(mesh,Exception):
-            raise mesh
-    else:
-        raise Exception('Call to meshpy.triangle to generate the grid failed silently. The triangle library can be a bit flaky; maybe try again and/or change settings.')
+    mesh = triangle.triangulate(geometry,opts)
 
-    return PoloidalVolumeGrid(mesh['vertices'],mesh['cells'],wall_contour,src='Wall-conforming triangular mesh with ~{:.1f}cm cells generated with trigrid()'.format(max_cell_scale*1e2))
+    return PoloidalVolumeGrid(mesh['vertices'],mesh['triangles'],wall_contour,src='Wall-conforming triangular mesh with ~{:.1f}cm cells generated with trigrid()'.format(max_cell_scale*1e2))
 
 
 def solps_grid(solps_file,wall_contour,rmin=None,rmax=None,zmin=None,zmax=None,cell_attrs=False):
