@@ -9,6 +9,10 @@ New & Enhancements:
 
 Compatibility:
 * Changed from MeshPy for triangular grid generation in calcam.gm to using "triangle" module directly (#115)
+* Fix compatibility of calcam.movement.detect_movement(),phase_calibration_movement() and filter_points()  with openCV 4.6 and newer (#117)
+
+Fixes:
+* Fix a bug where loading a fitted calibration with tangential distortion disabled in the calibration GUI would not disable the tangential distortion checkbox on the fitting tab.
 
 Minor Release 2.12 (November 2023)
 ----------------------------------
