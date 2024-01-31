@@ -12,7 +12,9 @@ Compatibility:
 * Fix compatibility of calcam.movement.detect_movement(),phase_calibration_movement() and filter_points()  with openCV 4.6 and newer (#117)
 
 Fixes:
-* Fix a bug where loading a fitted calibration with tangential distortion disabled in the calibration GUI would not disable the tangential distortion checkbox on the fitting tab.
+* Fixed a bug where loading a fitted calibration with tangential distortion disabled in the calibration GUI would not disable the tangential distortion checkbox on the fitting tab.
+* Fixed exceptions raised by set_detector_window() and raycast_sightlines() for multi-subview calibrations with some sub-views not fit. (#119)
+
 
 Minor Release 2.12 (November 2023)
 ----------------------------------
