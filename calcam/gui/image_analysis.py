@@ -279,7 +279,7 @@ class ImageAnalyser(CalcamGUIWindow):
         visible_linewidth = 3
         visible_colour = (0,0.8,0)
         invisible_linewidth = 1
-        invisible_colour = (0.8,0,0)
+        invisible_colour = (1.,0,1.)
 
         if self.calibration is not None and self.image is not None and coords_3d is not None:
 

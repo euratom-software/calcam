@@ -3,7 +3,7 @@ Getting Up & Running
 ====================
 .. highlight:: none
 
-Calcam runs under Python 3.5 or newer on Windows, Linux or OSX. As of August 2023, Python 3.11 or older is recommended, because suitable versions of VTK (one of Calcam's major dependencies) are not available from the Python Package Index (PyPi) for newer versions (for newer Python versions you will have to build and install VTK and its Python bindings yourself, which can be quite involved).
+Calcam runs under Python 3.5 or newer on Windows, Linux or OSX. As of February 2024, Python 3.12 or older is recommended, because suitable versions of VTK (one of Calcam's major dependencies) are not available from the Python Package Index (PyPi) for newer versions (for newer Python versions you will have to build and install VTK and its Python bindings yourself, which can be quite involved).
 
 You can download Python installers for Windows or OSX from `Python.org <https://www.python.org/downloads/>`_ ; get it from your favourite software repository on Linux; get it from the Microsoft Store on Windows; or use a python environment manager such as `Anaconda <https://www.anaconda.com>`_. 
 
@@ -162,7 +162,7 @@ Installation may fail, or you may encounter errors when first trying to import o
 |                     |                                                                                                                                                                    |
 |                     | If running under OSX older than 10.12, versions of OpenCV newer than 3.2 may cause crashes on import (downgrade to OpenCV < 3.3 to fix this).                      |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| VTK                 | Requires version =>7, tested up to 9.2.6. Note Versions 9.1.x cause crashes when setting large CAD models to wireframe rendering.                                  |
+| VTK                 | Requires version =>7, somewhat tested up to 9.3.0. Note Versions 9.1.x cause crashes when setting large CAD models to wireframe rendering.                         |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | PyQt                | Works with PyQt4 or PyQt5; pip will try to install PyQt5.                                                                                                          |
 |                     |                                                                                                                                                                    |
@@ -170,7 +170,7 @@ Installation may fail, or you may encounter errors when first trying to import o
 |                     |                                                                                                                                                                    |
 |                     | PyQt5 versions 5.11 and older are known to cause unreadable text in the GUI on OSX when using dark theme.                                                          |
 |                     |                                                                                                                                                                    |
-|                     | Some versions can result in click positions being registsred wrong on OSX using High DPI mode; not clear what version ranges this affects (see GitHub issue #79)   |
+|                     | Some versions can result in click positions being registered wrong on OSX using High DPI mode; not clear what version ranges this affects (see GitHub issue #79)   |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | h5py                | Tested with 3.10.0. Used for MATLAB 7.3 file support in calcam.gm.GeometryMatrix.                                                                                  |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+

@@ -36,4 +36,4 @@ Below is a simple example of a coordinate formatter, which will display the posi
 
 Adding to a CAD model
 ----------------------
-Once written, a custom coordinate formatter can be added to Calcam CAD model definitions using the :ref:`CAD model definition editor<gui_cad_editor>` .
+Once written, a custom coordinate formatter can be added to Calcam CAD model definitions using the :doc:`gui_cad_editor`.

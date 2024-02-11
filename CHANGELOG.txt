@@ -1,8 +1,8 @@
 Calcam Changelog
 ================
 
-Changes on master branch (2.13.0rc1) since last release
--------------------------------------------------------
+Minor Release 2.13.0 (February 2024)
+------------------------------------
 
 New & Enhancements:
 * Support MATLAB 7.3 HDF5 files when loading geometry matrices from MATLAB format (#118, contributiobn from Artur Perek).
@@ -15,6 +15,10 @@ Compatibility:
 Fixes:
 * Fixed a bug where loading a fitted calibration with tangential distortion disabled in the calibration GUI would not disable the tangential distortion checkbox on the fitting tab.
 * Fixed exceptions raised by set_detector_window() and raycast_sightlines() for multi-subview calibrations with some sub-views not fit. (#119)
+* Attempt to fix broken Anaconda build & publish action (#114)
+
+Note that this release introduces two new dependencies: h5py and triangle.
+
 
 
 Minor Release 2.12 (November 2023)

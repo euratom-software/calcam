@@ -33,7 +33,7 @@
             <img src="_static/logo.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                Version 2.12
+                Version 2.13
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -54,6 +54,7 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="gui_intro.html">Introduction &amp; Launcher</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_settings.html">Calcam Settings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui_cad_editor.html">CAD Model Definition Editor</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_calib.html">Calibration by point fitting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_alignment_calib.html">Calibration by manual alignment</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gui_virtual_calib.html">“Virtual” Calibrations</a></li>
@@ -195,8 +196,8 @@
 <li><p>The distance from the camera to the cursor</p></li>
 </ul>
 <p>If the camera has multuple sub-views and the clicked position is visible in more than one sub-view, the pixel coordinate, line of sight vector and distance are displayed for each sub-view.</p>
-<p>The cursor will be green if the chosen position is visible to the camera. If the cursor is placed on the CAD model at a position not visible to the camera, the cursor turns red on the CAD model view. If the cursor position is within the image field of view but hidden behind part of the CAD model from the camera’s point-of-view, a red cursor will also appear on the image at the position where that point would be if it was not hidden from view.</p>
-<p>By default, the CAD model view will also show a solid green line in 3D representing the line of sight from the camera to the cursor position. A red line shows the continuation of the sight-line after it has passed the cursor. If the cursor is hidden from the camera’s view, a green sight-line is shown up to the point where the sight-line hits the object hiding the cursor, then the remainder of the sight-line is shown in red. Display of the line-of-sight vector can be turned on or off using a checkbox on the <span class="guilabel">Position Analysis</span> tab.</p>
+<p>The cursor will be green if the chosen position is visible to the camera. If the cursor is placed on the CAD model at a position not visible to the camera, the cursor turns magenta on the CAD model view. If the cursor position is within the image field of view but hidden behind part of the CAD model from the camera’s point-of-view, a magenta cursor will also appear on the image at the position where that point would be if it was not hidden from view.</p>
+<p>By default, the CAD model view will also show a solid green line in 3D representing the line of sight from the camera to the cursor position. A magenta line shows the continuation of the sight-line after it has passed the cursor. If the cursor is hidden from the camera’s view, a green sight-line is shown up to the point where the sight-line hits the object hiding the cursor, then the remainder of the sight-line is shown in red. Display of the line-of-sight vector can be turned on or off using a checkbox on the <span class="guilabel">Position Analysis</span> tab.</p>
 </section>
 <section id="projecting-images-to-the-cad-model">
 <span id="image-projection"></span><h3>Projecting images to the CAD model<a class="headerlink" href="#projecting-images-to-the-cad-model" title="Permalink to this heading"></a></h3>
