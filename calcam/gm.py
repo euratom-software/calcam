@@ -37,7 +37,13 @@ import scipy.sparse
 import scipy.io
 import h5py
 
-import triangle
+# This is a workaround for Anaconda, where
+# the triangle package distribution appears to be broken.
+# Thanks Anaconda!
+try:
+    import triangle
+except:
+    trignale = None
 
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
@@ -1498,6 +1504,9 @@ def trigrid(wall_contour,max_cell_scale,rmin=None,rmax=None,zmin=None,zmax=None,
         calcam.gm.PoloidalVolumeGrid    : Generated grid.
         
     '''
+
+    if triangle is None:
+        raise ImportError('"triangle" Python package not available; cannot create triangular grid. Please try installing triangle using pip then try again.')
 
     # If given a machine name for the wall contour, get the R,Z contour
     if type(wall_contour) is str:
