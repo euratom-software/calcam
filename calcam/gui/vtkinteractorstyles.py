@@ -487,15 +487,15 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
 
             if cid == self.focus_cursor:
                 colour = (0,0.8,0)
-                linewidth = 3
-                size = 0.025
+                linewidth = 4
+                size = 0.03
             else:
                 if cursor['colour'] is not None:
                     colour = cursor['colour']
                 else:
-                    colour = (0.8,0,0)
+                    colour = (1.,0,1.)
                 linewidth = 2
-                size = 0.0125
+                size = 0.02
 
             # Cursor size scales with camera FOV to maintain size on screen.
             size = size * (self.camera.GetViewAngle()/75)
@@ -1167,7 +1167,7 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
                         linewidth = 3
                         size = self.cursor_size * camscale
                     else:
-                        colour = (0.8,0,0)
+                        colour = (1.,0,1.)
                         linewidth = 2
                         size = 0.5*self.cursor_size* camscale
 

@@ -738,7 +738,7 @@ class FittingCalib(CalcamGUIWindow):
             widgetlist[-2].toggled.connect(lambda state,field=field: self.change_fit_params(self.fitters[field].fix_k2,state))
             widgetlist[-1].setChecked(self.fitters[field].fixk3)
             widgetlist[-1].toggled.connect(lambda state,field=field: self.change_fit_params(self.fitters[field].fix_k3,state))
-            widgetlist.append(qt.QCheckBox('Disable tangential distortion'))
+            widgetlist.append(qt.QCheckBox('Disable Tangential Distortion'))
             perspective_settings_layout.addWidget(widgetlist[-1])
             widgetlist[-1].setChecked(self.fitters[field].disabletangentialdist)
             widgetlist[-1].toggled.connect(lambda state,field=field: self.change_fit_params(self.fitters[field].fix_tangential,state))
@@ -1557,7 +1557,6 @@ class FittingCalib(CalcamGUIWindow):
                     self.fit_settings_widgets[field][1].setChecked(True)
                     widget_index_start = 7
                     widget_index_end = 10
-
 
                 for widget in self.fit_settings_widgets[field][widget_index_start:widget_index_end+1]:
                     widget.setChecked(False)

@@ -108,9 +108,9 @@ With an image, calibration and CAD model loaded, clicking on either the CAD mode
 
 If the camera has multuple sub-views and the clicked position is visible in more than one sub-view, the pixel coordinate, line of sight vector and distance are displayed for each sub-view.
 
-The cursor will be green if the chosen position is visible to the camera. If the cursor is placed on the CAD model at a position not visible to the camera, the cursor turns red on the CAD model view. If the cursor position is within the image field of view but hidden behind part of the CAD model from the camera's point-of-view, a red cursor will also appear on the image at the position where that point would be if it was not hidden from view.
+The cursor will be green if the chosen position is visible to the camera. If the cursor is placed on the CAD model at a position not visible to the camera, the cursor turns magenta on the CAD model view. If the cursor position is within the image field of view but hidden behind part of the CAD model from the camera's point-of-view, a magenta cursor will also appear on the image at the position where that point would be if it was not hidden from view.
 
-By default, the CAD model view will also show a solid green line in 3D representing the line of sight from the camera to the cursor position. A red line shows the continuation of the sight-line after it has passed the cursor. If the cursor is hidden from the camera's view, a green sight-line is shown up to the point where the sight-line hits the object hiding the cursor, then the remainder of the sight-line is shown in red. Display of the line-of-sight vector can be turned on or off using a checkbox on the :guilabel:`Position Analysis` tab.
+By default, the CAD model view will also show a solid green line in 3D representing the line of sight from the camera to the cursor position. A magenta line shows the continuation of the sight-line after it has passed the cursor. If the cursor is hidden from the camera's view, a green sight-line is shown up to the point where the sight-line hits the object hiding the cursor, then the remainder of the sight-line is shown in red. Display of the line-of-sight vector can be turned on or off using a checkbox on the :guilabel:`Position Analysis` tab.
 
 .. _image_projection:
 

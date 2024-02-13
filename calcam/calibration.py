@@ -515,8 +515,9 @@ class Calibration():
                 return
 
             # Put subview_mask back to normal
-            self.set_subview_mask(self.native_subview_mask,subview_names=self.subview_names,coords='Original')
+            self.set_subview_mask(self.native_subview_mask,subview_names=self.native_subview_names,coords='Original',keep_models=True)
             del self.native_subview_mask
+            del self.native_subview_names
 
             # Put the image back to normal
             if self.image is not None:
@@ -525,9 +526,10 @@ class Calibration():
 
             # Put the optical centre back to normal
             for i,model in enumerate(self.view_models):
-                modeldat = model.get_dict()
-                modeldat['cx'],modeldat['cy'] = self.native_cc[i]
-                model.load_from_dict(modeldat)
+                if model is not None:
+                    modeldat = model.get_dict()
+                    modeldat['cx'],modeldat['cy'] = self.native_cc[i]
+                    model.load_from_dict(modeldat)
 
             # Put point pairs back to normal
             if self.pointpairs is not None:
@@ -560,9 +562,11 @@ class Calibration():
 
             # Save the original sub-view mask so we can put it back later.
             self.native_subview_mask = self.get_subview_mask(coords='Original')
+            self.native_subview_names = copy.copy(self.subview_names)
 
             if self.n_subviews == 1 and self.get_subview_mask().min() == 0:
                 new_subview_mask = np.zeros((window[3],window[2]),dtype=np.int8)
+                new_subview_names = self.subview_names
             else:
                 orig_shape = self.geometry.get_original_shape()
                 orig_subview_mask = self.get_subview_mask(coords='Original')
@@ -581,18 +585,23 @@ class Calibration():
                 else:
                     new_subview_mask = orig_subview_mask[window[1] - self.geometry.offset[1]:window[1] - self.geometry.offset[1] + window[3],window[0] - self.geometry.offset[0]:window[0] - self.geometry.offset[0] + window[2]]
 
+                new_subview_names = self.subview_names[:new_subview_mask.max()+1]
+
             orig_cc = []
             self.native_cc = []
 
-            # Shift the optical centre of the calibration according to the crop
-            for model in self.view_models:
-                modeldat = model.get_dict()
-                self.native_cc.append((modeldat['cx'],modeldat['cy']))
-                orig_cx,orig_cy = self.geometry.display_to_original_coords(modeldat['cx'],modeldat['cy'])
-                cx = orig_cx + (self.geometry.offset[0] - window[0])
-                cy = orig_cy + (self.geometry.offset[1] - window[1])
-                orig_cc.append((cx,cy))
-
+            # Shifted optical centre of the calibration in original coordinates
+            for i,model in enumerate(self.view_models):
+                if model is not None:
+                    modeldat = model.get_dict()
+                    self.native_cc.append((modeldat['cx'],modeldat['cy']))
+                    orig_cx,orig_cy = self.geometry.display_to_original_coords(modeldat['cx'],modeldat['cy'])
+                    cx = orig_cx + (self.geometry.offset[0] - window[0])
+                    cy = orig_cy + (self.geometry.offset[1] - window[1])
+                    orig_cc.append((cx,cy))
+                else:
+                    self.native_cc.append(None)
+                    orig_cc.append(None)
 
             # Change the image itself. This does not use set_image() because there's so much other faff involved in set_image()
             if self.image is not None:
@@ -633,16 +642,17 @@ class Calibration():
 
             self.crop = copy.deepcopy(window)
             try:
-                self.set_subview_mask(new_subview_mask,coords='Original')
+                self.set_subview_mask(new_subview_mask,new_subview_names,coords='Original',keep_models=True)
             except NoSubviews:
                 self.set_detector_window(None)
                 raise NoSubviews('Requested detector area contains no image.')
 
-
+            # Apply the shifted optical centres
             for i,model in enumerate(self.view_models):
-                modeldat = model.get_dict()
-                modeldat['cx'],modeldat['cy'] = self.geometry.original_to_display_coords(orig_cc[i][0],orig_cc[i][1])
-                model.load_from_dict(modeldat)
+                if model is not None:
+                    modeldat = model.get_dict()
+                    modeldat['cx'],modeldat['cy'] = self.geometry.original_to_display_coords(orig_cc[i][0],orig_cc[i][1])
+                    model.load_from_dict(modeldat)
 
         else:
             raise ValueError('Cannot understand window argument: expected None or sequence of left,top,width,height')
@@ -883,7 +893,7 @@ class Calibration():
 
 
 
-    def set_subview_mask(self,mask,subview_names=None,coords='Original'):
+    def set_subview_mask(self,mask,subview_names=None,coords='Original',keep_models=False):
         '''
         Set the mask specifying which sub-view each image pixel belongs to.
 
@@ -893,6 +903,8 @@ class Calibration():
             subview_names (list) : List of strings specifying the names of the different sub-views
             coords (str)         : Either ``Original`` or ``Display``, specifies what orientation the \
                                    supplied mask is in.
+            keep_models (bool)   : If set to true, even if the new subview mask has a different number \
+                                   of sub-views, the calibration models will be left alone (by default they are reset)
         '''        
         n_subviews = mask.max() + 1
 
@@ -918,7 +930,7 @@ class Calibration():
             
         self.subview_names = subview_names
 
-        if self.n_subviews != n_subviews:
+        if self.n_subviews != n_subviews and not keep_models:
             self.view_models = [None] * n_subviews
             self.history['fit'] = [None] * n_subviews
 
@@ -1185,8 +1197,9 @@ class Calibration():
                 subview_mask = np.squeeze(np.swapaxes(np.expand_dims(subview_mask,-1),0,subview_mask.ndim),axis=0) # Changed to support old numpy versions. Simpler modern version: np.moveaxis(subview_mask,0,subview_mask.ndim-1)
 
                 for nview in range(self.n_subviews):
-                    pupilpos = np.tile( self.view_models[nview].get_pupilpos(), x.shape + (1,) )
-                    output[subview_mask == nview] = pupilpos[subview_mask == nview]
+                    if self.view_models[nview] is not None:
+                        pupilpos = np.tile( self.view_models[nview].get_pupilpos(), x.shape + (1,) )
+                        output[subview_mask == nview] = pupilpos[subview_mask == nview]
 
             else:
 

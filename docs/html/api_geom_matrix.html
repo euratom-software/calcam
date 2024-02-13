@@ -34,7 +34,7 @@
             <img src="_static/logo.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                Version 2.12
+                Version 2.13
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -494,11 +494,9 @@ plot the grid itself.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="calcam.gm.trigrid">
-<span class="sig-prename descclassname"><span class="pre">calcam.gm.</span></span><span class="sig-name descname"><span class="pre">trigrid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wall_contour</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_cell_scale</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.trigrid" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">calcam.gm.</span></span><span class="sig-name descname"><span class="pre">trigrid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wall_contour</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_cell_scale</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">triopts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.trigrid" title="Permalink to this definition"></a></dt>
 <dd><p>Create a reconstruction grid with triangular grid cells conforming to the
-wall contour. Requires the MeshPy package (<a class="reference external" href="https://pypi.org/project/MeshPy/">https://pypi.org/project/MeshPy/</a>)
-to be installed, since it uses J. Shewchuk’s “triangle” via the MeshPy to
-generate the grid.</p>
+wall contour, using Jonathan Richard Shewchuk’s “triangle” triangulation library.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -508,17 +506,14 @@ generate the grid.</p>
 <li><p><strong>rmax</strong> – Optional limits of the grid extent in the R, Z plane.                                               Any combination of these may or may not be given; if none                                               are given the entire wall contour interior is gridded.</p></li>
 <li><p><strong>zmin</strong> – Optional limits of the grid extent in the R, Z plane.                                               Any combination of these may or may not be given; if none                                               are given the entire wall contour interior is gridded.</p></li>
 <li><p><strong>zmax</strong> – Optional limits of the grid extent in the R, Z plane.                                               Any combination of these may or may not be given; if none                                               are given the entire wall contour interior is gridded.</p></li>
+<li><p><strong>trioppts</strong> (<em>list</em><em> of </em><em>str</em>) – List of string options to pass to triangle.triangulate(), see triangle                                               <a class="reference external" href="https://rufat.be/triangle/API.html">trignale documentation page</a> for possible options.</p></li>
 </ul>
 </dd>
-</dl>
-<p>Any additional keyword arguments will be passed directly to the triangle mesher, meshpy.triangle.build().
-This can be used to further control the meshing; see the MeshPy documentation for available arguments.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Generated grid.</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Generated grid.</p>
 </dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference internal" href="#calcam.gm.PoloidalVolumeGrid" title="calcam.gm.PoloidalVolumeGrid">calcam.gm.PoloidalVolumeGrid</a></p>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#calcam.gm.PoloidalVolumeGrid" title="calcam.gm.PoloidalVolumeGrid">calcam.gm.PoloidalVolumeGrid</a></p>
 </dd>
 </dl>
 </dd></dl>

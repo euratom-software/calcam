@@ -23,7 +23,7 @@
 '''
 Geometry matrix module for Calcam.
 
-Written by Scott Silburn & James Harrison.
+Written by Scott Silburn, James Harrison & Artur Perek.
 '''
 import multiprocessing
 import copy
@@ -35,18 +35,21 @@ import random
 import numpy as np
 import scipy.sparse
 import scipy.io
+import h5py
+
+# This is a workaround for Anaconda, where
+# the triangle package distribution appears to be broken.
+# Thanks Anaconda!
+try:
+    import triangle
+except:
+    trignale = None
 
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from matplotlib.patches import Polygon as PolyPatch
 from matplotlib.collections import PatchCollection
 import matplotlib.path as mplpath
-
-try:
-    import meshpy.triangle
-    meshpy_err = None
-except Exception as e:
-    meshpy_err = '{:}'.format(e)
 
 from . import config
 from . import misc
@@ -1146,7 +1149,7 @@ class GeometryMatrix:
                            'grid_history':self.history['grid'],
                            'pixel_mask':self.pixel_mask,
                            'grid_type':self.grid.__class__.__name__,
-                           'im_transforms': np.array(self.image_geometry.transform_actions,dtype=np.object),
+                           'im_transforms': np.array(self.image_geometry.transform_actions,dtype=object),
                            'im_px_aspect':self.image_geometry.pixel_aspectratio,
                            'im_coords':self.image_coords
                          }
@@ -1157,24 +1160,92 @@ class GeometryMatrix:
         '''
         Load geometry matrix from a MATLAB file.
         '''
-        f = scipy.io.loadmat(filename)
-        
-        
-        
-        self.binning = float(f['binning'][0,0])
-        self.pixel_order = str(f['pixel_order'][0])
-        self.pixel_mask = f['pixel_mask']
-        self.history = {'los':str(f['sightline_history'][0]),'grid':str(f['grid_history'][0]),'matrix':str(f['matrix_history'][0])}
-        self.image_coords = str(f['im_coords'][0])
+        try:
+            # Try to load with scipy for older .mat formats
+            f = scipy.io.loadmat(filename)
+            is_v73 = False
+        except Exception:
+            # If scipy fails, try with h5py for v7.3 .mat files
+            try:
+                f = h5py.File(filename, 'r')
+                is_v73 = True
+            except Exception as e:
+                # Handle failure to open file with both methods
+                raise Exception(f"Failed to load the file '{filename}' with either scipy or h5py. Error: {e}")
 
-        self.grid = PoloidalVolumeGrid(f['grid_verts'],f['grid_cells'],f['grid_wall'],src=self.history['grid'])
-        self.data = f['geom_mat'].tocsr()
-        
-        self.image_geometry = CoordTransformer()
-        self.image_geometry.set_transform_actions(f['im_transforms'])
-        self.image_geometry.set_pixel_aspect(f['im_px_aspect'],relative_to='Original')
-        self.image_geometry.set_image_shape(*self.binning*np.array(self.pixel_mask.shape[::-1]),coords=self.image_coords)
+        if is_v73:
+            # Load scalar values
+            self.binning = float(f['binning'][0][0])
+            self.image_coords = f['im_coords'][()].tobytes().decode('utf-16')
 
+            self.image_geometry = CoordTransformer()  
+
+            image_pixel_aspect_data = np.array(f['im_px_aspect'])
+
+            # Use the extracted data to set the pixel aspect in the image geometry
+            self.image_geometry.set_pixel_aspect(image_pixel_aspect_data[0, 0], relative_to='Original')
+
+            # Print the numerical data in the numpy array format
+
+            self.pixel_mask = f['pixel_mask'][:].T
+            self.pixel_mask = np.array(self.pixel_mask, dtype=bool)
+ 
+            # Load 2D arrays and transpose them
+            grid_verts_transposed = f['grid_verts'][:].T
+            grid_cells_transposed = f['grid_cells'][:].T
+            grid_wall_transposed = f['grid_wall'][:].T
+ 
+            # Convert numerical arrays to ASCII strings
+            self.pixel_order = ''.join(chr(int(i)) for i in f['pixel_order'][:, 0])
+ 
+            # Load historical data
+            self.history = {
+                'los': ''.join(chr(int(i)) for i in f['sightline_history'][:, 0]),
+                'grid': ''.join(chr(int(i)) for i in f['grid_history'][:, 0]),
+                'matrix': ''.join(chr(int(i)) for i in f['matrix_history'][:, 0])
+            }
+ 
+            # Initialize PoloidalVolumeGrid with transposed arrays
+            self.grid = PoloidalVolumeGrid(grid_verts_transposed, grid_cells_transposed, grid_wall_transposed, src=self.history['grid'])
+
+            # Load sparse matrix data
+            data = f['geom_mat/data'][:]
+            ir = f['geom_mat/ir'][:]
+            jc = f['geom_mat/jc'][:]
+
+            # Check and adjust the shape of the sparse matrix
+            expected_rows = np.prod(self.pixel_mask.shape)
+            self.data = scipy.sparse.csr_matrix((data, ir, jc))
+            self.data = self.data.T
+
+            if self.data.shape[0] < expected_rows:
+                rows_to_add = expected_rows - self.data.shape[0]
+                zeros_matrix = scipy.sparse.csr_matrix((rows_to_add, self.data.shape[1]))
+                self.data = scipy.sparse.vstack([self.data, zeros_matrix])
+
+            # Set image geometry
+            self.image_geometry.set_image_shape(*self.binning * np.array(self.pixel_mask.shape[::-1]), coords=self.image_coords)
+
+            # Close the HDF5 file
+            f.close()
+
+        else:    
+        # Processing for older .mat formats
+            self.binning = float(f['binning'][0,0])
+            self.pixel_order = str(f['pixel_order'][0])
+            self.pixel_mask = f['pixel_mask']
+            self.history = {
+                'los': str(f['sightline_history'][0]),
+                'grid': str(f['grid_history'][0]),
+                'matrix': str(f['matrix_history'][0])
+            }
+            self.image_coords = str(f['im_coords'][0])
+            self.grid = PoloidalVolumeGrid(f['grid_verts'], f['grid_cells'], f['grid_wall'], src=self.history['grid'])
+            self.data = f['geom_mat'].tocsr()
+            self.image_geometry = CoordTransformer()  # Ensure CoordTransformer is defined/imported
+            self.image_geometry.set_transform_actions(f['im_transforms'])
+            self.image_geometry.set_pixel_aspect(f['im_px_aspect'], relative_to='Original')
+            self.image_geometry.set_image_shape(*self.binning * np.array(self.pixel_mask.shape[::-1]), coords=self.image_coords)
 
     def _save_txt(self,filename):
         '''
@@ -1407,12 +1478,10 @@ def squaregrid(wall_contour,cell_size,rmin=None,rmax=None,zmin=None,zmax=None):
 
 
 
-def trigrid(wall_contour,max_cell_scale,rmin=None,rmax=None,zmin=None,zmax=None,**kwargs):
+def trigrid(wall_contour,max_cell_scale,rmin=None,rmax=None,zmin=None,zmax=None,triopts=[]):
     '''
     Create a reconstruction grid with triangular grid cells conforming to the 
-    wall contour. Requires the MeshPy package (https://pypi.org/project/MeshPy/) 
-    to be installed, since it uses J. Shewchuk's "triangle" via the MeshPy to 
-    generate the grid.
+    wall contour, using Jonathan Richard Shewchuk’s "triangle" triangulation library.
     
     Parameters:
         
@@ -1426,19 +1495,18 @@ def trigrid(wall_contour,max_cell_scale,rmin=None,rmax=None,zmin=None,zmax=None,
         floats rmin, rmax, zmin, zmax       : Optional limits of the grid extent in the R, Z plane. \
                                               Any combination of these may or may not be given; if none \
                                               are given the entire wall contour interior is gridded.
-                                           
-    Any additional keyword arguments will be passed directly to the triangle mesher, meshpy.triangle.build().
-    This can be used to further control the meshing; see the MeshPy documentation for available arguments.
-    
-                                           
+
+        trioppts (list of str)              : List of string options to pass to triangle.triangulate(), see triangle \
+                                              `trignale documentation page <https://rufat.be/triangle/API.html>`_ for possible options.
+
     Returns:
         
         calcam.gm.PoloidalVolumeGrid    : Generated grid.
         
     '''
-    # Before trying to generate a triangular grid, check we have the meshpy package available.
-    if meshpy_err is not None:
-        raise Exception('This function requires the MeshPy module (https://pypi.org/project/MeshPy), which could not be imported: {:s}'.format(meshpy_err))
+
+    if triangle is None:
+        raise ImportError('"triangle" Python package not available; cannot create triangular grid. Please try installing triangle using pip then try again.')
 
     # If given a machine name for the wall contour, get the R,Z contour
     if type(wall_contour) is str:
@@ -1513,27 +1581,15 @@ def trigrid(wall_contour,max_cell_scale,rmin=None,rmax=None,zmin=None,zmax=None,
 
         geometry = {'vertices': verts, 'segments' : segments}
 
+    opts = 'pa{:.6f}'.format(max_cell_area)
 
-    mesher_kwargs = dict(kwargs)
-    mesher_kwargs['max_volume'] = max_cell_area
+    for user_opt in triopts:
+        if not (user_opt.startswith('p') or user_opt.startswith('a')):
+            opts = opts + user_opt
 
-    # Run triangle to make the grid!
-    # Do this in a separate process so that if the triangle library has a fail,
-    # it doesn't drag this whole python process down with it.
-    q = multiprocessing.Queue()
-    triprocess = multiprocessing.Process(target=_run_triangle_python,args=(geometry,q),kwargs=mesher_kwargs)
-    triprocess.start()
-    while triprocess.is_alive() and q.empty():
-        time.sleep(0.05)
-    
-    if not q.empty():
-        mesh = q.get()
-        if isinstance(mesh,Exception):
-            raise mesh
-    else:
-        raise Exception('Call to meshpy.triangle to generate the grid failed silently. The triangle library can be a bit flaky; maybe try again and/or change settings.')
+    mesh = triangle.triangulate(geometry,opts)
 
-    return PoloidalVolumeGrid(mesh['vertices'],mesh['cells'],wall_contour,src='Wall-conforming triangular mesh with ~{:.1f}cm cells generated with trigrid()'.format(max_cell_scale*1e2))
+    return PoloidalVolumeGrid(mesh['vertices'],mesh['triangles'],wall_contour,src='Wall-conforming triangular mesh with ~{:.1f}cm cells generated with trigrid()'.format(max_cell_scale*1e2))
 
 
 def solps_grid(solps_file,wall_contour,rmin=None,rmax=None,zmin=None,zmax=None,cell_attrs=False):
