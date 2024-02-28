@@ -57,13 +57,14 @@ class Viewer(CalcamGUIWindow):
         # Set up VTK
         self.qvtkwidget_3d = qt.QVTKRenderWindowInteractor(self.vtk_frame)
         self.vtk_frame.layout().addWidget(self.qvtkwidget_3d,0,0,1,2)
-        self.interactor3d = CalcamInteractorStyle3D(refresh_callback=self.refresh_3d,viewport_callback=self.update_viewport_info,newpick_callback=self.add_cursor,cursor_move_callback=self.update_cursor_position,resize_callback=self.on_resize)
+        self.interactor3d = CalcamInteractorStyle3D(refresh_callback=self.refresh_3d,viewport_callback=self.update_viewport_info,newpick_callback=self.add_cursor,cursor_move_callback=self.update_cursor_position,resize_callback=self.on_resize,save_coords_callback=self.save_cursor_coords)
         self.qvtkwidget_3d.SetInteractorStyle(self.interactor3d)
         self.renderer_3d = vtk.vtkRenderer()
         self.renderer_3d.SetBackground(0, 0, 0)
         self.qvtkwidget_3d.GetRenderWindow().AddRenderer(self.renderer_3d)
         self.camera_3d = self.renderer_3d.GetActiveCamera()
 
+        #self.action_save_coord.triggered.connect(self.save_cursor_coords)
 
         self.populate_models()
             
@@ -124,9 +125,13 @@ class Viewer(CalcamGUIWindow):
         self.remove_lines_button.clicked.connect(self.update_lines)
         self.coords_legend_checkbox.toggled.connect(self.update_legend)
 
+        self.save_coords_button.clicked.connect(self.export_cursor_coords)
+
         self.control_sensitivity_slider.setValue(int(self.config.mouse_sensitivity))
 
         self.proj_perspective.toggled.connect(self.set_projection)
+
+        self.del_coord_button.clicked.connect(self.delete_saved_coord)
 
         self.model_actors = {}
 
@@ -135,6 +140,8 @@ class Viewer(CalcamGUIWindow):
         self.line_actors = DodgyDict()
 
         self.contour_actor = None
+
+        self.saved_coords_item = None
 
         self.sightlines = DodgyDict()
         self.colour_q = []
@@ -164,12 +171,80 @@ class Viewer(CalcamGUIWindow):
         self.enable_lines_checkbox.nextCheckState = lambda : nextcheckstate(self.enable_lines_checkbox)
         self.enable_points_checkbox.nextCheckState = lambda: nextcheckstate(self.enable_points_checkbox)
 
+        self.cursor_coords_table.setColumnCount(3)
+        self.cursor_coords_table.setHorizontalHeaderLabels(['X','Y','Z'])
+
         # Start the GUI!
         self.show()
 
         self.interactor3d.init()
         self.views_root_auto.setHidden(False)
         self.qvtkwidget_3d.GetRenderWindow().GetInteractor().Initialize()
+
+
+    def save_cursor_coords(self):
+
+        if self.interactor3d.focus_cursor is not None:
+            if self.saved_coords_item is None:
+
+                # Add it to the lines list
+                listitem = qt.QListWidgetItem('Saved Cursor Positions (below)')
+                self.line_actors[listitem] = render.CoordsActor(np.empty((0,3)),lines=False,markers=True)
+
+                self.saved_coords_item = self.line_actors[listitem]
+
+                listitem.setFlags(listitem.flags() | qt.Qt.ItemIsSelectable)
+                self.lines_3d_list.addItem(listitem)
+                listitem.setCheckState(qt.Qt.Checked)
+                self.lines_3d_list.setCurrentItem(listitem)
+
+            coords = self.interactor3d.get_cursor_coords(0)
+            newrow = self.saved_coords_item.coords.shape[0]
+            self.saved_coords_item.coords = np.concatenate((self.saved_coords_item.coords,np.array(coords)[np.newaxis,:]),0)
+
+            self.cursor_coords_table.setRowCount(newrow+1)
+            self.cursor_coords_table.setItem(newrow,0,qt.QTableWidgetItem('{:.3f} m'.format(coords[0])))
+            self.cursor_coords_table.setItem(newrow, 1, qt.QTableWidgetItem('{:.3f} m'.format(coords[1])))
+            self.cursor_coords_table.setItem(newrow, 2, qt.QTableWidgetItem('{:.3f} m'.format(coords[2])))
+
+            self.saved_coords_item.set_markers(not self.saved_coords_item.markers)
+            self.saved_coords_item.set_markers(not self.saved_coords_item.markers)
+            self.refresh_3d()
+
+    def delete_saved_coord(self):
+
+        if self.cursor_coords_table.currentRow() > -1:
+            self.saved_coords_item.coords = np.delete(self.saved_coords_item.coords,self.cursor_coords_table.currentRow(),axis=0)
+            self.cursor_coords_table.removeRow(self.cursor_coords_table.currentRow())
+            self.saved_coords_item.set_markers(not self.saved_coords_item.markers)
+            self.saved_coords_item.set_markers(not self.saved_coords_item.markers)
+            self.refresh_3d()
+
+    def export_cursor_coords(self):
+
+        filename_filter = 'ASCII CSV Data (*.csv)'
+
+        filedialog = qt.QFileDialog(self)
+
+        filedialog.setAcceptMode(filedialog.AcceptSave)
+        filedialog.setFileMode(filedialog.AnyFile)
+
+        filedialog.setWindowTitle('Save...')
+        filedialog.setNameFilter(filename_filter)
+        filedialog.exec()
+
+        if qt.qt_ver < 6:
+            accepted = filedialog.result() == 1
+        else:
+            accepted = filedialog.result() == filedialog.Accepted
+
+        if accepted:
+            fname = str(filedialog.selectedFiles()[0])
+
+            if not fname.endswith('.csv'):
+                fname = fname + '.csv'
+
+            np.savetxt(fname,self.saved_coords_item.coords,fmt='%.4f',delimiter=',',header='X (m), Y(m), Z(m)')
 
 
     # Load arbitrary 3D lines from file to display

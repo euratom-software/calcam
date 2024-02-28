@@ -42,7 +42,7 @@ import time
 
 class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
  
-    def __init__(self,parent=None,viewport_callback=None,resize_callback=None,newpick_callback=None,cursor_move_callback=None,focus_changed_callback=None,refresh_callback=None,pre_move_callback=None):
+    def __init__(self,parent=None,viewport_callback=None,resize_callback=None,newpick_callback=None,cursor_move_callback=None,focus_changed_callback=None,refresh_callback=None,pre_move_callback=None,save_coords_callback=None):
 
         # Set callbacks for all the mouse controls
         self.AddObserver("LeftButtonPressEvent",self.on_left_click)
@@ -63,6 +63,7 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
         self.refresh_callback = refresh_callback
         self.focus_changed_callback = focus_changed_callback
         self.pre_move_callback = pre_move_callback
+        self.save_coords_callback = save_coords_callback
         self.image_actor = None
         self.image_resizer = None
         self.force_aspect = None
@@ -169,6 +170,10 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
             direction = 'left'
         elif key in ['D','RIGHT']:
             direction = 'right'
+
+        elif key == 'C':
+            if self.save_coords_callback is not None:
+                self.save_coords_callback()
 
         if direction is not None:
             current_fp = self.camera.GetFocalPoint()
