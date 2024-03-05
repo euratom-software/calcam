@@ -1,6 +1,16 @@
 Calcam Changelog
 ================
 
+Changes on Master branch since last release (2.14.dev0)
+--------------------------------------------------------
+
+New & Enhancements:
+* Added feature to build and export a list of 3D coordinates based on cursor clicks in 3D Viewer tool.
+
+Compatibility:
+* Restore compatibility with Python 3.5 which was accidentally broken in 2.13.0 release
+
+
 Minor Release 2.13.0 (February 2024)
 ------------------------------------
 

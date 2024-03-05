@@ -1171,7 +1171,7 @@ class GeometryMatrix:
                 is_v73 = True
             except Exception as e:
                 # Handle failure to open file with both methods
-                raise Exception(f"Failed to load the file '{filename}' with either scipy or h5py. Error: {e}")
+                raise Exception("Failed to load the file '{:s}' with either scipy or h5py. Error: {:}".format(filename,e))
 
         if is_v73:
             # Load scalar values
