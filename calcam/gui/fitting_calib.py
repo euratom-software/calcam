@@ -746,6 +746,10 @@ class FittingCalib(CalcamGUIWindow):
             widgetlist[-1].setChecked(self.fitters[field].fixaspectratio)
             widgetlist[-1].toggled.connect(lambda state,field=field: self.change_fit_params(self.fitters[field].fix_aspect,state))
             perspective_settings_layout.addWidget(widgetlist[-1])
+            widgetlist.append(qt.QCheckBox('Fix Principal Point'))
+            widgetlist[-1].setChecked(self.fitters[field].fixcc)
+            widgetlist[-1].toggled.connect(lambda state,field=field: self.change_fit_params(self.fitters[field].fix_cc,state))
+            perspective_settings_layout.addWidget(widgetlist[-1])
 
 
             # ------- End of perspective settings -----------------
