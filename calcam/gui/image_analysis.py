@@ -22,7 +22,12 @@
 
 import copy
 
-import matplotlib.cm
+# Workaround for Matplotlib API change at v3.9.0
+try:
+    from matplotlib.cm import get_cmap
+except ImportError:
+    from matplotlib import colormaps as mpl_cmaps
+    get_cmap = mpl_cmaps.get_cmap
 
 from .core import *
 from .vtkinteractorstyles import CalcamInteractorStyle2D, CalcamInteractorStyle3D
@@ -38,7 +43,7 @@ type_description = {'alignment': 'Manual Alignment', 'fit':'Point pair fitting',
 cmaps = []
 for cmap in [('Grayscale','gray'),('Inferno','inferno'),('Magma','magma'),('Plasma','plasma'),('Viridis','viridis'),('JET','jet'),('HSV','hsv')]:
     try:
-        cmaps.append((cmap[0],matplotlib.cm.get_cmap(cmap[1])))
+        cmaps.append((cmap[0],get_cmap(cmap[1])))
     except Exception:
         continue
 

@@ -46,10 +46,17 @@ except:
     trignale = None
 
 import matplotlib.pyplot as plt
-import matplotlib.cm as cm
 from matplotlib.patches import Polygon as PolyPatch
 from matplotlib.collections import PatchCollection
 import matplotlib.path as mplpath
+
+# Workaround for Matplotlib API change at v3.9.0
+try:
+    from matplotlib.cm import get_cmap
+except ImportError:
+    from matplotlib import colormaps as mpl_cmaps
+    get_cmap = mpl_cmaps.get_cmap
+
 
 from . import config
 from . import misc
@@ -343,7 +350,7 @@ class PoloidalVolumeGrid:
             if data.size != self.n_cells:
                 raise ValueError('Data vector is the wrong length! Data has {:d} values but the grid gas {:d} cells.'.format(data.size,self.n_cells))
 
-            cmap = cm.get_cmap(cmap)
+            cmap = get_cmap(cmap)
 
             # If we have data, grid cell edges default to off
             if cell_linewidth is None:
