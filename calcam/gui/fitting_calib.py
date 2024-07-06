@@ -746,7 +746,7 @@ class FittingCalib(CalcamGUIWindow):
             widgetlist[-1].setChecked(self.fitters[field].fixaspectratio)
             widgetlist[-1].toggled.connect(lambda state,field=field: self.change_fit_params(self.fitters[field].fix_aspect,state))
             perspective_settings_layout.addWidget(widgetlist[-1])
-            widgetlist.append(qt.QCheckBox('Fix Principal Point'))
+            widgetlist.append(qt.QCheckBox('Fix Principal Point at Centre'))
             widgetlist[-1].setChecked(self.fitters[field].fixcc)
             widgetlist[-1].toggled.connect(lambda state,field=field: self.change_fit_params(self.fitters[field].fix_cc,state))
             perspective_settings_layout.addWidget(widgetlist[-1])
@@ -1556,7 +1556,7 @@ class FittingCalib(CalcamGUIWindow):
                 if opened_calib.view_models[field].model == 'rectilinear':
                     self.fit_settings_widgets[field][0].setChecked(True)
                     widget_index_start = 2
-                    widget_index_end = 6
+                    widget_index_end = 7
                 elif opened_calib.view_models[field].model == 'fisheye':
                     self.fit_settings_widgets[field][1].setChecked(True)
                     widget_index_start = 7
@@ -1564,7 +1564,7 @@ class FittingCalib(CalcamGUIWindow):
 
                 for widget in self.fit_settings_widgets[field][widget_index_start:widget_index_end+1]:
                     widget.setChecked(False)
-                    if str(widget.text()) in opened_calib.view_models[field].fit_options:
+                    if (str(widget.text()) in opened_calib.view_models[field].fit_options) or ( ('Fix Principal Point' in str(widget.text()) and any(['Fix CC' in txt for txt in opened_calib.view_models[field].fit_options] ))):
                         widget.setChecked(True)
 
 
