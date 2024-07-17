@@ -253,9 +253,9 @@ class PoloidalVolumeGrid:
             
             # Sort the intersections by length along the sight-line.
             # Also round t_ray to 9 figures because we'll want to find unique values
-            # of it shortly, so round to something well over machine precision.
+            # of it shortly, so round to something slightly larger than the expected precision.
             sort_order = np.argsort(t_ray)
-            t_ray = t_ray[sort_order].round(decimals=12)
+            t_ray = t_ray[sort_order].round(decimals=9)
             seg_inds = seg_inds[sort_order]
             
             # This will be the output list of cell indices

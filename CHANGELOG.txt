@@ -14,7 +14,8 @@ Compatibility:
 
 Fixes:
 * Improved handling of "missed" ray-cell intersections in geometry matrix generation caused by numerical accuracy near grid cell intersections (now less likely to raise exceptions)
-* Geometry matrix generation now works with RayData objects where RayData.set_detector_window() has been used (previously the detector window setting was ignored)
+* Fixed issue with numerical precision causing errors in geometry matrix building
+* Geometry matrix generation now works correctly with RayData objects where RayData.set_detector_window() has been used (previously the detector window setting was ignored by the geometry matrix building)
 
 
 Minor Release 2.13.0 (February 2024)
