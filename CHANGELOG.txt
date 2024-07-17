@@ -1,7 +1,7 @@
 Calcam Changelog
 ================
 
-Changes on Master branch since last release (2.14.dev1)
+Changes on Master branch since last release (2.14.dev2)
 --------------------------------------------------------
 
 New & Enhancements:
@@ -11,6 +11,10 @@ New & Enhancements:
 Compatibility:
 * Fix compatibility with Matplotlib 3.9.0
 * Restore compatibility with Python 3.5 which was accidentally broken in 2.13.0 release
+
+Fixes:
+* Improved handling of "missed" ray-cell intersections in geometry matrix generation caused by numerical accuracy near grid cell intersections (now less likely to raise exceptions)
+* Geometry matrix generation now works with RayData objects where RayData.set_detector_window() has been used (previously the detector window setting was ignored)
 
 
 Minor Release 2.13.0 (February 2024)
