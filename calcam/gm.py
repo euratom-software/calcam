@@ -46,10 +46,17 @@ except:
     trignale = None
 
 import matplotlib.pyplot as plt
-import matplotlib.cm as cm
 from matplotlib.patches import Polygon as PolyPatch
 from matplotlib.collections import PatchCollection
 import matplotlib.path as mplpath
+
+# Workaround for Matplotlib API change at v3.9.0
+try:
+    from matplotlib.cm import get_cmap
+except ImportError:
+    from matplotlib import colormaps as mpl_cmaps
+    get_cmap = mpl_cmaps.get_cmap
+
 
 from . import config
 from . import misc
@@ -246,9 +253,9 @@ class PoloidalVolumeGrid:
             
             # Sort the intersections by length along the sight-line.
             # Also round t_ray to 9 figures because we'll want to find unique values
-            # of it shortly, so round to something well over machine precision.
+            # of it shortly, so round to something slightly larger than the expected precision.
             sort_order = np.argsort(t_ray)
-            t_ray = t_ray[sort_order].round(decimals=12)
+            t_ray = t_ray[sort_order].round(decimals=9)
             seg_inds = seg_inds[sort_order]
             
             # This will be the output list of cell indices
@@ -343,7 +350,7 @@ class PoloidalVolumeGrid:
             if data.size != self.n_cells:
                 raise ValueError('Data vector is the wrong length! Data has {:d} values but the grid gas {:d} cells.'.format(data.size,self.n_cells))
 
-            cmap = cm.get_cmap(cmap)
+            cmap = get_cmap(cmap)
 
             # If we have data, grid cell edges default to off
             if cell_linewidth is None:
@@ -628,12 +635,11 @@ class GeometryMatrix:
             
             # Number of grid cells and sight lines
             n_cells = grid.n_cells
-            n_los = raydata.x.size
+            n_los = raydata.transform.x_pixels * raydata.transform.y_pixels
     
             # Flatten out the ray start and end coords
-            ray_start_coords = raydata.ray_start_coords.reshape(-1,3,order=self.pixel_order)
-            ray_end_coords = raydata.ray_end_coords.reshape(-1,3,order=self.pixel_order)
-
+            ray_start_coords = raydata.get_ray_start().reshape(-1,3,order=self.pixel_order)
+            ray_end_coords = raydata.get_ray_end().reshape(-1,3,order=self.pixel_order)
 
             # Multi-threadedly loop over each sight-line in raydata and calculate its matrix row.
             # Store the results as coords + data then build the matrix after, because that is much faster.
@@ -1061,16 +1067,30 @@ class GeometryMatrix:
                     in_cell.remove(leaving_cell[0])
                 
                 else:
-                    '''
-                    # Make a plot to show where on the grid the error has occured.
-                    self.grid.plot()
-                    self.grid.get_cell_intersections(ray_start_coords,ray_end_coords,plot=True)
-                    problem_point = ray_start_coords + positions[i]*(ray_end_coords - ray_start_coords)/ray_length
-                    plt.plot(np.sqrt(problem_point[0]**2 + problem_point[1]**2),problem_point[2],'bo')
-                    plt.title('Error for: {:},{:}'.format(ray_start_coords,ray_end_coords))
-                    plt.show()
-                    '''
-                    raise Exception('Error generating geometry matrix row: could not identify which grid cell the LoS left.')
+                    # Due to maths accuracy we can end up missing an intersection very close to a vertex sometimes.
+                    # In this case we assume we only missed a trivial distance and we're now in whatever cell we see ourselves
+                    # leaving next
+                    recovered_from_error = False
+                    if i < positions.size - 1:
+                        leaving_cell = list(in_cell)
+                        data[leaving_cell[0]] = data[leaving_cell[0]] + (positions[i] - positions[i - 1])
+                        in_cell = intersected_cells[i] & intersected_cells[i+1]
+                        if len(in_cell) == 1:
+                            recovered_from_error = True
+
+                    if not recovered_from_error:
+                        try:
+                            # Make a plot to show where on the grid the error has occured.
+                            self.grid.plot()
+                            self.grid.get_cell_intersections(ray_start_coords,ray_end_coords,plot=True)
+                            problem_point = ray_start_coords + positions[i]*(ray_end_coords - ray_start_coords)/ray_length
+                            plt.plot(np.sqrt(problem_point[0]**2 + problem_point[1]**2),problem_point[2],'bo')
+                            plt.title('This plot is here because an error has occured\nIt may be helpful to zoom in to the blue point and save a figure to report this error\nOnce this plot window is closed, an exception will be raised in Calcam.\nLoS start, end causing error: {:},{:}'.format(ray_start_coords,ray_end_coords))
+                            plt.show()
+                        except:
+                            pass
+
+                        raise Exception('Error generating geometry matrix row: could not identify which grid cell the LoS left.')
         
         
         # If the sight line ends inside a cell, add the length it was inside that cell.
