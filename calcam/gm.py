@@ -297,7 +297,8 @@ class PoloidalVolumeGrid:
 
 
 
-    def plot(self,data=None,clim=None,cmap=None,line_colour=(0,0,0),cell_linewidth=None,cblabel='',axes=None):
+    def plot(self,data=None,clim=None,cmap=None,line_colour=(0,0,0),cell_linewidth=None,cblabel='',axes=None,
+             plot_cell_ind=False):
         '''
         Either plot a given data vector on the grid, or if no data vector is given,
         plot the grid itself.
@@ -323,6 +324,9 @@ class PoloidalVolumeGrid:
             cblabel (str)                   : Label for the data colour bar, if plotting data.
 
             axes (matplotlib.pyplot.Axes)   : Matplotlib axes on which to plot. If not given, a new figure will be created.
+
+            plot_cell_ind (bool)            : Flag to plot the cell index of each grid cell in the cell. This is
+                                              is intended for debug purposes.
 
 
         Returns:
@@ -405,6 +409,13 @@ class PoloidalVolumeGrid:
         # Add a colour bar if we have data
         if data is not None:
             plt.colorbar(pcoll,label=cblabel if cblabel is not None else '')
+
+        # Add cell index text to each cell
+        if plot_cell_ind:
+            for cell_ind in range(self.n_cells):
+                xy = np.vstack([self.vertices[self.cells[cell_ind, i], :] for i in range(verts_per_cell)])
+                centroid = np.mean(xy, axis=0)
+                axes.text(centroid[0], centroid[1], str(cell_ind), color='black', ha='center', va='center', fontsize=8)
 
         # Prettification - set appropriate zoom for the grid extent.
         rmin,rmax,zmin,zmax = self.extent
