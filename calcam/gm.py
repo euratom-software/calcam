@@ -297,7 +297,7 @@ class PoloidalVolumeGrid:
 
 
 
-    def plot(self,data=None,clim=None,cmap=None,line_colour=(0,0,0),cell_linewidth=None,cblabel='',axes=None):
+    def plot(self,data=None,clim=None,cmap=None,line_colour=(0,0,0),cell_linewidth=None,cblabel='',axes=None,cell_numbers=False):
         '''
         Either plot a given data vector on the grid, or if no data vector is given,
         plot the grid itself.
@@ -324,6 +324,8 @@ class PoloidalVolumeGrid:
 
             axes (matplotlib.pyplot.Axes)   : Matplotlib axes on which to plot. If not given, a new figure will be created.
 
+            cell_numbers (bool)             : If set to True, the indices of each grid cell will be written in black text in the cell. \
+                                              Note this is extremely slow for high cell count grids, and is mostly useful for last-resort debugging.
 
         Returns:
             
@@ -405,6 +407,14 @@ class PoloidalVolumeGrid:
         # Add a colour bar if we have data
         if data is not None:
             plt.colorbar(pcoll,label=cblabel if cblabel is not None else '')
+
+        # If requested, write the cell numbers
+        if cell_numbers:
+            for cell_ind in range(self.n_cells):
+                verts =  np.vstack( [ self.vertices[self.cells[cell_ind,i],:] for i in range(verts_per_cell)] )
+                r = verts[:,0].mean()
+                z = verts[:,1].mean()
+                plt.text(r,z,cell_ind,{'size':6})
 
         # Prettification - set appropriate zoom for the grid extent.
         rmin,rmax,zmin,zmax = self.extent
@@ -1050,7 +1060,6 @@ class GeometryMatrix:
         
         # Loop over each intersection
         for i in range(positions.size):
-            
             if len(in_cell) == 0:
                 # Entering the grid
                 in_cell = intersected_cells[i]
@@ -1058,7 +1067,6 @@ class GeometryMatrix:
             else:
                 # Going from one cell to another         
                 leaving_cell = list(intersected_cells[i] & in_cell)
-                
                 if len(leaving_cell) == 1:
                     
                     #row_out[0,leaving_cell[0]] = row_out[0,leaving_cell[0]] + (positions[i] - positions[i-1])
@@ -1067,16 +1075,23 @@ class GeometryMatrix:
                     in_cell.remove(leaving_cell[0])
                 
                 else:
-                    # Due to maths accuracy we can end up missing an intersection very close to a vertex sometimes.
-                    # In this case we assume we only missed a trivial distance and we're now in whatever cell we see ourselves
-                    # leaving next
                     recovered_from_error = False
                     if i < positions.size - 1:
+                        # Due to maths accuracy we can end up missing an intersection very close to a vertex sometimes.
+                        # In this case we assume we only missed a trivial distance and we're now in whatever cell we see ourselves
+                        # leaving next
                         leaving_cell = list(in_cell)
                         data[leaving_cell[0]] = data[leaving_cell[0]] + (positions[i] - positions[i - 1])
                         in_cell = intersected_cells[i] & intersected_cells[i+1]
                         if len(in_cell) == 1:
                             recovered_from_error = True
+                    else:
+                        # If we find ourselves leaving the grid without exiting the last cell we were in, simply assume we exit that cell here
+                        # (this can happen for grids with very tiny cells at the edges)
+                        leaving_cell = list(in_cell)
+                        data[leaving_cell[0]] = data[leaving_cell[0]] + (positions[i] - positions[i - 1])
+                        in_cell = set()
+                        recovered_from_error = True
 
                     if not recovered_from_error:
                         try:
@@ -1086,6 +1101,8 @@ class GeometryMatrix:
                             problem_point = ray_start_coords + positions[i]*(ray_end_coords - ray_start_coords)/ray_length
                             plt.plot(np.sqrt(problem_point[0]**2 + problem_point[1]**2),problem_point[2],'bo')
                             plt.title('This plot is here because an error has occured\nIt may be helpful to zoom in to the blue point and save a figure to report this error\nOnce this plot window is closed, an exception will be raised in Calcam.\nLoS start, end causing error: {:},{:}'.format(ray_start_coords,ray_end_coords))
+                            plt.xlim([np.sqrt(problem_point[0]**2 + problem_point[1]**2) - 0.05,np.sqrt(problem_point[0]**2 + problem_point[1]**2) + 0.05])
+                            plt.ylim([problem_point[2]-0.05,problem_point[2]+0.05])
                             plt.show()
                         except:
                             pass
