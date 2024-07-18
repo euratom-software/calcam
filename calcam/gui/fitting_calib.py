@@ -856,8 +856,7 @@ class FittingCalib(CalcamGUIWindow):
         self.points_undo_button.setEnabled(False)
 
         for i in range(len(self.chessboard_pointpairs)):
-            self.chessboard_pointpairs[i][0] = self.calibration.geometry.display_to_original_image(self.chessboard_pointpairs[i][0])
-            self.chessboard_pointpairs[i][1] = self.calibration.geometry.display_to_original_pointpairs(self.chessboard_pointpairs[i][1])
+            self.chessboard_pointpairs[i] = (self.calibration.geometry.display_to_original_image(self.chessboard_pointpairs[i][0]),self.calibration.geometry.display_to_original_pointpairs(self.chessboard_pointpairs[i][1]))
 
         if self.sender() is self.im_flipud:
             self.calibration.geometry.add_transform_action('flip_up_down')
@@ -891,16 +890,15 @@ class FittingCalib(CalcamGUIWindow):
             self.load_pointpairs(pointpairs = self.calibration.geometry.original_to_display_pointpairs(orig_pointpairs),history=self.calibration.history['pointpairs'],force_clear=True,clear_fit=False)
 
         for i in range(len(self.chessboard_pointpairs)):
-            self.chessboard_pointpairs[i][0] = self.calibration.geometry.original_to_display_image(self.chessboard_pointpairs[i][0])
-            self.chessboard_pointpairs[i][1] = self.calibration.geometry.original_to_display_pointpairs(self.chessboard_pointpairs[i][1])
+            self.chessboard_pointpairs[i] = (self.calibration.geometry.original_to_display_image(self.chessboard_pointpairs[i][0]) , self.calibration.geometry.original_to_display_pointpairs(self.chessboard_pointpairs[i][1]))
 
         if self.enhance_checkbox.isChecked():
             self.enhance_checkbox.setChecked(False)
             self.enhance_checkbox.setChecked(True)
 
-
         self.update_image_info_string(self.calibration.get_image(),self.calibration.geometry)
         self.init_fitting()
+        self.update_pointpairs()
         self.unsaved_changes = True
 
 
@@ -1100,10 +1098,16 @@ class FittingCalib(CalcamGUIWindow):
 
         if self.intrinsics_calib_checkbox.isChecked():
             self.calibration.add_intrinsics_constraints(calibration=self.intrinsics_calib)
+
+            transformed_pp = self.calibration.geometry.original_to_display_pointpairs(self.intrinsics_calib.geometry.display_to_original_pointpairs(self.intrinsics_calib.pointpairs))
+            transformed_ic_pp = []
+            for ic in self.intrinsics_calib.intrinsics_constraints:
+                transformed_ic_pp.append(self.calibration.geometry.original_to_display_pointpairs(self.intrinsics_calib.geometry.display_to_original_pointpairs(ic[1])))
+
             for subview in range(self.calibration.n_subviews):
-                self.fitters[subview].add_intrinsics_pointpairs(self.intrinsics_calib.pointpairs,subview=subview)
-                for ic in self.intrinsics_calib.intrinsics_constraints:
-                    self.fitters[subview].add_intrinsics_pointpairs(ic[1])
+                self.fitters[subview].add_intrinsics_pointpairs( transformed_pp,subview=subview)
+                for ic in transformed_ic_pp:
+                    self.fitters[subview].add_intrinsics_pointpairs(ic,subview=subview)
 
         if self.chessboard_checkbox.isChecked():
             for n,chessboard_constraint in enumerate(self.chessboard_pointpairs):
@@ -1645,7 +1649,7 @@ class FittingCalib(CalcamGUIWindow):
 
     def modify_chessboard_constraints(self):
 
-        dialog = ChessboardDialog(self)
+        dialog = ChessboardDialog(self,calibration=self.calibration)
         dialog.exec()
 
         # Resizing the window + 1 pixel then immediately back again after the chessboard dialog is closed

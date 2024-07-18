@@ -1609,8 +1609,7 @@ class ChessboardDialog(qt.QDialog):
                         self.results[-1][1].image_points[-1].append(None)
 
             if self.original_coords.isChecked():
-                self.results[-1][0] = self.image_transformer.original_to_display_image(self.results[-1][0])
-                self.results[-1][1] = self.image_transformer.original_to_display_pointpairs(self.results[-1][1])
+                self.results[-1] = (self.image_transformer.original_to_display_image(self.results[-1][0]),self.image_transformer.original_to_display_pointpairs(self.results[-1][1]))
 
 
         self.filenames = [self.filenames[i] for i in range(len(self.filenames)) if self.chessboard_status[i]]

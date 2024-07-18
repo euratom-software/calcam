@@ -677,7 +677,8 @@ class Calibration():
             pp = self.geometry.original_to_display_pointpairs( calibration.geometry.display_to_original_pointpairs(calibration.pointpairs) )
             self.intrinsics_constraints.append((im,pp))
             self.history['intrinsics_constraints'].append( (calibration.history['image'],calibration.history['pointpairs']) )
-            self.intrinsics_constraints = self.intrinsics_constraints + calibration.intrinsics_constraints
+            for constraint in calibration.intrinsics_constraints:
+                self.intrinsics_constraints.append( (self.geometry.original_to_display_image(calibration.geometry.display_to_original_image(constraint[0])),self.geometry.original_to_display_pointpairs(calibration.geometry.display_to_original_pointpairs(constraint[1]))) )
             self.history['intrinsics_constraints'] = self.history['intrinsics_constraints'] + calibration.history['intrinsics_constraints']
 
         elif pointpairs is not None:
