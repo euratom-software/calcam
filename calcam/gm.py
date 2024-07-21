@@ -318,14 +318,14 @@ class PoloidalVolumeGrid:
                                               If set to None, the wall and cell boundaries are not drawn.
 
             cell_linewidth (float)          : Line width to use to show the grid cell boundaries. If set to 0, the grid \
-                                              cell boundaries will not be drawn.
+                                              cell boundaries will not be drawn. Default=0.25 if no data is given, or 0 if plotting data.
 
             cblabel (str)                   : Label for the data colour bar, if plotting data.
 
             axes (matplotlib.pyplot.Axes)   : Matplotlib axes on which to plot. If not given, a new figure will be created.
 
-            cell_numbers (bool)             : If set to True, the indices of each grid cell will be written in black text in the cell. \
-                                              Note this is extremely slow for high cell count grids, and is mostly useful for last-resort debugging.
+            cell_numbers (bool)             : If set to True, displays the indices of the grid cells as text at the grid cell centre. \
+                                              This is itended mainly for debugging and can be very slow on some systems.
 
         Returns:
             
@@ -384,6 +384,8 @@ class PoloidalVolumeGrid:
             pcoll.set_cmap(cmap)
             if clim is not None:
                 pcoll.set_clim(clim)
+        else:
+            pcoll.set_facecolor('None')
 
         pcoll.set_edgecolor(line_colour)
         pcoll.set_linewidth(cell_linewidth)
@@ -414,7 +416,7 @@ class PoloidalVolumeGrid:
                 verts =  np.vstack( [ self.vertices[self.cells[cell_ind,i],:] for i in range(verts_per_cell)] )
                 r = verts[:,0].mean()
                 z = verts[:,1].mean()
-                plt.text(r,z,cell_ind,{'size':6})
+                plt.text(r,z,cell_ind,ha='center',va='center',fontsize=6,clip_on=True)
 
         # Prettification - set appropriate zoom for the grid extent.
         rmin,rmax,zmin,zmax = self.extent
@@ -1096,7 +1098,7 @@ class GeometryMatrix:
                     if not recovered_from_error:
                         try:
                             # Make a plot to show where on the grid the error has occured.
-                            self.grid.plot()
+                            self.grid.plot(cell_numbers=True)
                             self.grid.get_cell_intersections(ray_start_coords,ray_end_coords,plot=True)
                             problem_point = ray_start_coords + positions[i]*(ray_end_coords - ray_start_coords)/ray_length
                             plt.plot(np.sqrt(problem_point[0]**2 + problem_point[1]**2),problem_point[2],'bo')
