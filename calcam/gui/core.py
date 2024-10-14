@@ -40,6 +40,7 @@ from ..pointpairs import PointPairs
 from .vtkinteractorstyles import CalcamInteractorStyle2D
 from . import qt_wrapper as qt
 from ..misc import ColourCycle,DodgyDict, open_file
+from ..image_enhancement import scale_to_8bit
 
 guipath = os.path.split(os.path.abspath(__file__))[0]
 
@@ -1388,7 +1389,7 @@ class ChessboardDialog(qt.QDialog):
 
             for n,fname in enumerate(filedialog.selectedFiles()):
                 self.status_text.setText('<b>Loading image {:d} / {:d} ...'.format(n,len(filedialog.selectedFiles())))
-                im = cv2.imread(str(fname))
+                im = scale_to_8bit(cv2.imread(str(fname),cv2.IMREAD_UNCHANGED))
                 
                 if self.im_shape is None:
 

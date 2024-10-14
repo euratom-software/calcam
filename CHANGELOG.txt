@@ -7,6 +7,7 @@ Changes on Master branch since last release (2.14.dev3)
 New & Enhancements:
 * Added feature to build and export a list of 3D coordinates based on cursor clicks in 3D Viewer tool.
 * Added option in fitting calibration GUI to fix the optical centre at the image centre (contribution from Koyo Munechika)
+* Improved behaviour when reading high bit depth greyscale image files (both for camera and chessboard images)
 
 Compatibility:
 * Fix compatibility with Matplotlib 3.9.0

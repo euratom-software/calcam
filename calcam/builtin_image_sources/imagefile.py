@@ -28,7 +28,7 @@ import os
 def get_image(filename,coords,offset_x=0,offset_y=0):
 
     # Get the image data from a file
-    dat = cv2.imread(filename)
+    dat = cv2.imread(filename,cv2.IMREAD_UNCHANGED)
     if dat is None:
         raise UserWarning('Could not read specified image file "' + filename + '"')
 
