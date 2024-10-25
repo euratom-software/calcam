@@ -716,7 +716,7 @@
         <item>
          <widget class="QGroupBox" name="groupBox_5">
           <property name="title">
-           <string>Save current view as preset</string>
+           <string>Add current view as preset</string>
           </property>
           <layout class="QHBoxLayout" name="horizontalLayout_3">
            <item>
@@ -736,7 +736,7 @@
            <item>
             <widget class="QPushButton" name="save_view_button">
              <property name="text">
-              <string>Save</string>
+              <string>Add</string>
              </property>
             </widget>
            </item>

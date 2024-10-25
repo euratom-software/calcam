@@ -109,6 +109,7 @@ class FittingCalib(CalcamGUIWindow):
         self.load_intrinsics_calib_button.clicked.connect(self.modify_intrinsics_calib)
         self.intrinsics_calib_checkbox.toggled.connect(self.toggle_intrinsics_calib)
         self.viewport_load_calib.clicked.connect(self.load_viewport_calib)
+        self.save_view_button.clicked.connect(self.save_view_to_model)
         self.action_save.triggered.connect(self.save_calib)
         self.action_save_as.triggered.connect(lambda: self.save_calib(saveas=True))
         self.action_open.triggered.connect(self.load_calib)
