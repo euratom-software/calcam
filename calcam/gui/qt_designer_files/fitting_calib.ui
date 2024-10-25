@@ -998,7 +998,7 @@
                  <bool>false</bool>
                 </property>
                 <property name="suffix">
-                 <string> °</string>
+                 <string>°</string>
                 </property>
                 <property name="decimals">
                  <number>1</number>
@@ -1040,7 +1040,7 @@
                  <bool>false</bool>
                 </property>
                 <property name="suffix">
-                 <string> °</string>
+                 <string>°</string>
                 </property>
                 <property name="decimals">
                  <number>2</number>
