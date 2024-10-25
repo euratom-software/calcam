@@ -302,12 +302,12 @@ class CalcamGUIWindow(qt.QMainWindow):
             if reply == qt.QMessageBox.No:
                 return
 
-        cam_pos = (self.camX.value(),self.camY.value(),self.camZ.value())
-        target = (self.tarX.value(), self.tarY.value(), self.tarZ.value())
-        fov = self.camFOV.value()
+        cam_pos = self.camera_3d.GetPosition()
+        target = self.camera_3d.GetFocalPoint()
+        fov = self.camera_3d.GetViewAngle()  # This might only work with perspective projections
+        roll = self.interactor3d.cam_roll
         xsection = self.interactor3d.get_xsection()
         projection = self.interactor3d.projection
-        roll = self.cam_roll.value()
 
         try:
             self.cadmodel.add_view(str(self.view_save_name.text()),cam_pos,target,fov,xsection,roll,projection)
