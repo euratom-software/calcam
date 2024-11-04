@@ -340,9 +340,9 @@ class RayData:
         binning = f.createVariable('Binning','f4',())
 
         if self.binning is not None:
-            binning.assignValue(self.binning)
+            binning.data = np.array(self.binning,dtype='f4')
         else:
-            binning.assignValue(0)
+            binning.data = np.array(0,dtype='f4')
 
         f.createDimension('pixelsdim',2)
 
@@ -353,7 +353,7 @@ class RayData:
         offset[:] = self.transform.offset[:]
 
         pixelaspect = f.createVariable('image_original_pixel_aspect','f4',())
-        pixelaspect.assignValue(self.transform.pixel_aspectratio)
+        pixelaspect.data = np.array(self.transform.pixel_aspectratio,dtype='f4')
 
         binning.units = 'pixels'
         raystart.units = 'm'

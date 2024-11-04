@@ -150,11 +150,11 @@ Installation may fail, or you may encounter errors when first trying to import o
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Module / Library    | Versions Tested / comments                                                                                                                                         |
 +=====================+====================================================================================================================================================================+
-| SciPy               | Tested up to v1.11.1                                                                                                                                               |
+| SciPy               | Tested up to v1.14.1                                                                                                                                               |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | NumPy               | Tested up to v1.26                                                                                                                                                 |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| MatPlotLib          | Tested up to v3.7.2                                                                                                                                                |
+| MatPlotLib          | Tested up to v3.9.0                                                                                                                                                |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | OpenCV (a.k.a. cv2) | Tested up to to v4.8                                                                                                                                               |
 |                     |                                                                                                                                                                    |
@@ -196,6 +196,8 @@ If it is not clear that a dependency is the problem, or which it might be, open 
     from cv2 import __version__
     from scipy import __version__
     import matplotlib.pyplot
+    import h5py
+    import triangle
 
 In addition to these, at least one of the following PyQt imports must work for the Calcam GUI to be available ( it doesn't matter which - as long as one works Calcam will be able to use it):
 

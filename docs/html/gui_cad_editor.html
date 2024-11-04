@@ -34,7 +34,7 @@
             <img src="_static/logo.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                Version 2.13
+                Version 2.14
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -162,7 +162,7 @@
 <p>Additional information can be added to the CAD model definition using the <span class="guilabel">Additional information</span> tab:</p>
 <section id="r-z-wall-contour">
 <span id="wall-contour"></span><h3>R,Z Wall Contour<a class="headerlink" href="#r-z-wall-contour" title="Permalink to this heading"></a></h3>
-<p>An R,Z wall contour can be saved as part of the model definition; currently this is only used for displaying in the 3D viewer but is intended to be used in future for geometry matrix calculation, for example. To add an R,Z wall contour to the CAD model, prepare the contour in a two-column ASCII file containing R,Z coordinates of the wall (in metres) around the poloidal cross-section, with one coordinate per line in the file. Then click <span class="guilabel">Load from file…</span> in the <span class="guilabel">R, Z Wall Contour</span> box to load the file. If a wall contour already exists in the model, its details will also be displayed in this box. If a cursor is placed on the 3D model, the current wall contour can be displayed, at the cursor position, using the <span class="guilabel">Show contour at cursor position</span> checkbox.</p>
+<p>An R,Z wall contour can optionally be saved as part of the model definition. This can be viewed in the 3D viewer, and is required if you want to render an un-folded wall view using the 3D viewer or programatically <a class="reference internal" href="api_rendering.html"><span class="doc">Rendering Images</span></a>. It is also convenient to have this information attached to the CAD model if you want to generate <a class="reference internal" href="api_geom_matrix.html"><span class="doc">Tomography Geometry Matrices</span></a>. To add an R,Z wall contour to the CAD model, prepare the contour in a two-column ASCII file containing R,Z coordinates of the wall (in metres) around the poloidal cross-section, with one coordinate per line in the file. Then click <span class="guilabel">Load from file…</span> in the <span class="guilabel">R, Z Wall Contour</span> box to load the file. If a wall contour already exists in the model, its details will also be displayed in this box. If a cursor is placed on the 3D model, the current wall contour can be displayed, at the cursor position, using the <span class="guilabel">Show contour at cursor position</span> checkbox.</p>
 </section>
 <section id="d-coordinate-information">
 <h3>3D Coordinate Information<a class="headerlink" href="#d-coordinate-information" title="Permalink to this heading"></a></h3>

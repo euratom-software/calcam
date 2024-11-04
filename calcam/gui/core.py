@@ -304,7 +304,12 @@ class CalcamGUIWindow(qt.QMainWindow):
 
         cam_pos = self.camera_3d.GetPosition()
         target = self.camera_3d.GetFocalPoint()
-        fov = self.camera_3d.GetViewAngle()  # This might only work with perspective projections
+
+        if self.interactor3d.projection == 'perspective':
+            fov = self.camera_3d.GetViewAngle()
+        elif self.interactor3d.projection == 'orthographic':
+            fov = self.camera_3d.GetParallelScale()*2
+
         roll = self.interactor3d.cam_roll
         xsection = self.interactor3d.get_xsection()
         projection = self.interactor3d.projection

@@ -101,7 +101,8 @@ if qt_ver == 6:
             for item in enum.__members__.items():
                 setattr(parent,item[0],item[1])
 
-from vtkmodules.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor, QVTKRWIBase
+from vtk.qt import QVTKRWIBase
+from vtk.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 if QVTKRWIBase == 'QGLWidget':
     qt_opengl = True
 else:

@@ -30,7 +30,7 @@ If you need to check the location of the calcam executable, you can find it from
 .. code-block:: python
 
     import calcam
-    print(calcam.gui.executable_path)
+    print(calcam.gui.exe_path)
 
 
 
