@@ -1,23 +1,28 @@
 Calcam Changelog
 ================
 
-Changes on Master branch since last release (2.14.dev3)
+Changes on Master branch since last release (2.14.dev4)
 --------------------------------------------------------
 
 New & Enhancements:
 * Added feature to build and export a list of 3D coordinates based on cursor clicks in 3D Viewer tool.
 * Added option in fitting calibration GUI to fix the optical centre at the image centre (contribution from Koyo Munechika)
 * Improved behaviour when reading high bit depth greyscale image files (both for camera and chessboard images)
+* Add ability to apply chessboard points across all sub-views for multiple sub-view images
+* Number of chessboard points displayed in calibration info is now counted by chessboard corner rather than image point
+* Improve handing of errors which prevent GUI from opening (ensure diaglog boxes with specific messages are displayed instead of silent failure or non-specific messages)
 
 Compatibility:
 * Fix compatibility with Matplotlib 3.9.0
 * Restore compatibility with Python 3.5
+* Fix compatibility with NumPy =>1.25 when performing calibrations with multiple sub-views
 
 Fixes:
 * Geometry matrix generation now works correctly with RayData objects where RayData.set_detector_window() has been used (previously the detector window setting was ignored by the geometry matrix building)
 * Improved handling of "missed" ray-cell intersections in geometry matrix generation caused by numerical accuracy near grid cell intersections (now less likely to raise exceptions)
 * Fixed issue with numerical precision causing errors in geometry matrix building
 * Fixed incorrect logic related to use of additional intrinsics constrains in fitting calibration tool with transformed images (sometimes caused exceptions; may also have affected calibration accuracy)
+* Fixed exception raised when pressing Ctrl+F in fitting calibration window if there is no image loaded yet
 
 
 Minor Release 2.13.0 (February 2024)

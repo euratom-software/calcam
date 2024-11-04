@@ -2049,7 +2049,7 @@ class Calibration():
                 n_ims = len(self.intrinsics_constraints)
                 n_points = 0
                 for ic in self.intrinsics_constraints:
-                    n_points = n_points + ic[1].get_n_points()
+                    n_points = n_points + ic[1].get_n_pointpairs()
                 msg = msg + '{:d} point pairs over {:d} image(s) for additional intsinrics constraints.'.format(n_points,n_ims)
             msg = msg + '\n\n'
 
@@ -2429,8 +2429,8 @@ class Fitter:
                         obj_points[-1].append(pointpairs.object_points[point])
                         img_points[-1].append(pointpairs.image_points[point][subfield])
             if len(img_points[-1]) == 0:
-                    obj_points.remove([])
-                    img_points.remove([])
+                    del obj_points[-1]
+                    del img_points[-1]
 
             obj_points[-1] = np.array(obj_points[-1],dtype='float32')
             img_points[-1] = np.array(img_points[-1],dtype='float32')

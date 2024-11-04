@@ -1295,7 +1295,7 @@ class CalcamGUIWindow(qt.QMainWindow):
 
 class ChessboardDialog(qt.QDialog):
 
-    def __init__(self, parent,modelselection=False,calibration=None):
+    def __init__(self, parent,modelselection=False,calibration=None,current_chessboards=None,existing_history=None):
 
         # GUI initialisation
         qt.QDialog.__init__(self, parent,qt.Qt.WindowTitleHint | qt.Qt.WindowCloseButtonHint)
@@ -1339,6 +1339,9 @@ class ChessboardDialog(qt.QDialog):
         self.prev_im_button.setEnabled(False)
         self.current_filename.hide()
 
+        if self.n_fields == 1:
+            self.subview_options.hide()
+
         if int(cv2.__version__[0]) < 3:
             self.fisheye_model.setEnabled(False)
             self.fisheye_model.setToolTip('Requires OpenCV 3')
@@ -1368,6 +1371,57 @@ class ChessboardDialog(qt.QDialog):
         self.interactor.init()
         self.renderer.Render()
         self.vtkInteractor.Initialize()
+
+        if current_chessboards is not None:
+            self.populate_from_existing(current_chessboards,existing_history)
+
+
+    def populate_from_existing(self,existing_chessboards,existing_history):
+
+        self.images = []
+        self.chessboard_status = [True] * len(existing_chessboards)
+
+        self.chessboard_points_2D = [np.zeros([ existing_chessboards[0][1].get_n_pointpairs(),2]) for i in range(len(existing_chessboards))]
+        self.filenames = [existing_history[n][0].split('from ')[-1].split(',')[0] for n in range(len(existing_history))]
+
+        self.display_coords.setChecked(True)
+
+        # This feels a bit hacky because it relies on given string formatting in the pointpairs history.
+        # If it fails we'll end up with the chessboard dims & size not auto-populating :(
+        try:
+            cb_dims = existing_history[0][1][0].split('corners of ')[-1].split(' square')[0]
+            cb_sqdims = existing_history[0][1][0].split('with ')[-1].split('mm')[0]
+            self.chessboard_squares_x.setValue(int(cb_dims.split('x')[0]))
+            self.chessboard_squares_y.setValue(int(cb_dims.split('x')[1]))
+            self.n_chessboard_points = (self.chessboard_squares_x.value() - 1, self.chessboard_squares_y.value() - 1)
+            self.chessboard_square_size.setValue(float(cb_sqdims))
+            self.apply_button.setEnabled(True)
+        except ValueError:
+            self.apply_button.setEnabled(False)
+
+        for i,(im,pointpairs) in enumerate(existing_chessboards):
+            self.images.append(im)
+            apply_to_all = True
+            for j, point in enumerate(pointpairs.image_points):
+                lastsubview = -1
+                for psub in point:
+                    if psub is not None:
+                        self.chessboard_points_2D[i][j, :] = psub[:]
+                    if lastsubview == -1:
+                        lastsubview = psub
+                    elif lastsubview != psub:
+                        apply_to_all = False
+
+
+        if self.n_fields > 1:
+            if apply_to_all:
+                self.apply_across_subviews.setChecked(True)
+
+
+        self.update_image_display(0)
+        self.next_im_button.setEnabled(True)
+        self.prev_im_button.setEnabled(True)
+        self.current_filename.show()
 
 
     def load_images(self):
@@ -1502,8 +1556,8 @@ class ChessboardDialog(qt.QDialog):
             dialog.setStandardButtons(qt.QMessageBox.Ok)
             dialog.setTextFormat(qt.Qt.RichText)
             dialog.setWindowTitle('Calcam - Chessboard Detection')
-            dialog.setText("A {:d} x {:d} square chessboard pattern could not be detected in the following {:d} of {:d} images, which will therefore not be included as additional chessboard constraints:".format(self.chessboard_squares_x.value(),self.chessboard_squares_y.value(),np.count_nonzero(self.chessboard_status),len(self.images)))
-            dialog.setInformativeText('<br>'.join(['[#{:d}] '.format(i+1) + self.filenames[i] for i in range(len(self.filenames)) if self.chessboard_status[i] ]))
+            dialog.setText("A {:d} x {:d} square chessboard pattern could not be auto-detected in the following {:d} of {:d} images, which will therefore not be included as additional chessboard constraints:".format(self.chessboard_squares_x.value(),self.chessboard_squares_y.value(),np.count_nonzero(self.chessboard_status),len(self.images)))
+            dialog.setInformativeText('<br>'.join([self.filenames[i] for i in range(len(self.filenames)) if self.chessboard_status[i] ]))
             dialog.setIcon(qt.QMessageBox.Warning)
             dialog.exec()                
 
@@ -1541,7 +1595,7 @@ class ChessboardDialog(qt.QDialog):
         else:
             status_string = ''
 
-        self.current_filename.setText('<html><head/><body><p align="center">{:s} [#{:d}/{:d}]{:s}</p></body></html>'.format(self.filenames[image_number],image_number+1,len(self.images),status_string))
+        self.current_filename.setText('<html><head/><body><p align="center">{:s} {:s}</p></body></html>'.format(self.filenames[image_number],status_string))
         
         if self.chessboard_status[image_number]:
             for corner in range(self.chessboard_points_2D[image_number].shape[0]):
@@ -1604,7 +1658,7 @@ class ChessboardDialog(qt.QDialog):
 
                 # Populate coordinates for relevant field
                 for field in range(self.n_fields):
-                    if self.subview_lookup(impoints[point,0],impoints[point,1],coords=coords) == field:
+                    if self.subview_lookup(impoints[point,0],impoints[point,1],coords=coords) == field or self.apply_across_subviews.isChecked():
                         self.results[-1][1].image_points[-1].append([impoints[point,0], impoints[point,1]])
                     else:
                         self.results[-1][1].image_points[-1].append(None)
@@ -1615,7 +1669,10 @@ class ChessboardDialog(qt.QDialog):
 
         self.filenames = [self.filenames[i] for i in range(len(self.filenames)) if self.chessboard_status[i]]
 
-        self.chessboard_source = '{:d} chessboard images loaded from "{:s}"'.format(len(self.filenames),self.src_dir.replace('/',os.sep))
+        try:
+            self.chessboard_source = '{:d} chessboard images loaded from "{:s}"'.format(len(self.filenames),self.src_dir.replace('/',os.sep))
+        except AttributeError:
+            self.chessboard_source = '{:d} chessboard images checked '.format(len(self.filenames))
 
         # And close the window.
         self.done(1)

@@ -23,12 +23,14 @@ import sys
 try:
     from calcam import gui
 except:
+    from calcam import no_gui_reason
     gui = False
 
 if __name__ == '__main__':
 
     if not gui:
-        print('Could not start Calcam GUI.')
+        from tkinter import messagebox
+        messagebox.showerror(title='Cannot start Calcam GUI',message='Cannot open calcam window: {:s}'.format(no_gui_reason))
         exit()
         
     try:
