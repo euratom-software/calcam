@@ -93,7 +93,13 @@ class CalcamGUIWindow(qt.QMainWindow):
         self.viewlist.clear()
 
         self.fov_enabled = True
-        self.viewdir_at_cc = False
+
+        # How to set the CAD view based on a calibration. Possible values
+        # for this which could be used by subclasses are:
+        # 'ic' - Match view direction at image centre (default)
+        # 'cc' - Set CAD view centre to optical axis / centre of perspective
+        # 'sc' - Set CAD view centre to centre of relevant sub-view
+        self.viewdir_at = 'ic'
 
         # Populate viewports list
         self.views_root_model = qt.QTreeWidgetItem(['Defined in Model'])
@@ -263,8 +269,7 @@ class CalcamGUIWindow(qt.QMainWindow):
             cal = self.calibration
         else:
             cal = None
-
-        dialog = ChessboardDialog(self,modelselection=True,calibration=cal)
+        dialog = ChessboardDialog(self,modelselection=True,calibration=cal,current_chessboards=self.chessboard_pointpairs)
         dialog.exec()
 
         if dialog.results != []:
@@ -653,6 +658,9 @@ class CalcamGUIWindow(qt.QMainWindow):
 
     def change_cad_view(self):
 
+        if self.fov_enabled:
+            self.camera_3d.SetUseHorizontalViewAngle(False)
+
         if self.sender() is self.viewlist:
             items = self.viewlist.selectedItems()
             if len(items) > 0:
@@ -770,14 +778,16 @@ class CalcamGUIWindow(qt.QMainWindow):
             self.camera_3d.SetUseHorizontalViewAngle(h_fov)
 
         self.camera_3d.SetPosition(calibration.get_pupilpos(subview=subfield))
-
-        if self.viewdir_at_cc:
+        if self.viewdir_at == 'cc':
             mat = calibration.get_cam_matrix(subview=subfield)
-            self.camera_3d.SetFocalPoint(calibration.get_pupilpos(subview=subfield) + calibration.get_los_direction(mat[0,2],mat[1,2]))
-        else:
+            self.camera_3d.SetFocalPoint(calibration.get_pupilpos(subview=subfield) + calibration.get_los_direction(mat[0,2],mat[1,2],subview=subfield))
+        elif self.viewdir_at == 'sc':
             ypx,xpx = CoM( calibration.get_subview_mask(coords='Display') == subfield)
             los_centre = calibration.get_los_direction(xpx,ypx)
             self.camera_3d.SetFocalPoint(calibration.get_pupilpos(subview=subfield) + los_centre)
+        elif self.viewdir_at == 'ic':
+            im_centre = np.array(calibration.geometry.get_display_shape())/2
+            self.camera_3d.SetFocalPoint(calibration.get_pupilpos(subview=subfield) + calibration.get_los_direction(im_centre[0], im_centre[1],subview=subfield))
 
         self.interactor3d.set_roll(calibration.get_cam_roll(subview=subfield,centre='subview'))
 
@@ -1387,7 +1397,11 @@ class ChessboardDialog(qt.QDialog):
         self.chessboard_status = [True] * len(existing_chessboards)
 
         self.chessboard_points_2D = [np.zeros([ existing_chessboards[0][1].get_n_pointpairs(),2]) for i in range(len(existing_chessboards))]
-        self.filenames = [existing_history[n][0].split('from ')[-1].split(',')[0] for n in range(len(existing_history))]
+
+        try:
+            self.filenames = [existing_history[n][0].split('from ')[-1].split(',')[0] for n in range(len(existing_history))]
+        except Exception:
+            self.filenames = ['Chessboard image {:d}'.format(i) for i in range(len(existing_chessboards))]
 
         self.display_coords.setChecked(True)
 
@@ -1401,7 +1415,7 @@ class ChessboardDialog(qt.QDialog):
             self.n_chessboard_points = (self.chessboard_squares_x.value() - 1, self.chessboard_squares_y.value() - 1)
             self.chessboard_square_size.setValue(float(cb_sqdims))
             self.apply_button.setEnabled(True)
-        except ValueError:
+        except Exception:
             self.apply_button.setEnabled(False)
 
         for i,(im,pointpairs) in enumerate(existing_chessboards):

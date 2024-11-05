@@ -139,6 +139,7 @@ class AlignmentCalib(CalcamGUIWindow):
         self.intrinsics_calib = None
 
         self.extrinsics_src = None
+        self.chessboard_pointpairs = None
 
         self.calibration = None
 
@@ -151,7 +152,7 @@ class AlignmentCalib(CalcamGUIWindow):
             self.edge_detect.setToolTip('Requires OpenCV 2.4.6 or newer; you have {:s}'.format(cv2.__version__))
 
         self.fov_enabled = False
-        self.viewdir_at_cc = True
+        self.viewdir_at = 'cc'
 
         # Start the GUI!
         self.show()

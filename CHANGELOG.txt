@@ -1,16 +1,16 @@
 Calcam Changelog
 ================
 
-Changes on Master branch since last release (2.14.dev4)
---------------------------------------------------------
+Minor Release 2.14.0 (November 2024)
+------------------------------------
 
 New & Enhancements:
 * Added feature to build and export a list of 3D coordinates based on cursor clicks in 3D Viewer tool.
 * Added option in fitting calibration GUI to fix the optical centre at the image centre (contribution from Koyo Munechika)
 * Improved behaviour when reading high bit depth greyscale image files (both for camera and chessboard images)
 * Add ability to apply chessboard points across all sub-views for multiple sub-view images
-* Add ability to view existing chessboard constraints in the point fitting calibration tool
-* Number of chessboard points displayed in calibration info is now counted by chessboard corner rather than image point
+* Add ability to view existing chessboard images in the GUIs which can use chessboard images
+* Number of chessboard points as displayed in calibration info is now counted by chessboard corner rather than image point
 * Improve handing of errors which prevent GUI from opening (ensure diaglog boxes with specific messages are displayed instead of silent failure or non-specific messages)
 * Improve precision of adding new preset views to CAD model definitions (contribution from Matt Kriete)
 * Change pixel size input to 2 decimal places (contribution from Matt Kriete)
@@ -29,6 +29,13 @@ Fixes:
 * Fixed exception raised when pressing Ctrl+F in fitting calibration window if there is no image loaded yet
 * Fixed non-working "Add current view as preset" button in point-fitting GUI (contribution from Matt Kriete)
 * Use consistent number of digits for camera orientation input across all GUIs (contribution from Matt Matt Kriete)
+* Fix various small bugs in intrinsics setting behaviour of virtual calibration editor
+* Improve behaviour of "Set CAD view to match fit" button in fitting calibration tool for calibrations with multiple sub-views
+* Update incorrect / outdated documentation (#121)
+* Attempt to fix auto Anaconda build & deploy (#114)
+
+Deprecated / Removed:
+* Calcam 1 file converter scripts removed
 
 
 Minor Release 2.13.0 (February 2024)
@@ -48,7 +55,6 @@ Fixes:
 * Attempt to fix broken Anaconda build & publish action (#114)
 
 Note that this release introduces two new dependencies: h5py and triangle.
-
 
 
 Minor Release 2.12 (November 2023)
