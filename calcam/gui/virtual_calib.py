@@ -24,6 +24,7 @@ import cv2
 from .core import *
 from .vtkinteractorstyles import CalcamInteractorStyle3D
 from ..calibration import Calibration
+from copy import deepcopy
 
 # View designer window.
 # This allows creation of FitResults objects for a 'virtual' camera.
@@ -99,9 +100,10 @@ class VirtualCalib(CalcamGUIWindow):
         self.intrinsics_calib = None
 
         self.fov_enabled = False
-        self.viewdir_at_cc = True
+        self.viewdir_at = 'cc'
 
         self.extrinsics_src = None
+        self.chessboard_pointpairs = None
 
         self.calibration = Calibration(cal_type='virtual')
 
@@ -222,6 +224,7 @@ class VirtualCalib(CalcamGUIWindow):
                     self.current_intrinsics_combobox.click()
                 return
             else:
+                self.calibration.pixel_size = None
                 self.calibration.set_chessboard_intrinsics(self.chessboard_fit,self.chessboard_pointpairs,self.chessboard_src)
                 self.current_intrinsics_combobox = self.chessboard_intrinsics
 
@@ -389,8 +392,10 @@ class VirtualCalib(CalcamGUIWindow):
             self.chessboard_intrinsics.setChecked(True)
 
         elif opened_calib.intrinsics_type == 'calibration':
-            self.intrinsics_calib = self.calibration
+            self.intrinsics_calib = deepcopy(self.calibration)
             self.calcam_intrinsics.setChecked(True)
+            original_fname = opened_calib.history['intrinsics'][1].split('"')[1]
+            self.calcam_intrinsics_fname.setText(original_fname)
 
         self.update_intrinsics()
 
@@ -429,6 +434,7 @@ class VirtualCalib(CalcamGUIWindow):
         self.chessboard_fit = None
         self.intrinsics_calib = None
         self.pinhole_intrinsics.setChecked(True)
+        self.update_intrinsics()
 
         self.unsaved_changes = False
         self.refresh_3d()

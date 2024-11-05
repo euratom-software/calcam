@@ -64,16 +64,14 @@ from .pointpairs import PointPairs
 from . import config
 from . import gm
 
-# If we have no GUI available, put a placeholder function to print a message about why where the GUI launcher would normally be.
+# If we have no GUI available, put a placeholder function to show an error message where the GUI would normally be.
 if no_gui_reason is not None:
 
-    start_gui = lambda: print('Could not start calcam GUI: {:s}'.format(no_gui_reason))
-
-    # If we're running under pythonw, that print statement won't do anything, so try to make a simple tkinter dialog box to tell the user about the error.
-    if 'pythonw' in os.path.split(sys.executable)[-1]:
-        try:
-            from tkinter import messagebox
-            start_gui = lambda: messagebox.showerror(title='Cannot start Calcam GUI',message='Cannot start Calcam GUI: {:s}'.format(no_gui_reason))
-        except Exception as e:
-            pass
+    try:
+        # Since we could be running headless, first try to set up a GUI diaglog box showing why we can't start the GUI
+        from tkinter import messagebox
+        start_gui = lambda: messagebox.showerror(title='Cannot start Calcam GUI',message='Cannot start Calcam GUI: {:s}'.format(no_gui_reason))
+    except Exception as e:
+        # If all esle fails, try printing
+        start_gui = lambda: print('Could not start calcam GUI: {:s}'.format(no_gui_reason))
 

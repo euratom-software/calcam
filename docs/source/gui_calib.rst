@@ -143,9 +143,9 @@ In many examples of real images, only a relatively small number of point pairs c
 
 Chessboard Images
 *****************
-It is recommended to take chessboard images for intrinsics calibration whenever possible to improve calibraition results. The images bust be taken with exact camera and lens configuration as used on the machine.
+It is recommended to take chessboard images for intrinsics calibration whenever possible to improve calibraition results. The images must be taken with exact camera and lens configuration as used on the machine.
 
-To prepare chessboard images: make a flat chessboard target with known square size (there are various printable PDFs available by searching online). Then take a number of images with this chessboard target in front of the camera at a variety of positions, orientations and distances to the camera. The example below shows thumbnails of a set of chessboard calibration images:
+To prepare chessboard images: make a flat chessboard target with known square size (there are various printable PDFs available by searching online). Note that Calcam's the chessboard pattern detection, which uses OpenCV's ``findChessboardCorners()`` function, requires there to be a white border around all edges of the chessboard pattern to work properly. Then take a number of images with this chessboard target in front of the camera at a variety of positions, orientations and distances to the camera. The example below shows thumbnails of a set of chessboard calibration images:
 
 .. image:: images/chessboard_example.png
    :alt: Chessboard image example thumbnails
@@ -157,7 +157,11 @@ Chessboard images are loaded in to Calcam from the :guilabel:`Calibration Points
    :alt: Chessboard dialog screenshot
    :align: left
 
-Chessboard loading consists of 3 steps, done in order by working down the right hand side of this window. First, browse for and select all of the chessboard images to use. Then, enter the details of the chessboard pattern: number of squares and square size. Then, select the :guilabel:`Detect Chessboard Corners` button to run an automatic detection of the boundaries between the chessboard squares. If the automatic detection fails on some images, a dialog box will open telling you which images the detection failed for, and that those cannot be used. If all images fail, check that the number of squares input is correct. Once the corner detection has been completed, cursors will be added to the image displayed on the left hand side of the window. You can pan and zoom to inspect the cursor positions using the usual image mouse controls, and look at different images using the :guilabel:`<<` and :guilabel:`>>` buttons above the image. To complete loading of the images and use these as intrinsics constraints, click :guilabel:`Apply`.
+Chessboard loading consists of 3 steps, done in order by working down the right hand side of this window. First, browse for and select all of the chessboard images to use. Then, enter the details of the chessboard pattern: number of squares and square size. Then, select the :guilabel:`Detect Chessboard Corners` button to run an automatic detection of the boundaries between the chessboard squares. If the automatic detection fails on some images, a dialog box will open telling you which images the detection failed for, and that those cannot be used. If all images fail, check that the number of squares input is correct. Once the corner detection has been completed, cursors will be added to the image displayed on the left hand side of the window. You can pan and zoom to inspect the cursor positions using the usual image mouse controls, and look at different images using the :guilabel:`<<` and :guilabel:`>>` buttons above the image.
+
+For calibrations with multiple sub-views, you can choose to apply the chessboard points either to their respective sub-views (i.e. each chessboard square corner is only used to help fit the sub-view where that corner appears), or across all sub-views (i.e. all chessboard corners are used when fitting every sub-view). This second option can be used, for example, in a system which consists of a camera and lens viewing a set of flat mirrors which re-direct different parts of the view. Chessboard images can be taken with just the camera and lens without the mirrors present, and these chessboard corners will be valid across the whole image.
+
+To complete loading of the images and use these as intrinsics constraints, click :guilabel:`Apply`.
 
 
 Existing Calibrations

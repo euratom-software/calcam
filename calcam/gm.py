@@ -46,10 +46,17 @@ except:
     trignale = None
 
 import matplotlib.pyplot as plt
-import matplotlib.cm as cm
 from matplotlib.patches import Polygon as PolyPatch
 from matplotlib.collections import PatchCollection
 import matplotlib.path as mplpath
+
+# Workaround for Matplotlib API change at v3.9.0
+try:
+    from matplotlib.cm import get_cmap
+except ImportError:
+    from matplotlib import colormaps as mpl_cmaps
+    get_cmap = mpl_cmaps.get_cmap
+
 
 from . import config
 from . import misc
@@ -246,9 +253,9 @@ class PoloidalVolumeGrid:
             
             # Sort the intersections by length along the sight-line.
             # Also round t_ray to 9 figures because we'll want to find unique values
-            # of it shortly, so round to something well over machine precision.
+            # of it shortly, so round to something slightly larger than the expected precision.
             sort_order = np.argsort(t_ray)
-            t_ray = t_ray[sort_order].round(decimals=12)
+            t_ray = t_ray[sort_order].round(decimals=9)
             seg_inds = seg_inds[sort_order]
             
             # This will be the output list of cell indices
@@ -290,7 +297,7 @@ class PoloidalVolumeGrid:
 
 
 
-    def plot(self,data=None,clim=None,cmap=None,line_colour=(0,0,0),cell_linewidth=None,cblabel='',axes=None):
+    def plot(self,data=None,clim=None,cmap=None,line_colour=(0,0,0),cell_linewidth=None,cblabel='',axes=None,cell_numbers=False):
         '''
         Either plot a given data vector on the grid, or if no data vector is given,
         plot the grid itself.
@@ -311,12 +318,14 @@ class PoloidalVolumeGrid:
                                               If set to None, the wall and cell boundaries are not drawn.
 
             cell_linewidth (float)          : Line width to use to show the grid cell boundaries. If set to 0, the grid \
-                                              cell boundaries will not be drawn.
+                                              cell boundaries will not be drawn. Default=0.25 if no data is given, or 0 if plotting data.
 
             cblabel (str)                   : Label for the data colour bar, if plotting data.
 
             axes (matplotlib.pyplot.Axes)   : Matplotlib axes on which to plot. If not given, a new figure will be created.
 
+            cell_numbers (bool)             : If set to True, displays the indices of the grid cells as text at the grid cell centre. \
+                                              This is itended mainly for debugging and can be very slow on some systems.
 
         Returns:
             
@@ -343,7 +352,7 @@ class PoloidalVolumeGrid:
             if data.size != self.n_cells:
                 raise ValueError('Data vector is the wrong length! Data has {:d} values but the grid gas {:d} cells.'.format(data.size,self.n_cells))
 
-            cmap = cm.get_cmap(cmap)
+            cmap = get_cmap(cmap)
 
             # If we have data, grid cell edges default to off
             if cell_linewidth is None:
@@ -375,6 +384,8 @@ class PoloidalVolumeGrid:
             pcoll.set_cmap(cmap)
             if clim is not None:
                 pcoll.set_clim(clim)
+        else:
+            pcoll.set_facecolor('None')
 
         pcoll.set_edgecolor(line_colour)
         pcoll.set_linewidth(cell_linewidth)
@@ -398,6 +409,14 @@ class PoloidalVolumeGrid:
         # Add a colour bar if we have data
         if data is not None:
             plt.colorbar(pcoll,label=cblabel if cblabel is not None else '')
+
+        # If requested, write the cell numbers
+        if cell_numbers:
+            for cell_ind in range(self.n_cells):
+                verts =  np.vstack( [ self.vertices[self.cells[cell_ind,i],:] for i in range(verts_per_cell)] )
+                r = verts[:,0].mean()
+                z = verts[:,1].mean()
+                plt.text(r,z,cell_ind,ha='center',va='center',fontsize=6,clip_on=True)
 
         # Prettification - set appropriate zoom for the grid extent.
         rmin,rmax,zmin,zmax = self.extent
@@ -628,12 +647,11 @@ class GeometryMatrix:
             
             # Number of grid cells and sight lines
             n_cells = grid.n_cells
-            n_los = raydata.x.size
+            n_los = raydata.transform.x_pixels * raydata.transform.y_pixels
     
             # Flatten out the ray start and end coords
-            ray_start_coords = raydata.ray_start_coords.reshape(-1,3,order=self.pixel_order)
-            ray_end_coords = raydata.ray_end_coords.reshape(-1,3,order=self.pixel_order)
-
+            ray_start_coords = raydata.get_ray_start().reshape(-1,3,order=self.pixel_order)
+            ray_end_coords = raydata.get_ray_end().reshape(-1,3,order=self.pixel_order)
 
             # Multi-threadedly loop over each sight-line in raydata and calculate its matrix row.
             # Store the results as coords + data then build the matrix after, because that is much faster.
@@ -1044,7 +1062,6 @@ class GeometryMatrix:
         
         # Loop over each intersection
         for i in range(positions.size):
-            
             if len(in_cell) == 0:
                 # Entering the grid
                 in_cell = intersected_cells[i]
@@ -1052,7 +1069,6 @@ class GeometryMatrix:
             else:
                 # Going from one cell to another         
                 leaving_cell = list(intersected_cells[i] & in_cell)
-                
                 if len(leaving_cell) == 1:
                     
                     #row_out[0,leaving_cell[0]] = row_out[0,leaving_cell[0]] + (positions[i] - positions[i-1])
@@ -1061,16 +1077,39 @@ class GeometryMatrix:
                     in_cell.remove(leaving_cell[0])
                 
                 else:
-                    '''
-                    # Make a plot to show where on the grid the error has occured.
-                    self.grid.plot()
-                    self.grid.get_cell_intersections(ray_start_coords,ray_end_coords,plot=True)
-                    problem_point = ray_start_coords + positions[i]*(ray_end_coords - ray_start_coords)/ray_length
-                    plt.plot(np.sqrt(problem_point[0]**2 + problem_point[1]**2),problem_point[2],'bo')
-                    plt.title('Error for: {:},{:}'.format(ray_start_coords,ray_end_coords))
-                    plt.show()
-                    '''
-                    raise Exception('Error generating geometry matrix row: could not identify which grid cell the LoS left.')
+                    recovered_from_error = False
+                    if i < positions.size - 1:
+                        # Due to maths accuracy we can end up missing an intersection very close to a vertex sometimes.
+                        # In this case we assume we only missed a trivial distance and we're now in whatever cell we see ourselves
+                        # leaving next
+                        leaving_cell = list(in_cell)
+                        data[leaving_cell[0]] = data[leaving_cell[0]] + (positions[i] - positions[i - 1])
+                        in_cell = intersected_cells[i] & intersected_cells[i+1]
+                        if len(in_cell) == 1:
+                            recovered_from_error = True
+                    else:
+                        # If we find ourselves leaving the grid without exiting the last cell we were in, simply assume we exit that cell here
+                        # (this can happen for grids with very tiny cells at the edges)
+                        leaving_cell = list(in_cell)
+                        data[leaving_cell[0]] = data[leaving_cell[0]] + (positions[i] - positions[i - 1])
+                        in_cell = set()
+                        recovered_from_error = True
+
+                    if not recovered_from_error:
+                        try:
+                            # Make a plot to show where on the grid the error has occured.
+                            self.grid.plot(cell_numbers=True)
+                            self.grid.get_cell_intersections(ray_start_coords,ray_end_coords,plot=True)
+                            problem_point = ray_start_coords + positions[i]*(ray_end_coords - ray_start_coords)/ray_length
+                            plt.plot(np.sqrt(problem_point[0]**2 + problem_point[1]**2),problem_point[2],'bo')
+                            plt.title('This plot is here because an error has occured\nIt may be helpful to zoom in to the blue point and save a figure to report this error\nOnce this plot window is closed, an exception will be raised in Calcam.\nLoS start, end causing error: {:},{:}'.format(ray_start_coords,ray_end_coords))
+                            plt.xlim([np.sqrt(problem_point[0]**2 + problem_point[1]**2) - 0.05,np.sqrt(problem_point[0]**2 + problem_point[1]**2) + 0.05])
+                            plt.ylim([problem_point[2]-0.05,problem_point[2]+0.05])
+                            plt.show()
+                        except:
+                            pass
+
+                        raise Exception('Error generating geometry matrix row: could not identify which grid cell the LoS left.')
         
         
         # If the sight line ends inside a cell, add the length it was inside that cell.
@@ -1171,7 +1210,7 @@ class GeometryMatrix:
                 is_v73 = True
             except Exception as e:
                 # Handle failure to open file with both methods
-                raise Exception(f"Failed to load the file '{filename}' with either scipy or h5py. Error: {e}")
+                raise Exception("Failed to load the file '{:s}' with either scipy or h5py. Error: {:}".format(filename,e))
 
         if is_v73:
             # Load scalar values

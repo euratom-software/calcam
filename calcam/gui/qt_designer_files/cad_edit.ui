@@ -726,7 +726,7 @@
                  <string> m</string>
                 </property>
                 <property name="decimals">
-                 <number>2</number>
+                 <number>3</number>
                 </property>
                 <property name="minimum">
                  <double>-999.000000000000000</double>
@@ -757,7 +757,7 @@
                  <string> m</string>
                 </property>
                 <property name="decimals">
-                 <number>2</number>
+                 <number>3</number>
                 </property>
                 <property name="minimum">
                  <double>-999.000000000000000</double>
@@ -788,7 +788,7 @@
                  <string> m</string>
                 </property>
                 <property name="decimals">
-                 <number>2</number>
+                 <number>3</number>
                 </property>
                 <property name="minimum">
                  <double>-999.000000000000000</double>
@@ -819,7 +819,7 @@
                  <string> m</string>
                 </property>
                 <property name="decimals">
-                 <number>2</number>
+                 <number>3</number>
                 </property>
                 <property name="minimum">
                  <double>-999.000000000000000</double>
@@ -889,7 +889,7 @@
                  <string> m</string>
                 </property>
                 <property name="decimals">
-                 <number>2</number>
+                 <number>3</number>
                 </property>
                 <property name="minimum">
                  <double>-999.000000000000000</double>
@@ -920,7 +920,7 @@
                  <string> m</string>
                 </property>
                 <property name="decimals">
-                 <number>2</number>
+                 <number>3</number>
                 </property>
                 <property name="minimum">
                  <double>-999.000000000000000</double>
@@ -964,10 +964,10 @@
                  <bool>false</bool>
                 </property>
                 <property name="suffix">
-                 <string> deg</string>
+                 <string>°</string>
                 </property>
                 <property name="decimals">
-                 <number>0</number>
+                 <number>1</number>
                 </property>
                 <property name="maximum">
                  <double>180.000000000000000</double>
@@ -1012,10 +1012,10 @@
                  <bool>false</bool>
                 </property>
                 <property name="suffix">
-                 <string> °</string>
+                 <string>°</string>
                 </property>
                 <property name="decimals">
-                 <number>0</number>
+                 <number>2</number>
                 </property>
                 <property name="minimum">
                  <double>-180.000000000000000</double>

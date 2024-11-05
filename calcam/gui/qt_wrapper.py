@@ -101,11 +101,8 @@ if qt_ver == 6:
             for item in enum.__members__.items():
                 setattr(parent,item[0],item[1])
 
-
-# Import our local version of QVTKRenderWindowInteracor.
-# This avoids a problem with the version shipped with Enthought
-# Canopy + PyQt5. Also allows me to work around an annoying rendering issue.
-from .qvtkrenderwindowinteractor import QVTKRenderWindowInteractor, QVTKRWIBase
+from vtk.qt import QVTKRWIBase
+from vtk.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 if QVTKRWIBase == 'QGLWidget':
     qt_opengl = True
 else:

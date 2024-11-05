@@ -677,7 +677,8 @@ class Calibration():
             pp = self.geometry.original_to_display_pointpairs( calibration.geometry.display_to_original_pointpairs(calibration.pointpairs) )
             self.intrinsics_constraints.append((im,pp))
             self.history['intrinsics_constraints'].append( (calibration.history['image'],calibration.history['pointpairs']) )
-            self.intrinsics_constraints = self.intrinsics_constraints + calibration.intrinsics_constraints
+            for constraint in calibration.intrinsics_constraints:
+                self.intrinsics_constraints.append( (self.geometry.original_to_display_image(calibration.geometry.display_to_original_image(constraint[0])),self.geometry.original_to_display_pointpairs(calibration.geometry.display_to_original_pointpairs(constraint[1]))) )
             self.history['intrinsics_constraints'] = self.history['intrinsics_constraints'] + calibration.history['intrinsics_constraints']
 
         elif pointpairs is not None:
@@ -2048,7 +2049,7 @@ class Calibration():
                 n_ims = len(self.intrinsics_constraints)
                 n_points = 0
                 for ic in self.intrinsics_constraints:
-                    n_points = n_points + ic[1].get_n_points()
+                    n_points = n_points + ic[1].get_n_pointpairs()
                 msg = msg + '{:d} point pairs over {:d} image(s) for additional intsinrics constraints.'.format(n_points,n_ims)
             msg = msg + '\n\n'
 
@@ -2236,11 +2237,15 @@ class Fitter:
         self.fixk1 = False
         self.fixk2 = False
         self.fixk3 = True
-        self.fixk4 = False
+        self.fixk4 = True
         self.fixskew = True
         self.disabletangentialdist=False
         self.fixcc = False
         self.ignore_upside_down=True
+
+        self.f_guess = None
+        self.cx_init = None
+        self.cy_init = None
 
 
     def set_model(self,model):
@@ -2307,7 +2312,17 @@ class Fitter:
             if self.fixaspectratio:
                 Output.append('Fix Fx = Fy')
             if self.fixcc:
-                Output.append('Fix CC at ({:.1f},{:.1f})'.format(self.initial_matrix[0,2],self.initial_matrix[1,2]))
+
+                cx = self.image_display_shape[0] / 2
+                cy = self.image_display_shape[1] / 2
+
+                if self.cx_init is not None:
+                    cx = self.cx_init
+
+                if self.cy_init is not None:
+                    cy = self.cy_init
+
+                Output.append('Fix CC at ({:.1f},{:.1f})'.format(cx,cy))
             if self.disabletangentialdist:
                 Output.append('Disable Tangential Distortion')
 
@@ -2361,9 +2376,9 @@ class Fitter:
 
         self.fixcc = fix
         if Cx is not None:
-            self.initial_matrix[0,2] = Cx
+            self.cx_init = Cx
         if Cy is not None:
-            self.initial_matrix[1,2] = Cy
+            self.cy_init = Cy
 
     def fix_k1(self,fix):
         self.fixk1 = fix
@@ -2417,6 +2432,39 @@ class Fitter:
     # Output: CalibResults instance containing the fit results.
     def do_fit(self):
 
+        # Initial guess for intrinsics
+        # Note the guess for the focal length is 2 * sensor longet side,
+        # since this seems to be a reasonable value for most currently used
+        # systems and allows the fitting to work well for both very low and
+        # very high pixel density sensors.
+        initial_matrix = np.zeros((3,3))
+        initial_matrix[2, 2] = 1
+
+        if self.f_guess is None:
+            sensor_diagonal = np.sqrt(self.image_display_shape[0]**2+self.image_display_shape[1]**2)
+            if self.model == 'rectilinear':
+                initial_matrix[0,0] = sensor_diagonal*2    # Fx
+                initial_matrix[1,1] = sensor_diagonal*2    # Fy
+            elif self.model == 'fisheye':
+                initial_matrix[0,0] = sensor_diagonal/2    # Fx
+                initial_matrix[1,1] = sensor_diagonal/2    # Fy
+
+        else:
+            initial_matrix[0, 0] = self.f_guess  # Fx
+            initial_matrix[1, 1] = self.f_guess  # Fy
+
+        cx = self.image_display_shape[0]/2
+        cy = self.image_display_shape[1]/2
+
+        if self.cx_init is not None:
+            cx = self.cx_init
+
+        if self.cy_init is not None:
+            cy = self.cy_init
+
+        initial_matrix[0,2] = cx
+        initial_matrix[1,2] = cy
+
         # Gather up the image and object points for this field
         obj_points = []
         img_points = []
@@ -2428,8 +2476,8 @@ class Fitter:
                         obj_points[-1].append(pointpairs.object_points[point])
                         img_points[-1].append(pointpairs.image_points[point][subfield])
             if len(img_points[-1]) == 0:
-                    obj_points.remove([])
-                    img_points.remove([])
+                    del obj_points[-1]
+                    del img_points[-1]
 
             obj_points[-1] = np.array(obj_points[-1],dtype='float32')
             img_points[-1] = np.array(img_points[-1],dtype='float32')
@@ -2447,9 +2495,9 @@ class Fitter:
         # Do the fit!
         if self.model == 'rectilinear':
             if int(cv2.__version__[0]) > 2:
-                fit_output = cv2.calibrateCamera(obj_points,img_points,self.image_display_shape,copy.copy(self.initial_matrix),None,flags=self.get_fitflags())
+                fit_output = cv2.calibrateCamera(obj_points,img_points,self.image_display_shape,initial_matrix,None,flags=self.get_fitflags())
             else:
-                fit_output = cv2.calibrateCamera(obj_points,img_points,self.image_display_shape,copy.copy(self.initial_matrix),flags=self.get_fitflags())
+                fit_output = cv2.calibrateCamera(obj_points,img_points,self.image_display_shape,initial_matrix,flags=self.get_fitflags())
 
             fitted_model = RectilinearViewModel(cv2_output = fit_output)
             fitted_model.fit_options = self.get_fitflags_strings()
@@ -2462,11 +2510,17 @@ class Fitter:
         elif self.model == 'fisheye':
 
             # Prepare input arrays in the annoying, strange way OpenCV requires them...
-            obj_points = np.expand_dims(obj_points,1)
-            img_points = np.expand_dims(img_points,1)
+            if obj_points.dtype == object:
+                obj_points = np.array([np.expand_dims(arr,1) for arr in obj_points],dtype=object)
+                img_points = np.array([np.expand_dims(arr,1) for arr in img_points],dtype=object)
+            else:
+                obj_points = np.expand_dims(obj_points,1)
+                img_points = np.expand_dims(img_points,1)
+
             rvecs = [np.zeros((1,1,3),dtype='float32') for i in range(len(self.pointpairs))]
             tvecs = [np.zeros((1,1,3),dtype='float32') for i in range(len(self.pointpairs))]
-            fit_output = cv2.fisheye.calibrate(obj_points,img_points,self.image_display_shape,copy.copy(self.initial_matrix), np.zeros(4),rvecs,tvecs,flags = self.get_fitflags())
+
+            fit_output = cv2.fisheye.calibrate(obj_points,img_points,self.image_display_shape,initial_matrix, np.zeros(4),rvecs,tvecs,flags = self.get_fitflags())
         
             fitted_model = FisheyeeViewModel(cv2_output = fit_output)
             #raise UserWarning(fitted_model.rvec)
@@ -2491,20 +2545,9 @@ class Fitter:
 
         self.image_display_shape = tuple(im_shape)
         
-        longest_side = max(self.image_display_shape[0],self.image_display_shape[1])
 
-        # Initial guess for fitting camera matrix
-        # Note the guess for the focal length is 2 * sensor longet side,
-        # since this seems to be a reasonable value for most currently used
-        # systems and allows the fitting to work well for both very low and 
-        # very high pixel density sensors.
-        initial_matrix = np.zeros((3,3))
-        initial_matrix[0,0] = longest_side*2    # Fx
-        initial_matrix[1,1] = longest_side*2    # Fy
-        initial_matrix[2,2] = 1
-        initial_matrix[0,2] = self.image_display_shape[0]/2    # Cx
-        initial_matrix[1,2] = self.image_display_shape[1]/2    # Cy
-        self.initial_matrix = initial_matrix        
+
+
 
 
     def add_intrinsics_pointpairs(self,pointpairs,subview=0):

@@ -40,6 +40,7 @@ from ..pointpairs import PointPairs
 from .vtkinteractorstyles import CalcamInteractorStyle2D
 from . import qt_wrapper as qt
 from ..misc import ColourCycle,DodgyDict, open_file
+from ..image_enhancement import scale_to_8bit
 
 guipath = os.path.split(os.path.abspath(__file__))[0]
 
@@ -92,7 +93,13 @@ class CalcamGUIWindow(qt.QMainWindow):
         self.viewlist.clear()
 
         self.fov_enabled = True
-        self.viewdir_at_cc = False
+
+        # How to set the CAD view based on a calibration. Possible values
+        # for this which could be used by subclasses are:
+        # 'ic' - Match view direction at image centre (default)
+        # 'cc' - Set CAD view centre to optical axis / centre of perspective
+        # 'sc' - Set CAD view centre to centre of relevant sub-view
+        self.viewdir_at = 'ic'
 
         # Populate viewports list
         self.views_root_model = qt.QTreeWidgetItem(['Defined in Model'])
@@ -262,8 +269,7 @@ class CalcamGUIWindow(qt.QMainWindow):
             cal = self.calibration
         else:
             cal = None
-
-        dialog = ChessboardDialog(self,modelselection=True,calibration=cal)
+        dialog = ChessboardDialog(self,modelselection=True,calibration=cal,current_chessboards=self.chessboard_pointpairs)
         dialog.exec()
 
         if dialog.results != []:
@@ -301,12 +307,17 @@ class CalcamGUIWindow(qt.QMainWindow):
             if reply == qt.QMessageBox.No:
                 return
 
-        cam_pos = (self.camX.value(),self.camY.value(),self.camZ.value())
-        target = (self.tarX.value(), self.tarY.value(), self.tarZ.value())
-        fov = self.camFOV.value()
+        cam_pos = self.camera_3d.GetPosition()
+        target = self.camera_3d.GetFocalPoint()
+
+        if self.interactor3d.projection == 'perspective':
+            fov = self.camera_3d.GetViewAngle()
+        elif self.interactor3d.projection == 'orthographic':
+            fov = self.camera_3d.GetParallelScale()*2
+
+        roll = self.interactor3d.cam_roll
         xsection = self.interactor3d.get_xsection()
         projection = self.interactor3d.projection
-        roll = self.cam_roll.value()
 
         try:
             self.cadmodel.add_view(str(self.view_save_name.text()),cam_pos,target,fov,xsection,roll,projection)
@@ -647,6 +658,9 @@ class CalcamGUIWindow(qt.QMainWindow):
 
     def change_cad_view(self):
 
+        if self.fov_enabled:
+            self.camera_3d.SetUseHorizontalViewAngle(False)
+
         if self.sender() is self.viewlist:
             items = self.viewlist.selectedItems()
             if len(items) > 0:
@@ -764,14 +778,16 @@ class CalcamGUIWindow(qt.QMainWindow):
             self.camera_3d.SetUseHorizontalViewAngle(h_fov)
 
         self.camera_3d.SetPosition(calibration.get_pupilpos(subview=subfield))
-
-        if self.viewdir_at_cc:
+        if self.viewdir_at == 'cc':
             mat = calibration.get_cam_matrix(subview=subfield)
-            self.camera_3d.SetFocalPoint(calibration.get_pupilpos(subview=subfield) + calibration.get_los_direction(mat[0,2],mat[1,2]))
-        else:
+            self.camera_3d.SetFocalPoint(calibration.get_pupilpos(subview=subfield) + calibration.get_los_direction(mat[0,2],mat[1,2],subview=subfield))
+        elif self.viewdir_at == 'sc':
             ypx,xpx = CoM( calibration.get_subview_mask(coords='Display') == subfield)
             los_centre = calibration.get_los_direction(xpx,ypx)
             self.camera_3d.SetFocalPoint(calibration.get_pupilpos(subview=subfield) + los_centre)
+        elif self.viewdir_at == 'ic':
+            im_centre = np.array(calibration.geometry.get_display_shape())/2
+            self.camera_3d.SetFocalPoint(calibration.get_pupilpos(subview=subfield) + calibration.get_los_direction(im_centre[0], im_centre[1],subview=subfield))
 
         self.interactor3d.set_roll(calibration.get_cam_roll(subview=subfield,centre='subview'))
 
@@ -1294,7 +1310,7 @@ class CalcamGUIWindow(qt.QMainWindow):
 
 class ChessboardDialog(qt.QDialog):
 
-    def __init__(self, parent,modelselection=False,calibration=None):
+    def __init__(self, parent,modelselection=False,calibration=None,current_chessboards=None,existing_history=None):
 
         # GUI initialisation
         qt.QDialog.__init__(self, parent,qt.Qt.WindowTitleHint | qt.Qt.WindowCloseButtonHint)
@@ -1338,6 +1354,9 @@ class ChessboardDialog(qt.QDialog):
         self.prev_im_button.setEnabled(False)
         self.current_filename.hide()
 
+        if self.n_fields == 1:
+            self.subview_options.hide()
+
         if int(cv2.__version__[0]) < 3:
             self.fisheye_model.setEnabled(False)
             self.fisheye_model.setToolTip('Requires OpenCV 3')
@@ -1368,6 +1387,61 @@ class ChessboardDialog(qt.QDialog):
         self.renderer.Render()
         self.vtkInteractor.Initialize()
 
+        if current_chessboards is not None:
+            self.populate_from_existing(current_chessboards,existing_history)
+
+
+    def populate_from_existing(self,existing_chessboards,existing_history):
+
+        self.images = []
+        self.chessboard_status = [True] * len(existing_chessboards)
+
+        self.chessboard_points_2D = [np.zeros([ existing_chessboards[0][1].get_n_pointpairs(),2]) for i in range(len(existing_chessboards))]
+
+        try:
+            self.filenames = [existing_history[n][0].split('from ')[-1].split(',')[0] for n in range(len(existing_history))]
+        except Exception:
+            self.filenames = ['Chessboard image {:d}'.format(i) for i in range(len(existing_chessboards))]
+
+        self.display_coords.setChecked(True)
+
+        # This feels a bit hacky because it relies on given string formatting in the pointpairs history.
+        # If it fails we'll end up with the chessboard dims & size not auto-populating :(
+        try:
+            cb_dims = existing_history[0][1][0].split('corners of ')[-1].split(' square')[0]
+            cb_sqdims = existing_history[0][1][0].split('with ')[-1].split('mm')[0]
+            self.chessboard_squares_x.setValue(int(cb_dims.split('x')[0]))
+            self.chessboard_squares_y.setValue(int(cb_dims.split('x')[1]))
+            self.n_chessboard_points = (self.chessboard_squares_x.value() - 1, self.chessboard_squares_y.value() - 1)
+            self.chessboard_square_size.setValue(float(cb_sqdims))
+            self.apply_button.setEnabled(True)
+        except Exception:
+            self.apply_button.setEnabled(False)
+
+        for i,(im,pointpairs) in enumerate(existing_chessboards):
+            self.images.append(im)
+            apply_to_all = True
+            for j, point in enumerate(pointpairs.image_points):
+                lastsubview = -1
+                for psub in point:
+                    if psub is not None:
+                        self.chessboard_points_2D[i][j, :] = psub[:]
+                    if lastsubview == -1:
+                        lastsubview = psub
+                    elif lastsubview != psub:
+                        apply_to_all = False
+
+
+        if self.n_fields > 1:
+            if apply_to_all:
+                self.apply_across_subviews.setChecked(True)
+
+
+        self.update_image_display(0)
+        self.next_im_button.setEnabled(True)
+        self.prev_im_button.setEnabled(True)
+        self.current_filename.show()
+
 
     def load_images(self):
 
@@ -1388,7 +1462,7 @@ class ChessboardDialog(qt.QDialog):
 
             for n,fname in enumerate(filedialog.selectedFiles()):
                 self.status_text.setText('<b>Loading image {:d} / {:d} ...'.format(n,len(filedialog.selectedFiles())))
-                im = cv2.imread(str(fname))
+                im = scale_to_8bit(cv2.imread(str(fname),cv2.IMREAD_UNCHANGED))
                 
                 if self.im_shape is None:
 
@@ -1501,8 +1575,8 @@ class ChessboardDialog(qt.QDialog):
             dialog.setStandardButtons(qt.QMessageBox.Ok)
             dialog.setTextFormat(qt.Qt.RichText)
             dialog.setWindowTitle('Calcam - Chessboard Detection')
-            dialog.setText("A {:d} x {:d} square chessboard pattern could not be detected in the following {:d} of {:d} images, which will therefore not be included as additional chessboard constraints:".format(self.chessboard_squares_x.value(),self.chessboard_squares_y.value(),np.count_nonzero(self.chessboard_status),len(self.images)))
-            dialog.setInformativeText('<br>'.join(['[#{:d}] '.format(i+1) + self.filenames[i] for i in range(len(self.filenames)) if self.chessboard_status[i] ]))
+            dialog.setText("A {:d} x {:d} square chessboard pattern could not be auto-detected in the following {:d} of {:d} images, which will therefore not be included as additional chessboard constraints:".format(self.chessboard_squares_x.value(),self.chessboard_squares_y.value(),np.count_nonzero(self.chessboard_status),len(self.images)))
+            dialog.setInformativeText('<br>'.join([self.filenames[i] for i in range(len(self.filenames)) if self.chessboard_status[i] ]))
             dialog.setIcon(qt.QMessageBox.Warning)
             dialog.exec()                
 
@@ -1540,7 +1614,7 @@ class ChessboardDialog(qt.QDialog):
         else:
             status_string = ''
 
-        self.current_filename.setText('<html><head/><body><p align="center">{:s} [#{:d}/{:d}]{:s}</p></body></html>'.format(self.filenames[image_number],image_number+1,len(self.images),status_string))
+        self.current_filename.setText('<html><head/><body><p align="center">{:s} {:s}</p></body></html>'.format(self.filenames[image_number],status_string))
         
         if self.chessboard_status[image_number]:
             for corner in range(self.chessboard_points_2D[image_number].shape[0]):
@@ -1603,19 +1677,21 @@ class ChessboardDialog(qt.QDialog):
 
                 # Populate coordinates for relevant field
                 for field in range(self.n_fields):
-                    if self.subview_lookup(impoints[point,0],impoints[point,1],coords=coords) == field:
+                    if self.subview_lookup(impoints[point,0],impoints[point,1],coords=coords) == field or self.apply_across_subviews.isChecked():
                         self.results[-1][1].image_points[-1].append([impoints[point,0], impoints[point,1]])
                     else:
                         self.results[-1][1].image_points[-1].append(None)
 
             if self.original_coords.isChecked():
-                self.results[-1][0] = self.image_transformer.original_to_display_image(self.results[-1][0])
-                self.results[-1][1] = self.image_transformer.original_to_display_pointpairs(self.results[-1][1])
+                self.results[-1] = (self.image_transformer.original_to_display_image(self.results[-1][0]),self.image_transformer.original_to_display_pointpairs(self.results[-1][1]))
 
 
         self.filenames = [self.filenames[i] for i in range(len(self.filenames)) if self.chessboard_status[i]]
 
-        self.chessboard_source = '{:d} chessboard images loaded from "{:s}"'.format(len(self.filenames),self.src_dir.replace('/',os.sep))
+        try:
+            self.chessboard_source = '{:d} chessboard images loaded from "{:s}"'.format(len(self.filenames),self.src_dir.replace('/',os.sep))
+        except AttributeError:
+            self.chessboard_source = '{:d} chessboard images checked '.format(len(self.filenames))
 
         # And close the window.
         self.done(1)
