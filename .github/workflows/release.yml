@@ -52,6 +52,6 @@ jobs:
           platform_osx-64: true
           platform_win-64: true
           user: calcam
-          label: auto
+          label: main
           upload: true
           token: ${{ secrets.ANACONDA_TOKEN }}
