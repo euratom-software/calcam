@@ -1660,7 +1660,7 @@ class FittingCalib(CalcamGUIWindow):
 
     def modify_chessboard_constraints(self):
 
-        if self.chessboard_pointpairs is not None:
+        if len(self.chessboard_pointpairs) > 0:
             dialog = ChessboardDialog(self,calibration=self.calibration,current_chessboards=self.chessboard_pointpairs,existing_history=self.chessboard_history)
         else:
             dialog = ChessboardDialog(self, calibration=self.calibration)
@@ -1683,7 +1683,7 @@ class FittingCalib(CalcamGUIWindow):
                 self.chessboard_checkbox.setChecked(False)
             self.chessboard_checkbox.setChecked(True)
 
-        self.load_chessboard_button.setText('View / Change...')
+            self.load_chessboard_button.setText('View / Change...')
 
 
 

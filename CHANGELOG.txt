@@ -14,12 +14,14 @@ New & Enhancements:
 * Improve handing of errors which prevent GUI from opening (ensure diaglog boxes with specific messages are displayed instead of silent failure or non-specific messages)
 * Improve precision of adding new preset views to CAD model definitions (contribution from Matt Kriete)
 * Change pixel size input to 2 decimal places (contribution from Matt Kriete)
+* Minor GUI text improvements (contribution from Matt Kriete + Scott Silburn)
 
 Compatibility:
 * Fix compatibility with Matplotlib 3.9.0
 * Restore compatibility with Python 3.5
 * Fix compatibility with NumPy =>1.25 when performing calibrations with multiple sub-views
 * Fix compatibility of RayData.save() with SciPy => 1.12 (#127) (contribution from Rhys Doyle)
+* Switch from using local copy of QVTKInteractorStyle to using the upstream version (contribution from Evie Litherland-Smith)
 
 Fixes:
 * Geometry matrix generation now works correctly with RayData objects where RayData.set_detector_window() has been used (previously the detector window setting was ignored by the geometry matrix building)
@@ -33,6 +35,8 @@ Fixes:
 * Improve behaviour of "Set CAD view to match fit" button in fitting calibration tool for calibrations with multiple sub-views
 * Update incorrect / outdated documentation (#121)
 * Attempt to fix auto Anaconda build & deploy (#114)
+* Improve reliability of Fisheye calibration
+* Fix bug where using fisheye calibration with chessboard images in the fitting tool raised exceptions
 
 Deprecated / Removed:
 * Calcam 1 file converter scripts removed
