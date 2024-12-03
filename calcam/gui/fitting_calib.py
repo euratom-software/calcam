@@ -21,7 +21,7 @@ permissions and limitations under the Licence.
 
 from collections import deque
 
-from scipy.ndimage.measurements import center_of_mass as CoM
+from scipy.ndimage import center_of_mass as CoM
 
 from .core import *
 from .vtkinteractorstyles import CalcamInteractorStyle2D, CalcamInteractorStyle3D

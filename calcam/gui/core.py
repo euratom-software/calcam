@@ -26,7 +26,7 @@ import traceback
 
 # External module imports
 import numpy as np
-from scipy.ndimage.measurements import center_of_mass as CoM
+from scipy.ndimage import center_of_mass as CoM
 import vtk
 import cv2
 

@@ -34,7 +34,7 @@ class CoordTransformer:
         self.set_transform_actions(transform_actions)
         self.x_pixels = orig_x
         self.y_pixels = orig_y
-        self.offset = offset
+        self.offset = (int(offset[0]),int(offset[1]))
         self.pixel_aspectratio = paspect
 
 
@@ -134,7 +134,7 @@ class CoordTransformer:
             x_offset (int) : Horizontal offset in pixels
             y_offset (int) : Vertical offset in pixels
         """
-        self.offset = (x_offset,y_offset)
+        self.offset = (int(x_offset),int(y_offset))
 
 
 

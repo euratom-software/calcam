@@ -68,8 +68,8 @@ class CalcamConfig():
                        'default_model': None,
                        'default_image_source':'Image File',
                        'mouse_sensitivity':75,
-                       'main_overlay_colour':(0,0,1.,0.6),
-                       'second_overlay_colour':(1.,0,0,0.6)
+                       'main_overlay_colour':[0,0,1.,0.6],
+                       'second_overlay_colour':[1.,0,0,0.6]
                        }
 
         # Filename filters (which should never need to change so are defined above)

@@ -50,12 +50,11 @@ from matplotlib.patches import Polygon as PolyPatch
 from matplotlib.collections import PatchCollection
 import matplotlib.path as mplpath
 
-# Workaround for Matplotlib API change at v3.9.0
+# The Matplotlib cmap API changed at v3.9.0
 try:
-    from matplotlib.cm import get_cmap
+    from matplotlib.colormaps import get_cmap
 except ImportError:
-    from matplotlib import colormaps as mpl_cmaps
-    get_cmap = mpl_cmaps.get_cmap
+    from matplotlib.cm import get_cmap
 
 
 from . import config
