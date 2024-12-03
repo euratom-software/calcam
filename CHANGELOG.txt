@@ -1,6 +1,18 @@
 Calcam Changelog
 ================
 
+
+Patch Release 2.14.1 (December 2024)
+------------------------------------
+
+Fixes / Compatibility:
+* Fixed a bug which caused the point fitting calibration tool to raise an exception on launch at first run (#135)
+* Fixed a bug which caused exceptions from Calibration.subview_lookup() due to the subview mask sometimes being a dtype other than signed int (#134)
+* Fixed various bugs caused if elements of CoordTransformer.offset were not integers, by explicitly casting them to ints when set in CoordTransformer() (#133)
+* Removed use of deprecated SciPy namespaces and improve matplotlib cmap import logic (#132)
+
+
+
 Minor Release 2.14.0 (November 2024)
 ------------------------------------
 

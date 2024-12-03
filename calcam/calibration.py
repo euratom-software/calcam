@@ -26,7 +26,7 @@ import json
 import copy
 import warnings
 
-from scipy.ndimage.measurements import center_of_mass as CoM
+from scipy.ndimage import center_of_mass as CoM
 from scipy.optimize import minimize
 
 from .io import ZipSaveFile
@@ -906,7 +906,10 @@ class Calibration():
                                    supplied mask is in.
             keep_models (bool)   : If set to true, even if the new subview mask has a different number \
                                    of sub-views, the calibration models will be left alone (by default they are reset)
-        '''        
+        '''
+
+        mask = mask.astype(np.int8)
+
         n_subviews = mask.max() + 1
 
         if n_subviews < 1:

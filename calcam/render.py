@@ -29,12 +29,12 @@ import copy
 from .misc import bin_image, get_contour_intersection, LoopProgPrinter, ColourCycle
 from .calibration import Calibration
 
-# Workaround for Matplotlib API change at v3.9.0
+# The Matplotlib cmap API changed at v3.9.0
 try:
-    from matplotlib.cm import get_cmap
+    from matplotlib.colormaps import get_cmap
 except ImportError:
-    from matplotlib import colormaps as mpl_cmaps
-    get_cmap = mpl_cmaps.get_cmap
+    from matplotlib.cm import get_cmap
+
 
 # This is the maximum image dimension which we expect VTK can succeed at rendering in a single RenderWindow.
 # Hopefully 5120 is conservative enough to be safe on most systems but also not restrict render quality too much.

@@ -29,7 +29,7 @@ except:
     vtk = None
 
 import numpy as np
-from scipy.io.netcdf import netcdf_file
+from scipy.io import netcdf_file
 
 from . import coordtransformer
 from . import misc
