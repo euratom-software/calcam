@@ -908,7 +908,7 @@ class Calibration():
                                    of sub-views, the calibration models will be left alone (by default they are reset)
         '''
 
-        mask = mask.astype(np.int8,casting='safe')
+        mask = mask.astype(np.int8)
 
         n_subviews = mask.max() + 1
 
