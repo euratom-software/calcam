@@ -1615,43 +1615,39 @@ class Calibration():
 
     def normalise(self,x,y,subview=None):
         '''
-        Given x and y image pixel coordinates, return corresponding normalised coordinates
-        (see Calcam theory documentation).
+        Given x and y image pixel coordinates, return corresponding normalised coordinates x_n & y_n
+        (see Calcam calibration theory documentation for definition).
 
         Parameters:
 
             x,y (sequences)  : Sequences of x and y pixel coordinates to convert to normalised\
                                coordinates. x and y must be the same shape.
             subview (int)    : If specified, force the calculation to use the view model \
-                               from the given sub-view. If not specified, the correct sub-view \
+                               from the given sub-view. If not specified, the correct sub-view(s) \
                                is chosen automatically.
 
         Returns:
 
-            np.ndarray       : Array containing nroamlised coordinates. The output array will be the \
-                               same shape as the input x and y arrays with an extra dimension added; \
-                               the extra dimension contains the [x_n, y_n] normalised coordinates at the \
-                               corresponding input coordinates.
+            x_n,y_n          : NumPy arrays containing the x and y normalised coordinates. The output arrays will be the \
+                               same shape as the input x and y arrays.
 
         '''
+        x = np.array(x)
+        y = np.array(y)
         if subview is None:
             subview = self.subview_lookup(x,y)
-            slic = [slice(None)]*(len(subview.shape)+1)
-            slic[-1] = np.newaxis
-            subview = np.tile(subview[tuple(slic)],list(np.ones(len(subview.shape),dtype=int)) + [2])
 
-            outp = np.zeros(x.shape + (2,))
+            out_x = np.zeros(x.shape) + np.nan
+            out_y = np.zeros(y.shape) + np.nan
 
             for isubview in range(self.n_subviews):
                 if self.view_models[isubview] is not None:
-                    outp[subview == isubview] = self.view_models[isubview].normalise(x,y)[subview == isubview]
-                else:
-                    outp[subview == isubview] = np.nan
+                    out_x[subview == isubview],out_y[subview == isubview] = self.view_models[isubview].normalise(x[subview == isubview],y[subview == isubview])
+
         else:
-            outp = self.view_models[subview].normalise(x,y)
+            out_x,out_y =  self.view_models[subview].normalise(x,y)
 
-        return outp
-
+        return out_x,out_y
 
 
     def set_calib_intrinsics(self,intrinsics_calib,update_hist_recursion=True,subview=None):

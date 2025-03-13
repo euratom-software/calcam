@@ -7,6 +7,7 @@ Changes on master branch since last release
 
 Fixes:
 * Fixed a bug where the number of pixels was not always loaded properly in the virtual calibration editor (#140)
+* Fix bugs in Calibration.normalise() and update inaccurate docstring (#139)
 
 
 Patch Release 2.14.1 (December 2024)
