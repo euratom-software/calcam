@@ -31,7 +31,7 @@ dependencies = [
     "scipy",
     "matplotlib",
     "vtk>=7,!=9.1.*",
-    "PyQt5",
+    "PyQt6",
     "opencv-python-headless",
     "h5py",
     "triangle"

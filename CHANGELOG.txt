@@ -5,9 +5,11 @@ Calcam Changelog
 Changes on master branch since last release
 -------------------------------------------
 
-Fixes:
+Fixes / Compatibility::
 * Fixed a bug where the number of pixels was not always loaded properly in the virtual calibration editor (#140)
 * Fix bugs in Calibration.normalise() and update inaccurate docstring (#139)
+* Re-enable PyQt6 support and change install requirement to PyQt6 (but keeping PyQt5 and 4 support)
+* Fix bug which prevented calibration being saved if image offset coordinates returned by image source code were NumPy int32 or int64 types.
 
 
 Patch Release 2.14.1 (December 2024)

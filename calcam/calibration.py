@@ -1036,7 +1036,7 @@ class Calibration():
                     'history':self.history,
                     'pixel_size':self.pixel_size,
                     'orig_paspect':self.geometry.pixel_aspectratio,
-                    'image_offset':self.geometry.offset,
+                    'image_offset':(int(self.geometry.offset[0]),int(self.geometry.offset[1])),
                     'image_transform_actions':self.geometry.transform_actions,
                     'subview_names':self.subview_names,
                     'calib_type':self._type,
@@ -1995,7 +1995,8 @@ class Calibration():
                 msg = msg + 'Image shape:         {0:d} x {1:d} pixels as displayed (Raw data: {2:d} x {3:d})\n'.format(geometry.get_display_shape()[0],geometry.get_display_shape()[1],geometry.get_original_shape()[0],geometry.get_original_shape()[1])
             else:
                 msg = msg + 'Image shape:         {0:d} x {1:d} pixels\n'.format(geometry.get_display_shape()[0],geometry.get_display_shape()[1],np.prod(geometry.get_display_shape()) / 1e6 )
-            
+            if self.geometry.offset[0] > 0 or self.geometry.offset[1] > 0:
+                msg = msg + '                     @ ROI offset: ({:d},{:d}) pixels\n'.format(*self.geometry.offset)
             if len(im_array.shape) == 2:
                 msg = msg + 'Colour:              Monochrome'
             elif len(im_array.shape) == 3:
