@@ -1523,8 +1523,8 @@ class Calibration():
                                 else:
                                     postol = np.sqrt(2)
                                 ray_lengths = check_occlusion_with.get_ray_lengths(p2d[:,0],p2d[:,1],im_position_tol = postol)
-                            except:
-                                raise Exception('Could not use the supplied Ray Data to check occlusion.')
+                            except Exception as e:
+                                raise Exception('Could not use the supplied Ray Data to check occlusion: {:}.'.format(e))
 
                         # The 3D points are invisible where the distance to the point is larger than the
                         # ray length
