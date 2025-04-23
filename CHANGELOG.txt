@@ -12,7 +12,8 @@ Fixes / Compatibility::
 * Fix bug which prevented calibration being saved if image offset coordinates returned by image source code were NumPy int32 or int64 types.
 * Fixed bug in RayData which could cause unexpected exceptions in Calibration.project_points() when passing a RayData object to check occlusion
 
-
+New & Enhancements:
+* Added new optional argument "verbose" to CADModel constructor which can be used to suppress status messages (and fix inaccurate docstring related to this)
 
 Patch Release 2.14.1 (December 2024)
 ------------------------------------

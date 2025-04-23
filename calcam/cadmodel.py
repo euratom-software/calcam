@@ -25,6 +25,7 @@ import numpy as np
 import json
 import os
 import atexit
+import warnings
 from .config import CalcamConfig
 from .io import ZipSaveFile
 
@@ -43,16 +44,20 @@ class CADModel():
     Class for representing a CAD model in Calcam.
 
     Parameters:
-        model_name (str)        : Either the machine name of a CAD model in Calcam's model search path, \
-                                  or filename of a .ccm file to load the model from.
-        model_variant (str)     : Name of the model variant to load. If not specified, the default variant \
-                                  specified in the CAD model is loaded.
-        status_callback (func)  : Function to call with status messages. If given, this function is called \
-                                  with a string describing the status. If set to None, no status updates are \
-                                  issued.
+        model_name (str)            : Either the machine name of a CAD model in Calcam's model search path, \
+                                      or filename of a .ccm file to load the model from.
+        model_variant (str)         : Name of the model variant to load. If not specified, the default variant \
+                                      specified in the CAD model is loaded.
+        status_callback (callable)  : Function to call with status messages. If given, this function will be called \
+                                      with a string describing what this class is currently doing (e.g. loading files etc) \
+                                      or `None` which signifies clearing the previous status. This is mainly used for integration \
+                                      with the Calcam GUI.
+        verbose (bool)              : Whether to issue status updates to status_callback (default) or be completely silent if set to False.
     '''
-    def __init__(self,model_name=None,model_variant=None,status_callback=print_status):
+    def __init__(self,model_name=None,model_variant=None,status_callback=print_status,verbose=True):
 
+        self.verbose = verbose
+        self.set_status_callback(status_callback)
 
         if model_name is not None:
             # -------------------------------Loading model definition-------------------------------------
@@ -77,8 +82,7 @@ class CADModel():
                 self.model_variant = model_variant
             
 
-            if status_callback is not None:
-                status_callback('Extracting CAD model...')
+            self.status_callback('Extracting CAD model...')
 
 
             # Open the definition file (ZIP file)
@@ -87,8 +91,7 @@ class CADModel():
             except:
                 self.def_file = ZipSaveFile(definition_filename,'r')
 
-            if status_callback is not None:
-                status_callback(None)
+            self.status_callback(None)
 
 
             # Load the model definition and grab some properties from it
@@ -188,7 +191,6 @@ class CADModel():
         self.cell_locator = None
         self.discard_changes = False
 
-        self.set_status_callback(status_callback)
         atexit.register(self.unload)
 
 
@@ -205,7 +207,7 @@ class CADModel():
 
             status_callback (fun): Status callback function.
         '''
-        self.status_callback = status_callback
+        self._status_callback = status_callback
 
 
     def get_status_callback(self):
@@ -216,9 +218,13 @@ class CADModel():
 
             func or NoneType : Current status callback function, if present.
         '''
-        return self.status_callback
+        return self._status_callback
 
 
+    def status_callback(self,msg):
+
+        if self._status_callback is not None and self.verbose:
+            self._status_callback(msg)
 
 
     def add_to_renderer(self,renderer):
@@ -818,20 +824,17 @@ class CADModel():
         '''
         Unloads the CAD model object.
         '''
-        if self.status_callback is not None:
-            self.status_callback('Closing model definition {:s}/{:s}...'.format(self.machine_name,self.model_variant))
+
+        self.status_callback('Closing model definition {:s}/{:s}...'.format(self.machine_name,self.model_variant))
 
         if self.def_file is not None:
             temp_dir = self.def_file.get_temp_path()
             try:
                 self.def_file.close(discard_changes=self.discard_changes)
             except:
-                if self.status_callback is not None:
-                    self.status_callback('WARNING: CAD model definition {:s}/{:s} could not be closed cleanly. There may be temporary files left in {:s}.'.format(self.machine_name,self.model_variant,temp_dir))
-                #raise UserWarning('CAD model definition file could not be closed cleanly. There may be temporary files left in {:s}'.format(temp_dir))
+                warnings.warn('CAD model definition {:s}/{:s} could not be closed cleanly. There may be temporary files left in {:s}.'.format(self.machine_name,self.model_variant,temp_dir))
 
-        if self.status_callback is not None:
-            self.status_callback(None)
+        self.status_callback(None)
 
 
     def update_definition_file(self):
@@ -903,8 +906,7 @@ class ModelFeature():
 
         if self.polydata is None:
 
-            if self.parent.status_callback is not None:
-                self.parent.status_callback('Loading mesh file: {:s}...'.format(os.path.split(self.filename)[1]))
+            self.parent.status_callback('Loading mesh file: {:s}...'.format(os.path.split(self.filename)[1]))
 
             if self.filetype == 'stl':
                 reader = vtk.vtkSTLReader()
@@ -962,8 +964,7 @@ class ModelFeature():
             # way too much memory in VTK 9.1+.
             self.polydata.SetLines(vtk.vtkCellArray())
 
-            if self.parent.status_callback is not None:
-                self.parent.status_callback(None)
+            self.parent.status_callback(None)
 
         return self.polydata
 
@@ -1008,8 +1009,7 @@ class ModelFeature():
             # Make the edge actor if it doesn't already exist and is needed
             if self.parent.edges and self.edge_actor is None:
 
-                if self.parent.status_callback is not None:
-                    self.parent.status_callback('Detecting mesh edges...')
+                self.parent.status_callback('Detecting mesh edges...')
 
                 edge_finder = vtk.vtkFeatureEdges()
 
@@ -1029,9 +1029,8 @@ class ModelFeature():
                 self.edge_actor.SetMapper(mapper)
                 
                 self.edge_actor.GetProperty().SetLineWidth(self.linewidth)
-            
-                if self.parent.status_callback is not None:
-                    self.parent.status_callback(None)
+
+                self.parent.status_callback(None)
 
             # Make sure the colour and lighing are set appropriately
             if self.parent.edges:
