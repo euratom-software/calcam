@@ -2,18 +2,24 @@ Calcam Changelog
 ================
 
 
-Changes on master branch since last release
--------------------------------------------
-
-Fixes / Compatibility::
-* Fixed a bug where the number of pixels was not always loaded properly in the virtual calibration editor (#140)
-* Fix bugs in Calibration.normalise() and update inaccurate docstring (#139)
-* Re-enable PyQt6 support and change install requirement to PyQt6 (but keeping PyQt5 and 4 support)
-* Fix bug which prevented calibration being saved if image offset coordinates returned by image source code were NumPy int32 or int64 types.
-* Fixed bug in RayData which could cause unexpected exceptions in Calibration.project_points() when passing a RayData object to check occlusion
+Minor Release 2.15.0 (Soon!)
+----------------------------
 
 New & Enhancements:
+* In the fitting calibration tool, previous calibrations and/or chessboard images with detector windows different to the current calibration can now be used as intrinsics constraints (Also fixes #137)
 * Added new optional argument "verbose" to CADModel constructor which can be used to suppress status messages (and fix inaccurate docstring related to this)
+
+Fixes:
+* Fixed a bug where the number of pixels was not always loaded properly in the virtual calibration editor (#140)
+* Fix bugs in Calibration.normalise() and update inaccurate docstring (#139)
+* Fix bug which prevented calibration being saved if image offset coordinates returned by image source code were NumPy int32 or int64 types.
+* Fixed bugs in Calibration & RayData classes which could cause unexpected exceptions in Calibration.project_points() when passing a RayData object to check occlusion (#142 and others)
+* Fixed mis-recognition of previous calibration images as chessboard images in point fitting GUI when loading existing calibrations (#138)
+
+Compatibility:
+* Re-enable PyQt6 support and change install requirement to PyQt6 (but keeping PyQt5 and 4 support) (fixes #141)
+
+
 
 Patch Release 2.14.1 (December 2024)
 ------------------------------------

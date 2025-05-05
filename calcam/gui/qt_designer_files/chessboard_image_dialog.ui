@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>837</width>
-    <height>635</height>
+    <width>965</width>
+    <height>738</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -172,10 +172,30 @@
            </property>
           </widget>
          </item>
+         <item row="1" column="0" colspan="2">
+          <widget class="QPushButton" name="load_images_button">
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Load Images...</string>
+           </property>
+          </widget>
+         </item>
          <item row="2" column="0">
           <widget class="QLabel" name="orientation_label">
            <property name="text">
             <string>Orientation:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0" colspan="3">
+          <widget class="QLabel" name="label_4">
+           <property name="text">
+            <string>1) Load a set of chessboard pattern images:</string>
            </property>
           </widget>
          </item>
@@ -189,23 +209,33 @@
            </property>
           </widget>
          </item>
-         <item row="0" column="0" colspan="3">
-          <widget class="QLabel" name="label_4">
+         <item row="3" column="0">
+          <widget class="QLabel" name="offset_label">
            <property name="text">
-            <string>1) Load a set of chessboard pattern images:</string>
+            <string>Window offet (x,y):</string>
            </property>
           </widget>
          </item>
-         <item row="1" column="0" colspan="2">
-          <widget class="QPushButton" name="load_images_button">
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>16777215</height>
-            </size>
+         <item row="3" column="1">
+          <widget class="QSpinBox" name="x_offset">
+           <property name="buttonSymbols">
+            <enum>QAbstractSpinBox::NoButtons</enum>
            </property>
-           <property name="text">
-            <string>Load Images...</string>
+           <property name="suffix">
+            <string/>
+           </property>
+           <property name="singleStep">
+            <number>81920</number>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="2">
+          <widget class="QSpinBox" name="y_offset">
+           <property name="buttonSymbols">
+            <enum>QAbstractSpinBox::NoButtons</enum>
+           </property>
+           <property name="singleStep">
+            <number>81920</number>
            </property>
           </widget>
          </item>
