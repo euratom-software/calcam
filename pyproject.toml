@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "calcam"
 description = "Spatial calibration tools for science & engineering camera systems."
 authors = [{name = "Scott Silburn et. al.", email = "scott.silburn@ukaea.uk"}]
-license = "EUPL-1.1"
+license = {text = "EUPL-1.1"}
 readme = {file = "README.md", content-type='text/markdown'}
 requires-python = ">=3.5"
 classifiers = [
