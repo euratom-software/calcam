@@ -23,6 +23,7 @@
 import sys
 import os
 import traceback
+from copy import deepcopy
 
 # External module imports
 import numpy as np
@@ -1318,7 +1319,8 @@ class ChessboardDialog(qt.QDialog):
 
         self.parent = parent
         if calibration is not None:
-            self.image_transformer = calibration.geometry
+            self.image_transformer = deepcopy(calibration.geometry)
+            self.parent_image_transformer = calibration.geometry
 
             if self.image_transformer.get_display_shape() != self.image_transformer.get_original_shape() or self.image_transformer.transform_actions == []:
                 self.orientation_label.hide()
@@ -1339,6 +1341,11 @@ class ChessboardDialog(qt.QDialog):
 
         if not modelselection:
             self.model_options.hide()
+
+
+        self.offset_label.hide()
+        self.x_offset.hide()
+        self.y_offset.hide()
 
 
         # Callbacks for GUI elements
@@ -1470,12 +1477,10 @@ class ChessboardDialog(qt.QDialog):
                         imshape = im.shape[1::-1]
                         if np.all(imshape == self.image_transformer.get_display_shape()):
                             self.display_coords.setChecked(True)
-                            expected_shape = self.image_transformer.get_display_shape()
                             wrong_shape.append(False)
                             self.im_shape = im.shape[:2]
                         elif np.all(imshape == self.image_transformer.get_original_shape()):
                             self.original_coords.setChecked(True)
-                            expected_shape = self.image_transformer.get_original_shape()
                             wrong_shape.append(False)
                             self.im_shape = im.shape[:2]
                         else:
@@ -1497,19 +1502,22 @@ class ChessboardDialog(qt.QDialog):
                 self.src_dir = os.path.split(str(fname))[0]
             self.parent.app.restoreOverrideCursor()
 
+
             self.status_text.setText('')
             if np.all(wrong_shape):
                 dialog = qt.QMessageBox(self)
                 dialog.setStandardButtons(qt.QMessageBox.Ok)
                 dialog.setTextFormat(qt.Qt.RichText)
-                dialog.setWindowTitle('Calcam - Wrong image size')
-                dialog.setText("The selected chessboard pattern images are the wrong dimensions for this camera calibration and have not been loaded.")
-                dialog.setInformativeText("Chessboard images of {:d} x {:d} pixels or {:d} x {:d} pixels are required for this camera image.".format(self.image_transformer.get_original_shape()[0],self.image_transformer.get_original_shape()[1],self.image_transformer.get_display_shape()[0],self.image_transformer.get_display_shape()[1]))
-                dialog.setIcon(qt.QMessageBox.Warning)
+                dialog.setWindowTitle('Calcam - Image Dimension Warning')
+                dialog.setText("<p>The selected images have different dimensions ({:d} x {:d} pixels) to the calibration ({:d} x {:d} pixels).</p><p>Please check this is correct and ensure the orientation and offset of the chessboard images are specified correctly to obtain accurate calibration results.</p>".format(self.images[-1].shape[1],self.images[-1].shape[0],self.image_transformer.get_original_shape()[0],self.image_transformer.get_original_shape()[1]))
+                dialog.setIcon(qt.QMessageBox.Information)
                 dialog.exec()
-                self.images = []
-                self.filenames = []
-                return
+                self.orientation_label.show()
+                self.original_coords.show()
+                self.display_coords.show()
+                self.offset_label.show()
+                self.x_offset.show()
+                self.y_offset.show()
 
             elif np.any(wrong_shape):
                 dialog = qt.QMessageBox(self)
@@ -1671,6 +1679,12 @@ class ChessboardDialog(qt.QDialog):
             else:
                 coords = 'display'
 
+            parent_shape = self.image_transformer.get_original_shape()
+            parent_offset = self.image_transformer.offset
+
+            self.image_transformer.set_image_shape(self.images[0].shape[1],self.images[0].shape[0],coords=coords)
+            self.image_transformer.set_offset(self.x_offset.value(), self.y_offset.value())
+
             # Loop over chessboard points
             for point in range( np.prod(self.n_chessboard_points) ):
                 self.results[-1][1].image_points.append([])
@@ -1682,8 +1696,36 @@ class ChessboardDialog(qt.QDialog):
                     else:
                         self.results[-1][1].image_points[-1].append(None)
 
-            if self.original_coords.isChecked():
-                self.results[-1] = (self.image_transformer.original_to_display_image(self.results[-1][0]),self.image_transformer.original_to_display_pointpairs(self.results[-1][1]))
+            # To account for ROI offsets, put the point pairs in original coords and apply the offsets, then transform back to display
+            if self.display_coords.isChecked():
+                original_pointpairs = self.image_transformer.display_to_original_pointpairs(self.results[-1][1])
+                original_image = self.image_transformer.display_to_original_image(self.results[-1][0])
+            else:
+                original_pointpairs = self.results[-1][1]
+                original_image = self.results[-1][0]
+
+            dx = self.x_offset.value() - self.parent_image_transformer.offset[0]
+            dy = self.y_offset.value() - self.parent_image_transformer.offset[1]
+            for i in range(len(original_pointpairs.image_points)):
+                for j in range(self.n_fields):
+                    if original_pointpairs.image_points[i][j] is not None:
+                       original_pointpairs.image_points[i][j] = (original_pointpairs.image_points[i][j][0] + dx, original_pointpairs.image_points[i][j][1] + dy)
+
+            display_pointpairs = self.parent_image_transformer.original_to_display_pointpairs(original_pointpairs)
+
+            # We might need to crop or pad the images to match the calibration
+            # Case where the requested crop has parts outside the original image
+            # Note this case may not have been thoroughly tested
+            if dx > 0 or dy > 0 or self.image_transformer.offset[0] + self.image_transformer.get_image_shape(coords='Original')[0] < parent_shape[0]+parent_offset[0] or self.image_transformer.offset[1] + self.image_transformer.get_image_shape(coords='Original')[1] < parent_shape[1]+parent_offset[1]:
+                padded_im = np.zeros(max(self.image_transformer.offset[1] + self.image_transformer.get_image_shape(coords='Original')[1], parent_shape[1]+parent_offset[1]),max(self.image_transformer.offset[0] + self.image_transformer.get_image_shape(coords='Original')[0], parent_shape[0]+parent_offset[0]),original_image.shape[2], original_image.dtype)
+                padded_im[self.image_transformer.offset[1]:self.image_transformer.offset[1]+self.image_transformer.get_original_shape()[1],self.image_transformer.offset[0]:self.image_transformer.offset[0] + self.image_transformer.get_original_shape()[0], :] = self.native_image[:, :, :]
+                original_image = padded_im[parent_offset[1]:parent_offset[1]+parent_shape[1], parent_offset[0]:parent_offset[0]+parent_shape[0]]
+
+            else:
+                # Simply crop the original
+                original_image = original_image[-dy:-dy+self.parent_image_transformer.get_original_shape()[1],-dx:-dx+self.parent_image_transformer.get_original_shape()[0]]
+
+            self.results[-1] = (self.parent_image_transformer.original_to_display_image(original_image),display_pointpairs)
 
 
         self.filenames = [self.filenames[i] for i in range(len(self.filenames)) if self.chessboard_status[i]]
@@ -1695,6 +1737,16 @@ class ChessboardDialog(qt.QDialog):
 
         # And close the window.
         self.done(1)
+
+
+class PixelCoordsDialog(qt.QDialog):
+
+    def __init__(self, parent,msg):
+
+        # GUI initialisation
+        qt.QDialog.__init__(self, parent,qt.Qt.WindowTitleHint | qt.Qt.WindowCloseButtonHint)
+        qt.uic.loadUi(os.path.join(guipath,'qt_designer_files','coords_spec.ui'), self)
+        self.main_msg.setText(msg)
 
 
 class NameInputDialog(qt.QDialog):

@@ -820,7 +820,7 @@ class RayData:
                         xind = np.argmin(np.abs(self.x[0,:] - x[pointno]))
                         yind = np.argmin(np.abs(self.y[:,0] - y[pointno]))
                         deltaR = np.sqrt( (self.x[0,xind]-x[pointno])**2 + (self.y[yind,0]-y[pointno])**2)
-                        if deltaR < im_position_tol:
+                        if deltaR <= im_position_tol:
                             RL[pointno] = raylength[yind,xind]
                         else:
                             raise Exception('No ray-traced pixel within im_position_tol of requested pixel ({:.1f},{:.1f})!'.format(x[pointno], y[pointno]))

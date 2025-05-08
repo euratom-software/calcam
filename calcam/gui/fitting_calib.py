@@ -214,6 +214,7 @@ class FittingCalib(CalcamGUIWindow):
 
 
     def modify_intrinsics_calib(self):
+
         loaded_calib = self.object_from_file('calibration')
 
         if loaded_calib is not None:
@@ -1104,17 +1105,26 @@ class FittingCalib(CalcamGUIWindow):
         self.calibration.clear_intrinsics_constraints()
 
         if self.intrinsics_calib_checkbox.isChecked():
-            self.calibration.add_intrinsics_constraints(calibration=self.intrinsics_calib)
 
-            transformed_pp = self.calibration.geometry.original_to_display_pointpairs(self.intrinsics_calib.geometry.display_to_original_pointpairs(self.intrinsics_calib.pointpairs))
-            transformed_ic_pp = []
-            for ic in self.intrinsics_calib.intrinsics_constraints:
-                transformed_ic_pp.append(self.calibration.geometry.original_to_display_pointpairs(self.intrinsics_calib.geometry.display_to_original_pointpairs(ic[1])))
+            if isinstance(self.intrinsics_calib,Calibration):
+                self.calibration.add_intrinsics_constraints(calibration=self.intrinsics_calib)
 
-            for subview in range(self.calibration.n_subviews):
-                self.fitters[subview].add_intrinsics_pointpairs( transformed_pp,subview=subview)
-                for ic in transformed_ic_pp:
-                    self.fitters[subview].add_intrinsics_pointpairs(ic,subview=subview)
+                transformed_pp = self.calibration.geometry.original_to_display_pointpairs(self.intrinsics_calib.geometry.display_to_original_pointpairs(self.intrinsics_calib.pointpairs))
+                transformed_ic_pp = []
+                for ic in self.intrinsics_calib.intrinsics_constraints:
+                    transformed_ic_pp.append(self.calibration.geometry.original_to_display_pointpairs(self.intrinsics_calib.geometry.display_to_original_pointpairs(ic[1])))
+
+                for subview in range(self.calibration.n_subviews):
+                    self.fitters[subview].add_intrinsics_pointpairs( transformed_pp,subview=subview)
+                    for ic in transformed_ic_pp:
+                        self.fitters[subview].add_intrinsics_pointpairs(ic,subview=subview)
+
+            # Case where we have a non-chessboard, but already transform-matched intrinsics image (loaded with the calibration)
+            elif isinstance(self.intrinsics_calib,tuple):
+                for (image,pointpairs),history in zip(*self.intrinsics_calib):
+                    self.calibration.add_intrinsics_constraints(image=image,pointpairs=pointpairs,im_history=history[0],pp_history=';'.join(history[1]))
+                    for subview in range(self.calibration.n_subviews):
+                        self.fitters[subview].add_intrinsics_pointpairs(pointpairs,subview=subview)
 
         if self.chessboard_checkbox.isChecked():
             for n,chessboard_constraint in enumerate(self.chessboard_pointpairs):
@@ -1394,15 +1404,24 @@ class FittingCalib(CalcamGUIWindow):
             chessboard_points = chessboard_points + chessboard_constraint[1].get_n_pointpairs()
 
         if self.intrinsics_calib is not None:
-            for subview in range(self.calibration.n_subviews):
-                if self.intrinsics_calib_checkbox.isChecked():
-                    self.n_points[subview][1] = self.n_points[subview][1] + self.intrinsics_calib.pointpairs.get_n_points(subview) - 6
-                intcal_points = intcal_points + self.intrinsics_calib.pointpairs.get_n_points(subview)
 
-                for intrinsics_constraint in self.intrinsics_calib.intrinsics_constraints:
+            if isinstance(self.intrinsics_calib,Calibration):
+                for subview in range(self.calibration.n_subviews):
                     if self.intrinsics_calib_checkbox.isChecked():
-                        self.n_points[subview][1] = self.n_points[subview][1] + intrinsics_constraint[1].get_n_points(subview) - 6
-                    intcal_points = intcal_points + intrinsics_constraint[1].get_n_points(subview)
+                        self.n_points[subview][1] = self.n_points[subview][1] + self.intrinsics_calib.pointpairs.get_n_points(subview) - 6
+                    intcal_points = intcal_points + self.intrinsics_calib.pointpairs.get_n_points(subview)
+
+                    for intrinsics_constraint in self.intrinsics_calib.intrinsics_constraints:
+                        if self.intrinsics_calib_checkbox.isChecked():
+                            self.n_points[subview][1] = self.n_points[subview][1] + intrinsics_constraint[1].get_n_points(subview) - 6
+                        intcal_points = intcal_points + intrinsics_constraint[1].get_n_points(subview)
+
+            elif isinstance(self.intrinsics_calib,tuple):
+                for _,pointpairs in self.intrinsics_calib[0]:
+                    for subview in range(self.calibration.n_subviews):
+                        self.n_points[subview][1] = self.n_points[subview][1] + pointpairs.get_n_points(subview) - 6
+                        intcal_points = intcal_points + pointpairs.get_n_points(subview)
+
 
         if chessboard_points > 0:
             self.chessboard_checkbox.setText('Chessboard Images ({:d} points)'.format(chessboard_points))
@@ -1508,8 +1527,27 @@ class FittingCalib(CalcamGUIWindow):
 
         self.interactor2d.set_subview_lookup(self.calibration.n_subviews,self.calibration.subview_lookup)
 
-        self.chessboard_pointpairs = self.calibration.intrinsics_constraints
-        self.chessboard_history = self.calibration.history['intrinsics_constraints']
+        # Assemble intrinsics constraints from the loaded calibration, separating chessboard and non-chessboard images
+        chessboard_constraints = []
+        chessboard_history = []
+        other_constraints = []
+        other_history = []
+        for intrinsics,intrinsics_history in zip(self.calibration.intrinsics_constraints,self.calibration.history['intrinsics_constraints']):
+            if intrinsics_history[0].lower().startswith('chessboard'):
+                chessboard_constraints.append(intrinsics)
+                chessboard_history.append(intrinsics_history)
+            else:
+                other_constraints.append(intrinsics)
+                other_history.append(intrinsics_history)
+
+        self.chessboard_pointpairs = chessboard_constraints
+        self.chessboard_history = chessboard_history
+
+        if len(other_constraints) > 0:
+            self.intrinsics_calib = (other_constraints,other_history)
+            self.intrinsics_calib_checkbox.blockSignals(True)
+            self.intrinsics_calib_checkbox.setChecked(True)
+            self.intrinsics_calib_checkbox.blockSignals(False)
 
         if len(self.chessboard_pointpairs) > 0:
             self.chessboard_checkbox.blockSignals(True)

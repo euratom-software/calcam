@@ -371,13 +371,13 @@ class VirtualCalib(CalcamGUIWindow):
         # Load the intrinsics
         if opened_calib.intrinsics_type == 'pinhole':
 
+            im_size = opened_calib.geometry.get_display_shape()
+
             if opened_calib.pixel_size is not None:
                 fl = opened_calib.view_models[0].cam_matrix[0,0] * opened_calib.pixel_size  * 1000
                 self.pixel_size_box.setValue(opened_calib.pixel_size * 1e6)
             else:
                 fl = opened_calib.view_models[0].cam_matrix[0,0] * self.pixel_size_box.value()  / 1000
-
-            im_size = opened_calib.geometry.get_display_shape()
 
             self.x_pixels_box.setValue(im_size[0])
             self.y_pixels_box.setValue(im_size[1])

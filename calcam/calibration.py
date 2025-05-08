@@ -524,6 +524,10 @@ class Calibration():
                 self.image = self.native_image
                 del self.native_image
 
+                for ic,native_im in zip(self.intrinsics_constraints,self.native_intrinsics_images):
+                    ic[0] = native_im
+                del self.native_intrinsics_images
+
             # Put the optical centre back to normal
             for i,model in enumerate(self.view_models):
                 if model is not None:
@@ -543,12 +547,26 @@ class Calibration():
                         if pp_before.image_points[i][j] is not None:
                             pp_before.image_points[i][j] = (pp_before.image_points[i][j][0] + dx, pp_before.image_points[i][j][1] + dy)
 
+            ip_before = []
+            for ic in self.intrinsics_constraints:
+                ip_before.append(self.geometry.display_to_original_pointpairs(ic[1]))
+
+                for i in range(len(ip_before[-1].image_points)):
+                    for j in range(self.n_subviews):
+                        if ip_before[-1].image_points[i][j] is not None:
+                            ip_before[-1].image_points[i][j] = (ip_before[-1].image_points[i][j][0] + dx, ip_before[-1].image_points[i][j][1] + dy)
+
+
             # Put the coordinate transformer back to normal
             self.geometry.x_pixels,self.geometry.y_pixels,self.geometry.offset = self.native_geometry
             del self.native_geometry
 
             if self.pointpairs is not None:
                 self.pointpairs = self.geometry.original_to_display_pointpairs(pp_before)
+
+            for ic,newic in zip(self.intrinsics_constraints,ip_before):
+                ic[1] = self.geometry.original_to_display_pointpairs(newic)
+
 
             self.crop = None
 
@@ -603,7 +621,7 @@ class Calibration():
                     self.native_cc.append(None)
                     orig_cc.append(None)
 
-            # Change the image itself. This does not use set_image() because there's so much other faff involved in set_image()
+            # Change the image itself and any intrinsics constraint images. This does not use set_image() because there's so much other faff involved in set_image()
             if self.image is not None:
                 self.native_image = copy.deepcopy(self.image)
 
@@ -620,6 +638,20 @@ class Calibration():
                     # Simply crop the original
                     self.image = self.image[ int(window[1] - self.geometry.offset[1]):int(window[1] - self.geometry.offset[1] + window[3]),int(window[0] - self.geometry.offset[0]):int(window[0] - self.geometry.offset[0] + window[2])]
 
+                self.native_intrinsics_images = []
+                for ic in self.intrinsics_constraints:
+                    self.native_intrinsics_images.append(copy.deepcopy(ic[0]))
+                    # Case where the requested crop has parts outside the original image
+                    if window[0] < self.geometry.offset[0] or window[1] < self.geometry.offset[1] or window[0] + window[2] > self.geometry.offset[0] + orig_shape[0] or window[1] + window[3] > self.geometry.offset[1] + orig_shape[1]:
+                        padded_im = np.zeros((max(self.geometry.offset[1] + orig_shape[1], window[1] + window[3]),max(self.geometry.offset[0] + orig_shape[0], window[0] + window[2]),self.native_intrinsics_images[-1].shape[2]), self.native_intrinsics_images[-1].dtype)
+                        padded_im[self.geometry.offset[1]:self.geometry.offset[1] + orig_shape[1],self.geometry.offset[0]:self.geometry.offset[0] + orig_shape[0], :] = self.native_intrinsics_images[-1][:, :, :]
+                        ic[0] = padded_im[window[1]:window[1] + window[3], window[0]:window[0] + window[2]]
+
+                    else:
+                        # Simply crop the original
+                        ic[0] = ic[0][int(window[1] - self.geometry.offset[1]):int(window[1] - self.geometry.offset[1] + window[3]), int(window[0] - self.geometry.offset[0]):int(window[0] - self.geometry.offset[0] + window[2])]
+
+
             # Adjust point pairs
             if self.pointpairs is not None:
                 pp_before = self.geometry.display_to_original_pointpairs(self.pointpairs)
@@ -632,6 +664,17 @@ class Calibration():
                         if pp_before.image_points[i][j] is not None:
                             pp_before.image_points[i][j] = (pp_before.image_points[i][j][0] - dx, pp_before.image_points[i][j][1] - dy)
 
+            ip_before = []
+            for ic in self.intrinsics_constraints:
+                ip_before.append(self.geometry.display_to_original_pointpairs(ic[1]))
+
+                for i in range(len(ip_before[-1].image_points)):
+                    for j in range(self.n_subviews):
+                        if ip_before[-1].image_points[i][j] is not None:
+                            ip_before[-1].image_points[i][j] = (ip_before[-1].image_points[i][j][0] - dx, ip_before[-1].image_points[i][j][1] - dy)
+
+
+
             # Change the image shape that the coord transformer is expecting
             self.native_geometry = (self.geometry.x_pixels,self.geometry.y_pixels,self.geometry.offset)
             self.geometry.set_offset(window[0],window[1])
@@ -639,6 +682,9 @@ class Calibration():
 
             if self.pointpairs is not None:
                 self.pointpairs = self.geometry.original_to_display_pointpairs(pp_before)
+
+            for ic,newic in zip(self.intrinsics_constraints,ip_before):
+                ic[1] = self.geometry.original_to_display_pointpairs(newic)
 
             self.crop = copy.deepcopy(window)
             try:
@@ -1036,7 +1082,7 @@ class Calibration():
                     'history':self.history,
                     'pixel_size':self.pixel_size,
                     'orig_paspect':self.geometry.pixel_aspectratio,
-                    'image_offset':self.geometry.offset,
+                    'image_offset':(int(self.geometry.offset[0]),int(self.geometry.offset[1])),
                     'image_transform_actions':self.geometry.transform_actions,
                     'subview_names':self.subview_names,
                     'calib_type':self._type,
@@ -1464,12 +1510,15 @@ class Calibration():
 
         Returns:
 
-            list of np.ndarray                  : A list of Nx2 NumPY arrays containing the image coordinates of the given 3D points (N is the number of input 3D points). \
+            list of np.ndarray                   : A list of Nx2 NumPY arrays containing the image coordinates of the given 3D points (N is the number of input 3D points). \
                                                   Each NumPY array corresponds to a single sub-view, so for images without multuiple sub-views this will return a single element \
                                                   list containing an Nx2 array. Each row of the NumPY arrays contains the [X,Y] image coordinates of the corresponding input point. \
                                                   If fill_value is not None, points not visible to the camera have their coordinates set to ``[fill_value, fill_value]``.
         '''
         points_3d = np.array(points_3d)
+
+        if points_3d.ndim == 1:
+            points_3d = np.array([points_3d])
 
         # This will be the output
         points_2d = []
@@ -1485,7 +1534,7 @@ class Calibration():
                 if np.ndim(points_3d) < 3:
                     dims = (np.shape(points_3d)[0],2)
                 else:
-                    dims = points.shape[:-1] + (2,)
+                    dims = points_3d.shape[:-1] + (2,)
 
                 p2d = np.zeros(dims)
                 p2d[:] = fill_value
@@ -1523,8 +1572,8 @@ class Calibration():
                                 else:
                                     postol = np.sqrt(2)
                                 ray_lengths = check_occlusion_with.get_ray_lengths(p2d[:,0],p2d[:,1],im_position_tol = postol)
-                            except:
-                                raise Exception('Could not use the supplied Ray Data to check occlusion.')
+                            except Exception as e:
+                                raise Exception('Could not use the supplied Ray Data to check occlusion: {:}.'.format(e))
 
                         # The 3D points are invisible where the distance to the point is larger than the
                         # ray length
@@ -1615,43 +1664,39 @@ class Calibration():
 
     def normalise(self,x,y,subview=None):
         '''
-        Given x and y image pixel coordinates, return corresponding normalised coordinates
-        (see Calcam theory documentation).
+        Given x and y image pixel coordinates, return corresponding normalised coordinates x_n & y_n
+        (see Calcam calibration theory documentation for definition).
 
         Parameters:
 
             x,y (sequences)  : Sequences of x and y pixel coordinates to convert to normalised\
                                coordinates. x and y must be the same shape.
             subview (int)    : If specified, force the calculation to use the view model \
-                               from the given sub-view. If not specified, the correct sub-view \
+                               from the given sub-view. If not specified, the correct sub-view(s) \
                                is chosen automatically.
 
         Returns:
 
-            np.ndarray       : Array containing nroamlised coordinates. The output array will be the \
-                               same shape as the input x and y arrays with an extra dimension added; \
-                               the extra dimension contains the [x_n, y_n] normalised coordinates at the \
-                               corresponding input coordinates.
+            x_n,y_n          : NumPy arrays containing the x and y normalised coordinates. The output arrays will be the \
+                               same shape as the input x and y arrays.
 
         '''
+        x = np.array(x)
+        y = np.array(y)
         if subview is None:
             subview = self.subview_lookup(x,y)
-            slic = [slice(None)]*(len(subview.shape)+1)
-            slic[-1] = np.newaxis
-            subview = np.tile(subview[tuple(slic)],list(np.ones(len(subview.shape),dtype=int)) + [2])
 
-            outp = np.zeros(x.shape + (2,))
+            out_x = np.zeros(x.shape) + np.nan
+            out_y = np.zeros(y.shape) + np.nan
 
             for isubview in range(self.n_subviews):
                 if self.view_models[isubview] is not None:
-                    outp[subview == isubview] = self.view_models[isubview].normalise(x,y)[subview == isubview]
-                else:
-                    outp[subview == isubview] = np.nan
+                    out_x[subview == isubview],out_y[subview == isubview] = self.view_models[isubview].normalise(x[subview == isubview],y[subview == isubview])
+
         else:
-            outp = self.view_models[subview].normalise(x,y)
+            out_x,out_y =  self.view_models[subview].normalise(x,y)
 
-        return outp
-
+        return out_x,out_y
 
 
     def set_calib_intrinsics(self,intrinsics_calib,update_hist_recursion=True,subview=None):
@@ -1999,7 +2044,8 @@ class Calibration():
                 msg = msg + 'Image shape:         {0:d} x {1:d} pixels as displayed (Raw data: {2:d} x {3:d})\n'.format(geometry.get_display_shape()[0],geometry.get_display_shape()[1],geometry.get_original_shape()[0],geometry.get_original_shape()[1])
             else:
                 msg = msg + 'Image shape:         {0:d} x {1:d} pixels\n'.format(geometry.get_display_shape()[0],geometry.get_display_shape()[1],np.prod(geometry.get_display_shape()) / 1e6 )
-            
+            if self.geometry.offset[0] > 0 or self.geometry.offset[1] > 0:
+                msg = msg + '                     @ ROI offset: ({:d},{:d}) pixels\n'.format(*self.geometry.offset)
             if len(im_array.shape) == 2:
                 msg = msg + 'Colour:              Monochrome'
             elif len(im_array.shape) == 3:

@@ -2,6 +2,27 @@ Calcam Changelog
 ================
 
 
+Minor Release 2.15.0 (May 2025)
+-------------------------------
+
+New & Enhancements:
+* In the fitting calibration tool, previous calibrations and/or chessboard images with detector windows different to the current calibration can now be used as intrinsics constraints (Also fixes #137)
+* Added new optional argument "verbose" to CADModel constructor which can be used to suppress status messages (and fix inaccurate docstring related to this)
+* Added display of detector window offset in calibration information (i.e. output of Calibration.__str__())
+* Removed display of QtOpenGL status from Settings GUI since this appears to be redundant following #125
+
+Fixes:
+* Fixed a bug where the number of pixels was not always loaded properly in the virtual calibration editor (#140)
+* Fix bugs in Calibration.normalise() and update inaccurate docstring (#139)
+* Fix bug which prevented calibration being saved if image offset coordinates returned by image source code were NumPy int32 or int64 types.
+* Fixed bugs in Calibration & RayData classes which could cause unexpected exceptions in Calibration.project_points() when passing a RayData object to check occlusion (#142 and others)
+* Fixed mis-recognition of previous calibration images as chessboard images in point fitting GUI when loading existing calibrations (#138)
+
+Compatibility / Dependencies:
+* Re-enable PyQt6 support and change install requirement to PyQt6 (but keeping PyQt5 and 4 support) (fixes #141)
+
+
+
 Patch Release 2.14.1 (December 2024)
 ------------------------------------
 
@@ -23,7 +44,7 @@ New & Enhancements:
 * Add ability to apply chessboard points across all sub-views for multiple sub-view images
 * Add ability to view existing chessboard images in the GUIs which can use chessboard images
 * Number of chessboard points as displayed in calibration info is now counted by chessboard corner rather than image point
-* Improve handing of errors which prevent GUI from opening (ensure diaglog boxes with specific messages are displayed instead of silent failure or non-specific messages)
+* Improve handing of errors which prevent GUI from opening (ensure dialog boxes with specific messages are displayed instead of silent failure or non-specific messages)
 * Improve precision of adding new preset views to CAD model definitions (contribution from Matt Kriete)
 * Change pixel size input to 2 decimal places (contribution from Matt Kriete)
 * Minor GUI text improvements (contribution from Matt Kriete + Scott Silburn)

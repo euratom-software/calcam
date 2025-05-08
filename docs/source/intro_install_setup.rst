@@ -60,7 +60,7 @@ If you are using `Anaconda <https://www.anaconda.com>`_ to manage your Python en
 
 	conda install -c calcam -c conda-forge calcam
 	
-This will install Calcam in your current conda environment, and add a launcher for the Calcam GUI to the Anaconda Navigator.
+This will install Calcam in your current conda environment, and add a launcher for the Calcam GUI to the Anaconda Navigator. Note that calcam is also available from the conda-forge channel rather than the calcam channel, but this may not be updated immediately with new Calcam releases.
 
 
 Installing for Development
@@ -152,9 +152,9 @@ Installation may fail, or you may encounter errors when first trying to import o
 +=====================+====================================================================================================================================================================+
 | SciPy               | Tested up to v1.14.1                                                                                                                                               |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| NumPy               | Tested up to v1.26                                                                                                                                                 |
+| NumPy               | Tested up to v2.1.3 (will also work fine with 1.x)                                                                                                                 |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| MatPlotLib          | Tested up to v3.9.0                                                                                                                                                |
+| MatPlotLib          | Tested up to v3.9.2                                                                                                                                                |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | OpenCV (a.k.a. cv2) | Tested up to to v4.10                                                                                                                                              |
 |                     |                                                                                                                                                                    |
@@ -162,19 +162,17 @@ Installation may fail, or you may encounter errors when first trying to import o
 |                     |                                                                                                                                                                    |
 |                     | If running under OSX older than 10.12, versions of OpenCV newer than 3.2 may cause crashes on import (downgrade to OpenCV < 3.3 to fix this).                      |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| VTK                 | Requires version =>7, somewhat tested up to 9.3.0. Note Versions 9.1.x cause crashes when setting large CAD models to wireframe rendering.                         |
+| VTK                 | Requires version =>7, somewhat tested up to 9.3.1. Note Versions 9.1.x cause crashes when setting large CAD models to wireframe rendering.                         |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| PyQt                | Works with PyQt4 or PyQt5; pip will try to install PyQt5.                                                                                                          |
-|                     |                                                                                                                                                                    |
-|                     | PyQt6 support will be added at some point but currently the combination of PyQt6 + VTK9 often causes problems.                                                     |
+| PyQt                | Works with PyQt4; PyQt5 or PyQt6; PyQt6 is recommended and pip will try to install PyQt6.                                                                          |
 |                     |                                                                                                                                                                    |
 |                     | PyQt5 versions 5.11 and older are known to cause unreadable text in the GUI on OSX when using dark theme.                                                          |
 |                     |                                                                                                                                                                    |
 |                     | Some versions can result in click positions being registered wrong on OSX using High DPI mode; not clear what version ranges this affects (see GitHub issue #79)   |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| h5py                | Tested with 3.10.0. Used for MATLAB 7.3 file support in calcam.gm.GeometryMatrix.                                                                                  |
+| h5py                | Tested with 3.11.1. Used for MATLAB 7.3 file support in calcam.gm.GeometryMatrix.                                                                                  |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| triangle            | Tested with 20230923. Used for generating triangular meshes in calcam.gm module.                                                                                   |
+| triangle            | Tested with 20230923. Used for generating triangular meshes in calcam.gm module. Can cause installation error on OSX will apple silicon (see GitHub issue #122)    |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 Also check the  `GitHub issues page <https://github.com/euratom-software/calcam/issues>`_ for any more known compatibility issues not yet updated here.
@@ -203,6 +201,7 @@ In addition to these, at least one of the following PyQt imports must work for t
 
 .. code-block:: python
 
+    from PyQt6 import QtCore
     from PyQt5 import QtCore
     from PyQt4 import QtCore
 

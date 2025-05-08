@@ -1,5 +1,5 @@
 '''
-* Copyright 2015-2022 European Atomic Energy Community (EURATOM)
+* Copyright 2015-2025 European Atomic Energy Community (EURATOM)
 *
 * Licensed under the EUPL, Version 1.1 or - as soon they
   will be approved by the European Commission - subsequent
@@ -22,14 +22,14 @@
 
 """
 This module provides a little wrapping of PyQT,
-to enable the GUI module to work easily with either
-PyQt 4 or 5. Also makes sure matplotlib is using the
+to enable the GUI module to work easily with any of
+PyQt 4, 5 or 6 which are available. Also makes sure matplotlib is using the
 correct backend.
 """
 
 # Import all the Qt bits and pieces from the relevant module
 
-''' PyQt6 support removed because it works very poorly with VTK, and PyQt5 is still readily available.
+
 try:
     from PyQt6.QtCore import *
     from PyQt6.QtGui import *
@@ -44,37 +44,37 @@ except Exception:
         pyqt6_broken=True
     except Exception:
         pyqt6_broken=False
-'''
 
-try:
-    from PyQt5.QtCore import *
-    from PyQt5.QtGui import *
-    from PyQt5.QtWidgets import *
-    from PyQt5.QtWidgets import QTreeWidgetItem as QTreeWidgetItem_class
-    from PyQt5 import uic
-    qt_ver = 5
+    try:
+        from PyQt5.QtCore import *
+        from PyQt5.QtGui import *
+        from PyQt5.QtWidgets import *
+        from PyQt5.QtWidgets import QTreeWidgetItem as QTreeWidgetItem_class
+        from PyQt5 import uic
+        qt_ver = 5
 
-except Exception:
-    try:
-        import PyQt5
-        pyqt5_broken=True
-    except:
-        pyqt5_broken=False
-    try:
-        from PyQt4.QtCore import *
-        from PyQt4.QtGui import *
-        from PyQt4.QtGui import QTreeWidgetItem as QTreeWidgetItem_class
-        from PyQt4 import uic
-        qt_ver = 4
     except Exception:
+        try:
+            import PyQt5
+            pyqt5_broken=True
+        except:
+            pyqt5_broken=False
+        try:
+            from PyQt4.QtCore import *
+            from PyQt4.QtGui import *
+            from PyQt4.QtGui import QTreeWidgetItem as QTreeWidgetItem_class
+            from PyQt4 import uic
+            qt_ver = 4
 
-        #if pyqt6_broken:
-        #    raise ImportError('Could not import required GUI library: Python package "PyQt6" is present but seems to be broken.')
+        except Exception:
 
-        if pyqt5_broken:
-            raise ImportError('Could not import required GUI library: Python package "PyQt5" is present but seems to be broken.')
+            if pyqt6_broken:
+                raise ImportError('Could not import required GUI library: Python package "PyQt6" is present but seems to be broken.')
 
-        raise ImportError('Could not import required GUI library: could not import either "PyQt5" or "PyQt4" python packages successfully.')
+            if pyqt5_broken:
+                raise ImportError('Could not import required GUI library: Python package "PyQt5" is present but seems to be broken.')
+
+            raise ImportError('Could not import required GUI library: could not import any of "PyQt6", "PyQt5" or "PyQt4" python packages successfully.')
 
 
 if qt_ver == 6:
@@ -100,6 +100,10 @@ if qt_ver == 6:
         for enum in enums:
             for item in enum.__members__.items():
                 setattr(parent,item[0],item[1])
+
+    # At some point PyQt6 dropped Qt.WaitCursor, the lazy (but wrong) way to deal with this is to put it back where it used to be
+    Qt.WaitCursor = Qt.CursorShape.WaitCursor
+
 
 from vtk.qt import QVTKRWIBase
 from vtk.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
