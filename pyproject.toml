@@ -6,8 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "calcam"
 description = "Spatial calibration tools for science & engineering camera systems."
 authors = [{name = "Scott Silburn et. al.", email = "scott.silburn@ukaea.uk"}]
-
-license = {file = "LICENSE.txt"}
+license = {text = "EUPL-1.1"}
 readme = {file = "README.md", content-type='text/markdown'}
 requires-python = ">=3.5"
 classifiers = [
@@ -19,7 +18,6 @@ classifiers = [
                     "Environment :: X11 Applications :: Qt",
                     "Intended Audience :: Science/Research",
                     "Intended Audience :: Developers",
-                    "License :: OSI Approved :: European Union Public Licence 1.1 (EUPL 1.1)",
                     "Natural Language :: English",
                     "Programming Language :: Python :: 3",
                     "Topic :: Scientific/Engineering :: Physics",
@@ -51,6 +49,7 @@ calcam = "calcam:start_gui"
 [tool.setuptools]
 zip-safe = false
 packages = ["calcam","calcam.gui","calcam.builtin_image_sources"]
+license-files = []
 
 [tool.setuptools.package-data]
 calcam = [
