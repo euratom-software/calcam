@@ -200,7 +200,7 @@ class CADEdit(CalcamGUIWindow):
         namedialog = NameInputDialog(self,'Add new part group','Enter a name for the new part group:')
         namedialog.exec()
 
-        if namedialog.result() == 1:
+        if namedialog.result() == namedialog.Accepted:
 
             name = str(namedialog.text_input.text())
 
@@ -250,7 +250,7 @@ class CADEdit(CalcamGUIWindow):
 
         dialog = AreYouSureDialog('Remove wall contour?','Are you sure you want to remove the wall contour?')
         dialog.exec()
-        if dialog.result() == 1:
+        if dialog.result() == dialog.Accepted:
             self.show_contour_checkbox.setChecked(False)
             self.show_contour_checkbox.setEnabled(False)
             self.wall_contour = None
@@ -269,7 +269,7 @@ class CADEdit(CalcamGUIWindow):
         elif self.sender() is self.del_feature_button:
             dialog = AreYouSureDialog(self,'Confirm Delete Model Part','Are you sure you want to remove the model part "{:s}"?'.format(self.selected_feature.split('/')[-1]))
             dialog.exec()
-            if dialog.result():
+            if dialog.result() == dialog.Accepted:
 
                 # Make sure any dragging & dropping is sorted.
                 self.update_feature_tree()
@@ -339,7 +339,7 @@ class CADEdit(CalcamGUIWindow):
             dialog = NameInputDialog(self,'Add Model Variant','Enter a name for the new model variant:')
 
             dialog.exec()
-            if dialog.result() == 1:
+            if dialog.result() == dialog.Accepted:
                 variant_name = str(dialog.text_input.text())
             else:
                 return
@@ -369,7 +369,7 @@ class CADEdit(CalcamGUIWindow):
         dialog = AreYouSureDialog(self,'Remove model variant','Are you sure you want to remove the model variant "{:s}"?'.format(self.cadmodel.model_variant))
         dialog.exec()
         
-        if dialog.result() == 1:
+        if dialog.result() == dialog.Accepted:
 
             variant_to_remove = self.cadmodel.model_variant
             index_to_remove = self.model_variant.currentIndex()
@@ -463,7 +463,7 @@ class CADEdit(CalcamGUIWindow):
         dialog = NameInputDialog(self,'Rename Model Variant','Enter a new name for the "{:s}" model variant:'.format(self.cadmodel.model_variant),init_text=self.cadmodel.model_variant)
 
         dialog.exec()
-        if dialog.result() == 1:
+        if dialog.result() == dialog.Accepted:
             new_name = str(dialog.text_input.text())
         else:
             return
@@ -644,7 +644,7 @@ class CADEdit(CalcamGUIWindow):
             filedialog.setNameFilter('Calcam CAD model definitions (*.ccm)')
             filedialog.exec()
 
-            if filedialog.result() == 1:
+            if filedialog.result() == dialog.Accepted:
                 filename = filedialog.selectedFiles()[0]
             else:
                 return
@@ -766,7 +766,7 @@ class CADEdit(CalcamGUIWindow):
         selected_view = str(self.viewlist.selectedItems()[0].text(0)).replace('*','')
         dialog = AreYouSureDialog(self,'Remove preset view','Are you sure you want to remove the view "{:s}"?'.format(selected_view))
         dialog.exec()
-        if dialog.result() == 1:
+        if dialog.result() == dialog.Accepted:
             self.cadmodel.views.pop(selected_view)
             if self.cadmodel.initial_view == selected_view:
                 self.cadmodel.initial_view = None
@@ -1114,7 +1114,7 @@ class CADEdit(CalcamGUIWindow):
         filedialog.setNameFilter('Supported mesh files (*.stl *.obj)')
         filedialog.exec()
 
-        if filedialog.result() == 1:
+        if filedialog.result() == filedialog.Accepted:
             mesh_paths = [str(path).replace(os.sep,'/') for path in filedialog.selectedFiles()]
             if multiple:
                 return mesh_paths
@@ -1179,7 +1179,7 @@ class CADEdit(CalcamGUIWindow):
             filedialog.setNameFilter('Calcam CAD model definitions (*.ccm)')
             filedialog.exec()
 
-            if filedialog.result() == 1:
+            if filedialog.result() == filedialog.Accepted:
                 filename = filedialog.selectedFiles()[0]
             else:
                 return
@@ -1278,6 +1278,6 @@ class CADEdit(CalcamGUIWindow):
         if add_path_prompt:
             dialog = AreYouSureDialog(self,'Add to calcam configuration?',"Model saved.<br><br>The folder it is saved in:<br><br> {:s}<br><br>is currently not in Calcam's cad model search path,<br>so this model will not yet be detected by Calcam.<br><br>Would you like to add this path to Calcam's<br>model search path configuration now?".format(add_path_prompt))
             dialog.exec()
-            if dialog.result() == 1:
+            if dialog.result() == dialog.Accepted:
                 self.config.cad_def_paths.append(add_path_prompt)
                 self.config.save()

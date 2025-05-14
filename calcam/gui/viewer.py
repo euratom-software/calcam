@@ -203,9 +203,15 @@ class Viewer(CalcamGUIWindow):
             self.saved_coords_item.coords = np.concatenate((self.saved_coords_item.coords,np.array(coords)[np.newaxis,:]),0)
 
             self.cursor_coords_table.setRowCount(newrow+1)
-            self.cursor_coords_table.setItem(newrow,0,qt.QTableWidgetItem('{:.3f} m'.format(coords[0])))
-            self.cursor_coords_table.setItem(newrow, 1, qt.QTableWidgetItem('{:.3f} m'.format(coords[1])))
-            self.cursor_coords_table.setItem(newrow, 2, qt.QTableWidgetItem('{:.3f} m'.format(coords[2])))
+            x = qt.QTableWidgetItem('{:.3f} m'.format(coords[0]))
+            y = qt.QTableWidgetItem('{:.3f} m'.format(coords[1]))
+            z = qt.QTableWidgetItem('{:.3f} m'.format(coords[2]))
+            x.setFlags(qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled)
+            y.setFlags(qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled)
+            z.setFlags(qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled)
+            self.cursor_coords_table.setItem(newrow,0,x)
+            self.cursor_coords_table.setItem(newrow, 1,y)
+            self.cursor_coords_table.setItem(newrow, 2,z)
 
             self.saved_coords_item.set_markers(not self.saved_coords_item.markers)
             self.saved_coords_item.set_markers(not self.saved_coords_item.markers)
@@ -233,12 +239,7 @@ class Viewer(CalcamGUIWindow):
         filedialog.setNameFilter(filename_filter)
         filedialog.exec()
 
-        if qt.qt_ver < 6:
-            accepted = filedialog.result() == 1
-        else:
-            accepted = filedialog.result() == filedialog.Accepted
-
-        if accepted:
+        if filedialog.result() == filedialog.Accepted:
             fname = str(filedialog.selectedFiles()[0])
 
             if not fname.endswith('.csv'):
@@ -263,12 +264,7 @@ class Viewer(CalcamGUIWindow):
             filedialog.setNameFilter(filename_filter)
             filedialog.exec()
 
-            if qt.qt_ver < 6:
-                accepted = filedialog.result() == 1
-            else:
-                accepted = filedialog.result() == filedialog.Accepted
-
-            if accepted:
+            if filedialog.result() == filedialog.Accepted:
                 fname = str(filedialog.selectedFiles()[0])
 
                 coords = None
@@ -288,7 +284,7 @@ class Viewer(CalcamGUIWindow):
                 else:
                     coords_dialog = CoordsDialog(self,coords.shape)
                     coords_dialog.exec()
-                    if coords_dialog.result() == 1:
+                    if coords_dialog.result() == coords_dialog.Accepted:
                         
                         # If the coordinates are in R,Z,phi, convert them to cartesian.
                         if coords_dialog.line_coords_combobox.currentIndex() == 1:

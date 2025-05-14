@@ -259,7 +259,7 @@ class Settings(qt.QMainWindow):
         filedialog.setFileMode(filedialog.Directory)
         filedialog.setWindowTitle('Select Directory')
         filedialog.exec()
-        if filedialog.result() == 1:
+        if filedialog.result() == filedialog.Accepted:
             path = str(filedialog.selectedFiles()[0])
             return path.replace('/',os.path.sep)
         else:

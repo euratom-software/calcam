@@ -1,5 +1,5 @@
 '''
-* Copyright 2015-2023 European Atomic Energy Community (EURATOM)
+* Copyright 2015-2025 European Atomic Energy Community (EURATOM)
 *
 * Licensed under the EUPL, Version 1.1 or - as soon they
   will be approved by the European Commission - subsequent
@@ -22,6 +22,7 @@
 import os
 import random
 import copy
+from copy import deepcopy
 
 try:
     import vtk
@@ -145,7 +146,7 @@ def raycast_sightlines(calibration,cadmodel,x=None,y=None,exclusion_radius=0.0,b
     results.x[valid_mask == 0] = 0
     results.y = np.copy(y).astype('float')
     results.y[valid_mask == 0] = 0
-    results.transform = calibration.geometry
+    results.transform = deepcopy(calibration.geometry)
     if calibration.filename is not None:
         splitname = os.path.split(calibration.filename)
         results.history = 'Ray cast of calibration "{:s}" [from: {:s}] by {:s} on {:s} at {:s}'.format(splitname[1].replace('.ccc',''),splitname[0],misc.username,misc.hostname,misc.get_formatted_time())
@@ -486,9 +487,13 @@ class RayData:
             self.x = nx
             self.y = ny
 
-            if self.fullchip:
+            if isinstance(self.fullchip,bool) or self.fullchip.lower() == 'display' or (self.fullchip.lower() == 'original' and not self.transform._is_sideways()):
                 rowinds = np.squeeze(np.argwhere(np.logical_and(self.y[:,0] >= 0, self.y[:,0] < newshape[1])))
                 colinds = np.squeeze(np.argwhere(np.logical_and(self.x[rowinds,:][0,:] >= 0, self.x[rowinds,:][0,:] < newshape[0])))
+                self.crop_inds = (rowinds,colinds)
+            elif self.fullchip:
+                rowinds = np.squeeze(np.argwhere(np.logical_and(self.x[:,0] >= 0, self.x[:,0] < newshape[1])))
+                colinds = np.squeeze(np.argwhere(np.logical_and(self.y[rowinds,:][0,:] >= 0, self.y[rowinds,:][0,:] < newshape[0])))
                 self.crop_inds = (rowinds,colinds)
 
 
@@ -497,7 +502,7 @@ class RayData:
                 yinds = np.argwhere(np.logical_and(self.y[xinds] >= 0, self.y[xinds] < newshape[1]))
                 self.crop_inds = (xinds,yinds)
             else:
-                raise Exception("Cropping a raydata object with strange dimensions! I don't know how to do that; help!")
+                raise NotImplementedError("Cropping a raydata object with strange dimensions! I don't know how to do that; help!")
 
             self.crop = copy.deepcopy(window)
 
@@ -531,16 +536,17 @@ class RayData:
         '''
         if x is None and y is None:
             if self.fullchip:
-                if coords.lower() == 'display':
-                    if self.crop is None:
-                        return self.ray_start_coords
-                    else:
-                        return self.ray_start_coords[self.crop_inds[0],:,:][:,self.crop_inds[1],:]
+                if self.crop is None:
+                    raystarts = self.ray_start_coords
                 else:
-                    if self.crop is None:
-                        return self.transform.display_to_original_image(self.ray_start_coords)
-                    else:
-                        return self.transform.display_to_original_image(self.ray_start_coords[self.crop_inds[0],:,:][:,self.crop_inds[1],:])
+                    raystarts = self.ray_start_coords[self.crop_inds[0], :, :][:, self.crop_inds[1], :]
+
+                if isinstance(self.fullchip, bool) or coords.lower() == self.fullchip.lower():
+                    return raystarts
+                elif coords.lower() == 'display':
+                    return self.transform.original_to_display_image(raystarts)
+                elif coords.lower() == 'original':
+                    return self.transform.display_to_original_image(raystarts)
             else:
                 if self.crop is None:
                     return self.ray_start_coords
@@ -610,16 +616,18 @@ class RayData:
         '''
         if x is None and y is None:
             if self.fullchip:
-                if coords.lower() == 'display':
-                    if self.crop is None:
-                        return self.ray_end_coords
-                    else:
-                        return self.ray_end_coords[self.crop_inds[0],:,:][:,self.crop_inds[1],:]
+                if self.crop is None:
+                    rayends = self.ray_end_coords
                 else:
-                    if self.crop is None:
-                        return self.transform.display_to_original_image(self.ray_end_coords)
-                    else:
-                        return self.transform.display_to_original_image(self.ray_end_coords[self.crop_inds[0],:,:][:, self.crop_inds[1],:])
+                    rayends = self.ray_end_coords[self.crop_inds[0],:,:][:,self.crop_inds[1],:]
+
+                if isinstance(self.fullchip,bool) or coords.lower() == self.fullchip.lower():
+                    return rayends
+                elif coords.lower() == 'display':
+                    return self.transform.original_to_display_image(rayends)
+                elif coords.lower() == 'original':
+                    return self.transform.display_to_original_image(rayends)
+
             else:
                 if self.crop is None:
                     return self.ray_end_coords
@@ -745,6 +753,7 @@ class RayData:
 
                 return np.reshape(out,oldshape + (3,),order='F')
 
+
     def get_ray_lengths(self,x=None,y=None,im_position_tol = 1,coords='Display'):
         '''
         Get the sight-line lengths either of all casted sight-lines or at the specified image coordinates.
@@ -769,71 +778,8 @@ class RayData:
         '''
         
         # Work out ray lengths for all raytraced pixels
-        raylength = np.sqrt(np.sum( (self.ray_end_coords - self.ray_start_coords) **2,axis=-1))
-        
-        # If no x and y given, return them all
-        if x is None and y is None:
-            if self.fullchip:
-                if coords.lower() == 'display':
-                    if self.crop is None:
-                        return raylength
-                    else:
-                        return raylength[self.crop_inds[0],:][:,self.crop_inds[1]]
-                else:
-                    if self.crop is None:
-                        return self.transform.display_to_original_image(raylength)
-                    else:
-                        return self.transform.display_to_original_image(raylength[self.crop_inds[0],:][:,self.crop_inds[1]])
-            else:
-                if self.crop is None:
-                    return raylength
-                else:
-                    return raylength[self.crop_inds[0]][self.crop_inds[1]]
-        else:
-            if self.x is None or self.y is None:
-                raise Exception('This ray data does not have x and y pixel indices!')
-
-            # Otherwise, return the ones at given x and y pixel coords.
-            if np.shape(x) != np.shape(y):
-                raise ValueError('x and y arrays must be the same shape!')
-            else:
-
-                if coords.lower() == 'original':
-                    x,y = self.transform.original_to_display_coords(x,y)
-
-                orig_shape = np.shape(x)
-                x = np.reshape(x,np.size(x),order='F')
-                y = np.reshape(y,np.size(y),order='F')
-                RL = np.zeros(np.shape(x))
-
-                if not self.fullchip:
-                    raylength = raylength.flatten()
-                    xflat = self.x.flatten()
-                    yflat = self.y.flatten()
-
-                for pointno in range(x.size):
-                    if np.isnan(x[pointno]) or np.isnan(y[pointno]):
-                        RL[pointno] = np.nan
-                        continue
-
-                    if self.fullchip:
-                        xind = np.argmin(np.abs(self.x[0,:] - x[pointno]))
-                        yind = np.argmin(np.abs(self.y[:,0] - y[pointno]))
-                        deltaR = np.sqrt( (self.x[0,xind]-x[pointno])**2 + (self.y[yind,0]-y[pointno])**2)
-                        if deltaR <= im_position_tol:
-                            RL[pointno] = raylength[yind,xind]
-                        else:
-                            raise Exception('No ray-traced pixel within im_position_tol of requested pixel ({:.1f},{:.1f})!'.format(x[pointno], y[pointno]))
-                    else:
-                        # This can be very slow if xflat and yflat are big arrays!
-                        deltaR = np.sqrt( (xflat - x[pointno])**2 + (yflat - y[pointno])**2 )
-                        if np.nanmin(deltaR) <= im_position_tol:
-                            RL[pointno] = raylength[np.nanargmin(deltaR)]
-                        else:
-                            raise Exception('No ray-traced pixel within im_position_tol of requested pixel!')
-
-                return np.reshape(RL,orig_shape,order='F')
-
+        ray_vectors = self.get_ray_end(x,y,im_position_tol,coords) - self.get_ray_start(x,y,im_position_tol,coords)
+        return np.sqrt(np.sum(ray_vectors**2,axis=-1))
 
 
     def get_ray_directions(self,x=None,y=None,im_position_tol=1,coords='Display'):
@@ -861,59 +807,6 @@ class RayData:
                                       (h x w x 3) where w nd h are the image width and height. Otherwise it will \
                                       be the same shape as the input x and y coordinates plus an extra dimension.
         '''
-        vectors = (self.ray_end_coords - self.ray_start_coords)
+        vectors = self.get_ray_end(x,y,im_position_tol,coords) - self.get_ray_start(x,y,im_position_tol,coords)
         lengths = np.sqrt(np.sum(vectors**2,axis=-1))
-        dirs =  vectors / np.repeat(lengths.reshape(np.shape(lengths)+(1,)),3,axis=-1)
-
-        if x is None and y is None:
-            if self.fullchip:
-                if coords.lower() == 'display':
-                    if self.crop is None:
-                        return dirs
-                    else:
-                        return dirs[self.crop_inds[0],:,:][:,self.crop_inds[1],:]
-                else:
-                    if self.crop is None:
-                        return self.transform.display_to_original_image(dirs)
-                    else:
-                        return self.transform.display_to_original_image(dirs[self.crop_inds[0],:,:][:, self.crop_inds[1],:])
-            else:
-                if self.crop is None:
-                    return dirs
-                else:
-                    return dirs[self.crop_inds[0]][self.crop_inds[1]]
-        else:
-            if self.x is None or self.y is None:
-                raise Exception('This ray data does not have x and y pixel indices!')
-            if np.shape(x) != np.shape(y):
-                raise ValueError('x and y arrays must be the same shape!')
-            else:
-
-                if coords.lower() == 'original':
-                    x,y = self.transform.original_to_display_coords(x,y)
-
-                oldshape = np.shape(x)
-                x = np.reshape(x,np.size(x),order='F')
-                y = np.reshape(y,np.size(y),order='F')
-                [dirs_X,dirs_Y,dirs_Z] = np.split(dirs,3,-1)
-                dirs_X = dirs_X.flatten()
-                dirs_Y = dirs_Y.flatten()
-                dirs_Z = dirs_Z.flatten()
-                xflat = self.x.flatten()
-                yflat = self.y.flatten()
-                Xout = np.zeros(np.shape(x))
-                Yout = np.zeros(np.shape(x))
-                Zout = np.zeros(np.shape(x))
-                for pointno in range(x.size):
-                    deltaX = xflat - x[pointno]
-                    deltaY = yflat - y[pointno]
-                    deltaR = np.sqrt(deltaX**2 + deltaY**2)
-                    if np.min(deltaR) <= im_position_tol:
-                        Xout[pointno] = dirs_X[np.argmin(deltaR)]
-                        Yout[pointno] = dirs_Y[np.argmin(deltaR)]
-                        Zout[pointno] = dirs_Z[np.argmin(deltaR)]
-                    else:
-                        raise Exception('No ray-traced pixel within im_position_tol of requested pixel!')
-                out = np.hstack([Xout,Yout,Zout])
-
-                return np.reshape(out,oldshape + (3,),order='F')
+        return  vectors / lengths

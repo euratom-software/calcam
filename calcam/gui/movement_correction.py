@@ -417,7 +417,7 @@ class ImageAlignDialog(qt.QDialog):
         filedialog.setNameFilter(filename_filter)
         filedialog.exec()
 
-        if filedialog.result() == 1:
+        if filedialog.result() == filedialog.Accepted:
             selected_path = str(filedialog.selectedFiles()[0])
             self.config.file_dirs['movement'] = os.path.split(selected_path)[0]
             self.config.save()
@@ -447,7 +447,7 @@ class ImageAlignDialog(qt.QDialog):
         filedialog.exec()
 
 
-        if filedialog.result() == 1:
+        if filedialog.result() == filedialog.Accepted:
             selected_file = filedialog.selectedFiles()[0]
             self.config.file_dirs['movement'] = os.path.split(selected_file)[0]
             self.config.save()
