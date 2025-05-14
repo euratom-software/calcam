@@ -58,7 +58,7 @@ class CalcamGUIWindow(qt.QMainWindow):
 
         self.app = app
 
-         # Let's show helpful dialog boxes if we have unhandled exceptions:
+        # Let's show helpful dialog boxes if we have unhandled exceptions:
         sys.excepthook = self.show_exception_dialog
 
         self.config = CalcamConfig()
@@ -172,7 +172,7 @@ class CalcamGUIWindow(qt.QMainWindow):
                 filedialog.setWindowTitle('Save error report')
                 filedialog.setNameFilter('Text files (*.txt)')
                 filedialog.exec()
-                if filedialog.result() == 1:
+                if filedialog.result() == filedialog.Accepted:
                     fname = str(filedialog.selectedFiles()[0])
                     if not fname.endswith('.txt'):
                         fname = fname + '.txt'
@@ -228,7 +228,7 @@ class CalcamGUIWindow(qt.QMainWindow):
                     filedialog.setWindowTitle('Save error report')
                     filedialog.setNameFilter('Text files (*.txt)')
                     filedialog.exec()
-                    if filedialog.result() == 1:
+                    if filedialog.result() == filedialog.Accepted:
                         fname = str(filedialog.selectedFiles()[0])
                         if not fname.endswith('.txt'):
                             fname = fname + '.txt'
@@ -520,12 +520,7 @@ class CalcamGUIWindow(qt.QMainWindow):
         filedialog.setNameFilter(filename_filter)
         filedialog.exec()
 
-        if qt.qt_ver < 6:
-            accepted = filedialog.result() == 1
-        else:
-            accepted = filedialog.result() == filedialog.Accepted
-
-        if accepted:
+        if filedialog.result() == filedialog.Accepted:
             selected_paths = filedialog.selectedFiles()
         else:
             return empty_ret
@@ -611,7 +606,7 @@ class CalcamGUIWindow(qt.QMainWindow):
         filedialog.setWindowTitle('Save As...')
         filedialog.setNameFilter(filename_filter)
         filedialog.exec()
-        if filedialog.result() == 1:
+        if filedialog.result() == filedialog.Accepted:
             selected_path = str(filedialog.selectedFiles()[0])
             self.config.file_dirs[obj_type] = os.path.split(selected_path)[0]
             if not selected_path.endswith(fext):
@@ -904,7 +899,7 @@ class CalcamGUIWindow(qt.QMainWindow):
         filedialog.setWindowTitle('Select File')
         filedialog.setNameFilter(name_filter)
         filedialog.exec()
-        if filedialog.result() == 1:
+        if filedialog.result() == filedialog.Accepted:
 
             if target_textbox is not None:
                 target_textbox.setText(str(filedialog.selectedFiles()[0]))
@@ -1127,9 +1122,9 @@ class CalcamGUIWindow(qt.QMainWindow):
 
         if len(self.model_list) == 0:
                 dialog = qt.QMessageBox(self)
-                dialog.addButton('Browse...',dialog.AcceptRole)
-                dialog.addButton('Create New...',dialog.YesRole)
-                dialog.addButton('Do Nothing and Close',dialog.RejectRole)
+                browse = dialog.addButton('Browse...',dialog.AcceptRole)
+                new = dialog.addButton('Create New...',dialog.YesRole)
+                close = dialog.addButton('Do Nothing and Close',dialog.RejectRole)
                 dialog.setTextFormat(qt.Qt.RichText)
                 dialog.setWindowTitle('No CAD Models')
                 dialog.setText('This tool uses CAD models but you seem to have no CAD models set up in calcam.')
@@ -1137,10 +1132,10 @@ class CalcamGUIWindow(qt.QMainWindow):
                 dialog.setIcon(qt.QMessageBox.Information)
                 dialog.exec()
 
-                if dialog.result() == 2:
+                if dialog.clickedButton() == close:
                     self.timer = qt.QTimer.singleShot(0,self.app.quit)
 
-                elif dialog.result() == 0:
+                elif dialog.clickedButton() == browse:
 
                     filedialog = qt.QFileDialog(self)
                     filedialog.setAcceptMode(filedialog.AcceptOpen)
@@ -1148,7 +1143,7 @@ class CalcamGUIWindow(qt.QMainWindow):
                     filedialog.setWindowTitle('Select CAD definition Location')
                     filedialog.exec()
 
-                    if filedialog.result() == 1:
+                    if filedialog.result() == filedialog.Accepted:
                         path = str(filedialog.selectedFiles()[0]).replace('/',os.path.sep)
                         self.config.cad_def_paths.append(path)
 
@@ -1167,7 +1162,7 @@ class CalcamGUIWindow(qt.QMainWindow):
                     else:
                         self.timer = qt.QTimer.singleShot(0,self.app.quit)
                         
-                elif dialog.result() == 1:
+                elif dialog.clickedButton() == new:
                     from .launcher import launch
                     launch(['--cad_edit'])
                     self.timer = qt.QTimer.singleShot(0,self.app.quit)
@@ -1458,7 +1453,7 @@ class ChessboardDialog(qt.QDialog):
         filedialog.setWindowTitle('Load chessboard images')
         filedialog.setNameFilter('Image Files (*.jpg *.jpeg *.png *.bmp *.jp2 *.tiff *.tif)')
         filedialog.exec()
-        if filedialog.result() == 1:
+        if filedialog.result() == filedialog.Accepted:
             self.parent.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
             self.images = []
             self.filenames = []
@@ -2004,7 +1999,7 @@ class ImageMaskDialog(qt.QDialog):
         filedialog.setNameFilter('Image Files (*.png *.bmp *.jp2 *.tiff *.tif)')
         filedialog.exec()
 
-        if filedialog.result() == 1:
+        if filedialog.result() == filedialog.Accepted:
             mask_im = cv2.imread(str(filedialog.selectedFiles()[0]))
 
             if mask_im.shape[0] != self.image.shape[0] or mask_im.shape[1] != self.image.shape[1]:
@@ -2188,7 +2183,7 @@ class ImageMaskDialog(qt.QDialog):
         filedialog.setWindowTitle('Save As...')
         filedialog.setNameFilter(filename_filter)
         filedialog.exec()
-        if filedialog.result() == 1:
+        if filedialog.result() == filedialog.Accepted:
             selected_path = str(filedialog.selectedFiles()[0])
             config.file_dirs['image'] = os.path.split(selected_path)[0]
             if not selected_path.endswith(fext):

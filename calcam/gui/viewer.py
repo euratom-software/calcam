@@ -233,12 +233,7 @@ class Viewer(CalcamGUIWindow):
         filedialog.setNameFilter(filename_filter)
         filedialog.exec()
 
-        if qt.qt_ver < 6:
-            accepted = filedialog.result() == 1
-        else:
-            accepted = filedialog.result() == filedialog.Accepted
-
-        if accepted:
+        if filedialog.result() == filedialog.Accepted:
             fname = str(filedialog.selectedFiles()[0])
 
             if not fname.endswith('.csv'):
@@ -263,12 +258,7 @@ class Viewer(CalcamGUIWindow):
             filedialog.setNameFilter(filename_filter)
             filedialog.exec()
 
-            if qt.qt_ver < 6:
-                accepted = filedialog.result() == 1
-            else:
-                accepted = filedialog.result() == filedialog.Accepted
-
-            if accepted:
+            if filedialog.result() == filedialog.Accepted:
                 fname = str(filedialog.selectedFiles()[0])
 
                 coords = None
@@ -288,7 +278,7 @@ class Viewer(CalcamGUIWindow):
                 else:
                     coords_dialog = CoordsDialog(self,coords.shape)
                     coords_dialog.exec()
-                    if coords_dialog.result() == 1:
+                    if coords_dialog.result() == coords_dialog.Accepted:
                         
                         # If the coordinates are in R,Z,phi, convert them to cartesian.
                         if coords_dialog.line_coords_combobox.currentIndex() == 1:
