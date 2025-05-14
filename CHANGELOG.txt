@@ -7,7 +7,7 @@ Patch Release 2.15.1 (May 2025)
 Fixes / Compatibility:
 * Fixed an issue which caused incorrect responses to dialog boxes with PyQt6 (this caused the CAD model prompt on first run / configuration to "go nowhere" making it impossible to get started with a new installation as per the documentation!)
 * Fixed various bugs with ray casting and the RayData class including errors / wrong behaviour for RayData objects created with coords='Original'
-
+* Fixed confusing GUI behaviour in the 3D viewer where saved cursor coordinates (3D data tab) were editable in the displayed table but editing had no actual effect (now table is not editable)
 
 
 Minor Release 2.15.0 (May 2025)

@@ -203,9 +203,15 @@ class Viewer(CalcamGUIWindow):
             self.saved_coords_item.coords = np.concatenate((self.saved_coords_item.coords,np.array(coords)[np.newaxis,:]),0)
 
             self.cursor_coords_table.setRowCount(newrow+1)
-            self.cursor_coords_table.setItem(newrow,0,qt.QTableWidgetItem('{:.3f} m'.format(coords[0])))
-            self.cursor_coords_table.setItem(newrow, 1, qt.QTableWidgetItem('{:.3f} m'.format(coords[1])))
-            self.cursor_coords_table.setItem(newrow, 2, qt.QTableWidgetItem('{:.3f} m'.format(coords[2])))
+            x = qt.QTableWidgetItem('{:.3f} m'.format(coords[0]))
+            y = qt.QTableWidgetItem('{:.3f} m'.format(coords[1]))
+            z = qt.QTableWidgetItem('{:.3f} m'.format(coords[2]))
+            x.setFlags(qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled)
+            y.setFlags(qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled)
+            z.setFlags(qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled)
+            self.cursor_coords_table.setItem(newrow,0,x)
+            self.cursor_coords_table.setItem(newrow, 1,y)
+            self.cursor_coords_table.setItem(newrow, 2,z)
 
             self.saved_coords_item.set_markers(not self.saved_coords_item.markers)
             self.saved_coords_item.set_markers(not self.saved_coords_item.markers)
