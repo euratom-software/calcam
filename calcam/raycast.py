@@ -809,4 +809,4 @@ class RayData:
         '''
         vectors = self.get_ray_end(x,y,im_position_tol,coords) - self.get_ray_start(x,y,im_position_tol,coords)
         lengths = np.sqrt(np.sum(vectors**2,axis=-1))
-        return  vectors / lengths
+        return  vectors / np.expand_dims(lengths,-1)
