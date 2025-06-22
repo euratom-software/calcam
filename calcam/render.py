@@ -1076,8 +1076,8 @@ def get_image_actor(image_array,clim=None,actortype='vtkImageActor',scaling=1):
         image *= 255.
         image = np.uint8(image)
 
-    im_data_string = image.tostring()
-    vtk_im_importer.CopyImportVoidPointer(im_data_string,len(im_data_string))
+    im_data_bytes = image.tobytes()
+    vtk_im_importer.CopyImportVoidPointer(im_data_bytes,len(im_data_bytes))
     vtk_im_importer.SetDataScalarTypeToUnsignedChar()
 
     if len(image.shape) == 2:
