@@ -534,6 +534,10 @@ class RayData:
                                       dimension added which contains the  [X,Y,Z] 3D coordinates. Otherwise the shape\
                                       is (h x w x 3) where w and h are the image width and height (in display coords).
         '''
+
+        if coords.lower() not in ['display','original']:
+            raise ValueError('Invalid coordinates argument "{:s}" - must be either "Display" or "Original".'.format(coords))
+
         if x is None and y is None:
             if self.fullchip:
                 if self.crop is None:
@@ -614,6 +618,10 @@ class RayData:
                                       is (h x w x 3) where w and h are the image width and height (in display coords).
 
         '''
+
+        if coords.lower() not in ['display','original']:
+            raise ValueError('Invalid coordinates argument "{:s}" - must be either "Display" or "Original".'.format(coords))
+
         if x is None and y is None:
             if self.fullchip:
                 if self.crop is None:
