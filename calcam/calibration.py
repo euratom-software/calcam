@@ -641,15 +641,18 @@ class Calibration():
                 self.native_intrinsics_images = []
                 for ic in self.intrinsics_constraints:
                     self.native_intrinsics_images.append(copy.deepcopy(ic[0]))
+                    # Unlike main and subview mask images, intrinsics images are stored in display coords so we have to transform them to original to do this part
+                    intrinsics_im = self.geometry.display_to_original_image(ic[0])
+
                     # Case where the requested crop has parts outside the original image
                     if window[0] < self.geometry.offset[0] or window[1] < self.geometry.offset[1] or window[0] + window[2] > self.geometry.offset[0] + orig_shape[0] or window[1] + window[3] > self.geometry.offset[1] + orig_shape[1]:
-                        padded_im = np.zeros((max(self.geometry.offset[1] + orig_shape[1], window[1] + window[3]),max(self.geometry.offset[0] + orig_shape[0], window[0] + window[2]),self.native_intrinsics_images[-1].shape[2]), self.native_intrinsics_images[-1].dtype)
-                        padded_im[self.geometry.offset[1]:self.geometry.offset[1] + orig_shape[1],self.geometry.offset[0]:self.geometry.offset[0] + orig_shape[0], :] = self.native_intrinsics_images[-1][:, :, :]
-                        ic[0] = padded_im[window[1]:window[1] + window[3], window[0]:window[0] + window[2]]
+                        padded_im = np.zeros((max(self.geometry.offset[1] + orig_shape[1], window[1] + window[3]),max(self.geometry.offset[0] + orig_shape[0], window[0] + window[2]),intrinsics_im.shape[2]), intrinsics_im.dtype)
+                        padded_im[self.geometry.offset[1]:self.geometry.offset[1] + orig_shape[1],self.geometry.offset[0]:self.geometry.offset[0] + orig_shape[0], :] = intrinsics_im[:, :, :]
+                        ic[0] = self.geometry.original_to_display_image(padded_im[window[1]:window[1] + window[3], window[0]:window[0] + window[2]])
 
                     else:
                         # Simply crop the original
-                        ic[0] = ic[0][int(window[1] - self.geometry.offset[1]):int(window[1] - self.geometry.offset[1] + window[3]), int(window[0] - self.geometry.offset[0]):int(window[0] - self.geometry.offset[0] + window[2])]
+                        ic[0] = self.geometry.original_to_display_image(intrinsics_im[int(window[1] - self.geometry.offset[1]):int(window[1] - self.geometry.offset[1] + window[3]), int(window[0] - self.geometry.offset[0]):int(window[0] - self.geometry.offset[0] + window[2])])
 
 
             # Adjust point pairs
