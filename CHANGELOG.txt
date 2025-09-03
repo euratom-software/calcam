@@ -1,6 +1,17 @@
 Calcam Changelog
 ================
 
+
+
+Patch Release 2.15.3 (June 2025)
+--------------------------------
+
+Fixes / Compatibility:
+* Fixed bug in Calibration.set_detector_window() which resulted in wrong cropping of intrinsics constraint images and occasionally raising exceptions (#155)
+* Fixed bug in chessboard image loading when using chessboard images with a different detector ROI to the calibrated image (#151)
+
+
+
 Patch Release 2.15.3 (June 2025)
 --------------------------------
 

@@ -1681,15 +1681,25 @@ class ChessboardDialog(qt.QDialog):
             self.image_transformer.set_offset(self.x_offset.value(), self.y_offset.value())
 
             # Loop over chessboard points
+            invalid_points = []
             for point in range( np.prod(self.n_chessboard_points) ):
                 self.results[-1][1].image_points.append([])
 
                 # Populate coordinates for relevant field
                 for field in range(self.n_fields):
-                    if self.subview_lookup(impoints[point,0],impoints[point,1],coords=coords) == field or self.apply_across_subviews.isChecked():
+                    if self.subview_lookup(impoints[point,0],impoints[point,1],coords=coords) == field or self.apply_across_subviews.isChecked() or self.n_fields == 1:
                         self.results[-1][1].image_points[-1].append([impoints[point,0], impoints[point,1]])
                     else:
                         self.results[-1][1].image_points[-1].append(None)
+
+                # If all the sub-fields failed the above check, we have no image point for this chessboard corner and should remove it.
+                if not any(self.results[-1][1].image_points[-1]):
+                    invalid_points.append(point)
+
+            # Remove any invalid points
+            for point_ind in reversed(invalid_points):
+                del self.results[-1][1].image_points[point_ind]
+                del self.results[-1][1].object_points[point_ind]
 
             # To account for ROI offsets, put the point pairs in original coords and apply the offsets, then transform back to display
             if self.display_coords.isChecked():
