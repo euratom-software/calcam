@@ -82,7 +82,6 @@ def update_prompt_string(queue):
     queue.put(updatestring)
 
   except Exception as e:
-      print(e)
       queue.put(None)
 
 

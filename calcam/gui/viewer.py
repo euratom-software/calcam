@@ -84,8 +84,6 @@ class Viewer(CalcamGUIWindow):
         self.load_model_button.clicked.connect(self.load_model)
         self.feature_tree.itemChanged.connect(self.update_checked_features)
         self.feature_tree.itemSelectionChanged.connect(self.update_cadtree_selection)
-        self.xsection_checkbox.toggled.connect(self.update_xsection)
-        self.xsection_origin.toggled.connect(self.update_xsection)
         self.sightline_opacity_slider.valueChanged.connect(self.update_sightlines)
         self.rendertype_edges.toggled.connect(self.toggle_wireframe)
         self.viewport_load_calib.clicked.connect(self.load_viewport_calib)
@@ -124,6 +122,7 @@ class Viewer(CalcamGUIWindow):
         self.marker_diameter_box.valueChanged.connect(self.update_lines)
         self.remove_lines_button.clicked.connect(self.update_lines)
         self.coords_legend_checkbox.toggled.connect(self.update_legend)
+        self.slice_apply_button.clicked.connect(self.update_xsection)
 
         self.save_coords_button.clicked.connect(self.export_cursor_coords)
 
@@ -521,25 +520,6 @@ class Viewer(CalcamGUIWindow):
 
     def on_view_changed(self):
 
-        self.xsection_checkbox.blockSignals(True)
-        self.xsection_cursor.blockSignals(True)
-        self.xsection_origin.blockSignals(True)
-
-        if self.interactor3d.get_xsection() is not None:
-            self.xsection_checkbox.setChecked(True)
-            if np.all( np.array(self.interactor3d.get_xsection()) == 0):
-                self.xsection_origin.setChecked(True)
-            else:
-                self.add_cursor(self.interactor3d.get_xsection())
-                self.interactor3d.set_cursor_coords(0,self.interactor3d.get_xsection())
-                self.xsection_cursor.setChecked(True)
-        else:
-            self.xsection_checkbox.setChecked(False)
-
-        self.xsection_checkbox.blockSignals(False)
-        self.xsection_cursor.blockSignals(False)
-        self.xsection_origin.blockSignals(False)
-
         if self.interactor3d.get_projection() == 'perspective':
             self.proj_perspective.setChecked(True)
         else:
@@ -582,20 +562,6 @@ class Viewer(CalcamGUIWindow):
             self.update_cursor_position(0,coords)
 
 
-    def update_xsection(self):
-
-        if self.xsection_checkbox.isChecked():
-            if self.xsection_cursor.isChecked():
-                self.interactor3d.set_xsection(self.interactor3d.get_cursor_coords(0))
-            else:
-                self.interactor3d.set_xsection((0,0,0))
-        else:
-            self.interactor3d.set_xsection(None)
-
-        self.interactor3d.update_clipping()
-        self.refresh_3d()
-
-
     def on_model_load(self):
 
         self.centre_at_cursor.setChecked(False)
@@ -631,6 +597,11 @@ class Viewer(CalcamGUIWindow):
             self.render_unfolded_view.setToolTip('Rendering un-folded first wall view is only available for CAD models with R,Z wall contours defined.')
             self.render_unfolded_view_description.setToolTip('Rendering un-folded first wall view is only available for CAD models with R,Z wall contours defined.')
 
+        model_extent = self.cadmodel.get_extent()
+        rmax = np.max(np.abs(model_extent[:4]))
+        self.chordslice_r.setValue(rmax/2)
+        self.zslice_zmin.setValue(model_extent[4]-1e-3)
+        self.zslice_zmax.setValue(model_extent[5]+1e-3)
 
     def update_selected_sightlines(self):
 
@@ -1066,10 +1037,6 @@ class Viewer(CalcamGUIWindow):
         
         if self.contour_2d.isChecked():
             self.update_contour()
-
-        self.xsection_cursor.setEnabled(True)
-        if self.xsection_checkbox.isChecked():
-            self.interactor3d.set_xsection(self.interactor3d.get_cursor_coords(0))
 
         phi = np.arctan2(position[1], position[0])
         if phi < 0.:

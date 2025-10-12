@@ -109,8 +109,8 @@ class CalcamGUIWindow(qt.QMainWindow):
 
 
         # Auto type views
-        qt.QTreeWidgetItem(self.views_root_auto,['Vertical cross-section'])
-        qt.QTreeWidgetItem(self.views_root_auto,['Horizontal cross-section'])
+        qt.QTreeWidgetItem(self.views_root_auto,['Poloidal cross-section'])
+        qt.QTreeWidgetItem(self.views_root_auto,['Top-down cross-section'])
 
         self.viewlist.addTopLevelItem(self.views_root_model)
         self.viewlist.addTopLevelItem(self.views_root_auto)
@@ -317,11 +317,13 @@ class CalcamGUIWindow(qt.QMainWindow):
             fov = self.camera_3d.GetParallelScale()*2
 
         roll = self.interactor3d.cam_roll
-        xsection = self.interactor3d.get_xsection()
+
         projection = self.interactor3d.projection
 
+        slicing = self.cadmodel.slice_params
+
         try:
-            self.cadmodel.add_view(str(self.view_save_name.text()),cam_pos,target,fov,xsection,roll,projection)
+            self.cadmodel.add_view(str(self.view_save_name.text()),cam_pos,target,fov,roll,projection,slicing)
             if len(self.cadmodel.views.keys()) == 1:
                 self.cadmodel.initial_view = str(self.view_save_name.text())
             self.update_model_views(show_default=show_default)
@@ -672,11 +674,69 @@ class CalcamGUIWindow(qt.QMainWindow):
                 self.camera_3d.SetPosition(view['cam_pos'])
                 self.camera_3d.SetFocalPoint(view['target'])
                 self.camera_3d.SetViewUp(0,0,1)
-                self.interactor3d.set_xsection(view['xsection'])
+
                 self.interactor3d.set_roll(view['roll'])
                 self.interactor3d.set_projection(view['projection'])
+                try:
+                    self.proj_perspective.blockSignals(True)
+                    self.proj_orthographic.blockSignals(True)
+                    if view['projection'] == 'perspective':
+                        self.proj_perspective.setChecked(True)
+                    else:
+                        self.proj_orthographic.setChecked(True)
+                    self.proj_perspective.blockSignals(False)
+                    self.proj_orthographic.blockSignals(False)
+                except AttributeError:
+                    pass
+
                 if self.fov_enabled:
                     self.interactor3d.set_fov(view['y_fov'])
+
+                if 'slicing' in view:
+                    try:
+                        if view['slicing'][0] is None:
+                            self.no_slicing_rb.setChecked(True)
+                        elif len(view['slicing'][0]) == 2:
+                            self.cakeslice_phi0.setValue(int(view['slicing'][0][0]))
+                            self.cakeslice_phi1.setValue(int(view['slicing'][0][1]))
+                            self.cakeslice_rb.setChecked(True)
+                        else:
+                            self.chordslice_phi.setValue(int(view['slicing'][0]))
+                            self.chordslice_r.setValue(view['slicing'][1])
+                            self.chordslice_rb.setChecked(True)
+
+                        if view['slicing'][2] is None:
+                            self.zslice_checkbox.setChecked(False)
+                        else:
+                            self.zslice_checkbox.setChecked(True)
+                            self.zslice_zmin.setValue(view['slicing'][2][0])
+                            self.zslice_zmax.setValue(view['slicing'][2][1])
+
+                        self.update_xsection()
+                    except AttributeError:
+                        self.cadmodel.set_slicing(*view['slicing'])
+                elif view['xsection'] is not None:
+
+                    phi = np.arctan2(view['cam_pos'][1],view['cam_pos'][0])
+                    if phi < 0:
+                        phi = phi + 2*np.pi
+                    phi = phi / np.pi * 180
+                    r = np.sqrt(view['xsection'][0]**2 + view['xsection'][1]**2 )
+                    try:
+                        self.chordslice_phi.setValue(int(phi))
+                        self.chordslice_r.setValue(r)
+                        self.zslice_checkbox.setChecked(False)
+                        self.chordslice_rb.setChecked(True)
+                        self.update_xsection()
+                    except AttributeError:
+                        self.cadmodel.set_slicing(phi,r)
+                else:
+                    try:
+                        self.zslice_checkbox.setChecked(False)
+                        self.no_slicing_rb.setChecked(True)
+                        self.update_xsection()
+                    except AttributeError:
+                        self.cadmodel.set_slicing()
 
             elif view_item.parent() is self.views_root_results or view_item.parent() in self.viewport_calibs.keys():
 
@@ -697,23 +757,27 @@ class CalcamGUIWindow(qt.QMainWindow):
 
                 xsec_fov = 30
 
-                if str(view_item.text(0)).lower() == 'horizontal cross-section':
+                if str(view_item.text(0)).lower() == 'top-down cross-section':
 
                     if self.interactor3d.projection == 'perspective':
                         self.camFOV.setValue(xsec_fov)
                     else:
                         self.camFOV.setValue(r_extent)
 
-                    if self.xsection_cursor.isEnabled():
-                        self.xsection_cursor.setChecked(True)
-                    else:
-                        self.xsection_origin.setChecked(True)
-
                     self.camera_3d.SetPosition( (0.,0.,r_extent/(2*np.tan(3.14159*xsec_fov/360) )))
                     self.camera_3d.SetFocalPoint( (0.,0.001,self.camera_3d.GetPosition()[2]-1.) )
-                    self.xsection_checkbox.setChecked(True)
 
-                elif str(view_item.text(0)).lower() == 'vertical cross-section':
+                    try:
+                        self.zslice_zmin.setValue(self.cadmodel.get_extent()[4]-1e-3)
+                        self.zslice_zmax.setValue(0)
+                        self.zslice_checkbox.setChecked(True)
+                        self.no_slicing_rb.setChecked(True)
+                        self.update_xsection()
+                    except AttributeError:
+                        self.cadmodel.set_slicing(slice_phi=None,slice_r=0,slice_z=[self.cadmodel.get_extent()[4]-1e-3,0])
+
+
+                elif str(view_item.text(0)).lower() == 'poloidal cross-section':
 
                     R = z_extent/(2*np.tan(3.14159*xsec_fov/360))
 
@@ -722,21 +786,23 @@ class CalcamGUIWindow(qt.QMainWindow):
                     else:
                         self.camFOV.setValue(z_extent)
 
-                    if self.xsection_cursor.isEnabled():
-                        cursorpos = self.interactor3d.get_cursor_coords(0)
-                        phi = np.arctan2(cursorpos[1],cursorpos[0])
-                        phi_cam = phi - 3.14159/2.
-                        self.xsection_cursor.setChecked(True)
 
-                    else:
-                        phi_cam = np.arctan2(self.camY.value(),self.camX.value())
-                        self.xsection_origin.setChecked(True)
+                    phi_cam = np.arctan2(self.camY.value(),self.camX.value())
+                    if phi_cam < 0:
+                        phi_cam = phi_cam + 2*np.pi
 
                     self.camera_3d.SetPosition(R * np.cos(phi_cam),R * np.sin(phi_cam),0.)
                     self.interactor3d.set_roll(0.)
                     self.camera_3d.SetFocalPoint( (0.,0.,0.) )
 
-                    self.xsection_checkbox.setChecked(True)
+                    try:
+                        self.chordslice_phi.setValue(int(phi_cam / np.pi * 180))
+                        self.chordslice_r.setValue(0.)
+                        self.chordslice_rb.setChecked(True)
+                        self.zslice_checkbox.setChecked(False)
+                        self.update_xsection()
+                    except AttributeError:
+                        self.cadmodel.set_slicing(slice_phi=phi_cam / np.pi * 180,slice_r=0,slice_z=None)
 
         else:
             self.camera_3d.SetPosition((self.camX.value(),self.camY.value(),self.camZ.value()))
@@ -754,6 +820,30 @@ class CalcamGUIWindow(qt.QMainWindow):
 
         self.on_view_changed()
 
+
+    def update_xsection(self):
+
+        self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
+
+        if self.no_slicing_rb.isChecked():
+            slice_phi = None
+            slice_r = 0
+        elif self.cakeslice_rb.isChecked():
+            slice_phi = [self.cakeslice_phi0.value(),self.cakeslice_phi1.value()]
+            slice_r = 0
+        elif self.chordslice_rb.isChecked():
+            slice_phi = self.chordslice_phi.value()
+            slice_r = self.chordslice_r.value()
+        if self.zslice_checkbox.isChecked():
+            slice_z = [self.zslice_zmin.value(),self.zslice_zmax.value()]
+        else:
+            slice_z = None
+
+        self.cadmodel.set_slicing(slice_phi,slice_r,slice_z)
+
+        self.refresh_3d()
+
+        self.app.restoreOverrideCursor()
 
 
     def set_view_from_calib(self,calibration,subfield):
@@ -788,12 +878,15 @@ class CalcamGUIWindow(qt.QMainWindow):
         self.interactor3d.set_roll(calibration.get_cam_roll(subview=subfield,centre='subview'))
 
         self.update_viewport_info(keep_selection=True)
-
-        self.interactor3d.set_xsection(None)       
         
         self.interactor3d.update_cursor_style()
 
-        self.interactor3d.update_clipping()
+        try:
+            self.zslice_checkbox.setChecked(False)
+            self.no_slicing_rb.setChecked(True)
+            self.update_xsection()
+        except AttributeError:
+            self.cadmodel.set_slicing()
   
         self.refresh_3d()
 

@@ -123,6 +123,7 @@ class FittingCalib(CalcamGUIWindow):
         self.comparison_overlay_type.currentIndexChanged.connect(self.update_overlay)
         self.comparison_overlay_opacity_slider.valueChanged.connect(self.change_comparison_colour)
         self.rendertype_edges.toggled.connect(self.toggle_wireframe)
+        self.coords_table_button.clicked.connect(self.open_coords_window)
 
         self.control_sensitivity_slider.valueChanged.connect(lambda x: self.interactor3d.set_control_sensitivity(x*0.01))
         self.rmb_rotate.toggled.connect(self.interactor3d.set_rmb_rotate)
@@ -186,6 +187,7 @@ class FittingCalib(CalcamGUIWindow):
         self.fit_results = []
 
         self.filename = None
+        self.coords_table_window = None
 
         self.waiting_pointpairs = None
 
@@ -236,6 +238,20 @@ class FittingCalib(CalcamGUIWindow):
         self.update_pointpairs()
         self.update_n_points()
         self.unsaved_changes = True
+
+
+    def move_point(self,index,new_pos,subview=0):
+
+        self.record_undo_state()
+
+        if len(new_pos) == 3:
+            self.interactor3d.set_cursor_coords(self.point_pairings[index][0],new_pos)
+        else:
+            self.interactor2d.set_cursor_coords(self.point_pairings[index][1], new_pos,subview)
+
+        self.unsaved_changes = True
+        self.update_cursor_info()
+        self.update_pointpairs()
 
 
     def select_comparison_calib(self):
@@ -297,7 +313,16 @@ class FittingCalib(CalcamGUIWindow):
     def on_close(self):
         self.qvtkwidget_2d.close()
         self.qvtkwidget_3d.close()
+        if self.coords_table_window is not None:
+            self.coords_table_window.close()
 
+
+    def open_coords_window(self):
+
+        if self.coords_table_window is None:
+            self.coords_table_window = PointsDataWindow(self)
+        else:
+            self.coords_table_window.activateWindow()
 
     def reset(self,keep_cadmodel=False):
 
@@ -480,6 +505,17 @@ class FittingCalib(CalcamGUIWindow):
                 if pointpair[1] == new_focus:
                     self.interactor3d.set_cursor_focus(pointpair[0])
                     self.selected_pointpair = i
+        elif sender == 'table':
+            cursor2d = self.point_pairings[new_focus][1]
+            cursor3d = self.point_pairings[new_focus][0]
+            if cursor2d is not None:
+                self.interactor2d.set_cursor_focus(cursor2d)
+            if cursor3d is not None:
+                self.interactor3d.set_cursor_focus(cursor3d)
+            self.selected_pointpair = new_focus
+
+        if self.coords_table_window is not None and sender != 'table':
+            self.coords_table_window.update_selected_point(self.selected_pointpair,update_parent=False)
 
         self.update_cursor_info()
 
@@ -1134,7 +1170,8 @@ class FittingCalib(CalcamGUIWindow):
 
 
         self.unsaved_changes = True
-
+        if self.coords_table_window is not None:
+            self.coords_table_window.update_points()
 
 
     def update_fit_results(self,show_points=True):
@@ -1290,6 +1327,8 @@ class FittingCalib(CalcamGUIWindow):
             dialog.exec()
 
         self.unsaved_changes = True
+        if self.coords_table_window is not None:
+            self.coords_table_window.update_points()
 
 
     def render_overlay_image(self,calibration,wireframe):
@@ -1737,3 +1776,208 @@ class FittingCalib(CalcamGUIWindow):
         self.update_pointpairs()
         self.update_n_points()
         self.fit_enable_check()
+
+
+class PointsDataWindow(qt.QDialog):
+
+    def __init__(self, parent):
+
+        # GUI initialisation
+        qt.QDialog.__init__(self)
+        self.parent=parent
+        self.setWindowTitle('Calcam - Point pair coordinates')
+
+        #self.checkbox_table = qt.QTableWidget()
+        #self.checkbox_table.verticalScrollBar().valueChanged.connect(self._scroll_all_tables)
+        #self.checkbox_table.setColumnCount(1)
+        #self.checkbox_table.setHorizontalHeaderLabels(['Enable'])
+        #self.checkbox_table.resizeColumnsToContents()
+
+        self.coords3d_table = qt.QTableWidget()
+        self.coords3d_table.verticalScrollBar().valueChanged.connect(self._scroll_all_tables)
+        self.coords3d_table.setSelectionBehavior(self.coords3d_table.selectionBehavior().SelectRows)
+        self.coords3d_table.verticalHeader().setVisible(False)
+        self.coords3d_table.setColumnCount(3)
+        self.coords3d_table.setHorizontalHeaderLabels(['X (m)','Y (m)','Z (m)'])
+        self.coords3d_table.currentCellChanged.connect(self.update_selected_point)
+        self.coords3d_table.itemChanged.connect(self.move_point)
+
+
+        self.coords2d_tables = []
+        self.coords2d_labels = []
+        self.hspace = None
+
+        self.all_tables = [self.coords3d_table]
+
+        layout = qt.QGridLayout()
+        layout.addWidget(qt.QLabel('3D (CAD model) Coordinates'), 0, 1)
+        #layout.addWidget(self.checkbox_table,1,0)
+        layout.addWidget(self.coords3d_table, 1, 1)
+
+        self.setLayout(layout)
+
+        self.update_subviews()
+
+        self.show()
+
+
+    def _adjust_table_widths(self):
+
+        for table in self.all_tables:
+            cols = table.columnCount()
+            contents_width = 0
+            for col in range(cols):
+                contents_width = contents_width + table.columnWidth(col)
+
+            table.setFixedWidth(contents_width+20)
+
+
+    def update_subviews(self,update_points=True):
+
+        for label,table in zip(self.coords2d_labels,self.coords2d_tables):
+            self.layout().removeWidget(label)
+            self.layout().removeWidget(table)
+            self.all_tables.remove(table)
+
+        self.coords2d_tables = []
+        self.coords2d_labels = []
+
+        if self.hspace is not None:
+            self.layout().removeWidget(self.hspace)
+        self.hspace = None
+
+        for subview in range(self.parent.calibration.n_subviews):
+            if self.parent.calibration.n_subviews > 1:
+                label = qt.QLabel('Image Coordinates: {:s}'.format(self.parent.calibration.subview_names[subview]))
+            else:
+                label = qt.QLabel('Image Coordinates')
+            self.coords2d_labels.append(label)
+            self.layout().addWidget(label,0,subview+2)
+
+            table = qt.QTableWidget()
+            table.setSelectionBehavior(table.selectionBehavior().SelectRows)
+            table.verticalHeader().setVisible(False)
+            table.verticalScrollBar().valueChanged.connect(self._scroll_all_tables)
+            table.setColumnCount(3)
+            table.setHorizontalHeaderLabels(['X (px)','Y (px)','Fit residual (px)'])
+            table.currentCellChanged.connect(self.update_selected_point)
+            table.itemChanged.connect(self.move_point)
+            self.coords2d_tables.append(table)
+            self.all_tables.append(table)
+            self.layout().addWidget(table, 1, subview + 2)
+
+        self.hspace = qt.QSpacerItem(40, 20, qt.QSizePolicy.Policy.Expanding,qt.QSizePolicy.Policy.Minimum)
+        self.layout().addItem(self.hspace,0,subview+3)
+        self._adjust_table_widths()
+        if update_points:
+            self.update_points()
+
+
+    def update_selected_point(self,index=None,col=None,leaving_index=None,leaving_col=None,update_parent=True):
+
+        #items = [0]
+        #for table in self.all_tables:
+        #    if self.sender() is table:
+        #        items = table.selectedItems()
+        #if len(items) == 0:
+        #    return
+
+        for table in self.all_tables:
+            table.blockSignals(True)
+            if index is not None:
+                table.selectRow(index)
+            else:
+                table.clearSelection()
+            table.blockSignals(False)
+
+        if update_parent:
+            self.parent.change_point_focus('table',index)
+
+
+    def _scroll_all_tables(self,value):
+
+        for table in self.all_tables:
+            scrollbar = table.verticalScrollBar()
+            if self.sender() is not scrollbar:
+                scrollbar.setValue(value)
+
+
+    def move_point(self):
+
+        subview = None
+        coords = [item.text() for item in self.sender().selectedItems()]
+
+        if len(coords) < 3:
+            return
+
+        if self.sender() is not self.coords3d_table:
+            coords = coords[:2]
+
+        try:
+            coords = [float(num) for num in coords]
+        except ValueError as e:
+            self.parent.show_msgbox('Value entered is not a valid numerical value')
+            self.update_points()
+            return
+
+        for i,table in enumerate(self.coords2d_tables):
+            if self.sender() is table:
+                subview = i
+                break
+
+        point_ind = self.sender().currentRow()
+
+        self.parent.move_point(point_ind,coords,subview)
+
+
+    def update_points(self):
+
+        for table in self.all_tables:
+            table.blockSignals(True)
+            table.clearContents()
+
+        pointpairs = self.parent.calibration.pointpairs
+
+        #self.checkbox_table.setRowCount(pointpairs.get_n_pointpairs())
+        self.coords3d_table.setRowCount(pointpairs.get_n_pointpairs())
+        for table in self.coords2d_tables:
+            table.setRowCount(pointpairs.get_n_pointpairs())
+
+        for point in range(pointpairs.get_n_pointpairs()):
+            #checkbox = qt.QCheckBox()
+            #checkbox.setChecked(True)
+            #checkbox.toggled.connect(lambda enable: self.parent.set_point_enabled(point,enable))
+            #self.checkbox_table.setCellWidget(point,0,checkbox)
+
+            coords3d = pointpairs.object_points[point]
+            if coords3d is not None:
+                for component in range(3):
+                    item = qt.QTableWidgetItem('{:.3f}'.format(coords3d[component]))
+                    self.coords3d_table.setItem(point,component,item)
+
+            for subview in range(self.parent.calibration.n_subviews):
+                coords2d = pointpairs.image_points[point][subview]
+                if coords2d is not None:
+                    for component in range(2):
+                        item = qt.QTableWidgetItem('{:.2f}'.format(coords2d[component]))
+                        self.coords2d_tables[subview].setItem(point, component, item)
+
+                    if coords2d is not None and coords3d is not None and self.parent.calibration.view_models[subview] is not None:
+                        projected2d = self.parent.calibration.view_models[subview].project_points(coords3d)
+                        delta = np.sqrt(np.sum((projected2d-coords2d)**2))
+                        item = qt.QTableWidgetItem('{:.2f}'.format(delta))
+                        item.setFlags(qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled)
+                        self.coords2d_tables[subview].setItem(point, 2, item)
+                    else:
+                        item = qt.QTableWidgetItem('Not Fitted')
+                        item.setFlags(qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled)
+                        self.coords2d_tables[subview].setItem(point, 2, item)
+
+        self.update_selected_point(self.parent.selected_pointpair,update_parent=False)
+
+        for table in self.all_tables:
+            table.blockSignals(False)
+
+
+    def closeEvent(self, event):
+        self.parent.coords_table_window = None

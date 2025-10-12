@@ -29,8 +29,11 @@ except:
 if __name__ == '__main__':
 
     if not gui:
-        from tkinter import messagebox
-        messagebox.showerror(title='Cannot start Calcam GUI',message='Cannot open calcam window: {:s}'.format(no_gui_reason))
+        try:
+            from tkinter import messagebox
+            messagebox.showerror(title='Cannot start Calcam GUI',message='Cannot open calcam window: {:s}'.format(no_gui_reason))
+        except Exception:
+            print('Cannot open calcam window: {:s}'.format(no_gui_reason))
         exit()
         
     try:

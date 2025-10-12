@@ -94,6 +94,8 @@ class CADEdit(CalcamGUIWindow):
         self.z_rotate_box.valueChanged.connect(self.edit_feature)
         self.z_rotate_box.valueChanged.connect(self.edit_feature)
         self.handedness_box.currentIndexChanged.connect(self.edit_feature)
+        self.slice_apply_button.clicked.connect(self.update_xsection)
+        self.proj_perspective.toggled.connect(self.set_projection)
 
         self.new_group_button.clicked.connect(self.add_group)
 
@@ -126,6 +128,12 @@ class CADEdit(CalcamGUIWindow):
             self.reset()
             
 
+    def on_model_load(self):
+        model_extent = self.cadmodel.get_extent()
+        rmax = np.max(np.abs(model_extent[:4]))
+        self.chordslice_r.setValue(rmax/2)
+        self.zslice_zmin.setValue(model_extent[4]-1e-3)
+        self.zslice_zmax.setValue(model_extent[5]+1e-3)
 
 
     def on_featuretree_change(self,item):
@@ -208,6 +216,15 @@ class CADEdit(CalcamGUIWindow):
             self.extra_groups[self.cadmodel.model_variant].append(name)
             self.update_feature_tree()
 
+    def set_projection(self):
+
+        if self.proj_perspective.isChecked():
+            self.interactor3d.set_projection('perspective')
+        elif self.proj_orthographic.isChecked():
+            self.interactor3d.set_projection('orthographic')
+
+        self.update_viewport_info()
+        self.refresh_3d()
 
     def load_wall_contour(self):
 
@@ -747,6 +764,7 @@ class CADEdit(CalcamGUIWindow):
             self.action_save.setEnabled(True)
 
         self.unsaved_changes = False
+        self.on_model_load()
         self.app.restoreOverrideCursor()
 
 
