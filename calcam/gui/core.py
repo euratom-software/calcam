@@ -1303,9 +1303,13 @@ class CalcamGUIWindow(qt.QMainWindow):
         self.qvtkwidget_2d.update()
 
 
-    def show_msgbox(self,main_msg,sub_msg=None):
+    def show_msgbox(self,main_msg,sub_msg=None,alt_parent=None):
 
-        dialog = qt.QMessageBox(self)
+        if alt_parent is None:
+            parent = self
+        else:
+            parent = alt_parent
+        dialog = qt.QMessageBox(parent)
         dialog.setStandardButtons(qt.QMessageBox.Ok)
         dialog.setTextFormat(qt.Qt.RichText)
         dialog.setWindowTitle('Calcam')

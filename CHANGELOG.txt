@@ -5,8 +5,8 @@ Minor Release 2.16.0 (WIP; next release)
 ----------------------------------------
 
 New & Enhancements:
-* Greatly enhanced CAD model slicing / cross-sectioning capability in the 3D viewer and for model view definitions (#158)
-* [WIP] Added option to open window with editable table of point coordinates in fitting calibration tool (#154)
+* Greatly enhanced CAD model slicing / cross-sectioning capability added to the 3D viewer and for model view definitions (#53, #158)
+* Added option to open secondary window with editable table of point coordinates in fitting calibration tool (#73, #154)
 * Add package __main__ so that the GUI can be invoked with `python -m calcam`
 
 Fixes:
@@ -15,7 +15,7 @@ Fixes:
 * Fixed exceptions from CADModel.intersect_with_line() when calling with surface_normal=True and coordinates not in NumPy arrays (#153)
 
 Compatibility / Dependencies:
-* Revert declared PyQt dependency to PyQt5 instead of PyQt6, since PyQt6 seems to fail to install on some platforms much more often (#156) so PyQt5 gives a smoother user experience (Hopefully if PEP771 gets implemented it will provide a better long-term solution to the PyQt version issue)
+* Revert declared PyQt dependency to PyQt5 instead of PyQt6, since PyQt6 seems to fail to install on many more systems (#156) so PyQt5 gives a smoother install experience (Hopefully if PEP771 gets implemented it will provide a better long-term solution to the PyQt version issue)
 
 
 

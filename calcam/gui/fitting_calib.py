@@ -245,13 +245,51 @@ class FittingCalib(CalcamGUIWindow):
         self.record_undo_state()
 
         if len(new_pos) == 3:
-            self.interactor3d.set_cursor_coords(self.point_pairings[index][0],new_pos)
+            if self.point_pairings[index][2]:
+                self.interactor3d.set_cursor_coords(self.point_pairings[index][0],new_pos)
+            else:
+                self.point_pairings[index][0] = new_pos
         else:
-            self.interactor2d.set_cursor_coords(self.point_pairings[index][1], new_pos,subview)
+            if self.point_pairings[index][2]:
+                self.interactor2d.set_cursor_coords(self.point_pairings[index][1], new_pos,subview)
+            else:
+                self.point_pairings[index][1][subview] = new_pos
 
         self.unsaved_changes = True
         self.update_cursor_info()
         self.update_pointpairs()
+
+
+    def set_point_enabled(self,index,enable):
+
+        if enable and not self.point_pairings[index][2]:
+            if self.point_pairings[index][0] is not None:
+                self.point_pairings[index][0] = self.interactor3d.add_cursor(self.point_pairings[index][0])
+            if self.point_pairings[index][1] is not None:
+                coords2d = self.point_pairings[index][1]
+                self.point_pairings[index][1] = self.interactor2d.add_active_cursor(coords2d[0])
+                for coords in coords2d[1:]:
+                    self.interactor2d.add_active_cursor(coords,add_to=self.point_pairings[index][1])
+            self.point_pairings[index][2] = True
+            self.change_point_focus('table',index)
+
+        elif not enable and self.point_pairings[index][2]:
+            if self.point_pairings[index][0] is not None:
+                cursor_ind = self.point_pairings[index][0]
+                self.point_pairings[index][0] = self.interactor3d.get_cursor_coords(cursor_ind)
+                self.interactor3d.remove_cursor(cursor_ind)
+            if self.point_pairings[index][1] is not None:
+                cursor_ind = self.point_pairings[index][1]
+                self.point_pairings[index][1] = [coords for coords in self.interactor2d.get_cursor_coords(cursor_ind) if coords is not None]
+                if len(self.point_pairings[index][1]) == 0:
+                    self.point_pairings[index][1] = None
+                self.interactor2d.remove_active_cursor(cursor_ind)
+            self.point_pairings[index][2] = False
+            self.selected_pointpair = None
+
+        self.update_pointpairs()
+        self.update_cursor_info()
+        self.update_n_points()
 
 
     def select_comparison_calib(self):
@@ -344,6 +382,9 @@ class FittingCalib(CalcamGUIWindow):
 
         self.calibration = Calibration(cal_type='fit')
 
+        if self.coords_table_window is not None:
+            self.coords_table_window.update_subviews()
+
         self.image_settings.hide()
 
         self.comp_overlay = None
@@ -366,6 +407,7 @@ class FittingCalib(CalcamGUIWindow):
 
         self.refresh_2d()
         self.refresh_3d()
+
         self.unsaved_changes = False
 
 
@@ -454,13 +496,16 @@ class FittingCalib(CalcamGUIWindow):
                 self.update_n_points()
                 return
 
-        self.point_pairings.append( [None,self.interactor2d.add_active_cursor(im_coords)] )
+        self.point_pairings.append( [None,self.interactor2d.add_active_cursor(im_coords),True] )
         self.interactor2d.set_cursor_focus(self.point_pairings[-1][1])
         self.interactor3d.set_cursor_focus(None)
         self.selected_pointpair = len(self.point_pairings) - 1
         self.update_cursor_info()
 
         self.update_n_points()
+
+        if self.coords_table_window is not None:
+            self.coords_table_window.update_points()
 
 
     def new_point_3d(self,coords):
@@ -474,7 +519,7 @@ class FittingCalib(CalcamGUIWindow):
                 self.update_n_points()
                 return
 
-        self.point_pairings.append( [self.interactor3d.add_cursor(coords),None] )
+        self.point_pairings.append( [self.interactor3d.add_cursor(coords),None,True] )
         self.interactor3d.set_cursor_focus(self.point_pairings[-1][0])
         self.interactor2d.set_cursor_focus(None)
         self.selected_pointpair = len(self.point_pairings) - 1
@@ -482,11 +527,15 @@ class FittingCalib(CalcamGUIWindow):
 
         self.update_n_points()
 
+        if self.coords_table_window is not None:
+            self.coords_table_window.update_points()
+
 
 
 
     def change_point_focus(self,sender,new_focus):
 
+        force_update_table = False
         if self.selected_pointpair is not None:
             if None in self.point_pairings[self.selected_pointpair]:
                 if self.point_pairings[self.selected_pointpair][0] is not None:
@@ -494,6 +543,7 @@ class FittingCalib(CalcamGUIWindow):
                 if self.point_pairings[self.selected_pointpair][1] is not None:
                     self.interactor2d.remove_active_cursor(self.point_pairings[self.selected_pointpair][1])
                 self.point_pairings.remove(self.point_pairings[self.selected_pointpair])
+                force_update_table = True
 
         if sender == '3d':
             for i,pointpair in enumerate(self.point_pairings):
@@ -506,15 +556,22 @@ class FittingCalib(CalcamGUIWindow):
                     self.interactor3d.set_cursor_focus(pointpair[0])
                     self.selected_pointpair = i
         elif sender == 'table':
-            cursor2d = self.point_pairings[new_focus][1]
-            cursor3d = self.point_pairings[new_focus][0]
-            if cursor2d is not None:
-                self.interactor2d.set_cursor_focus(cursor2d)
-            if cursor3d is not None:
-                self.interactor3d.set_cursor_focus(cursor3d)
-            self.selected_pointpair = new_focus
+            if self.point_pairings[new_focus][2]:
+                cursor2d = self.point_pairings[new_focus][1]
+                cursor3d = self.point_pairings[new_focus][0]
+                if cursor2d is not None:
+                    self.interactor2d.set_cursor_focus(cursor2d)
+                if cursor3d is not None:
+                    self.interactor3d.set_cursor_focus(cursor3d)
+                self.selected_pointpair = new_focus
+            else:
+                self.interactor2d.set_cursor_focus(None)
+                self.interactor3d.set_cursor_focus(None)
+                self.selected_pointpair = None
 
-        if self.coords_table_window is not None and sender != 'table':
+        if self.coords_table_window is not None and ( sender != 'table' or force_update_table):
+            if force_update_table:
+                self.coords_table_window.update_points()
             self.coords_table_window.update_selected_point(self.selected_pointpair,update_parent=False)
 
         self.update_cursor_info()
@@ -991,7 +1048,7 @@ class FittingCalib(CalcamGUIWindow):
 
                 if cursorid_2d is not None:
                     cursorid_3d = self.interactor3d.add_cursor(pointpairs.object_points[i])
-                    self.point_pairings.append([cursorid_3d,cursorid_2d])
+                    self.point_pairings.append([cursorid_3d,cursorid_2d,True])
 
             self.update_pointpairs(src=src,history=history,clear_fit=clear_fit)
             self.update_n_points()
@@ -1117,7 +1174,7 @@ class FittingCalib(CalcamGUIWindow):
         pp = PointPairs()
 
         for pointpair in self.point_pairings:
-            if pointpair[0] is not None and pointpair[1] is not None:
+            if pointpair[0] is not None and pointpair[1] is not None and pointpair[2]:
                 pp.add_pointpair(self.interactor3d.get_cursor_coords(pointpair[0]) , self.interactor2d.get_cursor_coords(pointpair[1]) )
 
         if clear_fit and self.calibration.pointpairs is not None:
@@ -1414,7 +1471,7 @@ class FittingCalib(CalcamGUIWindow):
 
             npts = 0
             for pp in self.point_pairings:
-                if pp[0] is not None and pp[1] is not None:
+                if pp[0] is not None and pp[1] is not None and pp[2]:
                     im_coords = self.interactor2d.get_cursor_coords(pp[1])
 
                     if im_coords[subview] is not None:
@@ -1561,6 +1618,9 @@ class FittingCalib(CalcamGUIWindow):
 
         self.calibration = opened_calib
 
+        if self.coords_table_window is not None:
+            self.coords_table_window.update_subviews()
+
         if not self.fit_initted:
             self.init_fitting(reset_fit=False)
 
@@ -1692,6 +1752,8 @@ class FittingCalib(CalcamGUIWindow):
             self.interactor2d.set_subview_lookup(self.calibration.n_subviews,self.calibration.subview_lookup)
             self.init_fitting()
             self.unsaved_changes = True
+            if self.coords_table_window is not None:
+                self.coords_table_window.update_subviews()
             self.update_n_points()
             self.pointpairs_history.clear()
             self.points_undo_button.setEnabled(False)
@@ -1786,43 +1848,51 @@ class PointsDataWindow(qt.QDialog):
         qt.QDialog.__init__(self)
         self.parent=parent
         self.setWindowTitle('Calcam - Point pair coordinates')
+        self.setWindowIcon(qt.QIcon(os.path.join(guipath, 'icons', 'calcam.png')))
 
-        #self.checkbox_table = qt.QTableWidget()
-        #self.checkbox_table.verticalScrollBar().valueChanged.connect(self._scroll_all_tables)
-        #self.checkbox_table.setColumnCount(1)
-        #self.checkbox_table.setHorizontalHeaderLabels(['Enable'])
-        #self.checkbox_table.resizeColumnsToContents()
+        self.checkbox_table = qt.QTableWidget()
+        self.checkbox_table.verticalScrollBar().valueChanged.connect(self._scroll_all_tables)
+        self.checkbox_table.setColumnCount(1)
+        self.checkbox_table.verticalHeader().setVisible(False)
+        self.checkbox_table.setHorizontalHeaderLabels(['Include'])
+        self.checkbox_table.currentCellChanged.connect(self.update_selected_point)
+        self.checkbox_table.setShowGrid(False)
 
         self.coords3d_table = qt.QTableWidget()
         self.coords3d_table.verticalScrollBar().valueChanged.connect(self._scroll_all_tables)
-        self.coords3d_table.setSelectionBehavior(self.coords3d_table.selectionBehavior().SelectRows)
+        self.coords3d_table.setSelectionBehavior(self.coords3d_table.SelectRows)
+        self.coords3d_table.setSelectionMode(self.coords3d_table.SingleSelection)
         self.coords3d_table.verticalHeader().setVisible(False)
         self.coords3d_table.setColumnCount(3)
         self.coords3d_table.setHorizontalHeaderLabels(['X (m)','Y (m)','Z (m)'])
         self.coords3d_table.currentCellChanged.connect(self.update_selected_point)
         self.coords3d_table.itemChanged.connect(self.move_point)
+        self.coords3d_table.itemDoubleClicked.connect(self._on_table_doubleclick)
 
 
         self.coords2d_tables = []
         self.coords2d_labels = []
         self.hspace = None
 
-        self.all_tables = [self.coords3d_table]
+        self.all_tables = [self.checkbox_table,self.coords3d_table]
 
         layout = qt.QGridLayout()
         layout.addWidget(qt.QLabel('3D (CAD model) Coordinates'), 0, 1)
-        #layout.addWidget(self.checkbox_table,1,0)
+        layout.addWidget(self.checkbox_table,1,0)
         layout.addWidget(self.coords3d_table, 1, 1)
 
         self.setLayout(layout)
 
         self.update_subviews()
-
+        self.resize(self.width(),parent.height())
         self.show()
+
+
 
 
     def _adjust_table_widths(self):
 
+        self.checkbox_table.resizeColumnsToContents()
         for table in self.all_tables:
             cols = table.columnCount()
             contents_width = 0
@@ -1831,6 +1901,10 @@ class PointsDataWindow(qt.QDialog):
 
             table.setFixedWidth(contents_width+20)
 
+    def _on_table_doubleclick(self,item):
+
+        if item.text() == '':
+            self.parent.show_msgbox('New points cannot be added from the coordinates table.<br>Please use the main window to add a new point and then you can edit the coordinates in this window.',alt_parent=self)
 
     def update_subviews(self,update_points=True):
 
@@ -1843,7 +1917,7 @@ class PointsDataWindow(qt.QDialog):
         self.coords2d_labels = []
 
         if self.hspace is not None:
-            self.layout().removeWidget(self.hspace)
+            self.layout().removeItem(self.hspace)
         self.hspace = None
 
         for subview in range(self.parent.calibration.n_subviews):
@@ -1855,12 +1929,14 @@ class PointsDataWindow(qt.QDialog):
             self.layout().addWidget(label,0,subview+2)
 
             table = qt.QTableWidget()
-            table.setSelectionBehavior(table.selectionBehavior().SelectRows)
+            table.setSelectionBehavior(table.SelectRows)
+            table.setSelectionMode(table.SingleSelection)
             table.verticalHeader().setVisible(False)
             table.verticalScrollBar().valueChanged.connect(self._scroll_all_tables)
             table.setColumnCount(3)
             table.setHorizontalHeaderLabels(['X (px)','Y (px)','Fit residual (px)'])
             table.currentCellChanged.connect(self.update_selected_point)
+            table.itemDoubleClicked.connect(self._on_table_doubleclick)
             table.itemChanged.connect(self.move_point)
             self.coords2d_tables.append(table)
             self.all_tables.append(table)
@@ -1868,19 +1944,16 @@ class PointsDataWindow(qt.QDialog):
 
         self.hspace = qt.QSpacerItem(40, 20, qt.QSizePolicy.Policy.Expanding,qt.QSizePolicy.Policy.Minimum)
         self.layout().addItem(self.hspace,0,subview+3)
+
         self._adjust_table_widths()
+
         if update_points:
             self.update_points()
 
 
-    def update_selected_point(self,index=None,col=None,leaving_index=None,leaving_col=None,update_parent=True):
 
-        #items = [0]
-        #for table in self.all_tables:
-        #    if self.sender() is table:
-        #        items = table.selectedItems()
-        #if len(items) == 0:
-        #    return
+
+    def update_selected_point(self,index=None,col=None,leaving_index=None,leaving_col=None,update_parent=True):
 
         for table in self.all_tables:
             table.blockSignals(True)
@@ -1916,7 +1989,7 @@ class PointsDataWindow(qt.QDialog):
         try:
             coords = [float(num) for num in coords]
         except ValueError as e:
-            self.parent.show_msgbox('Value entered is not a valid numerical value')
+            self.parent.show_msgbox('Value entered is not a valid numerical value',alt_parent=self)
             self.update_points()
             return
 
@@ -1931,49 +2004,95 @@ class PointsDataWindow(qt.QDialog):
 
 
     def update_points(self):
+        """
+        Update the point coordinates table from the data in the parent window
+        """
+
+        n_pointpairs = len(self.parent.point_pairings)
+
+        restore_scroll_location = self.checkbox_table.verticalScrollBar().value()
 
         for table in self.all_tables:
+            # Brute force updating: clear everything and make it all again
             table.blockSignals(True)
             table.clearContents()
+            table.setRowCount(n_pointpairs)
 
-        pointpairs = self.parent.calibration.pointpairs
 
-        #self.checkbox_table.setRowCount(pointpairs.get_n_pointpairs())
-        self.coords3d_table.setRowCount(pointpairs.get_n_pointpairs())
-        for table in self.coords2d_tables:
-            table.setRowCount(pointpairs.get_n_pointpairs())
+        for point in range(n_pointpairs):
+            # Loop over the point pairings in the parent window
 
-        for point in range(pointpairs.get_n_pointpairs()):
-            #checkbox = qt.QCheckBox()
-            #checkbox.setChecked(True)
-            #checkbox.toggled.connect(lambda enable: self.parent.set_point_enabled(point,enable))
-            #self.checkbox_table.setCellWidget(point,0,checkbox)
+            # Checkbox for whether the point is enabled
+            checkbox = qt.QCheckBox('Point {:d}'.format(point))
+            checkbox.setChecked(self.parent.point_pairings[point][2])
+            checkbox.toggled.connect(lambda enable,point=point: self.parent.set_point_enabled(point,enable))
+            self.checkbox_table.setCellWidget(point,0,checkbox)
 
-            coords3d = pointpairs.object_points[point]
-            if coords3d is not None:
+            if self.parent.point_pairings[point][0] is not None:
+                # 3D coordinates, if they exist
+                if self.parent.point_pairings[point][2]:
+                    coords3d = self.parent.interactor3d.get_cursor_coords(self.parent.point_pairings[point][0])
+                else:
+                    coords3d = self.parent.point_pairings[point][0]
+
                 for component in range(3):
                     item = qt.QTableWidgetItem('{:.3f}'.format(coords3d[component]))
                     self.coords3d_table.setItem(point,component,item)
+            else:
+                # if they don't exist, make blank but not editable
+                for component in range(3):
+                    blank_item = qt.QTableWidgetItem('')
+                    blank_item.setFlags(qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled)
+                    self.coords3d_table.setItem(point, component, blank_item)
 
-            for subview in range(self.parent.calibration.n_subviews):
-                coords2d = pointpairs.image_points[point][subview]
-                if coords2d is not None:
-                    for component in range(2):
-                        item = qt.QTableWidgetItem('{:.2f}'.format(coords2d[component]))
-                        self.coords2d_tables[subview].setItem(point, component, item)
+            if self.parent.point_pairings[point][1] is not None:
+                # Image point coords is they exist
 
-                    if coords2d is not None and coords3d is not None and self.parent.calibration.view_models[subview] is not None:
-                        projected2d = self.parent.calibration.view_models[subview].project_points(coords3d)
-                        delta = np.sqrt(np.sum((projected2d-coords2d)**2))
-                        item = qt.QTableWidgetItem('{:.2f}'.format(delta))
-                        item.setFlags(qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled)
-                        self.coords2d_tables[subview].setItem(point, 2, item)
+                if self.parent.point_pairings[point][2]:
+                    coords2d_all = self.parent.interactor2d.get_cursor_coords(self.parent.point_pairings[point][1])
+                else:
+                    coords2d_all = self.parent.point_pairings[point][1]
+
+                for subview,coords2d in enumerate(coords2d_all):
+                    # For each subview
+
+                    if coords2d is not None:
+                        for component in range(2):
+                            item = qt.QTableWidgetItem('{:.2f}'.format(coords2d[component]))
+                            self.coords2d_tables[subview].setItem(point, component, item)
+
+                        if coords2d is not None and coords3d is not None and self.parent.calibration.view_models[subview] is not None:
+                            # If we have all of 3D coords, 2D coords and a fit, then do the point re-projection
+                            # and display the re-projection error in the table
+                            projected2d = self.parent.calibration.view_models[subview].project_points(coords3d)
+                            delta = np.sqrt(np.sum((projected2d-coords2d)**2))
+                            item = qt.QTableWidgetItem('{:.2f}'.format(delta))
+                            item.setFlags(qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled)
+                            self.coords2d_tables[subview].setItem(point, 2, item)
+                        else:
+                            nofit_item = qt.QTableWidgetItem('Not Fitted')
+                            nofit_item.setFlags(qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled)
+                            self.coords2d_tables[subview].setItem(point, 2, nofit_item)
                     else:
-                        item = qt.QTableWidgetItem('Not Fitted')
-                        item.setFlags(qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled)
-                        self.coords2d_tables[subview].setItem(point, 2, item)
+                        # if they don't exist, make blank but not editable
+                        for component in range(3):
+                            blank_item = qt.QTableWidgetItem('')
+                            blank_item.setFlags(qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled)
+                            self.coords2d_tables[subview].setItem(point, component, blank_item)
 
+            else:
+                # if they don't exist, make blank but not editable
+                for subview in range(len(self.coords2d_tables)):
+                    for component in range(3):
+                        blank_item = qt.QTableWidgetItem('')
+                        blank_item.setFlags(qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled)
+                        self.coords2d_tables[subview].setItem(point, component, blank_item)
+
+        # Make sure we (re) select the correct table row
         self.update_selected_point(self.parent.selected_pointpair,update_parent=False)
+        self._adjust_table_widths()
+
+        self.checkbox_table.verticalScrollBar().setValue(restore_scroll_location)
 
         for table in self.all_tables:
             table.blockSignals(False)
