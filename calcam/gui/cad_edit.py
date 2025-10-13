@@ -96,6 +96,10 @@ class CADEdit(CalcamGUIWindow):
         self.handedness_box.currentIndexChanged.connect(self.edit_feature)
         self.slice_apply_button.clicked.connect(self.update_xsection)
         self.proj_perspective.toggled.connect(self.set_projection)
+        self.no_slicing_rb.clicked.connect(self.update_slicing_options)
+        self.cakeslice_rb.clicked.connect(self.update_slicing_options)
+        self.chordslice_rb.clicked.connect(self.update_slicing_options)
+        self.zslice_checkbox.toggled.connect(self.update_slicing_options)
 
         self.new_group_button.clicked.connect(self.add_group)
 

@@ -897,8 +897,32 @@ class MappedImageActor(vtk.vtkActor):
         self.celldata.SetScalars(colours)
 
 
-def get_wall_contour_actor(wall_contour,actor_type='contour',phi=None,toroidal_res=128):
+def get_rz_contour_actor(contour, actor_type='contour', phi=None, toroidal_res=128,closed_contour=True):
+    """
+    Get a VTK actor for a contour defined in R,Z.
 
+    Can be either a line at a single toroidal angle, or an axisymmetric surface
+    by rotating the R,Z contour around the vertical axis.
+
+    Parameters:
+
+        contour (array)       : Nx2 array of the input contour. Each row should contain [R,Z] coordinates \
+                                of a single point along the contour, and the contour has N points along its length.
+
+        actor_type (str)      : Type of actor to generate: either 'contour' for a line at given phi \
+                                or 'surface' for a 3D axisymmetric surface
+
+        phi (float)           : For actor_type = 'contour', the toroidal angle in radians to place the contour
+
+        toroidal_res (int)    : For actor_type = 'surface', how many toroidal facets to use when rotating in to 3D.
+
+        closed_contour (bool) : Whether to connect the 2 ends of the contour to form a closed path.
+
+    Returns:
+
+        vtkActor
+
+    """
     if actor_type == 'contour' and phi is None:
         raise ValueError('Toroidal angle must be specified if type==contour!')
 
@@ -907,26 +931,27 @@ def get_wall_contour_actor(wall_contour,actor_type='contour',phi=None,toroidal_r
     if actor_type == 'contour':
 
         lines = vtk.vtkCellArray()
-        x = wall_contour[-1,0]*np.cos(phi)
-        y = wall_contour[-1,0]*np.sin(phi)
-        points.InsertNextPoint(x,y,wall_contour[-1,1])
+        x = contour[-1,0] * np.cos(phi)
+        y = contour[-1,0] * np.sin(phi)
+        points.InsertNextPoint(x, y, contour[-1,1])
 
-        for i in range(wall_contour.shape[0]-1):
-            x = wall_contour[i,0]*np.cos(phi)
-            y = wall_contour[i,0]*np.sin(phi)
-            points.InsertNextPoint(x,y,wall_contour[i,1])
+        for i in range(contour.shape[0] - 1):
+            x = contour[i,0] * np.cos(phi)
+            y = contour[i,0] * np.sin(phi)
+            points.InsertNextPoint(x, y, contour[i,1])
 
             line = vtk.vtkLine()
             line.GetPointIds().SetId(0,i)
             line.GetPointIds().SetId(1,i+1)
             lines.InsertNextCell(line)
 
-        line = vtk.vtkLine()
-        line.GetPointIds().SetId(0,i+1)
-        line.GetPointIds().SetId(1,0)
-        lines.InsertNextCell(line)
+        if closed_contour:
+            line = vtk.vtkLine()
+            line.GetPointIds().SetId(0,i+1)
+            line.GetPointIds().SetId(1,0)
+            lines.InsertNextCell(line)
 
-        polydata = polydata = vtk.vtkPolyData()
+        polydata = vtk.vtkPolyData()
         polydata.SetPoints(points)
         polydata.SetLines(lines)
 
@@ -935,25 +960,25 @@ def get_wall_contour_actor(wall_contour,actor_type='contour',phi=None,toroidal_r
         polygons = vtk.vtkCellArray()
 
         npoints = 0
-        for i in range(wall_contour.shape[0]):
-            points.InsertNextPoint(wall_contour[i,0],0,wall_contour[i,1])
+        for i in range(contour.shape[0]):
+            points.InsertNextPoint(contour[i,0], 0, contour[i,1])
             npoints = npoints + 1
 
         tor_step = 3.14159*(360./toroidal_res)/180
         for phi in np.linspace(tor_step,2*3.14159-tor_step,toroidal_res-1):
 
-            x = wall_contour[0,0]*np.cos(phi)
-            y = wall_contour[0,0]*np.sin(phi)
-            points.InsertNextPoint(x,y,wall_contour[0,1])
+            x = contour[0,0] * np.cos(phi)
+            y = contour[0,0] * np.sin(phi)
+            points.InsertNextPoint(x, y, contour[0,1])
             npoints = npoints + 1
 
-            for i in range(1,wall_contour.shape[0]):
+            for i in range(1, contour.shape[0]):
 
-                x = wall_contour[i,0]*np.cos(phi)
-                y = wall_contour[i,0]*np.sin(phi)
-                points.InsertNextPoint(x,y,wall_contour[i,1])
+                x = contour[i,0] * np.cos(phi)
+                y = contour[i,0] * np.sin(phi)
+                points.InsertNextPoint(x, y, contour[i,1])
                 npoints = npoints + 1
-                lasttor = npoints - wall_contour.shape[0] - 1
+                lasttor = npoints - contour.shape[0] - 1
 
                 polygon = vtk.vtkPolygon()
                 polygon.GetPointIds().SetNumberOfIds(3)
@@ -968,23 +993,24 @@ def get_wall_contour_actor(wall_contour,actor_type='contour',phi=None,toroidal_r
                 polygon.GetPointIds().SetId(2,lasttor-1)
                 polygons.InsertNextCell(polygon)
 
-            # Close the end (poloidally)
-            polygon = vtk.vtkPolygon()
-            polygon.GetPointIds().SetNumberOfIds(3)
-            polygon.GetPointIds().SetId(0,npoints-2*wall_contour.shape[0])
-            polygon.GetPointIds().SetId(1,npoints-wall_contour.shape[0]-1)
-            polygon.GetPointIds().SetId(2,npoints-1)
-            polygons.InsertNextCell(polygon)
-            polygon = vtk.vtkPolygon()
-            polygon.GetPointIds().SetNumberOfIds(3)
-            polygon.GetPointIds().SetId(0,npoints-wall_contour.shape[0])
-            polygon.GetPointIds().SetId(1,npoints-1)
-            polygon.GetPointIds().SetId(2,npoints-2*wall_contour.shape[0])
-            polygons.InsertNextCell(polygon)
+            if closed_contour:
+                # Close the end (poloidally)
+                polygon = vtk.vtkPolygon()
+                polygon.GetPointIds().SetNumberOfIds(3)
+                polygon.GetPointIds().SetId(0, npoints - 2 * contour.shape[0])
+                polygon.GetPointIds().SetId(1, npoints - contour.shape[0] - 1)
+                polygon.GetPointIds().SetId(2,npoints-1)
+                polygons.InsertNextCell(polygon)
+                polygon = vtk.vtkPolygon()
+                polygon.GetPointIds().SetNumberOfIds(3)
+                polygon.GetPointIds().SetId(0, npoints - contour.shape[0])
+                polygon.GetPointIds().SetId(1,npoints-1)
+                polygon.GetPointIds().SetId(2, npoints - 2 * contour.shape[0])
+                polygons.InsertNextCell(polygon)
         
         # Close the end (toroidally)
-        startpoint = npoints - wall_contour.shape[0]
-        for i in range(1,wall_contour.shape[0]):
+        startpoint = npoints - contour.shape[0]
+        for i in range(1, contour.shape[0]):
             polygon = vtk.vtkPolygon()
             polygon.GetPointIds().SetNumberOfIds(3)
             polygon.GetPointIds().SetId(0,startpoint+i-1)

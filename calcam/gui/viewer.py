@@ -122,7 +122,11 @@ class Viewer(CalcamGUIWindow):
         self.marker_diameter_box.valueChanged.connect(self.update_lines)
         self.remove_lines_button.clicked.connect(self.update_lines)
         self.coords_legend_checkbox.toggled.connect(self.update_legend)
-        self.slice_apply_button.clicked.connect(self.update_xsection)
+        self.slice_apply_button.clicked.connect(self.update_slicing)
+        self.no_slicing_rb.clicked.connect(self.update_slicing_options)
+        self.cakeslice_rb.clicked.connect(self.update_slicing_options)
+        self.chordslice_rb.clicked.connect(self.update_slicing_options)
+        self.zslice_checkbox.toggled.connect(self.update_slicing_options)
 
         self.save_coords_button.clicked.connect(self.export_cursor_coords)
 
@@ -180,6 +184,10 @@ class Viewer(CalcamGUIWindow):
         self.views_root_auto.setHidden(False)
         self.qvtkwidget_3d.GetRenderWindow().GetInteractor().Initialize()
 
+
+    def update_slicing(self):
+        self.update_xsection()
+        self.update_contour()
 
     def save_cursor_coords(self):
 
@@ -645,13 +653,13 @@ class Viewer(CalcamGUIWindow):
         if self.contour_2d.isChecked():
             cursor_pos = self.interactor3d.get_cursor_coords(0)
             phi = np.arctan2(cursor_pos[1],cursor_pos[0])
-            self.contour_actor = render.get_wall_contour_actor(self.cadmodel.wall_contour,'contour',phi)
+            self.contour_actor = self.cadmodel.get_wall_contour_actor('contour',phi)
             self.contour_actor.GetProperty().SetLineWidth(3)
             self.contour_actor.GetProperty().SetColor((1,0,0))
             self.interactor3d.add_extra_actor(self.contour_actor)
 
         elif self.contour_3d.isChecked():
-            self.contour_actor = render.get_wall_contour_actor(self.cadmodel.wall_contour,'surface')
+            self.contour_actor = self.cadmodel.get_wall_contour_actor('surface')
             self.contour_actor.GetProperty().SetColor((1,0,0))
             self.interactor3d.add_extra_actor(self.contour_actor)
 

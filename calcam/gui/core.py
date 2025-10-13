@@ -820,6 +820,16 @@ class CalcamGUIWindow(qt.QMainWindow):
 
         self.on_view_changed()
 
+    def update_slicing_options(self):
+
+        self.cakeslice_phi0.setEnabled(self.cakeslice_rb.isChecked())
+        self.cakeslice_phi1.setEnabled(self.cakeslice_rb.isChecked())
+
+        self.chordslice_r.setEnabled(self.chordslice_rb.isChecked())
+        self.chordslice_phi.setEnabled(self.chordslice_rb.isChecked())
+
+        self.zslice_zmin.setEnabled(self.zslice_checkbox.isChecked())
+        self.zslice_zmax.setEnabled(self.zslice_checkbox.isChecked())
 
     def update_xsection(self):
 

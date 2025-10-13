@@ -858,6 +858,9 @@
            </item>
            <item row="2" column="3">
             <widget class="QSpinBox" name="cakeslice_phi1">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="suffix">
               <string> °</string>
              </property>
@@ -878,6 +881,9 @@
            </item>
            <item row="3" column="3">
             <widget class="QSpinBox" name="chordslice_phi">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="suffix">
               <string> °</string>
              </property>
@@ -888,6 +894,9 @@
            </item>
            <item row="5" column="1">
             <widget class="QDoubleSpinBox" name="zslice_zmin">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="suffix">
               <string> m</string>
              </property>
@@ -901,6 +910,9 @@
            </item>
            <item row="5" column="3">
             <widget class="QDoubleSpinBox" name="zslice_zmax">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="suffix">
               <string> m</string>
              </property>
@@ -914,6 +926,9 @@
            </item>
            <item row="3" column="1">
             <widget class="QDoubleSpinBox" name="chordslice_r">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="suffix">
               <string> m</string>
              </property>
@@ -950,6 +965,9 @@
            </item>
            <item row="2" column="1">
             <widget class="QSpinBox" name="cakeslice_phi0">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="suffix">
               <string> °</string>
              </property>
