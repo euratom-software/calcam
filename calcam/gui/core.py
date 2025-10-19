@@ -713,6 +713,7 @@ class CalcamGUIWindow(qt.QMainWindow):
                             self.zslice_zmax.setValue(view['slicing'][2][1])
 
                         self.update_xsection()
+                        self.update_slicing_options()
                     except AttributeError:
                         self.cadmodel.set_slicing(*view['slicing'])
                 elif view['xsection'] is not None:
@@ -728,6 +729,7 @@ class CalcamGUIWindow(qt.QMainWindow):
                         self.zslice_checkbox.setChecked(False)
                         self.chordslice_rb.setChecked(True)
                         self.update_xsection()
+                        self.update_slicing_options()
                     except AttributeError:
                         self.cadmodel.set_slicing(phi,r)
                 else:
@@ -735,6 +737,7 @@ class CalcamGUIWindow(qt.QMainWindow):
                         self.zslice_checkbox.setChecked(False)
                         self.no_slicing_rb.setChecked(True)
                         self.update_xsection()
+                        self.update_slicing_options()
                     except AttributeError:
                         self.cadmodel.set_slicing()
 
@@ -747,24 +750,24 @@ class CalcamGUIWindow(qt.QMainWindow):
 
 
             elif view_item.parent() is self.views_root_auto:
-
                 # Work out the field of view to set based on the model extent.
                 # Note: this assumes the origin is at the centre of the machine.
-                # I could not assume that, but then I might end up de-centred on otherwise well bahevd models.
                 model_extent = self.cadmodel.get_extent()
                 z_extent = model_extent[5]-model_extent[4]
                 r_extent = max(model_extent[1]-model_extent[0],model_extent[3]-model_extent[2])
 
-                xsec_fov = 30
+                xsec_fov = 60
+
+                vtk_aspect = float(self.vtksize[1]) / float(self.vtksize[0])
 
                 if str(view_item.text(0)).lower() == 'top-down cross-section':
 
                     if self.interactor3d.projection == 'perspective':
                         self.camFOV.setValue(xsec_fov)
                     else:
-                        self.camFOV.setValue(r_extent)
+                        self.camFOV.setValue(r_extent*1.05*max(1,vtk_aspect))
 
-                    self.camera_3d.SetPosition( (0.,0.,r_extent/(2*np.tan(3.14159*xsec_fov/360) )))
+                    self.camera_3d.SetPosition( (0.,0.,max(1,vtk_aspect)*1.05*r_extent/(2*np.tan(np.pi*xsec_fov/360) )))
                     self.camera_3d.SetFocalPoint( (0.,0.001,self.camera_3d.GetPosition()[2]-1.) )
 
                     try:
@@ -773,25 +776,27 @@ class CalcamGUIWindow(qt.QMainWindow):
                         self.zslice_checkbox.setChecked(True)
                         self.no_slicing_rb.setChecked(True)
                         self.update_xsection()
+                        self.update_slicing_options()
                     except AttributeError:
                         self.cadmodel.set_slicing(slice_phi=None,slice_r=0,slice_z=[self.cadmodel.get_extent()[4]-1e-3,0])
 
 
                 elif str(view_item.text(0)).lower() == 'poloidal cross-section':
 
-                    R = z_extent/(2*np.tan(3.14159*xsec_fov/360))
+                    fitr = vtk_aspect * 1.05 * r_extent / (2 * np.tan(np.pi * xsec_fov / 360))
+                    fitz = 1.05 * z_extent / (2 * np.tan(np.pi * xsec_fov / 360))
+                    rcam = max(fitr,fitz)
 
                     if self.interactor3d.projection == 'perspective':
                         self.camFOV.setValue(xsec_fov)
                     else:
-                        self.camFOV.setValue(z_extent)
-
+                        self.camFOV.setValue(1.05*max(z_extent,r_extent*vtk_aspect))
 
                     phi_cam = np.arctan2(self.camY.value(),self.camX.value())
                     if phi_cam < 0:
                         phi_cam = phi_cam + 2*np.pi
 
-                    self.camera_3d.SetPosition(R * np.cos(phi_cam),R * np.sin(phi_cam),0.)
+                    self.camera_3d.SetPosition(rcam * np.cos(phi_cam),rcam * np.sin(phi_cam),0.)
                     self.interactor3d.set_roll(0.)
                     self.camera_3d.SetFocalPoint( (0.,0.,0.) )
 
@@ -801,6 +806,7 @@ class CalcamGUIWindow(qt.QMainWindow):
                         self.chordslice_rb.setChecked(True)
                         self.zslice_checkbox.setChecked(False)
                         self.update_xsection()
+                        self.update_slicing_options()
                     except AttributeError:
                         self.cadmodel.set_slicing(slice_phi=phi_cam / np.pi * 180,slice_r=0,slice_z=None)
 
@@ -888,13 +894,18 @@ class CalcamGUIWindow(qt.QMainWindow):
         self.interactor3d.set_roll(calibration.get_cam_roll(subview=subfield,centre='subview'))
 
         self.update_viewport_info(keep_selection=True)
-        
+        try:
+            self.proj_perspective.setChecked(True)
+        except Exception:
+            self.interactor3d.set_projection('perspective')
         self.interactor3d.update_cursor_style()
 
         try:
             self.zslice_checkbox.setChecked(False)
             self.no_slicing_rb.setChecked(True)
+            self.update_x
             self.update_xsection()
+            self.update_slicing_options()
         except AttributeError:
             self.cadmodel.set_slicing()
   
