@@ -1,5 +1,5 @@
 '''
-* Copyright 2015-2019 European Atomic Energy Community (EURATOM)
+* Copyright 2015-2025 European Atomic Energy Community (EURATOM)
 *
 * Licensed under the EUPL, Version 1.1 or - as soon they
   will be approved by the European Commission - subsequent

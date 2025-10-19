@@ -1,5 +1,5 @@
 '''
-* Copyright 2015-2021 European Atomic Energy Community (EURATOM)
+* Copyright 2015-2025 European Atomic Energy Community (EURATOM)
 *
 * Licensed under the EUPL, Version 1.1 or - as soon they
   will be approved by the European Commission - subsequent
@@ -2116,7 +2116,8 @@ class Calibration():
                     if self.n_subviews > 1:
                         msg = msg + '\n{:s}\n{:s}\n'.format(self.subview_names[subview],'~'*len(self.subview_names[subview]))
 
-                    msg = msg + self.history['fit'][subview] + '\n'
+                    msg = msg + self.history['fit'][subview] + '\n\n'
+                    msg = msg + 'Lens distortion model: {:s}\n'.format(self.view_models[subview].model.capitalize())
                     msg = msg + 'Fit options used: {:s}\n\n'.format(', '.join(self.view_models[subview].fit_options))
                     msg = msg + 'RMS Re-projection error:     {:.2f} px\n'.format(self.view_models[subview].reprojection_error)
                     msg = msg + self.extrinsics_info_str(subview)
@@ -2347,6 +2348,8 @@ class Fitter:
                 fitflags = fitflags + cv2.fisheye.CALIB_FIX_K3
             if self.fixk4:
                 fitflags = fitflags + cv2.fisheye.CALIB_FIX_K4
+            if self.fixcc:
+                fitflags = fitflags + cv2.fisheye.CALIB_FIX_PRINCIPAL_POINT
         
         return fitflags
 
@@ -2363,20 +2366,19 @@ class Fitter:
 
             if self.fixaspectratio:
                 Output.append('Fix Fx = Fy')
-            if self.fixcc:
 
-                cx = self.image_display_shape[0] / 2
-                cy = self.image_display_shape[1] / 2
+        if self.fixcc:
 
-                if self.cx_init is not None:
-                    cx = self.cx_init
+            cx = self.image_display_shape[0] / 2
+            cy = self.image_display_shape[1] / 2
 
-                if self.cy_init is not None:
-                    cy = self.cy_init
+            if self.cx_init is not None:
+                cx = self.cx_init
 
-                Output.append('Fix CC at ({:.1f},{:.1f})'.format(cx,cy))
-            if self.disabletangentialdist:
-                Output.append('Disable Tangential Distortion')
+            if self.cy_init is not None:
+                cy = self.cy_init
+
+            Output.append('Fix CC at ({:.1f},{:.1f})'.format(cx,cy))
 
         if self.fixk1:    
             Output.append('Disable k1')
@@ -2384,14 +2386,17 @@ class Fitter:
             Output.append('Disable k2')
         if self.fixk3:    
             Output.append('Disable k3')
-        if self.fixk4:
+
+        if self.model == 'fisheye' and self.fixk4:
             Output.append('Disable k4')
+
+        if self.model == 'rectilinear' and self.disabletangentialdist:
+            Output.append('Disable Tangential Distortion')
 
         return Output
 
 
     def set_fitflags_strings(self,fitflags_strings):
-
 
         # Start off with resetting everything
         self.fixaspectratio = False
@@ -2422,9 +2427,7 @@ class Fitter:
                 self.fixk4 = True
 
 
-    def fix_cc(self,fix,field=0,Cx=None,Cy=None):
-        if self.model == 'fisheye':
-            raise Exception('This option is not available for the fisheye camera model.')
+    def fix_cc(self,fix,Cx=None,Cy=None):
 
         self.fixcc = fix
         if Cx is not None:
@@ -2495,11 +2498,11 @@ class Fitter:
         if self.f_guess is None:
             sensor_diagonal = np.sqrt(self.image_display_shape[0]**2+self.image_display_shape[1]**2)
             if self.model == 'rectilinear':
-                initial_matrix[0,0] = sensor_diagonal*2    # Fx
-                initial_matrix[1,1] = sensor_diagonal*2    # Fy
+                initial_matrix[0,0] = sensor_diagonal    # Fx
+                initial_matrix[1,1] = sensor_diagonal    # Fy
             elif self.model == 'fisheye':
-                initial_matrix[0,0] = sensor_diagonal/2    # Fx
-                initial_matrix[1,1] = sensor_diagonal/2    # Fy
+                initial_matrix[0,0] = sensor_diagonal    # Fx
+                initial_matrix[1,1] = sensor_diagonal    # Fy
 
         else:
             initial_matrix[0, 0] = self.f_guess  # Fx
@@ -2572,8 +2575,11 @@ class Fitter:
             rvecs = [np.zeros((1,1,3),dtype='float32') for i in range(len(self.pointpairs))]
             tvecs = [np.zeros((1,1,3),dtype='float32') for i in range(len(self.pointpairs))]
 
-            fit_output = cv2.fisheye.calibrate(obj_points,img_points,self.image_display_shape,initial_matrix, np.zeros(4),rvecs,tvecs,flags = self.get_fitflags())
-        
+            try:
+                fit_output = cv2.fisheye.calibrate(obj_points,img_points,self.image_display_shape,initial_matrix, np.zeros(4),rvecs,tvecs,flags = self.get_fitflags())
+            except Exception as e:
+                raise RuntimeError('Error fitting fisheye model. Exception raised from OpenCV: {:s}'.format(e))
+
             fitted_model = FisheyeeViewModel(cv2_output = fit_output)
             #raise UserWarning(fitted_model.rvec)
             fitted_model.fit_options = self.get_fitflags_strings()

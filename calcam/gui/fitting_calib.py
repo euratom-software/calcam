@@ -1,5 +1,5 @@
 '''
-* Copyright 2015-2021 European Atomic Energy Community (EURATOM)
+* Copyright 2015-2025 European Atomic Energy Community (EURATOM)
 *
 * Licensed under the EUPL, Version 1.1 or - as soon they
 will be approved by the European Commission - subsequent
@@ -185,6 +185,7 @@ class FittingCalib(CalcamGUIWindow):
         self.chessboard_history = []
 
         self.fit_results = []
+        self.focal_length_spinboxes = []
 
         self.filename = None
         self.coords_table_window = None
@@ -752,9 +753,30 @@ class FittingCalib(CalcamGUIWindow):
                     self.init_fitting()
 
 
-    def change_fit_params(self,fun,state):
+    def change_fit_params(self,field,param,value):
 
-        fun(state)
+        fitter = self.fitters[field]
+
+        if param == 'fix_k1':
+            fitter.fix_k1(value)
+        elif param == 'fix_k2':
+            fitter.fix_k2(value)
+        elif param == 'fix_k3':
+            fitter.fix_k3(value)
+        elif param == 'fix_k4':
+            fitter.fix_k4(value)
+        elif param == 'fix_tangential':
+            fitter.fix_tangential(value)
+        elif param == 'fix_cc':
+                fitter.fix_cc(value[0],Cx=value[1],Cy=value[2])
+        elif param == 'f_guess':
+            if self.calibration.pixel_size is not None:
+                value = 1e-3*value / self.calibration.pixel_size
+            fitter.f_guess = value
+        elif param == 'fix_aspect':
+            fitter.fix_aspect(value)
+        else:
+            raise ValueError('Fit parameter "{:}" not recognised by change_fit_params()!'.format(param))
         self.fit_enable_check()
 
 
@@ -775,6 +797,7 @@ class FittingCalib(CalcamGUIWindow):
         self.fisheye_settings = []
         self.fit_buttons = []
         self.fit_results = []
+        self.focal_length_spinboxes = []
 
         if reset_options or len(self.fitters) != self.calibration.n_subviews:
             self.fitters = []
@@ -810,6 +833,24 @@ class FittingCalib(CalcamGUIWindow):
             sub_layout.setContentsMargins(0,0,0,0)
             options_layout.addWidget(sub_widget)
 
+            im_dims = self.calibration.geometry.get_display_shape()
+
+            # Initial / default values for focal length and principal point.
+            try:
+                # If these already exist in the calibration, use the values from the calibration
+                cam_matrix = self.calibration.get_cam_matrix(field)
+                cc_x = cam_matrix[0,2]
+                cc_y = cam_matrix[1,2]
+                f = (cam_matrix[0,0] + cam_matrix[1,1])/2
+                self.fitters[field].set_fitflags_strings(self.calibration.view_models[field].fit_options)
+            except Exception as e:
+                # If they don't already exist, use the sub-view centre for the cc initial guess and sensor diagonal
+                # as the focal length
+                cc_y,cc_x = CoM(self.calibration.get_subview_mask(coords='Display') == field)
+                f = np.sqrt(im_dims[0]**2+im_dims[1]**2)
+
+            self.fitters[field].f_guess = f
+
 
             # Settings for perspective model
             #---------------------------------
@@ -818,6 +859,72 @@ class FittingCalib(CalcamGUIWindow):
             perspective_settings_layout.setContentsMargins(0,0,0,0)
             self.perspective_settings[-1].setLayout(perspective_settings_layout)
 
+            #   --- focal length
+            sub_widget = qt.QWidget()
+            sub_layout = qt.QHBoxLayout()
+            sub_widget.setLayout(sub_layout)
+            sub_layout.addWidget(qt.QLabel('Focal length guess:'))
+            widgetlist.append(qt.QDoubleSpinBox())
+            self.focal_length_spinboxes.append(widgetlist[-1])
+            widgetlist[-1].setButtonSymbols(widgetlist[-1].NoButtons)
+            if self.calibration.pixel_size is not None:
+                widgetlist[-1].setDecimals(1)
+                widgetlist[-1].setMinimum(0.1)
+                widgetlist[-1].setMaximum(1000)
+
+                widgetlist[-1].setValue(f*self.calibration.pixel_size*1e3)
+                widgetlist[-1].setSuffix(' mm')
+            else:
+                widgetlist[-1].setDecimals(0)
+                widgetlist[-1].setMinimum(1)
+                widgetlist[-1].setMaximum(1e7)
+                widgetlist[-1].setValue(f)
+                widgetlist[-1].setSuffix(' px')
+
+            widgetlist[-1].valueChanged.connect(lambda value,field=field: self.change_fit_params(field,'f_guess',value))
+            sub_layout.addWidget(widgetlist[-1])
+            widgetlist.append(qt.QCheckBox('Fix Fx = Fy'))
+            widgetlist[-1].setChecked(self.fitters[field].fixaspectratio)
+            widgetlist[-1].toggled.connect(lambda state,field=field: self.change_fit_params(field,'fix_aspect',state))
+            sub_layout.addWidget(widgetlist[-1])
+            sub_layout.setContentsMargins(0,0,0,0)
+            perspective_settings_layout.addWidget(sub_widget)
+            #   --- end of focal length
+
+            #   --- principal point
+            sub_widget = qt.QWidget()
+            sub_layout = qt.QHBoxLayout()
+            sub_widget.setLayout(sub_layout)
+
+            widgetlist.append(qt.QLabel('Principal point guess:'))
+
+            sub_layout.addWidget(widgetlist[-1])
+
+            widgetlist.append(qt.QSpinBox())
+            widgetlist[-1].setMinimum(-im_dims[0])
+            widgetlist[-1].setMaximum(im_dims[0]*2)
+            widgetlist[-1].setValue(int(cc_x))
+            widgetlist[-1].setButtonSymbols(widgetlist[-1].NoButtons)
+            sub_layout.addWidget(widgetlist[-1])
+            sub_layout.addWidget(qt.QLabel(','))
+            widgetlist.append(qt.QSpinBox())
+            widgetlist[-1].setMinimum(-im_dims[1])
+            widgetlist[-1].setMaximum(im_dims[1]*2)
+            widgetlist[-1].setValue(int(cc_y))
+            widgetlist[-1].setButtonSymbols(widgetlist[-1].NoButtons)
+            sub_layout.addWidget(widgetlist[-1])
+            sub_layout.setContentsMargins(0,0,0,0)
+            widgetlist.append(qt.QCheckBox('Fix in fit'))
+            widgetlist[-1].toggled.connect(lambda state, field=field,cx_widget=widgetlist[-3],cy_widget=widgetlist[-2]: self.change_fit_params(field, 'fix_cc', (state,cx_widget.value(),cy_widget.value())))
+            widgetlist[-2].valueChanged.connect(lambda cy_value, field=field,checkbox=widgetlist[-1], cx_widget=widgetlist[-3]: self.change_fit_params(field, 'fix_cc', (checkbox.isChecked(), cx_widget.value(), cy_value)))
+            widgetlist[-3].valueChanged.connect(lambda cx_value, field=field, checkbox=widgetlist[-1], cy_widget=widgetlist[-2]: self.change_fit_params(field, 'fix_cc', (checkbox.isChecked(), cx_value, cy_widget.value())))
+            widgetlist[-1].setChecked(self.fitters[field].fixcc)
+            sub_layout.addWidget(widgetlist[-1])
+            perspective_settings_layout.addWidget(sub_widget)
+            #   --- end of principal point
+
+            #   ---- distortion parameters
+            perspective_settings_layout.addWidget(qt.QLabel('Enable / Disable distortion terms:'))
             widgetlist = widgetlist + [qt.QCheckBox('Disable k1'),qt.QCheckBox('Disable k2'),qt.QCheckBox('Disable k3')]
 
             sub_widget = qt.QWidget()
@@ -830,23 +937,15 @@ class FittingCalib(CalcamGUIWindow):
             perspective_settings_layout.addWidget(sub_widget)
 
             widgetlist[-3].setChecked(self.fitters[field].fixk1)
-            widgetlist[-3].toggled.connect(lambda state,field=field: self.change_fit_params(self.fitters[field].fix_k1,state))
+            widgetlist[-3].toggled.connect(lambda state,field=field: self.change_fit_params(field,'fix_k1',state))
             widgetlist[-2].setChecked(self.fitters[field].fixk2)
-            widgetlist[-2].toggled.connect(lambda state,field=field: self.change_fit_params(self.fitters[field].fix_k2,state))
+            widgetlist[-2].toggled.connect(lambda state,field=field: self.change_fit_params(field,'fix_k2',state))
             widgetlist[-1].setChecked(self.fitters[field].fixk3)
-            widgetlist[-1].toggled.connect(lambda state,field=field: self.change_fit_params(self.fitters[field].fix_k3,state))
-            widgetlist.append(qt.QCheckBox('Disable Tangential Distortion'))
+            widgetlist[-1].toggled.connect(lambda state,field=field: self.change_fit_params(field,'fix_k3',state))
+            widgetlist.append(qt.QCheckBox('Disable tangential distortion'))
             perspective_settings_layout.addWidget(widgetlist[-1])
             widgetlist[-1].setChecked(self.fitters[field].disabletangentialdist)
-            widgetlist[-1].toggled.connect(lambda state,field=field: self.change_fit_params(self.fitters[field].fix_tangential,state))
-            widgetlist.append(qt.QCheckBox('Fix Fx = Fy'))
-            widgetlist[-1].setChecked(self.fitters[field].fixaspectratio)
-            widgetlist[-1].toggled.connect(lambda state,field=field: self.change_fit_params(self.fitters[field].fix_aspect,state))
-            perspective_settings_layout.addWidget(widgetlist[-1])
-            widgetlist.append(qt.QCheckBox('Fix Principal Point at Centre'))
-            widgetlist[-1].setChecked(self.fitters[field].fixcc)
-            widgetlist[-1].toggled.connect(lambda state,field=field: self.change_fit_params(self.fitters[field].fix_cc,state))
-            perspective_settings_layout.addWidget(widgetlist[-1])
+            widgetlist[-1].toggled.connect(lambda state,field=field: self.change_fit_params(field,'fix_tangential',state))
 
 
             # ------- End of perspective settings -----------------
@@ -858,6 +957,68 @@ class FittingCalib(CalcamGUIWindow):
             fisheye_settings_layout.setContentsMargins(0,0,0,0)
             self.fisheye_settings[-1].setLayout(fisheye_settings_layout)
 
+            #   --- focal length
+            sub_widget = qt.QWidget()
+            sub_layout = qt.QHBoxLayout()
+            sub_widget.setLayout(sub_layout)
+            sub_layout.addWidget(qt.QLabel('Focal length initial guess:'))
+            widgetlist.append(qt.QDoubleSpinBox())
+            self.focal_length_spinboxes.append(widgetlist[-1])
+            widgetlist[-1].setButtonSymbols(widgetlist[-1].NoButtons)
+            if self.calibration.pixel_size is not None:
+                widgetlist[-1].setDecimals(1)
+                widgetlist[-1].setMinimum(0.1)
+                widgetlist[-1].setMaximum(1000)
+
+                widgetlist[-1].setValue(f*self.calibration.pixel_size*1e3)
+                widgetlist[-1].setSuffix(' mm')
+            else:
+                widgetlist[-1].setDecimals(0)
+                widgetlist[-1].setMinimum(1)
+                widgetlist[-1].setMaximum(1e7)
+                widgetlist[-1].setValue(f)
+                widgetlist[-1].setSuffix(' px')
+
+            widgetlist[-1].valueChanged.connect(lambda value,field=field: self.change_fit_params(field,'f_guess',value))
+            sub_layout.addWidget(widgetlist[-1])
+            sub_layout.setContentsMargins(0,0,0,0)
+            fisheye_settings_layout.addWidget(sub_widget)
+            #   --- end of focal length
+
+            #   --- principal point
+            sub_widget = qt.QWidget()
+            sub_layout = qt.QHBoxLayout()
+            sub_widget.setLayout(sub_layout)
+
+            widgetlist.append(qt.QLabel('Principal Point guess:'))
+
+            sub_layout.addWidget(widgetlist[-1])
+
+            widgetlist.append(qt.QSpinBox())
+            widgetlist[-1].setMinimum(-im_dims[0])
+            widgetlist[-1].setMaximum(im_dims[0]*2)
+            widgetlist[-1].setValue(int(cc_x))
+            widgetlist[-1].setButtonSymbols(widgetlist[-1].NoButtons)
+            sub_layout.addWidget(widgetlist[-1])
+            sub_layout.addWidget(qt.QLabel(','))
+            widgetlist.append(qt.QSpinBox())
+            widgetlist[-1].setMinimum(-im_dims[1])
+            widgetlist[-1].setMaximum(im_dims[1]*2)
+            widgetlist[-1].setValue(int(cc_y))
+            widgetlist[-1].setButtonSymbols(widgetlist[-1].NoButtons)
+            sub_layout.addWidget(widgetlist[-1])
+            sub_layout.setContentsMargins(0,0,0,0)
+            widgetlist.append(qt.QCheckBox('Fix in fit'))
+            widgetlist[-1].toggled.connect(lambda state, field=field,cx_widget=widgetlist[-3],cy_widget=widgetlist[-2]: self.change_fit_params(field, 'fix_cc', (state,cx_widget.value(),cy_widget.value())))
+            widgetlist[-2].valueChanged.connect(lambda cy_value, field=field,checkbox=widgetlist[-1], cx_widget=widgetlist[-3]: self.change_fit_params(field, 'fix_cc', (checkbox.isChecked(), cx_widget.value(), cy_value)))
+            widgetlist[-3].valueChanged.connect(lambda cx_value, field=field, checkbox=widgetlist[-1], cy_widget=widgetlist[-2]: self.change_fit_params(field, 'fix_cc', (checkbox.isChecked(), cx_value, cy_widget.value())))
+            widgetlist[-1].setChecked(self.fitters[field].fixcc)
+            sub_layout.addWidget(widgetlist[-1])
+            fisheye_settings_layout.addWidget(sub_widget)
+            #   --- end of principal point
+
+
+            fisheye_settings_layout.addWidget(qt.QLabel('Enable / Disable distortion terms:'))
             widgetlist = widgetlist + [qt.QCheckBox('Disable k1'),qt.QCheckBox('Disable k2'),qt.QCheckBox('Disable k3'),qt.QCheckBox('Disable k4')]
 
             sub_widget = qt.QWidget()
@@ -871,13 +1032,13 @@ class FittingCalib(CalcamGUIWindow):
             fisheye_settings_layout.addWidget(sub_widget)
 
             widgetlist[-4].setChecked(self.fitters[field].fixk1)
-            widgetlist[-4].toggled.connect(lambda state,field=field: self.change_fit_params(self.fitters[field].fix_k1,state))
+            widgetlist[-4].toggled.connect(lambda state,field=field: self.change_fit_params(field,'fix_k1',state))
             widgetlist[-3].setChecked(self.fitters[field].fixk2)
-            widgetlist[-3].toggled.connect(lambda state,field=field: self.change_fit_params(self.fitters[field].fix_k2,state))
+            widgetlist[-3].toggled.connect(lambda state,field=field: self.change_fit_params(field,'fix_k2',state))
             widgetlist[-2].setChecked(self.fitters[field].fixk3)
-            widgetlist[-2].toggled.connect(lambda state,field=field: self.change_fit_params(self.fitters[field].fix_k3,state))
+            widgetlist[-2].toggled.connect(lambda state,field=field: self.change_fit_params(field,'fix_k3',state))
             widgetlist[-1].setChecked(self.fitters[field].fixk4)
-            widgetlist[-1].toggled.connect(lambda state,field=field: self.change_fit_params(self.fitters[field].fix_k4,state))
+            widgetlist[-1].toggled.connect(lambda state,field=field: self.change_fit_params(field,'fix_k4',state))
 
             for widgetno in [-4,-3,-2,-1]:
                 widgetlist[widgetno].toggled.connect(self.fit_enable_check)
@@ -913,7 +1074,6 @@ class FittingCalib(CalcamGUIWindow):
 
 
             # Build GUI to show the fit results, according to the number of fields.
-
             widgets = [ qt.QLabel('Fit RMS residual = ') , qt.QLabel('Parameter names'),  qt.QLabel('Parameter values'), qt.QPushButton('Set CAD view to match fit')]
             self.view_to_fit_buttons.append(widgets[-1])
             widgets[1].setAlignment(qt.Qt.AlignRight)
@@ -1262,7 +1422,7 @@ class FittingCalib(CalcamGUIWindow):
             widgets = self.fit_results_widgets[subview]
 
             if self.calibration.view_models[subview].model == 'rectilinear':
-                widgets[0].setText( '<b>RMS Fit Residual: {: .1f} pixels<b>'.format(params.reprojection_error) )
+                widgets[0].setText( '<b>Rectilinear lens fit<br>RMS Fit Residual: {: .1f} pixels<b>'.format(params.reprojection_error) )
                 widgets[1].setText( ' : <br>'.join( [  'Pupil position' ,
                                                     'View direction' ,
                                                     'Field of view',
@@ -1298,7 +1458,7 @@ class FittingCalib(CalcamGUIWindow):
                                                 ''
                                                 ] ) )
             elif params.model == 'fisheye':
-                widgets[0].setText( '<b>RMS Fit Residual: {: .1f} pixels<b>'.format(params.reprojection_error) )
+                widgets[0].setText( '<b>Fisheye lens fit<br>RMS Fit Residual: {: .1f} pixels<b>'.format(params.reprojection_error) )
                 widgets[1].setText( ' : <br>'.join( [  'Pupil position' ,
                                                     'View direction' ,
                                                     'Field of view',
@@ -1370,6 +1530,12 @@ class FittingCalib(CalcamGUIWindow):
             self.show_msgbox('The fitted calibration indicates that the images is upside down! Try rotating the image 180 degrees and fitting again.')
             self.app.restoreOverrideCursor()
             return
+        except Exception as e:
+            if self.fitters[subview].model == 'fisheye':
+                self.app.restoreOverrideCursor()
+                self.show_msgbox('Fisheye fitting failed with this set of points and parameters.','Consider trying with different fit initial guesses. Otherwise, the fisheye model may not be suitable for this data.')
+            else:
+                raise
 
         self.update_fit_results()
 
@@ -1621,8 +1787,7 @@ class FittingCalib(CalcamGUIWindow):
         if self.coords_table_window is not None:
             self.coords_table_window.update_subviews()
 
-        if not self.fit_initted:
-            self.init_fitting(reset_fit=False)
+        self.init_fitting(reset_fit=False)
 
         self.interactor2d.set_subview_lookup(self.calibration.n_subviews,self.calibration.subview_lookup)
 
@@ -1698,24 +1863,6 @@ class FittingCalib(CalcamGUIWindow):
             self.camFOV.setValue(cconfig['viewport']['fov'])
             self.cam_roll.setValue(cconfig['viewport']['roll'])
 
-        for field in range(len(self.fit_settings_widgets)):
-            if opened_calib.view_models[field] is not None:
-
-                if opened_calib.view_models[field].model == 'rectilinear':
-                    self.fit_settings_widgets[field][0].setChecked(True)
-                    widget_index_start = 2
-                    widget_index_end = 7
-                elif opened_calib.view_models[field].model == 'fisheye':
-                    self.fit_settings_widgets[field][1].setChecked(True)
-                    widget_index_start = 7
-                    widget_index_end = 10
-
-                for widget in self.fit_settings_widgets[field][widget_index_start:widget_index_end+1]:
-                    widget.setChecked(False)
-                    if (str(widget.text()) in opened_calib.view_models[field].fit_options) or ( ('Fix Principal Point' in str(widget.text()) and any(['Fix CC' in txt for txt in opened_calib.view_models[field].fit_options] ))):
-                        widget.setChecked(True)
-
-
 
         if self.calibration.readonly:
             self.action_save.setEnabled(False)
@@ -1785,6 +1932,16 @@ class FittingCalib(CalcamGUIWindow):
         else:
             self.pixel_size_box.setEnabled(False)
             self.calibration.pixel_size = None
+
+        for spinbox in self.focal_length_spinboxes:
+                if spinbox.suffix() == ' px' and self.pixel_size_checkbox.isChecked():
+                    spinbox.setValue(spinbox.value() * self.pixel_size_box.value() / 1000)
+                    spinbox.setSuffix(' mm')
+                    spinbox.setDecimals(1)
+                elif spinbox.suffix() == ' mm' and not self.pixel_size_checkbox.isChecked():
+                    spinbox.setValue(spinbox.value() / (self.pixel_size_box.value() / 1000))
+                    spinbox.setSuffix(' px')
+                    spinbox.setDecimals(0)
 
         self.update_fit_results()
         self.unsaved_changes = True
@@ -1882,6 +2039,10 @@ class PointsDataWindow(qt.QDialog):
         layout.addWidget(self.coords3d_table, 1, 1)
 
         self.setLayout(layout)
+
+        sc = qt.QShortcut(qt.QKeySequence(qt.QKeySequence.Delete),self)
+        sc.setContext(qt.Qt.WindowShortcut)
+        sc.activated.connect(self.parent.remove_current_pointpair)
 
         self.update_subviews()
         self.resize(self.width(),parent.height())
