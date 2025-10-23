@@ -5,16 +5,18 @@ Minor Release 2.16.0 (WIP; next release)
 ----------------------------------------
 
 New & Enhancements:
-* Greatly enhanced CAD model slicing / cross-sectioning capability added to the 3D viewer and for model view definitions (#53, #158)
-* Added option to open secondary window with editable table of point coordinates in fitting calibration tool (#73, #154)
 * Added ability to manually specify initial guess for focal length in fitting calibration tool (can greatly improve success of fitting; helps address #157)
+* Added option to open secondary window with editable table of point coordinates in fitting calibration tool (#73, #154)
 * Added ability to edit principal point initial guess (or fixed value if fixing) in fitting calibration tool
 * Added ability to fix principal point for fitting fisheye calibrations
+* Greatly enhanced CAD model slicing / cross-sectioning capability added to the 3D viewer and for model view definitions (#53, #158)
+* Enhanced options for loading & displaying 3D coordinate data in the 3D viewer
 * Add package __main__ so that the GUI can be invoked with `python -m calcam`
+* Add display of GUI executable and icons paths to Settings GUI
 
 Fixes:
 * Fixed bug in Calibration.set_detector_window() which resulted in wrong cropping of intrinsics constraint images and occasionally raising exceptions (#155)
-* [WIP] Fixed bug in chessboard image loading when using chessboard images with a different detector ROI to the calibrated image (#151)
+* Fixed bug in chessboard image loading when using chessboard images with a different detector ROI to the calibrated image (#151)
 * Fixed exceptions from CADModel.intersect_with_line() when calling with surface_normal=True and coordinates not in NumPy arrays (#153)
 * Improved handling of exceptions raised by OpenCV fisheye calibration fitting to make error messages more friendly
 

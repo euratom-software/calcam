@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1154</width>
-    <height>1120</height>
+    <height>1246</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -327,54 +327,6 @@
                </widget>
               </item>
              </layout>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-        </item>
-        <item>
-         <widget class="QGroupBox" name="groupBox_7">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="title">
-           <string>Show R,Z Wall Contour</string>
-          </property>
-          <layout class="QHBoxLayout" name="horizontalLayout_4">
-           <item>
-            <widget class="QRadioButton" name="contour_off">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="text">
-              <string>Off</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QRadioButton" name="contour_2d">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="text">
-              <string>2D at cursor</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QRadioButton" name="contour_3d">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="text">
-              <string>3D Axisymmetric</string>
-             </property>
             </widget>
            </item>
           </layout>
@@ -1397,92 +1349,211 @@
            <string>Appearance (applies to selected)</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_13">
-           <item row="2" column="0">
-            <widget class="QLabel" name="label_18">
-             <property name="text">
-              <string>Colour:</string>
-             </property>
+           <item row="0" column="1" colspan="2" alignment="Qt::AlignTop">
+            <widget class="QWidget" name="phi_settings" native="true">
+             <layout class="QGridLayout" name="gridLayout_21">
+              <item row="0" column="1">
+               <widget class="QDoubleSpinBox" name="lines_toroidal_angle_box">
+                <property name="buttonSymbols">
+                 <enum>QAbstractSpinBox::NoButtons</enum>
+                </property>
+                <property name="suffix">
+                 <string> °</string>
+                </property>
+                <property name="decimals">
+                 <number>1</number>
+                </property>
+                <property name="maximum">
+                 <double>360.000000000000000</double>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="0">
+               <widget class="QRadioButton" name="lines_toroidal_angle_rb">
+                <property name="text">
+                 <string>Draw at toroidal angle:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0" colspan="3">
+               <widget class="QRadioButton" name="lines_rz_to_3d_rb">
+                <property name="text">
+                 <string>Rotate axisymetrically to make 3D surface</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="2">
+               <widget class="QPushButton" name="lines_toroidal_angle_to_cursor">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="text">
+                 <string>Set from cursor position</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </widget>
            </item>
-           <item row="2" column="1">
-            <widget class="QPushButton" name="pick_lines_colour">
-             <property name="text">
-              <string>Choose</string>
-             </property>
+           <item row="2" column="1" colspan="2" alignment="Qt::AlignTop">
+            <widget class="QWidget" name="widget_3" native="true">
+             <layout class="QGridLayout" name="gridLayout_22">
+              <item row="0" column="1">
+               <widget class="QPushButton" name="pick_lines_colour">
+                <property name="text">
+                 <string>Choose</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_18">
+                <property name="text">
+                 <string>Colour:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_21">
+                <property name="text">
+                 <string>Opacity: </string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QSlider" name="lines_opacity_slider">
+                <property name="maximum">
+                 <number>100</number>
+                </property>
+                <property name="value">
+                 <number>100</number>
+                </property>
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </widget>
            </item>
-           <item row="2" column="2">
-            <spacer name="horizontalSpacer_4">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>40</width>
-               <height>20</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item row="0" column="0">
+           <item row="1" column="0" alignment="Qt::AlignTop">
             <widget class="QLabel" name="label_25">
              <property name="text">
-              <string>Show:</string>
+              <string>Draw as:</string>
              </property>
             </widget>
            </item>
-           <item row="0" column="1">
-            <widget class="QCheckBox" name="enable_lines_checkbox">
+           <item row="0" column="0" alignment="Qt::AlignTop">
+            <widget class="QLabel" name="label_27">
              <property name="text">
-              <string>Lines, with width:</string>
-             </property>
-             <property name="tristate">
-              <bool>true</bool>
+              <string>Position:</string>
              </property>
             </widget>
            </item>
-           <item row="1" column="1">
-            <widget class="QCheckBox" name="enable_points_checkbox">
+           <item row="1" column="1" colspan="2" alignment="Qt::AlignTop">
+            <widget class="QWidget" name="lines_type_settings" native="true">
+             <layout class="QGridLayout" name="gridLayout_14">
+              <item row="4" column="1">
+               <widget class="QDoubleSpinBox" name="marker_diameter_box">
+                <property name="suffix">
+                 <string> cm</string>
+                </property>
+                <property name="decimals">
+                 <number>1</number>
+                </property>
+                <property name="minimum">
+                 <double>0.100000000000000</double>
+                </property>
+                <property name="maximum">
+                 <double>1000.000000000000000</double>
+                </property>
+                <property name="singleStep">
+                 <double>0.100000000000000</double>
+                </property>
+                <property name="value">
+                 <double>1.000000000000000</double>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QSpinBox" name="line_width_box">
+                <property name="buttonSymbols">
+                 <enum>QAbstractSpinBox::UpDownArrows</enum>
+                </property>
+                <property name="suffix">
+                 <string> px</string>
+                </property>
+                <property name="minimum">
+                 <number>1</number>
+                </property>
+                <property name="maximum">
+                 <number>100</number>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="1">
+               <widget class="QDoubleSpinBox" name="lines_frustrum_r0_box">
+                <property name="buttonSymbols">
+                 <enum>QAbstractSpinBox::UpDownArrows</enum>
+                </property>
+                <property name="prefix">
+                 <string/>
+                </property>
+                <property name="suffix">
+                 <string> cm</string>
+                </property>
+                <property name="decimals">
+                 <number>1</number>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="2">
+               <widget class="QLabel" name="label_22">
+                <property name="text">
+                 <string>&amp; half-angle </string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="3">
+               <widget class="QSpinBox" name="lines_frustrum_angle_box">
+                <property name="suffix">
+                 <string> °</string>
+                </property>
+                <property name="prefix">
+                 <string/>
+                </property>
+                <property name="maximum">
+                 <number>89</number>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QRadioButton" name="lines_lines_rb">
+                <property name="text">
+                 <string>Line(s) with width:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="0">
+               <widget class="QRadioButton" name="lines_frustrum_rb">
+                <property name="text">
+                 <string>Frustrum(s) with initial diameter:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="0">
+               <widget class="QRadioButton" name="lines_points_rb">
+                <property name="text">
+                 <string>Point(s), with marker diamater:</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item row="2" column="0" alignment="Qt::AlignTop">
+            <widget class="QLabel" name="label_30">
              <property name="text">
-              <string>Points, with marker size</string>
-             </property>
-             <property name="tristate">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="2">
-            <widget class="QDoubleSpinBox" name="marker_diameter_box">
-             <property name="suffix">
-              <string> cm</string>
-             </property>
-             <property name="decimals">
-              <number>1</number>
-             </property>
-             <property name="minimum">
-              <double>0.100000000000000</double>
-             </property>
-             <property name="maximum">
-              <double>1000.000000000000000</double>
-             </property>
-             <property name="singleStep">
-              <double>0.100000000000000</double>
-             </property>
-             <property name="value">
-              <double>1.000000000000000</double>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="2">
-            <widget class="QSpinBox" name="line_width_box">
-             <property name="suffix">
-              <string> px</string>
-             </property>
-             <property name="minimum">
-              <number>1</number>
-             </property>
-             <property name="maximum">
-              <number>20</number>
+              <string>Colour:</string>
              </property>
             </widget>
            </item>
@@ -1530,7 +1601,7 @@
               </sizepolicy>
              </property>
              <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add arbitrary 3D lines or point sets from an ASCII file of coordinates.&lt;/p&gt;&lt;p&gt;For a single continous 3D line, the file should contain one row per point with 3 elements per row (3D coordinates of each point).&lt;/p&gt;&lt;p&gt;For a series of un-connected line segments, the file should contain one row per line segment with 6 elements: 3D start and end coordinates.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add arbitrary lines or point sets from an ASCII file of coordinates.&lt;/p&gt;&lt;p&gt;For a single continous 3D line, the file should contain one row per point with 3 elements per row (3D coordinates of each point).&lt;/p&gt;&lt;p&gt;For a series of un-connected line segments, the file should contain one row per line segment with 6 elements: 3D start and end coordinates.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="wordWrap">
               <bool>true</bool>
@@ -1566,11 +1637,17 @@
            </sizepolicy>
           </property>
           <property name="title">
-           <string>Cordinates from cursor positions</string>
+           <string>Pick cordinates using cursor (left click)</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_18">
            <item row="1" column="0" colspan="2">
             <widget class="QTableWidget" name="cursor_coords_table">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="selectionMode">
               <enum>QAbstractItemView::SingleSelection</enum>
              </property>
@@ -1604,8 +1681,17 @@
            </item>
            <item row="0" column="0" colspan="2">
             <widget class="QLabel" name="label_19">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="text">
-              <string>Press 'c' on the keyboard to add the current cursor position to this list.</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Press 'c' on the keyboard to add the current cursor position to this list. &lt;/p&gt;&lt;p&gt;The list can be exported, and/or the display of these points can be controlled using the above appearance settings.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="scaledContents">
+              <bool>false</bool>
              </property>
              <property name="wordWrap">
               <bool>true</bool>

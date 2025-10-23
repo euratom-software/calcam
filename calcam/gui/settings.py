@@ -40,6 +40,8 @@ class Settings(qt.QMainWindow):
 
     def __init__(self, app, parent = None):
 
+        from . import exe_path, icons_path
+
         # GUI initialisation
         qt.QMainWindow.__init__(self, parent)
         qt.uic.loadUi(os.path.join(guipath,'qt_designer_files','settings.ui'), self)
@@ -70,11 +72,15 @@ class Settings(qt.QMainWindow):
         else:
             vtk_str = 'NO VTK!'
 
-        env_str_left = '<pre>Platform:       {:s}\nPython version: {:s}\nCalcam version: {:s}</pre>'.format(sys.platform,'.'.join([str(num) for num in sys.version_info[:3]]),__version__)
+        env_str_left = '<pre>Platform:       {:s}\nPython version: {:s}<br></pre>'.format(sys.platform,'.'.join([str(num) for num in sys.version_info[:3]]))
         env_str_right = '<pre>VTK version:    {:s}\nOpenCV version: {:s}\nPyQt version:   {:s}</pre>'.format(vtk_str,cv2.__version__,qt.QT_VERSION_STR)
 
         self.env_info_left.setText(env_str_left)
         self.env_info_right.setText(env_str_right)
+
+        self.calcam_version.setText(__version__)
+        self.exe_path.setText(exe_path)
+        self.icons_path.setText(icons_path)
 
         self.app = app
 
