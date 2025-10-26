@@ -89,6 +89,8 @@ class CoordsActor(vtk.vtkAssembly):
         self.frustrum_actors = []
         self.surface_actor = None
 
+        self._frustrumsize = (0,0)
+
         self._colour = list(colour)
 
         self.rz_to_3d = rz_to_3d
@@ -319,7 +321,57 @@ class CoordsActor(vtk.vtkAssembly):
 
     @frustrumsize.setter
     def frustrumsize(self,value):
-        self._frustrumsize = value
+
+        if value != (0,0) and (self.coords.shape[0] != 2 and self.coords.shape[1] in [2, 3]):
+            raise Exception('Can only use frustrum display for disconnected line segments!')
+
+        if value != self.frustrumsize:
+            for actor in self.frustrum_actors:
+                self.RemovePart(actor)
+            self.frustrum_actors = []
+
+            if value != (0,0):
+
+                if self.coords.shape[1] == 6:
+                    for seg_ind in range(self.coords.shape[0]):
+                        actor = self._make_frustrun_actor(self.coords[seg_ind, :3],self.coords[seg_ind, 3:],value[0],value[1])
+                        actor.GetProperty().SetColor(self.colour[:3])
+                        actor.GetProperty().SetOpacity(self.colour[3])
+                        self.frustrum_actors.append(actor)
+                        self.AddPart(actor)
+
+                if self.coords.shape[1] == 4:
+                    for seg_ind in range(self.coords.shape[0]):
+                        start = np.array([self.coords[seg_ind,0],self.coords[seg_ind,1],0])
+                        end = np.array([self.coords[seg_ind, 2], self.coords[seg_ind, 3], 0])
+                        actor = self._make_frustrun_actor(start,end,value[0],value[1])
+                        actor.GetProperty().SetColor(self.colour[:3])
+                        actor.GetProperty().SetOpacity(self.colour[3])
+                        actor.SetOrientation(0,0,self.phi)
+                        self.frustrum_actors.append(actor)
+                        self.AddPart(actor)
+
+                elif self.coords.shape[1] == 3:
+                    actor = self._make_frustrun_actor(self.coords[0,:], self.coords[1,:], value[0],value[1])
+                    actor.GetProperty().SetColor(self.colour[:3])
+                    actor.GetProperty().SetOpacity(self.colour[3])
+                    self.frustrum_actors.append(actor)
+                    self.AddPart(actor)
+
+                elif self.coords.shape[1] == 2:
+                    start = np.array([self.coords[0, 0], self.coords[0, 1],0])
+                    end = np.array([self.coords[1, 0], self.coords[1, 1], 0])
+                    actor = self._make_frustrun_actor(start, end, value[0], value[1])
+                    actor.GetProperty().SetColor(self.colour[:3])
+                    actor.GetProperty().SetOpacity(self.colour[3])
+                    actor.SetOrientation(0, 0, self.phi)
+                    actor.SetOrientation(0, 0, self.phi)
+                    self.frustrum_actors.append(actor)
+                    self.AddPart(actor)
+
+
+            self._frustrumsize = value
+
         return
 
     @property
@@ -343,6 +395,55 @@ class CoordsActor(vtk.vtkAssembly):
             self.RemovePart(self.surface_actor)
             self.surface_actor = None
 
+
+    def _make_frustrun_actor(self,start,end,d0,angle):
+
+        direction = end - start
+        length = np.sqrt(np.sum(direction ** 2))
+        direction = direction / length
+
+        points = vtk.vtkPoints()
+
+        # Vector defining the radius of the cone caps
+        if np.abs(direction[2]) > 0.01:
+            dz =  -(direction[0] + direction[1]) / direction[2]
+            r_vec = np.array([1, 1, dz]) / np.sqrt(dz ** 2 + 2)
+        elif np.abs(direction[1]) > 0.01:
+            dy = -(direction[0] + direction[2]) / direction[1]
+            r_vec = np.array([1, dy, 1]) / np.sqrt(dy ** 2 + 2)
+        elif np.abs(direction[0]) > 0.01:
+            dx = -(direction[1] + direction[2]) / direction[0]
+            r_vec = np.array([dx, 1, 1]) / np.sqrt(dx ** 2 + 2)
+
+        points.InsertNextPoint([0,0,0])
+        points.InsertNextPoint(r_vec * d0 / 2)
+
+        r1 = d0 / 2 + length * np.tan(angle / 180 * np.pi)
+        points.InsertNextPoint(direction*length+r_vec * r1)
+        points.InsertNextPoint(direction*length)
+
+        lines = vtk.vtkCellArray()
+        lines.InsertNextCell(4)
+        for i in range(4):
+            lines.InsertCellPoint(i)
+
+        profile = vtk.vtkPolyData()
+        profile.SetPoints(points)
+        profile.SetLines(lines)
+
+        extruder = vtk.vtkRotationalExtrusionFilter()
+        extruder.SetInputData(profile)
+        extruder.SetRotationAxis(direction)
+        extruder.SetResolution(64)
+
+        mapper = vtk.vtkPolyDataMapper()
+        mapper.SetInputConnection(extruder.GetOutputPort())
+
+        actor = vtk.vtkActor()
+        actor.SetMapper(mapper)
+        actor.SetPosition(start)
+
+        return actor
 
 def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampling=1,aa=1,transparency=False,verbose=True,coords = 'display',interpolation='cubic'):
     '''

@@ -1193,8 +1193,23 @@ class ModelFeature():
                 edge_finder.ColoringOff()
                 edge_finder.Update()
 
+                data = edge_finder.GetOutput()
+                n_edges = data.GetNumberOfCells()
+                angle = 20
+                while n_edges < 1 and angle > 5:
+                    angle = angle - 5
+                    edge_finder.SetFeatureAngle(angle)
+                    edge_finder.Update()
+                    data = edge_finder.GetOutput()
+                    n_edges = data.GetNumberOfCells()
+
+                if n_edges == 0:
+                    edge_finder.BoundaryEdgesOn()
+                    edge_finder.Update()
+                    data = edge_finder.GetOutput()
+
                 mapper = vtk.vtkPolyDataMapper()
-                mapper.SetInputConnection(edge_finder.GetOutputPort())
+                mapper.SetInputData(data)
 
                 self.edge_actor = vtk.vtkActor()
                 self.edge_actor.SetMapper(mapper)

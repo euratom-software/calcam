@@ -125,7 +125,7 @@ class Viewer(CalcamGUIWindow):
 
         self.lines_toroidal_angle_box.valueChanged.connect(self.update_lines)
         self.line_width_box.valueChanged.connect(self.update_lines)
-        self.lines_frustrum_r0_box.valueChanged.connect(self.update_lines)
+        self.lines_frustrum_d0_box.valueChanged.connect(self.update_lines)
         self.lines_frustrum_angle_box.valueChanged.connect(self.update_lines)
         self.marker_diameter_box.valueChanged.connect(self.update_lines)
         self.lines_toroidal_angle_rb.clicked.connect(self.update_lines)
@@ -135,6 +135,8 @@ class Viewer(CalcamGUIWindow):
         self.lines_toroidal_angle_rb.clicked.connect(self.update_lines)
         self.lines_rz_to_3d_rb.clicked.connect(self.update_lines)
         self.lines_opacity_slider.valueChanged.connect(self.update_lines)
+        self.load_mesh_file_button.clicked.connect(self.load_extra_mesh)
+        self.remove_mesh_button.clicked.connect(self.remove_extra_mesh)
 
         self.lines_toroidal_angle_to_cursor.clicked.connect(lambda : self.lines_toroidal_angle_box.setValue(self.cursor_angles[0]))
 
@@ -145,6 +147,8 @@ class Viewer(CalcamGUIWindow):
         self.proj_perspective.toggled.connect(self.set_projection)
 
         self.del_coord_button.clicked.connect(self.delete_saved_coord)
+
+        self.extra_mesh_actors = {}
 
         self.model_actors = {}
 
@@ -194,6 +198,163 @@ class Viewer(CalcamGUIWindow):
         self.views_root_auto.setHidden(False)
         self.qvtkwidget_3d.GetRenderWindow().GetInteractor().Initialize()
 
+
+    def load_extra_mesh(self):
+
+        filedialog = qt.QFileDialog(self)
+        filedialog.setAcceptMode(filedialog.AcceptOpen)
+        filedialog.setFileMode(filedialog.ExistingFile)
+
+        filedialog.setWindowTitle('Select Mesh File...')
+        filedialog.setNameFilter('Supported 3D mesh files (*.stl *.obj)')
+        filedialog.exec()
+
+        if filedialog.result() == filedialog.Accepted:
+
+            filepath = filedialog.selectedFiles()[0]
+
+            import_settings = MeshImportDialog(self,filepath)
+            result = import_settings.exec()
+
+            if result == import_settings.Accepted:
+
+                if filepath.lower().endswith('stl'):
+                    reader = vtk.vtkSTLReader()
+                elif filepath.lower().endswith('obj'):
+                    reader = vtk.vtkOBJReader()
+
+                reader.SetFileName(filepath)
+                reader.Update()
+
+                transformer = vtk.vtkTransformPolyDataFilter()
+
+                transform = vtk.vtkTransform()
+                transform.PostMultiply()
+                scale = import_settings.mesh_scale_box.value()
+                if import_settings.handedness_box.currentText().lower() == 'left-handed':
+                    transform.Scale(scale,scale,-scale)
+                elif import_settings.handedness_box.currentText().lower() == 'right-handed':
+                    transform.Scale(scale, scale, scale)
+
+                if import_settings.meshup_box.currentText() == '+X':
+                    transform.RotateY(-90)
+                elif import_settings.meshup_box.currentText() =='-X':
+                    transform.RotateY(90)
+                elif import_settings.meshup_box.currentText() == '+Y':
+                    transform.RotateX(90)
+                elif import_settings.meshup_box.currentText() == '-Y':
+                    transform.RotateX(-90)
+                elif import_settings.meshup_box.currentText() == '-Z' and import_settings.handedness_box.currentText().lower() == 'right-handed':
+                    transform.RotateX(180)
+                elif import_settings.meshup_box.currentText() == '+Z' and import_settings.handedness_box.currentText().lower() == 'left-handed':
+                    transform.RotateX(180)
+
+                transform.RotateZ(import_settings.z_rotate_box.value())
+                transformer.SetInputData(reader.GetOutput())
+                transformer.SetTransform(transform)
+                transformer.Update()
+
+                if import_settings.handedness_box.currentText().lower() == 'left-handed':
+                    reverser = vtk.vtkReverseSense()
+                    reverser.ReverseNormalsOff()
+                    reverser.ReverseCellsOn()
+                    reverser.SetInputData(transformer.GetOutput())
+                    reverser.Update()
+                    polydata = reverser.GetOutput()
+                    transformer.SetInputData(reverser.GetOutput())
+                elif import_settings.handedness_box.currentText().lower() == 'right-handed':
+                    polydata = transformer.GetOutput()
+
+                # Remove all the lines from the PolyData. As far as I can tell for "normal" mesh files this shouldn't
+                # remove anything visually important, but it avoids running in to issues with vtkFeatureEdges trying to allocate
+                # way too much memory in VTK 9.1+.
+                polydata.SetLines(vtk.vtkCellArray())
+
+                mapper =  vtk.vtkPolyDataMapper()
+                mapper.SetInputData( polydata )
+
+                actor = vtk.vtkActor()
+                actor.SetMapper(mapper)
+
+                treeitem_top = qt.QTreeWidgetItem([os.path.split(filepath)[-1]])
+                treeitem_top.setFlags(qt.Qt.ItemIsEnabled | qt.Qt.ItemIsUserCheckable | qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEditable)
+
+                self.feature_tree.addTopLevelItem(treeitem_top)
+                self.cad_tree_items[treeitem_top] = actor
+                treeitem_top.setCheckState(0,qt.Qt.Checked)
+
+
+    def update_checked_features(self,item):
+
+        if isinstance(self.cad_tree_items[item],vtk.vtkActor):
+            if item.checkState(0) == qt.Qt.Checked:
+                self.interactor3d.add_extra_actor(self.cad_tree_items[item])
+            elif item.checkState(0) == qt.Qt.Unchecked:
+                self.interactor3d.remove_extra_actor(self.cad_tree_items[item])
+            self.refresh_3d()
+        else:
+            super().update_checked_features(item)
+
+
+    def set_cad_colour(self):
+
+        selected_features = []
+        extra_actors = []
+        for treeitem in self.feature_tree.selectedItems():
+            if isinstance(self.cad_tree_items[treeitem],vtk.vtkActor):
+                extra_actors.append(self.cad_tree_items[treeitem])
+            else:
+                selected_features.append(self.cad_tree_items[treeitem])
+
+        # Note: this does not mean nothing is selected;
+        # rather it means the root of the model is selected!
+        if None in selected_features:
+            selected_features = None
+
+        if self.sender() is self.cad_colour_choose_button:
+
+            if len(selected_features) > 0 or selected_features is None:
+                picked_colour = self.pick_colour(self.cadmodel.get_colour( selected_features )[0] )
+            else:
+                picked_colour = self.pick_colour(extra_actors[0].GetProperty().GetColor())
+
+            if picked_colour is not None:
+                if len(selected_features) > 0 or selected_features is None:
+                    self.cadmodel.set_colour(picked_colour,selected_features)
+                for actor in extra_actors:
+                    actor.GetProperty().SetColor(picked_colour)
+
+
+        elif self.sender() is self.cad_colour_reset_button:
+
+            self.cadmodel.reset_colour(selected_features)
+
+            for actor in extra_actors:
+                actor.GetProperty().SetColor(1,1,1)
+
+        self.refresh_3d()
+
+
+    def update_cadtree_selection(self):
+
+        self.remove_mesh_button.setEnabled(False)
+        if len(self.feature_tree.selectedItems()) == 0:
+            self.cad_colour_choose_button.setEnabled(False)
+            self.cad_colour_reset_button.setEnabled(False)
+        else:
+            self.cad_colour_choose_button.setEnabled(True)
+            self.cad_colour_reset_button.setEnabled(True)
+            if len(self.feature_tree.selectedItems()) == 1 and isinstance(self.cad_tree_items[self.feature_tree.selectedItems()[0]],vtk.vtkActor):
+                self.remove_mesh_button.setEnabled(True)
+
+
+    def remove_extra_mesh(self):
+        for item in self.feature_tree.selectedItems():
+            if isinstance(self.cad_tree_items[item],vtk.vtkActor):
+                self.interactor3d.remove_extra_actor(self.cad_tree_items[item])
+                self.feature_tree.takeTopLevelItem(self.feature_tree.indexOfTopLevelItem(item))
+                del self.cad_tree_items[item]
+                self.refresh_3d()
 
     def update_slicing(self):
         self.update_xsection()
@@ -278,10 +439,7 @@ class Viewer(CalcamGUIWindow):
     def update_lines(self,data):
         # Load or update coordinate data to display
 
-        self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
-
         if self.sender() is self.load_lines_button:
-            self.app.restoreOverrideCursor()
             # User clicked the "Load from ASCII" button
             filename_filter = 'ASCII Data (*.txt *.csv *.dat)'
             filedialog = qt.QFileDialog(self)
@@ -314,7 +472,7 @@ class Viewer(CalcamGUIWindow):
                     coords_dialog = CoordsDialog(self,coords.shape)
                     coords_dialog.exec()
                     if coords_dialog.result() == coords_dialog.Accepted:
-
+                        self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
                         # Add it to the lines list
                         listitem = qt.QListWidgetItem(lines_name)
 
@@ -327,7 +485,7 @@ class Viewer(CalcamGUIWindow):
 
 
         elif self.sender() is self.lines_3d_list:
-
+            self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
             if data.checkState() == qt.Qt.Checked:
                 self.interactor3d.add_extra_actor(self.line_actors[data])
                 self.lines_3d_list.setCurrentItem(data)
@@ -341,6 +499,7 @@ class Viewer(CalcamGUIWindow):
             picked_colour = self.pick_colour(current_colour)
 
             if picked_colour is not None:
+                self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
                 for item in self.lines_3d_list.selectedItems():
                     self.line_actors[item].colour = picked_colour + [self.lines_opacity_slider.value()/100]
 
@@ -360,6 +519,7 @@ class Viewer(CalcamGUIWindow):
 
 
         else:
+            self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
             item = self.lines_3d_list.selectedItems()[0]
             actor = self.line_actors[item]
             enabled = item.checkState() == qt.Qt.Checked
@@ -388,7 +548,7 @@ class Viewer(CalcamGUIWindow):
                 elif self.lines_frustrum_rb.isChecked():
                     actor.linewidth = 0
                     actor.markersize = 0
-                    actor.frustrumsize = (self.lines_frustrum_r0_box.value()/100,self.lines_frustrum_angle_box.value())
+                    actor.frustrumsize = (self.lines_frustrum_d0_box.value()/100,self.lines_frustrum_angle_box.value())
                 elif self.lines_points_rb.isChecked():
                     actor.linewidth = 0
                     actor.markersize = self.marker_diameter_box.value()/100
@@ -490,15 +650,29 @@ class Viewer(CalcamGUIWindow):
 
             if lines_actor.frustrumsize != (0,0):
                 self.lines_frustrum_rb.setChecked(True)
-                self.lines_frustrum_r0_box.setValue(lines_actor.frustrumsize[0])
+                self.lines_frustrum_d0_box.setValue(lines_actor.frustrumsize[0])
                 self.lines_frustrum_angle_box.setValue(lines_actor.frustrumsize[1])
 
             if lines_actor.markersize > 0:
                 self.lines_points_rb.setChecked(True)
                 self.marker_diameter_box.setValue(lines_actor.markersize*100)
 
-
             self.lines_appearance_box.setEnabled(enabled)
+
+            if enabled:
+                if lines_actor.coords.shape[0] != 2 and lines_actor.coords.shape[1] in [2, 3]:
+                    self.lines_frustrum_rb.setChecked(False)
+                    self.lines_frustrum_rb.setToolTip('Option only available for straight line segments')
+                    self.lines_frustrum_rb.setEnabled(False)
+                    self.lines_frustrum_d0_box.setEnabled(False)
+                    self.lines_frustrum_angle_label.setEnabled(False)
+                    self.lines_frustrum_angle_box.setEnabled(False)
+                else:
+                    self.lines_frustrum_rb.setEnabled(True)
+                    self.lines_frustrum_rb.setToolTip('')
+                    self.lines_frustrum_d0_box.setEnabled(True)
+                    self.lines_frustrum_angle_label.setEnabled(True)
+                    self.lines_frustrum_angle_box.setEnabled(True)
 
         else:
             self.lines_appearance_box.setEnabled(False)
@@ -563,6 +737,21 @@ class Viewer(CalcamGUIWindow):
             self.centre_at_cursor.setEnabled(True)
             self.update_cursor_position(0,coords)
 
+    def load_model(self, data=None, featurelist=None, hold_view=False):
+
+        keep_tla_features = []
+        keep_tla_actors = []
+        if self.feature_tree.topLevelItemCount() > 1:
+            for i in range(1,self.feature_tree.topLevelItemCount()):
+                keep_tla_features.append(self.feature_tree.takeTopLevelItem(i))
+                keep_tla_actors.append(self.cad_tree_items[keep_tla_features[-1]])
+
+        super().load_model(data,featurelist,hold_view)
+
+        for key,item in zip(keep_tla_features,keep_tla_actors):
+            self.feature_tree.addTopLevelItem(key)
+            self.cad_tree_items[key] = item
+
 
     def on_model_load(self):
 
@@ -612,6 +801,7 @@ class Viewer(CalcamGUIWindow):
         self.chordslice_r.setValue(rmax/2)
         self.zslice_zmin.setValue(model_extent[4]-1e-3)
         self.zslice_zmax.setValue(model_extent[5]+1e-3)
+        self.toggle_wireframe(self.rendertype_edges.isChecked())
 
     def update_selected_sightlines(self):
 
@@ -1003,7 +1193,7 @@ class Viewer(CalcamGUIWindow):
 
             for item in self.line_actors.keys():
                 if item.checkState() == qt.Qt.Checked:
-                    legend_items.append((str(item.text()), self.line_actors[item].colour))
+                    legend_items.append((str(item.text()), self.line_actors[item].colour[:3]))
 
         self.interactor3d.set_legend(legend_items)
         self.refresh_3d()
@@ -1071,16 +1261,29 @@ class CoordsDialog(qt.QDialog):
         elif coords_shape[1] == 2:
             self.lines_label.setText('Importing a sequence of {:d} 2D points from file.'.format(coords_shape[0]))
             self.closed_contour_checkbox.show()
+            self.coord_types = ['rz']
+            coord_type_options = ['R (m) , Z (m)']
 
         self.line_coords_combobox.currentIndexChanged.connect(self.change_coords)
         self.line_coords_combobox.addItems(coord_type_options)
         self.line_coords_combobox.setCurrentIndex(0)
-        if len(coord_type_options) < 0:
+        if len(coord_type_options) < 2:
             self.line_coords_combobox.setEnabled(False)
 
     def change_coords(self,index):
         self.coords_type = self.coord_types[index]
 
+
+class MeshImportDialog(qt.QDialog):
+
+    def __init__(self, parent,filename):
+
+        # GUI initialisation
+        qt.QDialog.__init__(self, parent)
+        qt.uic.loadUi(os.path.join(guipath,'qt_designer_files','mesh_import_settings.ui'), self)
+
+        self.parent = parent
+        self.filename.setText(os.path.split(filename)[-1])
 
 
 class RenderUnfoldedDialog(qt.QDialog):

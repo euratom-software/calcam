@@ -940,8 +940,6 @@ class CalcamGUIWindow(qt.QMainWindow):
         self.refresh_3d()
 
 
-
-
     def load_viewport_calib(self,event=None,set_view=True):
 
         cals = self.object_from_file('calibration',multiple=True)
@@ -1029,6 +1027,10 @@ class CalcamGUIWindow(qt.QMainWindow):
 
         for qitem,feature in self.cad_tree_items:
 
+            if isinstance(feature,vtk.vtkActor):
+                # For extra meshes that might be loaded in the viewer, don't mess with their state
+                continue
+
             try:
                 state = [qt.Qt.Unchecked,qt.Qt.PartiallyChecked,qt.Qt.Checked][self.cadmodel.get_group_enable_state(feature)]
                 qitem.setCheckState(0,state)
@@ -1085,8 +1087,6 @@ class CalcamGUIWindow(qt.QMainWindow):
         self.cad_tree_items[treeitem_top] = None
 
         group_items = {}
-
-        enabled_features = self.cadmodel.get_enabled_features()
 
 
         # We need to add the group items first, to make the tree look sensible:

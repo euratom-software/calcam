@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1154</width>
-    <height>1246</height>
+    <height>1248</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -215,6 +215,26 @@
                <string notr="true">1</string>
               </property>
              </column>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QPushButton" name="load_mesh_file_button">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>Load additional mesh file...</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QPushButton" name="remove_mesh_button">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="text">
+              <string>Remove selected additional mesh</string>
+             </property>
             </widget>
            </item>
           </layout>
@@ -1352,6 +1372,9 @@
            <item row="0" column="1" colspan="2" alignment="Qt::AlignTop">
             <widget class="QWidget" name="phi_settings" native="true">
              <layout class="QGridLayout" name="gridLayout_21">
+              <property name="topMargin">
+               <number>6</number>
+              </property>
               <item row="0" column="1">
                <widget class="QDoubleSpinBox" name="lines_toroidal_angle_box">
                 <property name="buttonSymbols">
@@ -1435,17 +1458,20 @@
              </layout>
             </widget>
            </item>
-           <item row="1" column="0" alignment="Qt::AlignTop">
+           <item row="1" column="0" alignment="Qt::AlignVCenter">
             <widget class="QLabel" name="label_25">
              <property name="text">
               <string>Draw as:</string>
              </property>
             </widget>
            </item>
-           <item row="0" column="0" alignment="Qt::AlignTop">
+           <item row="0" column="0" alignment="Qt::AlignVCenter">
             <widget class="QLabel" name="label_27">
              <property name="text">
               <string>Position:</string>
+             </property>
+             <property name="margin">
+              <number>0</number>
              </property>
             </widget>
            </item>
@@ -1491,7 +1517,7 @@
                </widget>
               </item>
               <item row="3" column="1">
-               <widget class="QDoubleSpinBox" name="lines_frustrum_r0_box">
+               <widget class="QDoubleSpinBox" name="lines_frustrum_d0_box">
                 <property name="buttonSymbols">
                  <enum>QAbstractSpinBox::UpDownArrows</enum>
                 </property>
@@ -1504,25 +1530,15 @@
                 <property name="decimals">
                  <number>1</number>
                 </property>
+                <property name="singleStep">
+                 <double>0.100000000000000</double>
+                </property>
                </widget>
               </item>
               <item row="3" column="2">
-               <widget class="QLabel" name="label_22">
+               <widget class="QLabel" name="lines_frustrum_angle_label">
                 <property name="text">
                  <string>&amp; half-angle </string>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="3">
-               <widget class="QSpinBox" name="lines_frustrum_angle_box">
-                <property name="suffix">
-                 <string> °</string>
-                </property>
-                <property name="prefix">
-                 <string/>
-                </property>
-                <property name="maximum">
-                 <number>89</number>
                 </property>
                </widget>
               </item>
@@ -1536,7 +1552,7 @@
               <item row="3" column="0">
                <widget class="QRadioButton" name="lines_frustrum_rb">
                 <property name="text">
-                 <string>Frustrum(s) with initial diameter:</string>
+                 <string>Cone(s) with start diameter:</string>
                 </property>
                </widget>
               </item>
@@ -1547,10 +1563,29 @@
                 </property>
                </widget>
               </item>
+              <item row="3" column="3">
+               <widget class="QDoubleSpinBox" name="lines_frustrum_angle_box">
+                <property name="suffix">
+                 <string> °</string>
+                </property>
+                <property name="decimals">
+                 <number>1</number>
+                </property>
+                <property name="maximum">
+                 <double>89.900000000000006</double>
+                </property>
+                <property name="singleStep">
+                 <double>0.100000000000000</double>
+                </property>
+                <property name="value">
+                 <double>1.000000000000000</double>
+                </property>
+               </widget>
+              </item>
              </layout>
             </widget>
            </item>
-           <item row="2" column="0" alignment="Qt::AlignTop">
+           <item row="2" column="0" alignment="Qt::AlignVCenter">
             <widget class="QLabel" name="label_30">
              <property name="text">
               <string>Colour:</string>
@@ -1657,6 +1692,9 @@
              <property name="columnCount">
               <number>3</number>
              </property>
+             <attribute name="horizontalHeaderStretchLastSection">
+              <bool>false</bool>
+             </attribute>
              <attribute name="verticalHeaderDefaultSectionSize">
               <number>30</number>
              </attribute>
