@@ -1630,13 +1630,13 @@
            <item row="0" column="0" colspan="2">
             <widget class="QLabel" name="label_17">
              <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+              <sizepolicy hsizetype="Minimum" vsizetype="MinimumExpanding">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
              <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add arbitrary lines or point sets from an ASCII file of coordinates.&lt;/p&gt;&lt;p&gt;For a single continous 3D line, the file should contain one row per point with 3 elements per row (3D coordinates of each point).&lt;/p&gt;&lt;p&gt;For a series of un-connected line segments, the file should contain one row per line segment with 6 elements: 3D start and end coordinates.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add arbitrary lines or point sets from an ASCII file of coordinates.&lt;/p&gt;&lt;p&gt;For a single continous line or set of individual points, each line of the ASCII file should contain the coordinates of one point.&lt;/p&gt;&lt;p&gt;For a series of un-connected line segments, each line of the ASCII file should contain the start and end coordinates of a single line segment.&lt;/p&gt;&lt;p&gt;For more information about formatting of files to use here, see the Calcam online documentation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="wordWrap">
               <bool>true</bool>
@@ -1666,7 +1666,7 @@
         <item row="4" column="0">
          <widget class="QGroupBox" name="groupBox_12">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
+           <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
@@ -1678,7 +1678,7 @@
            <item row="1" column="0" colspan="2">
             <widget class="QTableWidget" name="cursor_coords_table">
              <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+              <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
@@ -1777,14 +1777,14 @@
            <item>
             <widget class="QLabel" name="render_current_description">
              <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+              <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
              <property name="maximumSize">
               <size>
-               <width>350</width>
+               <width>500</width>
                <height>16777215</height>
               </size>
              </property>
@@ -1812,14 +1812,14 @@
            <item>
             <widget class="QLabel" name="render_calib_description">
              <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+              <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
              <property name="maximumSize">
               <size>
-               <width>350</width>
+               <width>500</width>
                <height>16777215</height>
               </size>
              </property>
@@ -1853,10 +1853,16 @@
               <bool>false</bool>
              </property>
              <property name="sizePolicy">
-              <sizepolicy hsizetype="Ignored" vsizetype="Preferred">
+              <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>500</width>
+               <height>16777215</height>
+              </size>
              </property>
              <property name="text">
               <string>Generates an image of the torus first wall unwrapped to a rectangular image (toroidal direction along the horizontal image direction and poloidal direction along the vertical image dimension). Any calibrations shown as CAD model shading and 3D data will also be included.</string>
@@ -2003,6 +2009,12 @@
            </item>
            <item row="2" column="1" colspan="2">
             <widget class="QComboBox" name="render_coords_combobox">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <item>
               <property name="text">
                <string>Display (right way up)</string>
@@ -2099,6 +2111,12 @@
                <widget class="QLabel" name="poloidal_centre_text3">
                 <property name="enabled">
                  <bool>true</bool>
+                </property>
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
                 </property>
                 <property name="text">
                  <string>Poloidal angle = 0 at outboard midplane; increasing anti-clockwise in R,Z cross-section.</string>

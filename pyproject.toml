@@ -8,7 +8,7 @@ description = "Spatial calibration tools for science & engineering camera system
 authors = [{name = "Scott Silburn et. al.", email = "scott.silburn@ukaea.uk"}]
 license = {text = "EUPL-1.1"}
 readme = {file = "README.md", content-type='text/markdown'}
-requires-python = ">=3.5"
+requires-python = ">=3.7"
 classifiers = [
                     "Development Status :: 5 - Production/Stable",
                     "Operating System :: Microsoft :: Windows",

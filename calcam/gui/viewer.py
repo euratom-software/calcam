@@ -218,6 +218,8 @@ class Viewer(CalcamGUIWindow):
 
             if result == import_settings.Accepted:
 
+                self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
+
                 if filepath.lower().endswith('stl'):
                     reader = vtk.vtkSTLReader()
                 elif filepath.lower().endswith('obj'):
@@ -282,6 +284,8 @@ class Viewer(CalcamGUIWindow):
                 self.feature_tree.addTopLevelItem(treeitem_top)
                 self.cad_tree_items[treeitem_top] = actor
                 treeitem_top.setCheckState(0,qt.Qt.Checked)
+
+                self.app.restoreOverrideCursor()
 
 
     def update_checked_features(self,item):

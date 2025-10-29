@@ -1,8 +1,8 @@
 Calcam Changelog
 ================
 
-Minor Release 2.16.0 (WIP; next release)
-----------------------------------------
+Point Release 2.16.0 (October 2025)
+-----------------------------------
 
 New & Enhancements:
 * Added ability to manually specify initial guess for focal length in fitting calibration tool (can greatly improve success of fitting; helps address #157)
@@ -22,6 +22,7 @@ Fixes:
 * Improved handling of exceptions raised by OpenCV fisheye calibration fitting to make error messages more friendly
 * Fixed option for wireframe / edges or solid body rendering being ignored when changing CAD models in the 3D viewer
 * Fixed issue where edge detection for wireframe / edge rendering could return completely blank results for some parts / models
+* Fixed text layout in render type descriptions in 3D viewer
 
 Compatibility / Dependencies:
 * Revert declared PyQt dependency to PyQt5 instead of PyQt6, since PyQt6 seems to fail to install on many more systems (#156) so PyQt5 gives a smoother install experience (Hopefully if PEP771 gets implemented it will provide a better long-term solution to the PyQt version issue)
