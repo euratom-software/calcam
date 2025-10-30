@@ -173,8 +173,8 @@
 <p>Underneath the list of pre-defined viewports are editable boxes showing the current viewport’s camera position, camera view target, field of view and roll. These update automatically to reflect the current viewport, or editing the values in these boxes will immediately adjust the view accordingly.</p>
 <p>Below the viewport coordinate boxes is an option to switch the 3D projection between a perspective projection view of the model (i.e. a natural view where closer objects appear larger) and an orthographic view (where objects appear the same size regardless of their distance from the viewier). This can be helpful for making e.g. cross-section figures.</p>
 </section>
-<section id="cad-model-slicing">
-<h3>CAD Model Slicing<a class="headerlink" href="#cad-model-slicing" title="Link to this heading"></a></h3>
+<section id="cad-model-slicing-cross-section-view">
+<h3>CAD model slicing / cross-section view<a class="headerlink" href="#cad-model-slicing-cross-section-view" title="Link to this heading"></a></h3>
 <p>The <span class="guilabel">3D Viewport</span> tab also contains options to display the machine CAD model as sliced or cross-sectioned, which can be used if making visualisations. These settings are considered part of the viewport setup, so will be saved and recalled if saving a viewport configuration, and are reset when selecting a preset view to load.</p>
 <p>The options available for slicing the CAD Model are:</p>
 <ul class="simple">
@@ -185,8 +185,12 @@
 <li><p><span class="guilabel">Slice with chord at…</span>: This option can be used to slice the model with a vertical plane not passing through the origin. The normal of the slicing plane is a radial line at the given toroidal angle, and the plane is placed along that radius at the given major radius (note: this means this option can only be used to hide, at most, half of the model).</p></li>
 </ul>
 </li>
+<li><p>Slicing with horizontal planes: enabling this option will only display the CAD model geometry between two chosen values of <span class="math notranslate nohighlight">\(Z\)</span> coordinate (i.e. vertical height). When first enabling this option, the default values are set to display the whole of the CAD model.</p></li>
 </ul>
-<p>Note: Any calibration results, 3D data and extra mesh files loaded will not be affected by these slicing options.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Any calibration results, 3D data and extra mesh files which are loaded are not affected by these slicing options.</p>
+</div>
 </section>
 </section>
 <section id="visualising-calcam-calibrations">
@@ -196,7 +200,7 @@
 <h3>Visualisation options<a class="headerlink" href="#visualisation-options" title="Link to this heading"></a></h3>
 <p>With a loaded calibration in the list selected, at the bottom of the tab are options for how to visualise the calibrated field of view. There are 3 ways to display fields of view:</p>
 <ul class="simple">
-<li><p><span class="guilabel">Shaded volume`</span> (default) displays the sight-line cone of the camera as a semi-transparent volume.</p></li>
+<li><p><span class="guilabel">Shaded volume</span> (default) displays the sight-line cone of the camera as a semi-transparent volume.</p></li>
 <li><p><span class="guilabel">Sight-line fan</span> displays an array of lines representing the camera lines-of-sight.</p></li>
 <li><p><span class="guilabel">CAD model shading</span> shades the surface of the CAD model where it can be seen by the camera.</p></li>
 </ul>
@@ -227,9 +231,7 @@
 </section>
 <section id="appearance-options">
 <h3>Appearance Options<a class="headerlink" href="#appearance-options" title="Link to this heading"></a></h3>
-<p>Once loaded, various options are available for how to display the 3D coordinates. These are displayed underneath the list of loaded coordinate data files on the <span class="guilabel">3D Data</span> tab. These options are enabled by selecting the name of a set of 3D data from the list, if that set of data is currently being displayed (i.e. has the checkbox next to its name checked).</p>
-<p>The screenshot below shows the available options, which are explained in the following sections.</p>
-<img alt="3D data display options screenshot" class="align-left" src="_images/viewer_3ddata_settings.png" />
+<p>Once loaded, various options are available for how to display the 3D coordinates. These are displayed underneath the list of loaded coordinate data files on the <span class="guilabel">3D Data</span> tab. These options are enabled by selecting the name of a set of 3D data from the list, if that set of data is currently being displayed (i.e. has the checkbox next to its name checked). The options can be set separately for each set of displayed data.</p>
 <section id="position">
 <h4>“Position”<a class="headerlink" href="#position" title="Link to this heading"></a></h4>
 <p>These options are only available for data which lie in a single poloidal plane, i.e. data defined in (<span class="math notranslate nohighlight">\(R,Z\)</span>) coordinates or (<span class="math notranslate nohighlight">\(R,Z,\phi\)</span>) if all values of <span class="math notranslate nohighlight">\(\phi\)</span> are identical. In this case, 2 options are available:</p>

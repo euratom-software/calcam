@@ -94,7 +94,8 @@ if qt_ver == 6:
                         QDialogButtonBox:[QDialogButtonBox.StandardButton],
                         QKeySequence:[QKeySequence.StandardKey],
                         QTextBrowser:[QTextBrowser.LineWrapMode],
-                        QTableWidget:[QTableWidget.SelectionBehavior,QTableWidget.SelectionMode]
+                        QTableWidget:[QTableWidget.SelectionBehavior,QTableWidget.SelectionMode],
+                        QHeaderView:[QHeaderView.ResizeMode]
                        }
 
     for parent,enums in enums_to_unwrap.items():

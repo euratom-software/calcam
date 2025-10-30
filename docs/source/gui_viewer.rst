@@ -78,8 +78,8 @@ Underneath the list of pre-defined viewports are editable boxes showing the curr
 
 Below the viewport coordinate boxes is an option to switch the 3D projection between a perspective projection view of the model (i.e. a natural view where closer objects appear larger) and an orthographic view (where objects appear the same size regardless of their distance from the viewier). This can be helpful for making e.g. cross-section figures.
 
-CAD Model Slicing
-~~~~~~~~~~~~~~~~~
+CAD model slicing / cross-section view
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 The :guilabel:`3D Viewport` tab also contains options to display the machine CAD model as sliced or cross-sectioned, which can be used if making visualisations. These settings are considered part of the viewport setup, so will be saved and recalled if saving a viewport configuration, and are reset when selecting a preset view to load.
 
 The options available for slicing the CAD Model are:
@@ -92,7 +92,10 @@ The options available for slicing the CAD Model are:
 
   - :guilabel:`Slice with chord at...`: This option can be used to slice the model with a vertical plane not passing through the origin. The normal of the slicing plane is a radial line at the given toroidal angle, and the plane is placed along that radius at the given major radius (note: this means this option can only be used to hide, at most, half of the model).
 
-Note: Any calibration results, 3D data and extra mesh files loaded will not be affected by these slicing options.
+- Slicing with horizontal planes: enabling this option will only display the CAD model geometry between two chosen values of :math:`Z` coordinate (i.e. vertical height). When first enabling this option, the default values are set to display the whole of the CAD model.
+
+.. note::
+    Any calibration results, 3D data and extra mesh files which are loaded are not affected by these slicing options.
 
 
 Visualising calcam calibrations
@@ -103,7 +106,7 @@ Visualisation options
 ~~~~~~~~~~~~~~~~~~~~~
 With a loaded calibration in the list selected, at the bottom of the tab are options for how to visualise the calibrated field of view. There are 3 ways to display fields of view:
 
-- :guilabel:`Shaded volume`` (default) displays the sight-line cone of the camera as a semi-transparent volume.
+- :guilabel:`Shaded volume` (default) displays the sight-line cone of the camera as a semi-transparent volume.
 - :guilabel:`Sight-line fan` displays an array of lines representing the camera lines-of-sight.
 - :guilabel:`CAD model shading` shades the surface of the CAD model where it can be seen by the camera.
 
@@ -136,13 +139,7 @@ Once loaded, data sets are added to the list at the top of the tab, with names c
 
 Appearance Options
 ~~~~~~~~~~~~~~~~~~
-Once loaded, various options are available for how to display the 3D coordinates. These are displayed underneath the list of loaded coordinate data files on the :guilabel:`3D Data` tab. These options are enabled by selecting the name of a set of 3D data from the list, if that set of data is currently being displayed (i.e. has the checkbox next to its name checked).
-
-The screenshot below shows the available options, which are explained in the following sections.
-
-.. image:: images/screenshots/viewer_3ddata_settings.png
-   :alt: 3D data display options screenshot
-   :align: left
+Once loaded, various options are available for how to display the 3D coordinates. These are displayed underneath the list of loaded coordinate data files on the :guilabel:`3D Data` tab. These options are enabled by selecting the name of a set of 3D data from the list, if that set of data is currently being displayed (i.e. has the checkbox next to its name checked). The options can be set separately for each set of displayed data.
 
 "Position"
 ++++++++++

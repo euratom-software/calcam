@@ -71,8 +71,8 @@ class CalcamGUIWindow(qt.QMainWindow):
         else:
             available_space = self.app.primaryScreen().availableGeometry()
 
-        # Open the window with same aspect ratio as the screen, and no fewer than 500px tall.
-        win_height = int(max(500,min(780,0.75*available_space.height())))
+        # Open the window with same aspect ratio as the screen, and no fewer than 910px tall.
+        win_height = int(max(910,min(1024,0.75*available_space.height())))
         win_width = int(win_height * available_space.width() / available_space.height())
         self.resize(win_width,win_height)
 
@@ -125,7 +125,6 @@ class CalcamGUIWindow(qt.QMainWindow):
 
         self.views_root_auto.setHidden(True)
         # ------------------------------------------------------------
-
 
     # Handle exceptions with a dialog giving the user (hopefully) useful information about the error that occured.
     def show_exception_dialog(self,excep_type,excep_value,tb):
@@ -694,6 +693,13 @@ class CalcamGUIWindow(qt.QMainWindow):
 
                 if 'slicing' in view:
                     try:
+                        self.cakeslice_phi0.blockSignals(True)
+                        self.cakeslice_phi1.blockSignals(True)
+                        self.chordslice_phi.blockSignals(True)
+                        self.chordslice_r.blockSignals(True)
+                        self.zslice_zmin.blockSignals(True)
+                        self.zslice_zmax.blockSignals(True)
+
                         if view['slicing'][0] is None:
                             self.no_slicing_rb.setChecked(True)
                         elif len(view['slicing'][0]) == 2:
@@ -712,10 +718,18 @@ class CalcamGUIWindow(qt.QMainWindow):
                             self.zslice_zmin.setValue(view['slicing'][2][0])
                             self.zslice_zmax.setValue(view['slicing'][2][1])
 
+                        self.cakeslice_phi0.blockSignals(False)
+                        self.cakeslice_phi1.blockSignals(False)
+                        self.chordslice_phi.blockSignals(False)
+                        self.chordslice_r.blockSignals(False)
+                        self.zslice_zmin.blockSignals(False)
+                        self.zslice_zmax.blockSignals(False)
+
                         self.update_xsection()
-                        self.update_slicing_options()
+
                     except AttributeError:
                         self.cadmodel.set_slicing(*view['slicing'])
+
                 elif view['xsection'] is not None:
 
                     phi = np.arctan2(view['cam_pos'][1],view['cam_pos'][0])
@@ -724,12 +738,16 @@ class CalcamGUIWindow(qt.QMainWindow):
                     phi = phi / np.pi * 180
                     r = np.sqrt(view['xsection'][0]**2 + view['xsection'][1]**2 )
                     try:
+                        self.chordslice_phi.blockSignals(True)
                         self.chordslice_phi.setValue(int(phi))
+                        self.chordslice_phi.blockSignals(False)
+                        self.chordslice_r.blockSignals(True)
                         self.chordslice_r.setValue(r)
+                        self.chordslice_r.blockSignals(False)
                         self.zslice_checkbox.setChecked(False)
                         self.chordslice_rb.setChecked(True)
                         self.update_xsection()
-                        self.update_slicing_options()
+
                     except AttributeError:
                         self.cadmodel.set_slicing(phi,r)
                 else:
@@ -737,7 +755,7 @@ class CalcamGUIWindow(qt.QMainWindow):
                         self.zslice_checkbox.setChecked(False)
                         self.no_slicing_rb.setChecked(True)
                         self.update_xsection()
-                        self.update_slicing_options()
+
                     except AttributeError:
                         self.cadmodel.set_slicing()
 
@@ -776,7 +794,7 @@ class CalcamGUIWindow(qt.QMainWindow):
                         self.zslice_checkbox.setChecked(True)
                         self.no_slicing_rb.setChecked(True)
                         self.update_xsection()
-                        self.update_slicing_options()
+
                     except AttributeError:
                         self.cadmodel.set_slicing(slice_phi=None,slice_r=0,slice_z=[self.cadmodel.get_extent()[4]-1e-3,0])
 
@@ -806,7 +824,6 @@ class CalcamGUIWindow(qt.QMainWindow):
                         self.chordslice_rb.setChecked(True)
                         self.zslice_checkbox.setChecked(False)
                         self.update_xsection()
-                        self.update_slicing_options()
                     except AttributeError:
                         self.cadmodel.set_slicing(slice_phi=phi_cam / np.pi * 180,slice_r=0,slice_z=None)
 
@@ -826,7 +843,8 @@ class CalcamGUIWindow(qt.QMainWindow):
 
         self.on_view_changed()
 
-    def update_slicing_options(self):
+
+    def update_xsection(self):
 
         self.cakeslice_phi0.setEnabled(self.cakeslice_rb.isChecked())
         self.cakeslice_phi1.setEnabled(self.cakeslice_rb.isChecked())
@@ -836,8 +854,6 @@ class CalcamGUIWindow(qt.QMainWindow):
 
         self.zslice_zmin.setEnabled(self.zslice_checkbox.isChecked())
         self.zslice_zmax.setEnabled(self.zslice_checkbox.isChecked())
-
-    def update_xsection(self):
 
         self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
 
@@ -903,9 +919,7 @@ class CalcamGUIWindow(qt.QMainWindow):
         try:
             self.zslice_checkbox.setChecked(False)
             self.no_slicing_rb.setChecked(True)
-            self.update_x
             self.update_xsection()
-            self.update_slicing_options()
         except AttributeError:
             self.cadmodel.set_slicing()
   

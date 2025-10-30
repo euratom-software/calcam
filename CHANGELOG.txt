@@ -22,7 +22,7 @@ Fixes:
 * Improved handling of exceptions raised by OpenCV fisheye calibration fitting to make error messages more friendly
 * Fixed option for wireframe / edges or solid body rendering being ignored when changing CAD models in the 3D viewer
 * Fixed issue where edge detection for wireframe / edge rendering could return completely blank results for some parts / models
-* Fixed text layout in render type descriptions in 3D viewer
+* Improvements to the 3D viewer GUI behaviour, particularly for smaller screens
 
 Compatibility / Dependencies:
 * Revert declared PyQt dependency to PyQt5 instead of PyQt6, since PyQt6 seems to fail to install on many more systems (#156) so PyQt5 gives a smoother install experience (Hopefully if PEP771 gets implemented it will provide a better long-term solution to the PyQt version issue)

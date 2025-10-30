@@ -163,7 +163,7 @@ The most common reason for errors or problems getting Calcam up and running are 
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | VTK                 | Requires version =>7, somewhat tested up to 9.3.1. Note Versions 9.1.x cause crashes when setting large CAD models to wireframe rendering.                         |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| PyQt                | Works with PyQt4; PyQt5 or PyQt6; PyQt6 is recommended, but pip will try to install PyQt5 because it has better success installing on different platforms.         |
+| PyQt                | Works with PyQt4; PyQt5 or PyQt6; PyQt6 or 5 are recommended; pip will try to install PyQt5 because it has better success installing on different platforms.       |
 |                     |                                                                                                                                                                    |
 |                     | PyQt5 versions 5.11 and older are known to cause unreadable text in the GUI on OSX when using dark theme.                                                          |
 |                     |                                                                                                                                                                    |

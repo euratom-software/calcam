@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1141</width>
-    <height>1014</height>
+    <width>1161</width>
+    <height>1059</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -359,6 +359,9 @@
         <string>3D Viewport</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_3">
+        <property name="sizeConstraint">
+         <enum>QLayout::SetMinimumSize</enum>
+        </property>
         <item>
          <widget class="QGroupBox" name="groupBox_6">
           <property name="sizePolicy">
@@ -821,6 +824,22 @@
            <string>Slicing / Cross-Sectioning</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_20">
+           <property name="sizeConstraint">
+            <enum>QLayout::SetMinimumSize</enum>
+           </property>
+           <item row="5" column="2">
+            <widget class="QLabel" name="label_36">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string> - </string>
+             </property>
+            </widget>
+           </item>
            <item row="5" column="0">
             <widget class="QCheckBox" name="zslice_checkbox">
              <property name="text">
@@ -828,9 +847,54 @@
              </property>
             </widget>
            </item>
+           <item row="2" column="0">
+            <widget class="QRadioButton" name="cakeslice_rb">
+             <property name="text">
+              <string>Show only toroidal angles:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="1">
+            <widget class="QDoubleSpinBox" name="zslice_zmin">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>25</height>
+              </size>
+             </property>
+             <property name="keyboardTracking">
+              <bool>false</bool>
+             </property>
+             <property name="suffix">
+              <string> m</string>
+             </property>
+             <property name="decimals">
+              <number>3</number>
+             </property>
+             <property name="minimum">
+              <double>-99.000000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0" colspan="4">
+            <widget class="QRadioButton" name="no_slicing_rb">
+             <property name="text">
+              <string>None</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
            <item row="2" column="3">
             <widget class="QSpinBox" name="cakeslice_phi1">
              <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="keyboardTracking">
               <bool>false</bool>
              </property>
              <property name="suffix">
@@ -844,16 +908,41 @@
              </property>
             </widget>
            </item>
-           <item row="3" column="0">
-            <widget class="QRadioButton" name="chordslice_rb">
+           <item row="2" column="1">
+            <widget class="QSpinBox" name="cakeslice_phi0">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>25</height>
+              </size>
+             </property>
+             <property name="keyboardTracking">
+              <bool>false</bool>
+             </property>
+             <property name="suffix">
+              <string> °</string>
+             </property>
+             <property name="maximum">
+              <number>360</number>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0" colspan="4">
+            <widget class="QLabel" name="label_37">
              <property name="text">
-              <string>Slice with chord at R = </string>
+              <string>Slicing with horizontal planes:</string>
              </property>
             </widget>
            </item>
            <item row="3" column="3">
             <widget class="QSpinBox" name="chordslice_phi">
              <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="keyboardTracking">
               <bool>false</bool>
              </property>
              <property name="suffix">
@@ -864,9 +953,18 @@
              </property>
             </widget>
            </item>
-           <item row="5" column="1">
-            <widget class="QDoubleSpinBox" name="zslice_zmin">
+           <item row="3" column="1">
+            <widget class="QDoubleSpinBox" name="chordslice_r">
              <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>25</height>
+              </size>
+             </property>
+             <property name="keyboardTracking">
               <bool>false</bool>
              </property>
              <property name="suffix">
@@ -874,9 +972,6 @@
              </property>
              <property name="decimals">
               <number>3</number>
-             </property>
-             <property name="minimum">
-              <double>-99.000000000000000</double>
              </property>
             </widget>
            </item>
@@ -885,20 +980,7 @@
              <property name="enabled">
               <bool>false</bool>
              </property>
-             <property name="suffix">
-              <string> m</string>
-             </property>
-             <property name="decimals">
-              <number>3</number>
-             </property>
-             <property name="minimum">
-              <double>-99.000000000000000</double>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="1">
-            <widget class="QDoubleSpinBox" name="chordslice_r">
-             <property name="enabled">
+             <property name="keyboardTracking">
               <bool>false</bool>
              </property>
              <property name="suffix">
@@ -907,18 +989,8 @@
              <property name="decimals">
               <number>3</number>
              </property>
-            </widget>
-           </item>
-           <item row="5" column="2">
-            <widget class="QLabel" name="label_36">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string> - </string>
+             <property name="minimum">
+              <double>-99.000000000000000</double>
              </property>
             </widget>
            </item>
@@ -935,16 +1007,10 @@
              </property>
             </widget>
            </item>
-           <item row="2" column="1">
-            <widget class="QSpinBox" name="cakeslice_phi0">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="suffix">
-              <string> °</string>
-             </property>
-             <property name="maximum">
-              <number>360</number>
+           <item row="3" column="0">
+            <widget class="QRadioButton" name="chordslice_rb">
+             <property name="text">
+              <string>Slice with chord at R = </string>
              </property>
             </widget>
            </item>
@@ -952,37 +1018,6 @@
             <widget class="QLabel" name="label_35">
              <property name="text">
               <string>, Φ = </string>
-             </property>
-            </widget>
-           </item>
-           <item row="6" column="1" colspan="3">
-            <widget class="QPushButton" name="slice_apply_button">
-             <property name="text">
-              <string>Apply</string>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="0" colspan="4">
-            <widget class="QLabel" name="label_37">
-             <property name="text">
-              <string>Slicing with horizontal planes:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="0">
-            <widget class="QRadioButton" name="cakeslice_rb">
-             <property name="text">
-              <string>Show only toroidal angles:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0" colspan="4">
-            <widget class="QRadioButton" name="no_slicing_rb">
-             <property name="text">
-              <string>None</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
              </property>
             </widget>
            </item>
@@ -998,10 +1033,19 @@
         </item>
         <item>
          <widget class="QGroupBox" name="groupBox">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="title">
            <string>Save current view to model definition as preset</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_19">
+           <property name="sizeConstraint">
+            <enum>QLayout::SetMinimumSize</enum>
+           </property>
            <item row="0" column="2">
             <widget class="QPushButton" name="save_view_button">
              <property name="text">
@@ -1038,6 +1082,9 @@
            <string>Mouse Control Settings</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_15">
+           <property name="sizeConstraint">
+            <enum>QLayout::SetMinimumSize</enum>
+           </property>
            <item row="0" column="1">
             <widget class="QRadioButton" name="rmb_lookaround">
              <property name="text">
@@ -1350,10 +1397,19 @@
        </layout>
       </widget>
       <widget class="QWidget" name="lines_tab">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <attribute name="title">
         <string>3D Data</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_12">
+        <property name="sizeConstraint">
+         <enum>QLayout::SetDefaultConstraint</enum>
+        </property>
         <item row="4" column="0">
          <widget class="QGroupBox" name="groupBox_12">
           <property name="sizePolicy">
@@ -1366,18 +1422,27 @@
            <string>Pick cordinates using cursor (left click)</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_18">
+           <property name="sizeConstraint">
+            <enum>QLayout::SetMinimumSize</enum>
+           </property>
            <item row="1" column="0" colspan="2">
             <widget class="QTableWidget" name="cursor_coords_table">
              <property name="sizePolicy">
-              <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
+              <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>0</height>
+              </size>
+             </property>
              <property name="maximumSize">
               <size>
                <width>16777215</width>
-               <height>100</height>
+               <height>120</height>
               </size>
              </property>
              <property name="sizeAdjustPolicy">
@@ -1403,13 +1468,6 @@
              <column/>
             </widget>
            </item>
-           <item row="3" column="0">
-            <widget class="QPushButton" name="save_coords_button">
-             <property name="text">
-              <string>Save to CSV file...</string>
-             </property>
-            </widget>
-           </item>
            <item row="3" column="1">
             <widget class="QPushButton" name="del_coord_button">
              <property name="text">
@@ -1420,13 +1478,13 @@
            <item row="0" column="0" colspan="2">
             <widget class="QLabel" name="label_19">
              <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
              <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Press 'c' on the keyboard to add the current cursor position to this list. &lt;/p&gt;&lt;p&gt;The list can be exported, and/or the display of these points can be controlled using the above appearance settings.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Press 'c' on the keyboard to add the current 3D cursor position to this list. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="scaledContents">
               <bool>false</bool>
@@ -1436,13 +1494,20 @@
              </property>
             </widget>
            </item>
+           <item row="3" column="0">
+            <widget class="QPushButton" name="save_coords_button">
+             <property name="text">
+              <string>Save to CSV file...</string>
+             </property>
+            </widget>
+           </item>
           </layout>
          </widget>
         </item>
         <item row="1" column="0">
          <widget class="QGroupBox" name="groupBox_9">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
@@ -1478,13 +1543,13 @@
            <item row="0" column="0" colspan="2">
             <widget class="QLabel" name="label_17">
              <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+              <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
              <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add arbitrary lines or point sets from an ASCII file of coordinates. For more information about formatting of data files to use here, see the Calcam online documentation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add arbitrary lines or point sets from an ASCII file of coordinates. &lt;/p&gt;&lt;p&gt;For more information about formatting of data files to use here, see the Calcam online documentation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="wordWrap">
               <bool>true</bool>
@@ -1494,15 +1559,21 @@
            <item row="1" column="0" colspan="2">
             <widget class="QListWidget" name="lines_3d_list">
              <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+              <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>0</height>
+              </size>
+             </property>
              <property name="maximumSize">
               <size>
                <width>16777215</width>
-               <height>100</height>
+               <height>16777215</height>
               </size>
              </property>
              <property name="sizeAdjustPolicy">
@@ -1528,7 +1599,7 @@
            <bool>false</bool>
           </property>
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
@@ -1537,6 +1608,9 @@
            <string>Appearance (applies to selected)</string>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_6">
+           <property name="sizeConstraint">
+            <enum>QLayout::SetMinimumSize</enum>
+           </property>
            <item>
             <widget class="QGroupBox" name="phi_settings">
              <property name="sizePolicy">
@@ -1549,6 +1623,9 @@
               <string>Location</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_21">
+              <property name="sizeConstraint">
+               <enum>QLayout::SetMinimumSize</enum>
+              </property>
               <property name="topMargin">
                <number>6</number>
               </property>
@@ -1604,7 +1681,7 @@
            <item>
             <widget class="QGroupBox" name="lines_type_settings">
              <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+              <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
@@ -1619,6 +1696,9 @@
               <string>Draw As</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_14">
+              <property name="sizeConstraint">
+               <enum>QLayout::SetMinimumSize</enum>
+              </property>
               <item row="0" column="2">
                <widget class="QRadioButton" name="lines_points_rb">
                 <property name="text">
@@ -1935,6 +2015,9 @@
               <string>Colour</string>
              </property>
              <layout class="QHBoxLayout" name="horizontalLayout_6">
+              <property name="sizeConstraint">
+               <enum>QLayout::SetMinimumSize</enum>
+              </property>
               <item>
                <widget class="QPushButton" name="pick_lines_colour">
                 <property name="minimumSize">

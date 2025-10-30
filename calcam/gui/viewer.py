@@ -117,11 +117,16 @@ class Viewer(CalcamGUIWindow):
         self.marker_diameter_box.valueChanged.connect(self.update_lines)
         self.remove_lines_button.clicked.connect(self.update_lines)
         self.coords_legend_checkbox.toggled.connect(self.update_legend)
-        self.slice_apply_button.clicked.connect(self.update_slicing)
-        self.no_slicing_rb.clicked.connect(self.update_slicing_options)
-        self.cakeslice_rb.clicked.connect(self.update_slicing_options)
-        self.chordslice_rb.clicked.connect(self.update_slicing_options)
-        self.zslice_checkbox.toggled.connect(self.update_slicing_options)
+        self.no_slicing_rb.clicked.connect(self.update_xsection)
+        self.cakeslice_rb.clicked.connect(self.update_xsection)
+        self.chordslice_rb.clicked.connect(self.update_xsection)
+        self.cakeslice_phi0.valueChanged.connect(self.update_xsection)
+        self.cakeslice_phi1.valueChanged.connect(self.update_xsection)
+        self.chordslice_phi.valueChanged.connect(self.update_xsection)
+        self.chordslice_r.valueChanged.connect(self.update_xsection)
+        self.zslice_zmax.valueChanged.connect(self.update_xsection)
+        self.zslice_zmin.valueChanged.connect(self.update_xsection)
+        self.zslice_checkbox.toggled.connect(self.update_xsection)
 
         self.lines_toroidal_angle_box.valueChanged.connect(self.update_lines)
         self.line_width_box.valueChanged.connect(self.update_lines)
@@ -356,8 +361,6 @@ class Viewer(CalcamGUIWindow):
                 del self.cad_tree_items[item]
                 self.refresh_3d()
 
-    def update_slicing(self):
-        self.update_xsection()
 
     def save_cursor_coords(self):
 
