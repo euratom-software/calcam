@@ -390,6 +390,10 @@ class Viewer(CalcamGUIWindow):
             else:
                 reenable = False
 
+            if newrow > 1 and actor.frustrumsize != (0,0):
+                actor.frustrumsize = (0,0)
+                actor.linewidth = self.line_width_box.value()
+
             actor.coords = np.concatenate((actor.coords,np.array(coords)[np.newaxis,:]),0)
             self.cursor_coords_table.setRowCount(newrow+1)
             x = qt.QTableWidgetItem('{:.3f} m'.format(coords[0]))
@@ -407,13 +411,36 @@ class Viewer(CalcamGUIWindow):
 
             self.refresh_3d()
 
+
     def delete_saved_coord(self):
 
+        if self.saved_coords_item.checkState() == qt.Qt.Checked:
+            self.saved_coords_item.setCheckState(qt.Qt.Unchecked)
+            reenable = True
+        else:
+            reenable = False
+
         if self.cursor_coords_table.currentRow() > -1:
-            self.saved_coords_item.coords = np.delete(self.saved_coords_item.coords,self.cursor_coords_table.currentRow(),axis=0)
+            actor = self.line_actors[self.saved_coords_item]
+            actor.coords = np.delete(actor.coords,self.cursor_coords_table.currentRow(),axis=0)
+
             self.cursor_coords_table.removeRow(self.cursor_coords_table.currentRow())
-            self.saved_coords_item.set_markers(not self.saved_coords_item.markers)
-            self.saved_coords_item.set_markers(not self.saved_coords_item.markers)
+
+            if self.line_actors[self.saved_coords_item].coords.shape[0] > 0:
+
+                if self.line_actors[self.saved_coords_item].coords.shape[0] == 1 and actor.markersize == 0:
+                    actor.linewidth = 0
+                    actor.frustrumsize = (0,0)
+                    actor.markersize = self.marker_diameter_box.value() * 0.01
+
+                if reenable:
+                    self.saved_coords_item.setCheckState(qt.Qt.Checked)
+
+            else:
+                self.lines_3d_list.takeItem(self.lines_3d_list.row(self.saved_coords_item))
+                del self.line_actors[self.saved_coords_item]
+                self.saved_coords_item = None
+
             self.refresh_3d()
 
     def export_cursor_coords(self):
@@ -799,7 +826,7 @@ class Viewer(CalcamGUIWindow):
             del self.line_actors[self.wall_contour_listitem]
             self.wall_contour_listitem = None
         if contour_exists:
-            #self.update_contour()
+
             self.render_unfolded_view.setToolTip('')
             self.render_unfolded_view_description.setToolTip('')
             listitem = qt.QListWidgetItem('Wall Contour - {:s} ({:s})'.format(self.cadmodel.machine_name,self.cadmodel.model_variant))
