@@ -180,16 +180,12 @@ class Viewer(CalcamGUIWindow):
         self.render_load_button.setHidden(True)
         self.unfolded_render_settings.setHidden(True)
 
-        # Overload the nextCheckState() method of these checkboxes so that I can use them
-        # as tri-state from the code but the user can only toggle them between fully checked and
-        # un-checked. The "proper" way to do this would be to write my own subclass of qCheckBox
-        # which overloads this method and then insert that in the GUI, but since it's built in QT
-        # designer I'm doing this instead, which feels a little hacky but works fine :)
-        #self.enable_lines_checkbox.nextCheckState = lambda : nextcheckstate(self.enable_lines_checkbox)
-        #self.enable_points_checkbox.nextCheckState = lambda: nextcheckstate(self.enable_points_checkbox)
+        self.lines_cone_settings.hide()
+        self.lines_marker_settings.hide()
 
         self.cursor_coords_table.setColumnCount(3)
         self.cursor_coords_table.setHorizontalHeaderLabels(['X','Y','Z'])
+        self.cursor_coords_table.horizontalHeader().setSectionResizeMode(qt.QHeaderView.Stretch)
 
         # Start the GUI!
         self.show()
@@ -549,14 +545,23 @@ class Viewer(CalcamGUIWindow):
                     actor.linewidth = self.line_width_box.value()
                     actor.markersize = 0
                     actor.frustrumsize = (0,0)
+                    self.lines_line_settings.show()
+                    self.lines_cone_settings.hide()
+                    self.lines_marker_settings.hide()
                 elif self.lines_frustrum_rb.isChecked():
                     actor.linewidth = 0
                     actor.markersize = 0
                     actor.frustrumsize = (self.lines_frustrum_d0_box.value()/100,self.lines_frustrum_angle_box.value())
+                    self.lines_line_settings.hide()
+                    self.lines_cone_settings.show()
+                    self.lines_marker_settings.hide()
                 elif self.lines_points_rb.isChecked():
                     actor.linewidth = 0
                     actor.markersize = self.marker_diameter_box.value()/100
                     actor.frustrumsize = (0,0)
+                    self.lines_line_settings.hide()
+                    self.lines_cone_settings.hide()
+                    self.lines_marker_settings.show()
 
             if enabled:
                 self.interactor3d.add_extra_actor(actor)
@@ -650,15 +655,24 @@ class Viewer(CalcamGUIWindow):
 
             if lines_actor.linewidth > 0:
                 self.lines_lines_rb.setChecked(True)
+                self.lines_line_settings.show()
+                self.lines_marker_settings.hide()
+                self.lines_cone_settings.hide()
                 self.line_width_box.setValue(lines_actor.linewidth)
 
             if lines_actor.frustrumsize != (0,0):
                 self.lines_frustrum_rb.setChecked(True)
-                self.lines_frustrum_d0_box.setValue(lines_actor.frustrumsize[0])
+                self.lines_line_settings.hide()
+                self.lines_marker_settings.hide()
+                self.lines_cone_settings.show()
+                self.lines_frustrum_d0_box.setValue(lines_actor.frustrumsize[0]*100)
                 self.lines_frustrum_angle_box.setValue(lines_actor.frustrumsize[1])
 
             if lines_actor.markersize > 0:
                 self.lines_points_rb.setChecked(True)
+                self.lines_line_settings.hide()
+                self.lines_marker_settings.show()
+                self.lines_cone_settings.hide()
                 self.marker_diameter_box.setValue(lines_actor.markersize*100)
 
             self.lines_appearance_box.setEnabled(enabled)
@@ -667,10 +681,10 @@ class Viewer(CalcamGUIWindow):
                 if lines_actor.coords.shape[0] != 2 and lines_actor.coords.shape[1] in [2, 3]:
                     self.lines_frustrum_rb.setChecked(False)
                     self.lines_frustrum_rb.setToolTip('Option only available for straight line segments')
-                    self.lines_frustrum_rb.setEnabled(False)
                     self.lines_frustrum_d0_box.setEnabled(False)
                     self.lines_frustrum_angle_label.setEnabled(False)
                     self.lines_frustrum_angle_box.setEnabled(False)
+                    self.lines_frustrum_rb.setEnabled(False)
                 else:
                     self.lines_frustrum_rb.setEnabled(True)
                     self.lines_frustrum_rb.setToolTip('')
