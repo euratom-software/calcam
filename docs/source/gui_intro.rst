@@ -25,7 +25,7 @@ If this directory is in your OS's ``PATH`` environment variable, this enables th
 
 If the directory is not in the ``PATH`` environment variable, you will have to use the full path to the calcam executable. If you will use the GUI often, it is recommended to make a graphical shortcut to it for easy access.
 
-If you need to check the location of the calcam executable, you can find it from within python using the following code:
+If you need to check the location of the calcam executable, you can find it in the :doc:`gui_settings` GUI or from within python using the following code:
 
 .. code-block:: python
 
@@ -37,7 +37,12 @@ If you need to check the location of the calcam executable, you can find it from
 From within Python
 ~~~~~~~~~~~~~~~~~~
 
-Alternatively, the Calcam GUI launcher can be opened by calling the :func:`start_gui()` function in the Calcam Python package:
+Alternatively, the Calcam GUI launcher can be opened via Python using the command::
+
+    python -m calcam
+
+
+or by calling the :func:`start_gui()` function in the Calcam Python package:
 
 .. code-block:: python
 

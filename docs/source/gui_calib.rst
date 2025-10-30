@@ -14,7 +14,11 @@ Loading an Image to Calibrate
 ------------------------------
 At the top of the :guilabel:`Camera Image` control tab is a group of controls for loading an image you want to calibrate. The :guilabel:`From` dropdown list selects the source from which you want to load the image. The options available as standard are loading from an image file (default) or loading an image from another Calcam calibration. If you define any custom image sources (see :doc:`dev_imsources`), they will also appear in this dropdown menu. Once an image source is selected, the relevant inputs to set up the image loading appear below the dropdown list. Once the relevant fields are completed, click the :guilabel:`Load` button to load the image.
 
-If loading an image with an existing calibration already open, e.g. to update a calibration using a more recent reference image, the loaded image must have the same dimensions as the one it is replacing. If you try to load an image with different dimensions, a dialog box will appear asking whether you want to start a new calibration or cancel loading the image. If the new image is compatible with the existing calibration, a dialog will open asking if you want to use the :doc:`gui_movement` tool to determine the movement between the existing image and newly loaded one. If you do this, the movement found using the :doc:`gui_movement` tool will be used to update all calibration points at once to align them with the new image.
+If loading an image with an existing calibration already open, e.g. to adjust / update a calibration using a more recent reference image, the loaded image must have the same dimensions as the one it is replacing. If you try to load an image with different dimensions, a dialog box will appear asking whether you want to start a new calibration or cancel loading the image. If the new image is compatible with the existing calibration, a dialog will open asking if you want to use the :doc:`gui_movement` tool to determine the movement between the existing image and newly loaded one. If you do this, the movement found using the :doc:`gui_movement` tool will be used to update all calibration points at once to align them with the new image.
+
+.. note::
+   If calibrating an image where the "raw" image from the camera is rotated / flipped, and/or if the camera being calibrated is a CMOS camera where the readout ROI of the sensor can be changed: it is highly recommended to load the image in the orientation as it comes directly from the raw data acquisition, and to accurately input any readout ROI offset (i.e. if the image does not represent the full detector, the x and y indices of the top-left image pixel). This will allow use of convenience features in calcam such as the concept of "display" and "original" coordinates (see :doc:`intro_conventions`) and the :func:`Calibration.set_detector_window` function when working with the calibration later.
+
 
 Image Mouse Navigation
 -----------------------
@@ -24,8 +28,8 @@ Once an image is loaded, you can interactively zoom and pan the image with the f
 - :kbd:`Middle Click + Drag` - Drag the image around.
 
 
-Current Image Settings
------------------------
+Image Settings
+---------------
 With an image loaded, the :guilabel:`Current Image` section appears on the :guilabel:`Camera Image` tab, containing information and settings for the current image. Controls include
 
 * **Known Pixel Size**: If you know the pixel size of the camera, it can be entered here. This does not make any difference to the calibration except that focal lengths can be displayed in units of mm instead of pixels, which can be useful for sanity checking results e.g. comparing with optical designs or known lenses.
@@ -124,7 +128,9 @@ Defining Calibration Points
 ---------------------------
 Calcam uses *point pairs* to perform the calibration, where a point pair consists of one point on the CAD model and its corresponding point on the image. Point pairs are displayed on the CAD and image views as magenta **+** cursors at the point locations. At any given time, one point pair can be selected for editing. The selected point pair will be indicated with larger green **+** cursors.
 
-Once you have identified a common feature on the image and CAD model, :kbd:`Ctrl + Click`  on the location on either the image or CAD view to create a new point pair. A point will be placed at the mouse location. Then click, without holding :kbd:`Ctrl`, the corresponding point on the other view to finish creating the point pair. You should now see green cursors on both the CAD model and image. Clicking either the CAD model or image again will move the green cursor representing the current point to the clicked location. To start another point pair, :kbd:`Ctrl + Click` again and repeat the process. The cursors showing the existing points will turn red, indicating they are no longer selected. In general, left clicking on either the image or CAD model will move the currently selected point to the clicked location. Clicking an existing cursor will select that point pair for editing, and holding :kbd:`Ctrl` while clicking will start a new point pair.
+Adding & Modifying Point Pairs
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+To add a new point pair, :kbd:`Ctrl + Click`  on the location on either the image or CAD view to create a new point pair. A point will be placed at the mouse location. Then click, without holding :kbd:`Ctrl`, the corresponding point on the other view to finish creating the point pair. You should now see green cursors on both the CAD model and image. Clicking either the CAD model or image again will move the green cursor representing the current point to the clicked location. To start another point pair, :kbd:`Ctrl + Click` again and repeat the process. The cursors showing the existing points will turn red, indicating they are no longer selected. In general, left clicking on either the image or CAD model will move the currently selected point to the clicked location. Clicking an existing cursor will select that point pair for editing, and holding :kbd:`Ctrl` while clicking will start a new point pair.
 
 If you start a new point pair before specifying both CAD and image points for an existing pair (e.g. by :kbd:`Ctrl+Click` on the image twice in a row), this will delete the current 'un-paired' point and start a new point pair.
 
@@ -132,9 +138,33 @@ The currently selected point pair can be deleted by pressing the :kbd:`Delete` k
 
 The most recent change to the points can be un-done using your platform's normal "Undo" keyboard shortcut (e.g. :kbd:`Ctrl+Z` on windows) or using the :guilabel:`Undo` button on the :guilabel:`Calibration Points` control tab. Up to 20 chanegs to the point pairs can be un-done in this way.
 
-For more information, the current number of calibration points and coordinates of the currently selected points are shown in the :guilabel:`Calibration Points` control tab.
+You can also load in a set of point pairs from an existing calcam calibration or point pairs ``.csv`` file as a starting point on the :guilabel:`Calibration Points` tab.
 
-You can load a set of point pairs from an existing calcam calibration or point pairs ``.csv`` file as a starting point on the :guilabel:`Calibration Points` tab.
+
+.. _coords_table_section:
+
+Viewing & manually editing point coordinates
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At the top of the :guilabel:`Calibration Points` tab, the number of existing calibration point pairs is shown as well as the coordinates of the selected point pair, if any.
+
+To view a table with coordinates of all point pairs, click the :guilabel:`Show table of point coordinate data` button near the top of the point pairs tab. This will open a new window showing a table of point pair coordinates, as shown in this screenshot:
+
+.. image:: images/screenshots/fitting_pointpairs_table.png
+   :alt: Calibration tool screenshot
+   :align: left
+
+Clicking a row of data in this window will select that point in both the table window and the main calibration window.
+
+The coordinates of the points in these tables can be manually edited by double-clicking a cell in the table, and the point position will be updated in the main GUI correspondingly.
+
+If a calibration fit has been performed, the fit residual of each individual point is shown in its table row next to its image pixel coordinates. This can be useful for identifying points which do not fit as well as others, either because they are not placed accurately enough or the distortion model does not describe them well. Using this coordinates table interface can be useful for inspecting this and investigating the fit quality when performing fits.
+
+Each point pair has a checkbox next to its point number in the left-hand part of this window. Un-checking a point pair will remove it from the main window (it will disappear from the image and CAD displays), and it will not be used when fitting (however a "fit residual" will still be calculated and displayed for it: this indicates how far it is from the fit even if the point itself was not used to constrain the fit). This can be used, for example, to check the difference in fit results when including or excluding a particular point pair, without having to delete and re-create the point pair. Re-checking the point will make it re-appear in the main window and re-include it in subsequent fitting.
+
+.. note::
+    Any point pairs which are un-checked in the points table window are not saved in the calibration file when using the save button! These points will therefore be lost if saving and re-loading a calibration.
+
+The coordinate table window can be left open while continuing to work in the main calibration window. If it is closed, it can be re-opened at any time from the same button.
 
 
 Using Additional Intrinsics Constraints
@@ -175,29 +205,39 @@ If loading an existing calibration to use for intrinsics constraint, the intrins
 
 Fitting the camera model
 ------------------------
-Once enough point pairs have been identified, fitting of the camera model and checking the fit accuracy are done using the :guilabel:`Calibration Fitting` tab. At the top of this page is a set of tabs concerning each sub-view in the image, since each sub-view is calibrated independently. The following description of the fitting options and results display applies to each tab.
+Once enough point pairs have been identified (Around 7 as an absolute minimum however generally the more the better), fitting of the calibration model and checking the fit quality are done mostly using the :guilabel:`Calibration Fitting` tab.
+
+At the top of this page is a set of tabs concerning each sub-view in the image, since each sub-view is calibrated independently. This contains the :guilabel:`Do Fit` button to actually do the fitting, and various options to control the fitting which are described in detail below:
 
 
 Fit Options
 ~~~~~~~~~~~
-At the top of the page are the fitting & camera model options. The default options will typically produce good results for most images, however in some cases they will need to be adjusted to get a good quality result. 
+The screenshot below shows an example of the fit options interface:
 
-The first option to choose is whether to use the rectilinear or fisheye lens model: these two can be switched using the radio buttons at the top of the fit options section. Depending on the selected model, some or all of the following options will be available:
+.. image:: images/screenshots/fit_options.png
+   :alt: Fitting options screenshot
+   :align: left
 
-- :guilabel:`Disable k1...k3` These options, when checked, cause the corresponding radial distortion coefficients in the distortion model to be fixed at 0 in the fit. This can be used to change the order of the radial distortion model, and disables radial distortion entirely if all three are checked. Disabling higher order radial distortion terms can improve fits when the point pairs do not sufficiently constrain the distortion model, when the fitted results can show large erroneous distortions.
-- :guilabel:`Disable Tangential Distortion` This option sets the coefficients :math:`p_1` and :math:`p_2` in the distortion model to be fixed at 0 in the fit, i.e. disables tangential distortion in the fitted model. This can be helpful if the fitting results in large erroneous values of these coefficients.
-- :guilabel:`Fix Fx = Fy` This option fixes the focal lengths in the horizontal and vertical directions to be equal, i.e. fixes the image aspect ratio to 1. This is enabled by default, since for square pixels and non-anamorphic optics, which is the typical case, :math:`f_x = f_y` is expected. Un-checking this option can sometimes help fit quality for some optical systems.
+The default options are chosen to produce good results for a variety of images, however it is often necessary to adjust these options to obtain the best quality results.
 
+The first option to choose is whether to use the rectilinear or fisheye model for the lens distortion (see :doc:`intro_theory`). Depending on the selected model, some or all of the following options will be available:
+
+* :guilabel:`Focal length guess` The initial guess for the lens effective focal length used by the fitter. In some situations the fit results can be quite sensitive to this initial guess (i.e. an inappropriate value causes the fitter to get stuck in a local minimum with a bad fit), so playing with this value can help improve the fit for some images. Ideally if the effective focal length of the lens is known, it is best to use the known true focal length value here. Note that by default this is in units of pixels; if you have specified the camera pixel size on the :guilabel:`Camera Image` tab then it will change to units of millimetres. If loading an existing calibration, the focal length already in that calibration will be set as the default value. Otherwise the initial guess is set to the sensor diagnoal size.
+* :guilabel:`Fix Fx = Fy` The calibration model has separate effective focal lengths for the horizontal and vertical directions in the image, e.g. for anamorphic optics or cameras with non-square pixels. If this option is checked, the fit is constrained so the focal length is the same in both directions, which is true for typical imaging systems and reduces the number of free parameters in the model by 1.
+* :guilabel:`Principal Point Guess` and :guilabel:`Fix in fit` This is the initial guess used by the fitter for the position of the centre of perspective in the image (:math:`c_x` and :math:`c_y` in the camera matrix). The default value for this is the centre of the image and typically this does not need adjustment. If the :guilabel:`Fix in fit` option is checked, the values are left fixed and not optimised by the fitter. It is recommended for most systems to leave these options as their defaults.
+* :guilabel:`Enable / Disable distortion terms` These checkboxes can be used to disable fitting each of the coefficients describing the lens distortion (see :doc:`intro_theory`). Any disabled coefficients are set to zero and not fitted, i.e. disabling the higher order coefficients means fitting a lower order polynomial to describe the lens distortion. Disabling distortion parameters is especially useful for calibrations with a reasonably small number of point pairs, since it prevents over-fitting which can lead to too large fitted distortion in the image. These coefficients should typically disabled from the "top down" i.e. first disable k3, then k2 etc if trying to get a better fit.
 
 At the bottom of the fit options section is the :guilabel:`Do Fit` button which is used to run the fit with the current options. Alternatively, the keyboard shortcut :kbd:`Ctrl + F` also performs a fit with the current settings for the current sub-view.
 
 Fit Results & Checking Accuracy
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-As soon as a fit is performed, a set of re-projected points are shown on the image as blue  **+** cursors. These are the CAD model points from the current point pairs converted to image coordinates using the fitted model, i.e. for a good fit, these should lie on top of the user-placed magenta cursors. Display of the fitted points can be turned on or off using the :guilabel:`Show fitted points` checkbox in the :guilabel:`Fit Results Inspection` control group, or pressing :kbd:`Ctrl + P` on the keyboard. Once a fit is performed, a :guilabel:`Fit Results` section is displayed below the fit options and contains quantitative information about the fit results. These include the RMS fit residual and fitted extrinsic and intrinsic parameters (camera pupil position and view direction, field of view, focal length, centre of perspective and distortion parameters). *Beware*: for fits with small numbers of point pairs, the camera model has sufficiently many free parameters that a very small RMS fit error and good looking re-projected point positions can be obtained with a fit which is actually very bad!
+As soon as a fit is performed, a set of re-projected points are added on the image as blue  **+** cursors. These are the CAD model points from the current point pairs projected on to the image using the fitted model, i.e. for a good fit, these should lie on top of the user-placed magenta cursors. Display of the fitted points can be turned on or off using the :guilabel:`Show fitted points` checkbox in the :guilabel:`Fit Results Inspection` control group, or pressing :kbd:`Ctrl + P` on the keyboard. Once a fit is performed, a :guilabel:`Fit Results` section is displayed below the fit options and contains quantitative information about the fit results. These include the RMS fit residual and fitted extrinsic and intrinsic parameters (camera pupil position and view direction, field of view, focal length, centre of perspective and distortion parameters). Checking these parameters have plausible / close to expected values is a useful first check of the fit quality. *Beware*: for fits with small numbers of point pairs, the camera model has sufficiently many free parameters that a very small RMS fit error and good looking re-projected point positions can be obtained with a fit which is actually very bad!
 
-A much more most robust and thorough visual check of the fit quality can be obtained by overlaying a render of the CAD model from the calibrated camera's point of view on top of the camera image. Careful inspection of the alignment of this overlay is the recommended method for checking fit results. The overlay can be turned on by ticking the :guilabel:`Show CAD overlay` checkbox in the :guilabel:`Fit Results Inspection` control group. The CAD model is then rendered in wireframe and superimposed on the image. Note: for large images or CAD models this can be somewhat slow and memory intensive, particularly the first time it is run. By default the CAD model overlay will be rendered in wireframe to inspect the edges of CAD model features, but you can change the style between wireframe and solid-body using the dropdown box to the right of the :guilabel:`Show CAD overlay` checkbox. The colour and transparency of the CAD overlay can be adjusted using the controls which appear in this section when the overlay is turned on. For camera images of <1000 pixels width or height, the overlay will be rendered at higher resolution than the camera image which allows a clearer comparison of the alignment.
+A much more most robust and thorough visual check of the fit quality can be made by overlaying a render of the CAD model on top of the camera image using the fitted calibration. Careful inspection that this overlay lines up well with the real image is the recommended method for checking fit quality. The overlay can be turned on by ticking the :guilabel:`Show CAD overlay` checkbox in the :guilabel:`Fit Results Inspection` control group. The CAD model is then rendered in what should be 1:1 pixel coorespondence with the real image and displayed on top of it. Note: for large images or CAD models this can be somewhat slow and memory intensive, particularly the first time it is run. By default the CAD model overlay will be rendered in wireframe to inspect the edges of CAD model features, but you can change the style between wireframe and solid-body using the dropdown box to the right of the :guilabel:`Show CAD overlay` checkbox. The colour and transparency of the CAD overlay can be adjusted using the controls which appear in this section when the overlay is turned on. For camera images of <1000 pixels width or height, the overlay will be rendered at higher resolution than the camera image which allows a clearer comparison of the alignment.
 
-Another way to quickly get a rough idea of the fit quality, or to make subequent adding or editing of point pairs easier, is to set the CAD viewport to match the fitted model using the :guilabel:`Set CAD view to match fit` button. This will set the view of the CAD model to approximately match the fitted camera, including the position, orientation and overall field of view but neglecting any distortion and de-centring. 
+Another way to quickly get a rough idea of the fit quality, or to make subequent adding or editing of point pairs easier, is to set the CAD viewport to match the fit result using the :guilabel:`Set CAD view to match fit` button. This will set the view of the CAD model to approximately match the fitted camera, including the position, orientation and overall field of view but neglecting any distortion and de-centring.
+
+While the overall RMS fit residual is displayed on the :guilabel:`Calibration Fitting` tab, it is also possible to view the fit residuals for each individual point using the point pair coordinates table as described in the :ref:`coords_table_section` section. This can be used for identifying and adjusting problematic data points which may be negatively influencing the fit quality, or to inspect which areas of the image are well described, or not, by the fit.
 
 Note: Fit results are cleared automatically the next time the point pairs are edited in any way, to ensure any fit displayed or saved always corresponds to the current state of the point pairs.
 

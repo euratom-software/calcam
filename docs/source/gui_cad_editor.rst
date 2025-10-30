@@ -7,6 +7,11 @@ The CAD model definition editor, which can be accessed using the :guilabel:`New.
 .. image:: images/screenshots/cad_edit_annotated.png
    :alt: CAD editor window screenshot
 
+Loading & Saving Models
+***********************
+Changes to the currently loaded model can be saved using the :guilabel:`Save` or :guilabel:`Save As` buttons on the toolbar along the top of the window. A different CAD model definition can be loaded with the :guilabel:`Open` button, or a new empty CAD model definition can be started with the :guilabel:`New` button. When saving a model definition, if the definition is saved to a directory not currently in Calcam's CAD model search path, you will be prompted to add that location so that the saved CAD model will be visible in the other Calcam GUI tools.
+
+
 Basic Model Properties
 ~~~~~~~~~~~~~~~~~~~~~~
 At the top of the :guilabel:`Mesh Files` control tab is a box to enter the name of the CAD model, which is displayed in the Calcam GUI or used when loading the model with the :class:`calcam.CADModel` class. Below this is a dropdown box showing the different variants of the model, where new variants can be added or the current variant renamed or removed, using the buttons directly below the :guilabel:`Model Variant` dropdown box. The purpose of model variants is to provide a way of keeping variations on the same machine (e.g. versions corresponding to different points in time if some machine feature changed) together in one machine CAD definition.
@@ -53,7 +58,9 @@ Viewport Setup
 ~~~~~~~~~~~~~~
 It is usually convenient to define some preset views of the model (i.e. camera positions and orientations) which can be quickly switched to e.g. as starting points for calibrations. For example, it is usually convenient to make preset views through ports which are usually used for cameras. Viewport setup is performed on the :guilabel:`Viewports` tab. At the top of this tab is a list of the viewports defined in the CAD model definition. At least one view must be defined before saving the CAD model definition, to be set automatically when the CAD model is loaded.
 
-To add the current 3D view shown in the window as a preset view, enter a name for the view in the box half way down the :guilabel:`Viewport` tab and click :guilabel:`Add`. The current viewport can be adjusted either with mouse controls or by manually entering the 3D position and viewing target of the camera in the boxes near the bottom of the tab. To control the viewport with the mouse, the following mouse controls can be used on the 3D view:
+To add the current 3D view shown in the window as a preset view, enter a name for the view in the box near the bottom of the :guilabel:`Viewport` tab and click :guilabel:`Add`.
+
+The current viewport can be adjusted either with mouse controls or by manually entering the 3D position and viewing target of the camera in the boxes near the bottom of the tab. To control the viewport with the mouse, the following mouse controls can be used on the 3D view:
 
 - :kbd:`Left Click` - Place a cursor on the 3D model, or move the cursor if one already exists. This will display information about the cursor position in the window status bar and can be used by cross-sectioning / wall contour display features.
 - :kbd:`Right Click + Drag` - Look around (first-person shooter style control; default) or rotate CAD model depending on settings
@@ -61,6 +68,14 @@ To add the current 3D view shown in the window as a preset view, enter a name fo
 - :kbd:`Scroll Wheel` - Move forwards or backwards.
 - :kbd:`Ctrl + Scroll Wheel` Reduce or increase the CAD field-of-view angle (i.e. Zoom)
 - :kbd:`Ctrl + Right Click + Drag` - Roll the camera (rotate about the direction of view)
+
+and keyboard keys:
+
+- :kbd:`W` :kbd:`A` :kbd:`S` :kbd:`D` or :kbd:`↑` :kbd:`←` :kbd:`↓` :kbd:`→` - Move the camera around as if walking forward, backward left or right. Note the camera only moves in one direction at once (not diagonally) according to the most recently pressed key.
+
+In the :guilabel:`3D projection` box, the projection of the 3D view can be switched between perspective (natural view where closer parts appear larger) and orthographic (parallel projection where objects appear the same size regardless of distance from the viewer).
+
+The viewport settings also include the ability to slice or cross-section the CAD model. Note this does not affect the geometry data stored in the CAD model definition and is saved as part of the viewport setup (i.e. setting this is non-destructive). For more information about the cross-sectioning controls see
 
 When multiple views are defined in a CAD model, the default view, i.e. the view set automatically when the model is loaded, can be set by selecting the view in the view list and clicking :guilabel:`Set As Default (*)` under the view list. The current default view is marked with an asterisk `*`. To remove an existing view, select it and click the :guilabel:`Remove` button.
 
@@ -78,9 +93,5 @@ An R,Z wall contour can optionally be saved as part of the model definition. Thi
 3D Coordinate Information
 *************************
 In various places in Calcam, the 3D position of a point on the CAD model is displayed. By default, the :math:`X,Y,Z` coordinates in metres and :math:`R,Z,\phi` coordinates are displayed. However, it is often helpful to have more machine-specific information added to this. For example, on a tokamak usually divided in to toroidal segments, it can be helpful to display which segment something is in, or you may want to display coordinates in different units. This can be achieved by writing a custom coordinate formatting function in Python, which can be saved as part of the model definition and is used to generate the 3D coordinate information to be displayed. This takes the form of a user-written python module or package, and details of how to write such a formatter are given :doc:`here <dev_coord_formatter>`. Once created, you can use the :guilabel:`Load custom...` button in the :guilabel:`3D coordinate information` box to browse for the python code (Note: if your coordinate formatter code is a Python package rather than a single module, in the file selection dialog, select the __init__.py file of the package). At the top of the :guilabel:`3D coordinate information` box is information about the current coordinate formatter. If a cursor is currently placed on the model, the output of the coordinate formatter for its current location is shown. If you have loaded a custom coordinate formatter and want to make changes to its code "live", you can use the :guilabel:`Refresh` button to re-load the currently loaded python file. If a custom coordinate formatter is already loaded or already exists in the model, an :guilabel:`Edit...` button is displayed which will open the python file or folder for editing. To remove the custom formatting code from the model and revert to the default built-in coordinate display, use the :guilabel:`Remove` button.
-
-Loading & Saving Models
-***********************
-Changes to the currently loaded model can be saved using the :guilabel:`Save` or :guilabel:`Save As` buttons on the toolbar. A different CAD model definition can be loaded with the :guilabel:`Open` button, or a new empty CAD model definition can be started with the :guilabel:`New` button. When saving a model definition, if the definition is saved to a directory not currently in Calcam's CAD model search path, you will be prompted to add that location so that the saved CAD model will be visible in the other Calcam GUI tools.
 
 

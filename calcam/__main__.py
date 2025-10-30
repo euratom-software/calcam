@@ -1,5 +1,5 @@
 '''
-* Copyright 2015-2018 European Atomic Energy Community (EURATOM)
+* Copyright 2015-2025 European Atomic Energy Community (EURATOM)
 *
 * Licensed under the EUPL, Version 1.1 or - as soon they
   will be approved by the European Commission - subsequent
@@ -21,7 +21,7 @@
 
 import sys
 try:
-    from calcam import gui
+    from . import gui
 except:
     from calcam import no_gui_reason
     gui = False
@@ -29,8 +29,11 @@ except:
 if __name__ == '__main__':
 
     if not gui:
-        from tkinter import messagebox
-        messagebox.showerror(title='Cannot start Calcam GUI',message='Cannot open calcam window: {:s}'.format(no_gui_reason))
+        try:
+            from tkinter import messagebox
+            messagebox.showerror(title='Cannot start Calcam GUI',message='Cannot open calcam window: {:s}'.format(no_gui_reason))
+        except Exception:
+            print('Cannot open calcam window: {:s}'.format(no_gui_reason))
         exit()
         
     try:

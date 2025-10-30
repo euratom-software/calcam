@@ -1,6 +1,43 @@
 Calcam Changelog
 ================
 
+Point Release 2.16.0 (October 2025)
+-----------------------------------
+
+New & Enhancements:
+* Added ability to manually specify initial guess for focal length in fitting calibration tool (can greatly improve success of fitting; helps address #157)
+* Added option to open secondary window with editable table of point coordinates in fitting calibration tool (#73, #154)
+* Added ability to edit principal point initial guess (or fixed value if fixing) in fitting calibration tool
+* Added ability to fix principal point for fitting fisheye calibrations
+* Greatly enhanced CAD model slicing / cross-sectioning capability added to the 3D viewer and for model view definitions (#53, #158)
+* Enhanced options for loading & displaying 3D coordinate data in the 3D viewer
+* Added option to load additional 3D mesh files (beyond those stored in the CAD model definition) in to the 3D viewer
+* Add package __main__ so that the GUI can be invoked with `python -m calcam`
+* Add display of GUI executable and icons paths to Settings GUI
+
+Fixes:
+* Fixed bug in Calibration.set_detector_window() which resulted in wrong cropping of intrinsics constraint images and occasionally raising exceptions (#155)
+* Fixed bug in chessboard image loading when using chessboard images with a different detector ROI to the calibrated image (#151)
+* Fixed exceptions from CADModel.intersect_with_line() when calling with surface_normal=True and coordinates not in NumPy arrays (#153)
+* Improved handling of exceptions raised by OpenCV fisheye calibration fitting to make error messages more friendly
+* Fixed option for wireframe / edges or solid body rendering being ignored when changing CAD models in the 3D viewer
+* Fixed issue where edge detection for wireframe / edge rendering could return completely blank results for some parts / models
+* Improvements to the 3D viewer GUI behaviour, particularly for smaller screens
+
+Compatibility / Dependencies:
+* Revert declared PyQt dependency to PyQt5 instead of PyQt6, since PyQt6 seems to fail to install on many more systems (#156) so PyQt5 gives a smoother install experience (Hopefully if PEP771 gets implemented it will provide a better long-term solution to the PyQt version issue)
+* Officially drop support for Python versions older than 3.7. This was probably already broken some time ago because the build requirement setuptools>=61 is not available for Python<3.7.
+
+
+Patch Release 2.15.3 (June 2025)
+--------------------------------
+
+Fixes / Compatibility:
+* Fixed compatibility with NumPy =>2.3 (#149)
+* RayData.get_ray_start(), get_ray_end(), and dependent functions now raise a ValueError if the "coords" argument is invalid, instead of just returning `None` (#148)
+
+
+
 Patch Release 2.15.3 (June 2025)
 --------------------------------
 

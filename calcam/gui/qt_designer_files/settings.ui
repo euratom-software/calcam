@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>494</width>
-    <height>653</height>
+    <width>569</width>
+    <height>822</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -27,6 +27,29 @@
     <property name="bottomMargin">
      <number>12</number>
     </property>
+    <item row="3" column="0">
+     <widget class="QGroupBox" name="groupBox_3">
+      <property name="title">
+       <string>Software Environment Information</string>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QLabel" name="env_info_left">
+         <property name="text">
+          <string>Software info. Left</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="env_info_right">
+         <property name="text">
+          <string>Software info. Right</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
     <item row="0" column="0">
      <widget class="QGroupBox" name="groupBox">
       <property name="title">
@@ -180,22 +203,50 @@
      </widget>
     </item>
     <item row="2" column="0">
-     <widget class="QGroupBox" name="groupBox_3">
+     <widget class="QGroupBox" name="groupBox_4">
       <property name="title">
-       <string>Software Environment Information</string>
+       <string>Calcam Information</string>
       </property>
-      <layout class="QHBoxLayout" name="horizontalLayout">
-       <item>
-        <widget class="QLabel" name="env_info_left">
+      <layout class="QGridLayout" name="gridLayout_4">
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_7">
          <property name="text">
-          <string>Software info. Left</string>
+          <string>Version:</string>
          </property>
         </widget>
        </item>
-       <item>
-        <widget class="QLabel" name="env_info_right">
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_9">
          <property name="text">
-          <string>Software info. Right</string>
+          <string>Icons location:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_8">
+         <property name="text">
+          <string>GUI executable:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLabel" name="calcam_version">
+         <property name="text">
+          <string>version_string</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLineEdit" name="exe_path">
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QLineEdit" name="icons_path">
+         <property name="readOnly">
+          <bool>true</bool>
          </property>
         </widget>
        </item>

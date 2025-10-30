@@ -3,7 +3,7 @@ Getting Up & Running
 ====================
 .. highlight:: none
 
-Calcam runs under Python 3.5 or newer on Windows, Linux or OSX. As of February 2024, Python 3.12 or older is recommended, because suitable versions of VTK (one of Calcam's major dependencies) are not available from the Python Package Index (PyPi) for newer versions (for newer Python versions you will have to build and install VTK and its Python bindings yourself, which can be quite involved).
+Calcam runs under Python 3.7 or newer on Windows, Linux or OSX. As of October 2025, Python 3.13 or older is recommended, because suitable versions of VTK (one of Calcam's major dependencies) are not available from the Python Package Index (PyPi) for newer versions (for newer Python versions you will have to build and install VTK and its Python bindings yourself, which can be quite involved).
 
 You can download Python installers for Windows or OSX from `Python.org <https://www.python.org/downloads/>`_ ; get it from your favourite software repository on Linux; get it from the Microsoft Store on Windows; or use a python environment manager such as `Anaconda <https://www.anaconda.com>`_. 
 
@@ -36,15 +36,14 @@ If you prefer to download the calcam source code manually, the latest release ve
 
 Alternatively, the "cutting edge" live development version (which is not guaranteed to be in a fully working state at all times) can be downloaded using the green :guilabel:`Code` button on the `GitHub repository page <https://github.com/euratom-software/calcam>`_.
 
-If you prefer to use Git, which is recommended if you want to do any development on Calcam, the source can be cloned from the GitHub reporepository with the command::
+If you prefer to use Git, which is recommended if you want to do any development on Calcam, the source for the current development / pre-release version can be cloned from the GitHub reporepository with the command::
 
 	git clone https://github.com/euratom-software/calcam.git
 
-for the cutting edge / development version (which may contain some bugs or incomplete features at any given time), or::
+or for the latest stable / release version::
 
 	git clone -b release https://github.com/euratom-software/calcam.git
 
-for the latest release version.
 
 Once you have a copy of the source files on your computer, navigate to the directory where Calcam has been unzipped or cloned and open a terminal / command prompt. To install Calcam, use the command::
 
@@ -86,7 +85,12 @@ The source you downloaded then remains the "live" copy and changes you make will
 
 Initial Configuration
 ---------------------
-If you will be using the Calcam GUI often, it is highly recommended to make a shortcut to the calcam GUI executable for covenience, and/or make sure the executable is included in your ``PATH`` environment variable. You can find out the executable location using the following Python code:
+Once installed, the Calcam GUI can be started with the command::
+
+    python -m calcam
+
+
+If you will be using the Calcam GUI often, it is highly recommended to make a shortcut to the calcam GUI executable for covenience, and/or make sure the executable is included in your ``PATH`` environment variable. You can find the executable location in the :doc:`gui_settings` GUI, or by using the following Python code:
 
 .. code-block:: python
 
@@ -138,14 +142,9 @@ Troubleshooting
 
 This section contains advice on how to troubleshoot any problems you may encounter getting up & running with Calcam.
 
-Insufficient Persmissions to install
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-If installing on a multi-user system, your account may not have permissions to install calcam in the system-wide python library paths. Typically ``pip`` will handle this for you and install Calcam just for your user account if this is the case. If this does not happen and the setup fails with an error about permissions, adding the ``--user`` option to the installation command will try to install the package for your user account only, which does not require root or admin permissions.
-
-
 Dependencies
 ~~~~~~~~~~~~
-Installation may fail, or you may encounter errors when first trying to import or run Calcam, if one of the Python modules that Calcam depends on cannot be installed or is not working properly. Calcam requires the following Python modules to be available to work:
+The most common reason for errors or problems getting Calcam up and running are issues caused by its dependencies, i.e. the other python packages that Calcam depends on. Calcam requires the following Python modules to be available to work, and the installation process will try to install them if they are not already installed:
 
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Module / Library    | Versions Tested / comments                                                                                                                                         |
@@ -164,7 +163,7 @@ Installation may fail, or you may encounter errors when first trying to import o
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | VTK                 | Requires version =>7, somewhat tested up to 9.3.1. Note Versions 9.1.x cause crashes when setting large CAD models to wireframe rendering.                         |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| PyQt                | Works with PyQt4; PyQt5 or PyQt6; PyQt6 is recommended and pip will try to install PyQt6.                                                                          |
+| PyQt                | Works with PyQt4; PyQt5 or PyQt6; PyQt6 or 5 are recommended; pip will try to install PyQt5 because it has better success installing on different platforms.       |
 |                     |                                                                                                                                                                    |
 |                     | PyQt5 versions 5.11 and older are known to cause unreadable text in the GUI on OSX when using dark theme.                                                          |
 |                     |                                                                                                                                                                    |
@@ -181,12 +180,11 @@ In most cases with dependency issues, the installation process or Calcam itself 
 
 Installing without dependencies
 *******************************
-If you encounter problems due to dependencies during the installation, and you believe these are erroneous or want to try to fix them manually, you can force ``pip`` to install Calcam without trying to install any dependencies by adding the ``--no-deps`` option to the installation command.
+If you encounter problems due to dependencies during the installation, you can force ``pip`` to install Calcam without trying to install any dependencies by adding the ``--no-deps`` option to the installation command. You can then try installing the dependencies individually and fix any problems as you go. For the exact names to use with ``pip``, see the ``dependencies`` list in Calcam's `pyproject.toml <https://github.com/euratom-software/calcam/blob/master/pyproject.toml>`_ file.
 
 Manually troubleshooting dependencies
 *************************************
 If it is not clear that a dependency is the problem, or which it might be, open a python prompt and check if all of the following import commands work without errors:
-
 
 .. code-block:: python
 
@@ -242,7 +240,7 @@ Updating with Anaconda
 
 For Anaconda users, you can update the Calcam package with the command::
 
-	conda update -c calcam calcam
+	conda update -c calcam -c conda-forge calcam
 
 
 Version Cross-Compatibility

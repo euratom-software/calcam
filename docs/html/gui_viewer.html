@@ -64,8 +64,8 @@
 <li class="toctree-l2"><a class="reference internal" href="#cad-model-setup">CAD Model Setup</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#mouse-keyboard-navigation">Mouse &amp; Keyboard Navigation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#d-viewport-setup">3D Viewport Setup</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#visualising-calibrated-fovs">Visualising calibrated FoVs</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#displaying-arbitrary-3d-data">Displaying arbitrary 3D Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#visualising-calcam-calibrations">Visualising calcam calibrations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#displaying-arbitrary-3d-coordinate-data">Displaying arbitrary 3D coordinate data</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#rendering-and-saving-images">Rendering and saving images</a></li>
 </ul>
 </li>
@@ -126,9 +126,19 @@
 <h3>CAD model appearance settings<a class="headerlink" href="#cad-model-appearance-settings" title="Link to this heading"></a></h3>
 <p>The CAD model apprearance can be highly customised in order to create figures as desired. These options are in the <span class="guilabel">Appearance</span> box on the <span class="guilabel">Machine Model</span> control tab. This box contains controls to change the model appearance between solid body and wireframe / edges only. The colour of individual model feature(s) can also be changed by selecting the feature(s) in the <span class="guilabel">Enable / Disable Features</span> panel, and using the buttons in the <span class="guilabel">Appearance</span> box to change the part colour or reset it to the default value. You can also save the current colour configuration to be the default in the model definition by clicking <span class="guilabel">Save current colours as default (whole model)</span>.</p>
 </section>
-<section id="wall-contour-display">
-<h3>Wall contour display<a class="headerlink" href="#wall-contour-display" title="Link to this heading"></a></h3>
-<p>If the CAD model dfinition includes an <span class="math notranslate nohighlight">\((R,Z)\)</span> wall contour, this can be displayed using the controls in the <span class="guilabel">Show R,Z Wall Contour</span> box. Here you can select between not showing the wall contour, showing it as a line at the toroidal position of the cursor, or revolving the R,Z contour in 3D to show a simplified, toroidally symmetric wall shape.</p>
+<section id="loading-additional-3d-meshes">
+<h3>Loading additional 3D Meshes<a class="headerlink" href="#loading-additional-3d-meshes" title="Link to this heading"></a></h3>
+<p>In addition to loading a Calcam CAD model definition, it may be useful to import additional 3D meshes from external files to add to the visualisation. Currently this supports <code class="docutils literal notranslate"><span class="pre">.obj</span></code> or <code class="docutils literal notranslate"><span class="pre">.stl</span></code> format meshes.</p>
+<p>To load an additional 3D mesh file, click the <span class="guilabel">Load additional mesh file…</span> button underneath the <span class="guilabel">Enable / Disable Features</span> list on the <span class="guilabel">Machine Model</span> tab. This will open a file browsing dialog to select a mesh file to load.</p>
+<p>Once you have selected the file to load, a dialog box will open with settings about how to interpret the contents of the file. Calcam uses a right-handed cartesian coordinate system with vertical ‘up’ along the +Z axis and units in metres. This may not be the same convention used in mesh files you wish to load, so the settings dialog allows you to change:</p>
+<ul class="simple">
+<li><p><span class="guilabel">Mesh file scale</span>: the physical length represented by a length of 1 unit in the mesh file. For example if the mesh has been exported from CAD software in units of millimetres, this should be set to 0.001 m/unit to scale the model correctly.</p></li>
+<li><p><span class="guilabel">Up direction</span>: which direction in the mesh file corresponds to vertically upwards; this can be positive or negative in any of X, Y or Z. Use this if imported meshes appear rotated when loaded in to Calcam.</p></li>
+<li><p><span class="guilabel">Coord system</span>: whether the data in the mesh file uses a right- or left- handed cartesian coordinate system. Default is right-handed; change this if you know the mesh file is left-handed, or if the imported mesh data appears mirrored.</p></li>
+<li><p><span class="guilabel">Rotate toroidally</span>:use this to rotate the imported mesh about the z axis (i.e. toroidally) if required; can be set to values between -180 to +180 degrees.</p></li>
+</ul>
+<p>After clicking OK to this dialog, the mesh file will be loaded and will appear as an additional top-level item in the <span class="guilabel">Enable / Disable Features</span> panel. It can be shown or hidden by toggling the checkbox to the left of the mesh file name (the name can also be edited by double clicking it). The colour to display the additional mesh can be chenged by selecting it in the CAD part list panel and using the same <span class="guilabel">Choose…</span> colour button as used for other CAD components. Note however that setting the CAD model display to wireframe or solid body does not affect additional mesh files loaded in this way, which will always be displayed as solid bodies.</p>
+<p>To remove an additional mesh file from the <span class="guilabel">Enable / Disable Features</span>, select it and click the <span class="guilabel">Remove selected additional mesh</span> button underneath the <span class="guilabel">Enable / Disable Features</span> panel.</p>
 </section>
 </section>
 <section id="mouse-keyboard-navigation">
@@ -145,6 +155,7 @@
 <ul class="simple">
 <li><p><kbd class="kbd docutils literal notranslate">W</kbd> <kbd class="kbd docutils literal notranslate">A</kbd> <kbd class="kbd docutils literal notranslate">S</kbd> <kbd class="kbd docutils literal notranslate">D</kbd> or <kbd class="kbd docutils literal notranslate">↑</kbd> <kbd class="kbd docutils literal notranslate">←</kbd> <kbd class="kbd docutils literal notranslate">↓</kbd> <kbd class="kbd docutils literal notranslate">→</kbd> - Move the camera around as if walking forward, backward left or right. Note the camera only moves in one direction at once (not diagonally) according to the most recently pressed key.</p></li>
 </ul>
+<p>Clicking on the CAD model with the left mouse button will place a 3D cursor, displayed as a green +, on the surface of the CAD model where clicked. The coordinates of this cursor are displayed in the status bar at the bottom of the window. When a cursor is placed on the CAD model, pressing <kbd class="kbd docutils literal notranslate">c</kbd> on the keyboard can be used to save the current cursor position to a list of coordinates on the <span class="guilabel">3D Data</span> tab for export or later use.</p>
 <section id="mouse-control-settings">
 <h3>Mouse Control Settings<a class="headerlink" href="#mouse-control-settings" title="Link to this heading"></a></h3>
 <p>At the bottom of the <span class="guilabel">3D Viewport</span> tab are options for configuring the mouse controls. The <kbd class="kbd compound docutils literal notranslate"><kbd class="kbd docutils literal notranslate">Right</kbd> <kbd class="kbd docutils literal notranslate">Click</kbd> <kbd class="kbd docutils literal notranslate"></kbd>+<kbd class="kbd docutils literal notranslate"></kbd> <kbd class="kbd docutils literal notranslate">Drag</kbd></kbd> behaviour can be toggled between looking around and rotating the model about a point in front of the camera, and the mouse sensitivity can be adjusted.</p>
@@ -152,31 +163,46 @@
 </section>
 <section id="d-viewport-setup">
 <h2>3D Viewport Setup<a class="headerlink" href="#d-viewport-setup" title="Link to this heading"></a></h2>
-<p>In addition to the mouse controls, the <span class="guilabel">3D Viewport</span> tab  can be used to control the current view of the CAD model. In addition, this tab contains settings for the mouse controls and other options which can be used to change the rendering settings to adjust the appaerance of the model.</p>
-<section id="rendering-settings">
-<h3>Rendering Settings<a class="headerlink" href="#rendering-settings" title="Link to this heading"></a></h3>
-<p>At the top of the <span class="guilabel">3D Viewport</span> tab are settings which control the rendering style. The <span class="guilabel">3D Projection</span> options allow switching between a perspective projection view of the model and an orthographic view (where objects appear the same size regardless of their distance from the viewier). This can be helpful for making e.g. cross-section figures.</p>
-<p>In the <span class="guilabel">Cross-Sectioning</span> box are options which allow the CAD model to be cross-sectioned in the view. If there is a cursor placed, the cross-section can be set to either cut through the cursor or through the origin. Cross-sectioning is turned on and off using the checkbox on the left of these options. Note: cross-sectioning is implemented by adjusting the clipping planes of the 3D rendering, so the cross-section is always cut in a plane whose normal is the viewing direction.</p>
-</section>
+<p>In addition to the mouse and keyboard controls, the <span class="guilabel">3D Viewport</span> tab can be used to control the current view of the CAD model. It contains a number of tools in addition to just positioning and pointing the cuurent viewport which are described in the following sections.</p>
+<p>At any time, the current viewport setup can be saved as a preset to the CAD model definition so it is easy to return to at any time. This can be done with the <span class="guilabel">Save current view to model definition as preset</span> box near the bottom of the <span class="guilabel">3D Viewport</span> tab. Entering a name for the view in the <span class="guilabel">Name</span> box and then clicking <span class="guilabel">Save</span> will cause the current view to be added to the preset viewport list, and if the model definition file you are using is not read-only, will be saved to the model definition for future use.</p>
 <section id="viewport-adjustment">
 <h3>Viewport Adjustment<a class="headerlink" href="#viewport-adjustment" title="Link to this heading"></a></h3>
-<p>In addition to using mouse navigation, the current view of the CAD model can be adjusted with the controls in this tab.</p>
-<p>In the <span class="guilabel">Select pre-defined viewport</span> box is a list of viewports defined in the CAD model definition. Clicking on a view in this pane immediately changes the CAD viewport to that view. In addition there are two <span class="guilabel">Auto Cross-Sections</span> views which will position the camera and set cross-sectioning options to view the entire model, cut in cross-section through the origin.</p>
+<p>In addition to using mouse and keyboard navigation, the current view of the CAD model can be adjusted with the controls in this tab.</p>
+<p>In the <span class="guilabel">Select pre-defined viewport</span> box is a list of viewports defined in the CAD model definition. Clicking on a view in this pane immediately changes the CAD viewport to that view. In addition to views defined in the CAD model definition, there are two <span class="guilabel">Auto Cross-Sections</span> views which will position the camera and set cross-sectioning options to view the entire model, cut in cross-section through the origin.</p>
 <p>You can also set the view to match a calibration by clicking the <span class="guilabel">Add from calibration(s)…</span> button below the viewport list. You can then select one or more Calcam calibration files to load, and the views defined by the calibration will be added to the viewport list on the 3D Viewport tab.</p>
-<p>If you want to save the current view of the CAD model in to the model definition so you can easily return to it, enter a name in the <span class="guilabel">Name</span> box under the heading <span class="guilabel">Save current view as preset</span> and click <span class="guilabel">Save</span>. The view will then be added to the viewport list, and if the model definition file you are using is not read-only, will be saved to the model definition for future use.</p>
-<p>Near the bottom of the tab are editable boxes showing the current viewport’s camera position, camera view target, field of view and roll. These update automatically to reflect the current viewport, or editing the values in these boxes will immediately adjust the view accordingly.</p>
+<p>Underneath the list of pre-defined viewports are editable boxes showing the current viewport’s camera position, camera view target, field of view and roll. These update automatically to reflect the current viewport, or editing the values in these boxes will immediately adjust the view accordingly.</p>
+<p>Below the viewport coordinate boxes is an option to switch the 3D projection between a perspective projection view of the model (i.e. a natural view where closer objects appear larger) and an orthographic view (where objects appear the same size regardless of their distance from the viewier). This can be helpful for making e.g. cross-section figures.</p>
+</section>
+<section id="cad-model-slicing-cross-section-view">
+<h3>CAD model slicing / cross-section view<a class="headerlink" href="#cad-model-slicing-cross-section-view" title="Link to this heading"></a></h3>
+<p>The <span class="guilabel">3D Viewport</span> tab also contains options to display the machine CAD model as sliced or cross-sectioned, which can be used if making visualisations. These settings are considered part of the viewport setup, so will be saved and recalled if saving a viewport configuration, and are reset when selecting a preset view to load.</p>
+<p>The options available for slicing the CAD Model are:</p>
+<ul class="simple">
+<li><p>Slicing with vertical planes (i.e. to show the poloidal cross-section):</p>
+<ul>
+<li><p><span class="guilabel">None</span>: No slicing of the model</p></li>
+<li><p><span class="guilabel">Show only toroidal angles</span>: The model will only be visible between the given toroidal angles (<span class="math notranslate nohighlight">\(\phi=\mathrm{tan}^{-1}(y/x)\)</span>) and the rest will be hidden. Note that the order the angles are specified matters: entering <span class="math notranslate nohighlight">\(0^\circ - 30^\circ\)</span> will show the 1/12 of the machine between <span class="math notranslate nohighlight">\(0^\circ - 30^\circ\)</span>, whereas entering <span class="math notranslate nohighlight">\(30^\circ - 0^\circ\)</span> will show the 11/12 of the machine <em>except</em> <span class="math notranslate nohighlight">\(0^\circ - 30^\circ\)</span> which will be hidden.</p></li>
+<li><p><span class="guilabel">Slice with chord at…</span>: This option can be used to slice the model with a vertical plane not passing through the origin. The normal of the slicing plane is a radial line at the given toroidal angle, and the plane is placed along that radius at the given major radius (note: this means this option can only be used to hide, at most, half of the model).</p></li>
+</ul>
+</li>
+<li><p>Slicing with horizontal planes: enabling this option will only display the CAD model geometry between two chosen values of <span class="math notranslate nohighlight">\(Z\)</span> coordinate (i.e. vertical height). When first enabling this option, the default values are set to display the whole of the CAD model.</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Any calibration results, 3D data and extra mesh files which are loaded are not affected by these slicing options.</p>
+</div>
 </section>
 </section>
-<section id="visualising-calibrated-fovs">
-<h2>Visualising calibrated FoVs<a class="headerlink" href="#visualising-calibrated-fovs" title="Link to this heading"></a></h2>
+<section id="visualising-calcam-calibrations">
+<h2>Visualising calcam calibrations<a class="headerlink" href="#visualising-calcam-calibrations" title="Link to this heading"></a></h2>
 <p>Calcam calibration files can be loaded by the 3D viewer to visualise the camera sight-lines / fields of view on the 3D model. This is done on the <span class="guilabel">Calibrations</span> tab: click the <span class="guilabel">Add…</span> button to browse for a calibration file to load. The calibration will be added to the list at the top of the tab, and the tick-box next to the calibration name can be used to turn it on or off in the 3D view. To change the displayed name of a loaded calibration, single-click the calibration name in the list box to edit the name.</p>
 <section id="visualisation-options">
 <h3>Visualisation options<a class="headerlink" href="#visualisation-options" title="Link to this heading"></a></h3>
 <p>With a loaded calibration in the list selected, at the bottom of the tab are options for how to visualise the calibrated field of view. There are 3 ways to display fields of view:</p>
 <ul class="simple">
-<li><p><em>Shaded volume</em> (default) displays the sight-line cone of the camera as a semi-transparent volume.</p></li>
-<li><p><em>Sight-line fan</em> displays an array of lines representing the camera lines-of-sight.</p></li>
-<li><p><em>CAD model shading</em> shades the surface of the CAD model where it can be seen by the camera.</p></li>
+<li><p><span class="guilabel">Shaded volume</span> (default) displays the sight-line cone of the camera as a semi-transparent volume.</p></li>
+<li><p><span class="guilabel">Sight-line fan</span> displays an array of lines representing the camera lines-of-sight.</p></li>
+<li><p><span class="guilabel">CAD model shading</span> shades the surface of the CAD model where it can be seen by the camera.</p></li>
 </ul>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -186,26 +212,51 @@
 <p>The names of the calibrations corresponding to each colour field-of-view visualisation can be displayed in a legend on the image by ticking the <span class="guilabel">Show in legend</span> box underneath the view list. By default this is automatically enabled if more than one calibration is loaded.</p>
 </section>
 </section>
-<section id="displaying-arbitrary-3d-data">
-<h2>Displaying arbitrary 3D Data<a class="headerlink" href="#displaying-arbitrary-3d-data" title="Link to this heading"></a></h2>
-<p>In addition to showing camera fields-of-view, additional arbitrary 3D points and lines can be added to the visualisation, e.g. representing other diagnostic sight-lines, trajectories, magnetic field lines, flux surfaces or other 3D coordinates of interest. This is done by loading text files containing the 3D coordinates to display on the <span class="guilabel">3D Data</span> tab.</p>
-<section id="preparation-of-data-files">
-<h3>Preparation of data files<a class="headerlink" href="#preparation-of-data-files" title="Link to this heading"></a></h3>
-<p>3D coordinate data to visualise are loaded from text files with .txt, .csv or .dat file extensions. The data can be in either cartesian (<span class="math notranslate nohighlight">\(X,Y,Z\)</span>) or cylindrical (<span class="math notranslate nohighlight">\(R,Z,\phi\)</span> with <span class="math notranslate nohighlight">\(\phi\)</span> in radians) coordinates.</p>
+<section id="displaying-arbitrary-3d-coordinate-data">
+<h2>Displaying arbitrary 3D coordinate data<a class="headerlink" href="#displaying-arbitrary-3d-coordinate-data" title="Link to this heading"></a></h2>
+<p>In addition to showing camera fields-of-view, additional arbitrary 3D points and lines can be added to the visualisation, e.g. representing other diagnostic sight-lines, trajectories, magnetic field lines, flux surfaces or other coordinates of interest. This is done by loading text files containing the coordinates to display on the <span class="guilabel">3D Data</span> tab.</p>
+<section id="formatting-of-data-files">
+<h3>Formatting of data files<a class="headerlink" href="#formatting-of-data-files" title="Link to this heading"></a></h3>
+<p>3D coordinate data to visualise can be loaded from ASCII files with .txt, .csv or .dat file extensions. The data can be in either cartesian (<span class="math notranslate nohighlight">\(X,Y,Z\)</span>), cylindrical (<span class="math notranslate nohighlight">\(R,Z,\phi\)</span>) or poloidal cross-section (<span class="math notranslate nohighlight">\(R,Z\)</span>) coordinates, with linear coordinates in metres and angle coordinates in either degrees or radians. When loading a file, a dialog box will be displayed allowing you to select which of these types of coordinates are in the file being loaded.</p>
 <p>The data files can take one of two formats, depending on whether you want to display a single continuous line defined by a set of 3D points, a set of individual points, or a collection of individual disconnected straight line segments:</p>
 <ul class="simple">
-<li><p>To display a single continuous 3D line, and/or a set of points, the file should contain a list of 3D coordinates, with each coordinate taking up one line of the text file. Each line of the file must therefore contain 3 numbers, delimited with commas, spaces or tabs.</p></li>
-<li><p>If you wish to display a set of disconnected 3D line segments, each line of the file must contain 6 numbers: the 3D coordinates for the start of the line segment followed by the 3D coordinates for the end of the line segment (again all delimited with commas, spaces or tabs).</p></li>
+<li><p>To display a single continuous line, and/or a set of points, the file should contain a list of points with each point’s coordinates on one line of the text file. Each line of the file must therefore contain 2 (for <span class="math notranslate nohighlight">\(R,Z\)</span>) or 3 (<span class="math notranslate nohighlight">\(X,Y,Z\)</span> or <span class="math notranslate nohighlight">\(R,Z,\phi\)</span>)numbers, delimited with commas, spaces or tabs.</p></li>
+<li><p>If you wish to display a set of disconnected straight line segments, each line of the file must contain the coordinates of 2 points: the start and end points of each line. The file will then contain as many text lines as line segments to display. Each line of the file will therefore contain 4 or 6 numbers (again all delimited with commas, spaces or tabs).</p></li>
 </ul>
 </section>
 <section id="loading-and-removing-data">
 <h3>Loading and removing data<a class="headerlink" href="#loading-and-removing-data" title="Link to this heading"></a></h3>
-<p>Click the <span class="guilabel">Load from ASCII…</span> button to browse for a text file to load. Once selected, a dialog box will appear confirming the number of points or line segments found in the file, and asking whether the data are in cartesian or cylindircl coorinates. It also allows you to select whether you want to display the data as points and/or lines, although this can also be changed later.</p>
-<p>Once loaded, data sets are added to the list at the top of the tab, with names corresponding to the file name they were loaded from. The display of each data set can be turned on and off using the checkboxes next to the dataset names. To edit the name of a data set, single click its name in the list.</p>
+<p>Click the <span class="guilabel">Load from ASCII…</span> button to browse for a text file to load. Once selected, a dialog box will appear confirming the number of points or line segments found in the file, and asking how to interpret the coordinates. For 2D <span class="math notranslate nohighlight">\(R,Z\)</span> data, it will also display an option to create a closed contour from the coordinates (this can be useful e.g. for a set of points tracing out a magnetic flux surface).</p>
+<p>Once loaded, data sets are added to the list at the top of the tab, with names corresponding to the file name they were loaded from. Note that if the loaded CAD model definition contains a definition of the machine <span class="math notranslate nohighlight">\(R,Z\)</span> wall contour, this will automatically appear in the list of coordinate data which can be displayed. The display of each data set can be turned on and off using the checkboxes next to the dataset names. To edit the name of a data set, single click its name in the list.</p>
 </section>
 <section id="appearance-options">
 <h3>Appearance Options<a class="headerlink" href="#appearance-options" title="Link to this heading"></a></h3>
-<p>The 3D data can be displayed as solid lines and/or spheres at each point in the data. With a data set selected from the list, options to turn on or off the lines and points for that data set, and change the line thickness, sphere marker size and colour are in the <span class="guilabel">Appearance</span> options at the bottom of the tab. Legend entries can also be shown for the loaded data sets, which can be turned on and off with the <span class="guilabel">Show in legend</span> checkbox below the list of loaded data sets.</p>
+<p>Once loaded, various options are available for how to display the 3D coordinates. These are displayed underneath the list of loaded coordinate data files on the <span class="guilabel">3D Data</span> tab. These options are enabled by selecting the name of a set of 3D data from the list, if that set of data is currently being displayed (i.e. has the checkbox next to its name checked). The options can be set separately for each set of displayed data.</p>
+<section id="position">
+<h4>“Position”<a class="headerlink" href="#position" title="Link to this heading"></a></h4>
+<p>These options are only available for data which lie in a single poloidal plane, i.e. data defined in (<span class="math notranslate nohighlight">\(R,Z\)</span>) coordinates or (<span class="math notranslate nohighlight">\(R,Z,\phi\)</span>) if all values of <span class="math notranslate nohighlight">\(\phi\)</span> are identical. In this case, 2 options are available:</p>
+<ul class="simple">
+<li><p><span class="guilabel">Draw at toroidal angle</span> - this option allows the coordinates to be drawn at any toroidal angle of choice. This can be done either by entering the desired toroidal angle, or by clicking on the CAD model to place the 3D cursor and then clicking <span class="guilabel">Set from cursor position</span> to take the toroidal angle from the current cursor position.</p></li>
+<li><p><span class="guilabel">Rotate axisymetrically to make 3D surface</span> - this will join the coordinates in the dataset in to a line in the poloidal plane, then rotate that line about the z axis (i.e. rotate it toroidally) to form an axisymmetric 3D surface. An example use case for this might be to load an <span class="math notranslate nohighlight">\(R,Z\)</span> contour of a tokamak flux surface, then this option will allow rendering this as a volume of plasma for visualisation purposes.</p></li>
+</ul>
+</section>
+<section id="draw-as">
+<h4>“Draw as”<a class="headerlink" href="#draw-as" title="Link to this heading"></a></h4>
+<p>These options control how the coordinates are represented:</p>
+<ul class="simple">
+<li><p><span class="guilabel">Line(s)</span> - this option is available for all types of coordinates, and connects the coordinates with lines and renders them with a given thickness in pxels.</p></li>
+<li><p><span class="guilabel">Cone(s)</span> - this option is only available for coordinate data which represents one or more disconnected straight line segments (i.e. not for a set of &gt;2 points forming a single path, see the above section on data file formatting). An example use case for this option is to show beam paths or lines-of-sight which have a finite volume. The cone display is parameterised by 2 quantities: a “start diameter” and half-angle. The “start-diameter” is the diameter at the narrow end of the cone. This can be 0 in which case the cone tapers to a point, or a finite size in which case the cone starts with a circular face of the given radius. The half-angle controls the tapering angle of each side of the cone. A value of 0 half angle and finite start diameter can be used to draw a cylinder.</p></li>
+<li><p><span class="guilabel">Point(s)</span> - this option is available for all types of coordinates, and displays a sphere with the given diameter at each of the loaded coordinates.</p></li>
+</ul>
+</section>
+<section id="colour">
+<h4>“Colour”<a class="headerlink" href="#colour" title="Link to this heading"></a></h4>
+<p>These options apply to all types of coordinate display listed above. They can be used to change the colour and opacity of the displayed coordinates.</p>
+</section>
+</section>
+<section id="creating-coordinate-lists-from-the-3d-cursor">
+<h3>Creating coordinate lists from the 3D cursor<a class="headerlink" href="#creating-coordinate-lists-from-the-3d-cursor" title="Link to this heading"></a></h3>
+<p>As described above, pressing <kbd class="kbd docutils literal notranslate">c</kbd> on the keyboard while a 3D cursor is placed on the CAD (by left clicking) will add the current cursor coordinates to a list at the bottom of the <span class="guilabel">3D Data</span> tab. This set of coordinates will also appear in the list of 3D data sets so the above options can be used to display them. These coordinates are treated as forming a single continuous line / set of points. The list of coordinates built up in this way can be exported to a <cite>.csv</cite> file by clicking the <span class="guilabel">Save to CSV file…</span> button below the coordinate list.</p>
 </section>
 </section>
 <section id="rendering-and-saving-images">

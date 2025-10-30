@@ -1,5 +1,5 @@
 '''
-* Copyright 2015-2020 European Atomic Energy Community (EURATOM)
+* Copyright 2015-2025 European Atomic Energy Community (EURATOM)
 *
 * Licensed under the EUPL, Version 1.1 or - as soon they
   will be approved by the European Commission - subsequent
@@ -64,7 +64,7 @@ class Viewer(CalcamGUIWindow):
         self.qvtkwidget_3d.GetRenderWindow().AddRenderer(self.renderer_3d)
         self.camera_3d = self.renderer_3d.GetActiveCamera()
 
-        #self.action_save_coord.triggered.connect(self.save_cursor_coords)
+        self.action_save_coord.triggered.connect(self.save_cursor_coords)
 
         self.populate_models()
             
@@ -84,8 +84,6 @@ class Viewer(CalcamGUIWindow):
         self.load_model_button.clicked.connect(self.load_model)
         self.feature_tree.itemChanged.connect(self.update_checked_features)
         self.feature_tree.itemSelectionChanged.connect(self.update_cadtree_selection)
-        self.xsection_checkbox.toggled.connect(self.update_xsection)
-        self.xsection_origin.toggled.connect(self.update_xsection)
         self.sightline_opacity_slider.valueChanged.connect(self.update_sightlines)
         self.rendertype_edges.toggled.connect(self.toggle_wireframe)
         self.viewport_load_calib.clicked.connect(self.load_viewport_calib)
@@ -108,9 +106,6 @@ class Viewer(CalcamGUIWindow):
         self.save_view_button.clicked.connect(self.save_view_to_model)
         self.save_colours_button.clicked.connect(self.save_cad_colours)
         self.model_name.currentIndexChanged.connect(self.populate_model_variants)
-        self.contour_off.clicked.connect(self.update_contour)
-        self.contour_2d.clicked.connect(self.update_contour)
-        self.contour_3d.clicked.connect(self.update_contour)
         self.load_lines_button.clicked.connect(self.update_lines)
         self.pick_lines_colour.clicked.connect(self.update_lines)
         self.lines_3d_list.itemSelectionChanged.connect(self.update_selected_lines)
@@ -118,12 +113,37 @@ class Viewer(CalcamGUIWindow):
         self.rmb_rotate.toggled.connect(self.interactor3d.set_rmb_rotate)
         self.sightlines_legend = None
         self.render_calib = None
-        self.enable_lines_checkbox.toggled.connect(self.update_lines)
-        self.enable_points_checkbox.toggled.connect(self.update_lines)
         self.line_width_box.valueChanged.connect(self.update_lines)
         self.marker_diameter_box.valueChanged.connect(self.update_lines)
         self.remove_lines_button.clicked.connect(self.update_lines)
         self.coords_legend_checkbox.toggled.connect(self.update_legend)
+        self.no_slicing_rb.clicked.connect(self.update_xsection)
+        self.cakeslice_rb.clicked.connect(self.update_xsection)
+        self.chordslice_rb.clicked.connect(self.update_xsection)
+        self.cakeslice_phi0.valueChanged.connect(self.update_xsection)
+        self.cakeslice_phi1.valueChanged.connect(self.update_xsection)
+        self.chordslice_phi.valueChanged.connect(self.update_xsection)
+        self.chordslice_r.valueChanged.connect(self.update_xsection)
+        self.zslice_zmax.valueChanged.connect(self.update_xsection)
+        self.zslice_zmin.valueChanged.connect(self.update_xsection)
+        self.zslice_checkbox.toggled.connect(self.update_xsection)
+
+        self.lines_toroidal_angle_box.valueChanged.connect(self.update_lines)
+        self.line_width_box.valueChanged.connect(self.update_lines)
+        self.lines_frustrum_d0_box.valueChanged.connect(self.update_lines)
+        self.lines_frustrum_angle_box.valueChanged.connect(self.update_lines)
+        self.marker_diameter_box.valueChanged.connect(self.update_lines)
+        self.lines_toroidal_angle_rb.clicked.connect(self.update_lines)
+        self.lines_lines_rb.clicked.connect(self.update_lines)
+        self.lines_frustrum_rb.clicked.connect(self.update_lines)
+        self.lines_points_rb.clicked.connect(self.update_lines)
+        self.lines_toroidal_angle_rb.clicked.connect(self.update_lines)
+        self.lines_rz_to_3d_rb.clicked.connect(self.update_lines)
+        self.lines_opacity_slider.valueChanged.connect(self.update_lines)
+        self.load_mesh_file_button.clicked.connect(self.load_extra_mesh)
+        self.remove_mesh_button.clicked.connect(self.remove_extra_mesh)
+
+        self.lines_toroidal_angle_to_cursor.clicked.connect(lambda : self.lines_toroidal_angle_box.setValue(self.cursor_angles[0]))
 
         self.save_coords_button.clicked.connect(self.export_cursor_coords)
 
@@ -133,15 +153,17 @@ class Viewer(CalcamGUIWindow):
 
         self.del_coord_button.clicked.connect(self.delete_saved_coord)
 
+        self.extra_mesh_actors = {}
+
         self.model_actors = {}
 
-        self.cursor_angles = None
+        self.cursor_angles = (None,None)
 
         self.line_actors = DodgyDict()
 
-        self.contour_actor = None
-
         self.saved_coords_item = None
+
+        self.wall_contour_listitem = None
 
         self.sightlines = DodgyDict()
         self.colour_q = []
@@ -163,16 +185,12 @@ class Viewer(CalcamGUIWindow):
         self.render_load_button.setHidden(True)
         self.unfolded_render_settings.setHidden(True)
 
-        # Overload the nextCheckState() method of these checkboxes so that I can use them
-        # as tri-state from the code but the user can only toggle them between fully checked and
-        # un-checked. The "proper" way to do this would be to write my own subclass of qCheckBox
-        # which overloads this method and then insert that in the GUI, but since it's built in QT
-        # designer I'm doing this instead, which feels a little hacky but works fine :)
-        self.enable_lines_checkbox.nextCheckState = lambda : nextcheckstate(self.enable_lines_checkbox)
-        self.enable_points_checkbox.nextCheckState = lambda: nextcheckstate(self.enable_points_checkbox)
+        self.lines_cone_settings.hide()
+        self.lines_marker_settings.hide()
 
         self.cursor_coords_table.setColumnCount(3)
         self.cursor_coords_table.setHorizontalHeaderLabels(['X','Y','Z'])
+        self.cursor_coords_table.horizontalHeader().setSectionResizeMode(qt.QHeaderView.Stretch)
 
         # Start the GUI!
         self.show()
@@ -182,26 +200,201 @@ class Viewer(CalcamGUIWindow):
         self.qvtkwidget_3d.GetRenderWindow().GetInteractor().Initialize()
 
 
+    def load_extra_mesh(self):
+
+        filedialog = qt.QFileDialog(self)
+        filedialog.setAcceptMode(filedialog.AcceptOpen)
+        filedialog.setFileMode(filedialog.ExistingFile)
+
+        filedialog.setWindowTitle('Select Mesh File...')
+        filedialog.setNameFilter('Supported 3D mesh files (*.stl *.obj)')
+        filedialog.exec()
+
+        if filedialog.result() == filedialog.Accepted:
+
+            filepath = filedialog.selectedFiles()[0]
+
+            import_settings = MeshImportDialog(self,filepath)
+            result = import_settings.exec()
+
+            if result == import_settings.Accepted:
+
+                self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
+
+                if filepath.lower().endswith('stl'):
+                    reader = vtk.vtkSTLReader()
+                elif filepath.lower().endswith('obj'):
+                    reader = vtk.vtkOBJReader()
+
+                reader.SetFileName(filepath)
+                reader.Update()
+
+                transformer = vtk.vtkTransformPolyDataFilter()
+
+                transform = vtk.vtkTransform()
+                transform.PostMultiply()
+                scale = import_settings.mesh_scale_box.value()
+                if import_settings.handedness_box.currentText().lower() == 'left-handed':
+                    transform.Scale(scale,scale,-scale)
+                elif import_settings.handedness_box.currentText().lower() == 'right-handed':
+                    transform.Scale(scale, scale, scale)
+
+                if import_settings.meshup_box.currentText() == '+X':
+                    transform.RotateY(-90)
+                elif import_settings.meshup_box.currentText() =='-X':
+                    transform.RotateY(90)
+                elif import_settings.meshup_box.currentText() == '+Y':
+                    transform.RotateX(90)
+                elif import_settings.meshup_box.currentText() == '-Y':
+                    transform.RotateX(-90)
+                elif import_settings.meshup_box.currentText() == '-Z' and import_settings.handedness_box.currentText().lower() == 'right-handed':
+                    transform.RotateX(180)
+                elif import_settings.meshup_box.currentText() == '+Z' and import_settings.handedness_box.currentText().lower() == 'left-handed':
+                    transform.RotateX(180)
+
+                transform.RotateZ(import_settings.z_rotate_box.value())
+                transformer.SetInputData(reader.GetOutput())
+                transformer.SetTransform(transform)
+                transformer.Update()
+
+                if import_settings.handedness_box.currentText().lower() == 'left-handed':
+                    reverser = vtk.vtkReverseSense()
+                    reverser.ReverseNormalsOff()
+                    reverser.ReverseCellsOn()
+                    reverser.SetInputData(transformer.GetOutput())
+                    reverser.Update()
+                    polydata = reverser.GetOutput()
+                    transformer.SetInputData(reverser.GetOutput())
+                elif import_settings.handedness_box.currentText().lower() == 'right-handed':
+                    polydata = transformer.GetOutput()
+
+                # Remove all the lines from the PolyData. As far as I can tell for "normal" mesh files this shouldn't
+                # remove anything visually important, but it avoids running in to issues with vtkFeatureEdges trying to allocate
+                # way too much memory in VTK 9.1+.
+                polydata.SetLines(vtk.vtkCellArray())
+
+                mapper =  vtk.vtkPolyDataMapper()
+                mapper.SetInputData( polydata )
+
+                actor = vtk.vtkActor()
+                actor.SetMapper(mapper)
+
+                treeitem_top = qt.QTreeWidgetItem([os.path.split(filepath)[-1]])
+                treeitem_top.setFlags(qt.Qt.ItemIsEnabled | qt.Qt.ItemIsUserCheckable | qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEditable)
+
+                self.feature_tree.addTopLevelItem(treeitem_top)
+                self.cad_tree_items[treeitem_top] = actor
+                treeitem_top.setCheckState(0,qt.Qt.Checked)
+
+                self.app.restoreOverrideCursor()
+
+
+    def update_checked_features(self,item):
+
+        if isinstance(self.cad_tree_items[item],vtk.vtkActor):
+            if item.checkState(0) == qt.Qt.Checked:
+                self.interactor3d.add_extra_actor(self.cad_tree_items[item])
+            elif item.checkState(0) == qt.Qt.Unchecked:
+                self.interactor3d.remove_extra_actor(self.cad_tree_items[item])
+            self.refresh_3d()
+        else:
+            super().update_checked_features(item)
+
+
+    def set_cad_colour(self):
+
+        selected_features = []
+        extra_actors = []
+        for treeitem in self.feature_tree.selectedItems():
+            if isinstance(self.cad_tree_items[treeitem],vtk.vtkActor):
+                extra_actors.append(self.cad_tree_items[treeitem])
+            else:
+                selected_features.append(self.cad_tree_items[treeitem])
+
+        # Note: this does not mean nothing is selected;
+        # rather it means the root of the model is selected!
+        if None in selected_features:
+            selected_features = None
+
+        if self.sender() is self.cad_colour_choose_button:
+
+            if len(selected_features) > 0 or selected_features is None:
+                picked_colour = self.pick_colour(self.cadmodel.get_colour( selected_features )[0] )
+            else:
+                picked_colour = self.pick_colour(extra_actors[0].GetProperty().GetColor())
+
+            if picked_colour is not None:
+                if len(selected_features) > 0 or selected_features is None:
+                    self.cadmodel.set_colour(picked_colour,selected_features)
+                for actor in extra_actors:
+                    actor.GetProperty().SetColor(picked_colour)
+
+
+        elif self.sender() is self.cad_colour_reset_button:
+
+            self.cadmodel.reset_colour(selected_features)
+
+            for actor in extra_actors:
+                actor.GetProperty().SetColor(1,1,1)
+
+        self.refresh_3d()
+
+
+    def update_cadtree_selection(self):
+
+        self.remove_mesh_button.setEnabled(False)
+        if len(self.feature_tree.selectedItems()) == 0:
+            self.cad_colour_choose_button.setEnabled(False)
+            self.cad_colour_reset_button.setEnabled(False)
+        else:
+            self.cad_colour_choose_button.setEnabled(True)
+            self.cad_colour_reset_button.setEnabled(True)
+            if len(self.feature_tree.selectedItems()) == 1 and isinstance(self.cad_tree_items[self.feature_tree.selectedItems()[0]],vtk.vtkActor):
+                self.remove_mesh_button.setEnabled(True)
+
+
+    def remove_extra_mesh(self):
+        for item in self.feature_tree.selectedItems():
+            if isinstance(self.cad_tree_items[item],vtk.vtkActor):
+                self.interactor3d.remove_extra_actor(self.cad_tree_items[item])
+                self.feature_tree.takeTopLevelItem(self.feature_tree.indexOfTopLevelItem(item))
+                del self.cad_tree_items[item]
+                self.refresh_3d()
+
+
     def save_cursor_coords(self):
 
         if self.interactor3d.focus_cursor is not None:
             if self.saved_coords_item is None:
-
                 # Add it to the lines list
-                listitem = qt.QListWidgetItem('Saved Cursor Positions (below)')
-                self.line_actors[listitem] = render.CoordsActor(np.empty((0,3)),lines=False,markers=True)
+                self.saved_coords_item = qt.QListWidgetItem('Saved Cursor Positions (below)')
 
-                self.saved_coords_item = self.line_actors[listitem]
+                actor = render.CoordsActor(np.empty((0,3)),linewidth=0,markersize=1e-2)
 
-                listitem.setFlags(listitem.flags() | qt.Qt.ItemIsSelectable)
-                self.lines_3d_list.addItem(listitem)
-                listitem.setCheckState(qt.Qt.Checked)
-                self.lines_3d_list.setCurrentItem(listitem)
+                self.line_actors[self.saved_coords_item] = actor
+
+                self.saved_coords_item.setFlags(self.saved_coords_item.flags() | qt.Qt.ItemIsSelectable)
+                self.lines_3d_list.addItem(self.saved_coords_item)
+                self.saved_coords_item.setCheckState(qt.Qt.Checked)
+                self.lines_3d_list.setCurrentItem(self.saved_coords_item)
+
+            else:
+                actor = self.line_actors[self.saved_coords_item]
 
             coords = self.interactor3d.get_cursor_coords(0)
-            newrow = self.saved_coords_item.coords.shape[0]
-            self.saved_coords_item.coords = np.concatenate((self.saved_coords_item.coords,np.array(coords)[np.newaxis,:]),0)
+            newrow = actor.coords.shape[0]
 
+            if self.saved_coords_item.checkState() == qt.Qt.Checked:
+                self.saved_coords_item.setCheckState(qt.Qt.Unchecked)
+                reenable=True
+            else:
+                reenable = False
+
+            if newrow > 1 and actor.frustrumsize != (0,0):
+                actor.frustrumsize = (0,0)
+                actor.linewidth = self.line_width_box.value()
+
+            actor.coords = np.concatenate((actor.coords,np.array(coords)[np.newaxis,:]),0)
             self.cursor_coords_table.setRowCount(newrow+1)
             x = qt.QTableWidgetItem('{:.3f} m'.format(coords[0]))
             y = qt.QTableWidgetItem('{:.3f} m'.format(coords[1]))
@@ -213,17 +406,41 @@ class Viewer(CalcamGUIWindow):
             self.cursor_coords_table.setItem(newrow, 1,y)
             self.cursor_coords_table.setItem(newrow, 2,z)
 
-            self.saved_coords_item.set_markers(not self.saved_coords_item.markers)
-            self.saved_coords_item.set_markers(not self.saved_coords_item.markers)
+            if reenable:
+                self.saved_coords_item.setCheckState(qt.Qt.Checked)
+
             self.refresh_3d()
+
 
     def delete_saved_coord(self):
 
+        if self.saved_coords_item.checkState() == qt.Qt.Checked:
+            self.saved_coords_item.setCheckState(qt.Qt.Unchecked)
+            reenable = True
+        else:
+            reenable = False
+
         if self.cursor_coords_table.currentRow() > -1:
-            self.saved_coords_item.coords = np.delete(self.saved_coords_item.coords,self.cursor_coords_table.currentRow(),axis=0)
+            actor = self.line_actors[self.saved_coords_item]
+            actor.coords = np.delete(actor.coords,self.cursor_coords_table.currentRow(),axis=0)
+
             self.cursor_coords_table.removeRow(self.cursor_coords_table.currentRow())
-            self.saved_coords_item.set_markers(not self.saved_coords_item.markers)
-            self.saved_coords_item.set_markers(not self.saved_coords_item.markers)
+
+            if self.line_actors[self.saved_coords_item].coords.shape[0] > 0:
+
+                if self.line_actors[self.saved_coords_item].coords.shape[0] == 1 and actor.markersize == 0:
+                    actor.linewidth = 0
+                    actor.frustrumsize = (0,0)
+                    actor.markersize = self.marker_diameter_box.value() * 0.01
+
+                if reenable:
+                    self.saved_coords_item.setCheckState(qt.Qt.Checked)
+
+            else:
+                self.lines_3d_list.takeItem(self.lines_3d_list.row(self.saved_coords_item))
+                del self.line_actors[self.saved_coords_item]
+                self.saved_coords_item = None
+
             self.refresh_3d()
 
     def export_cursor_coords(self):
@@ -245,21 +462,19 @@ class Viewer(CalcamGUIWindow):
             if not fname.endswith('.csv'):
                 fname = fname + '.csv'
 
-            np.savetxt(fname,self.saved_coords_item.coords,fmt='%.4f',delimiter=',',header='X (m), Y(m), Z(m)')
+            np.savetxt(fname,self.line_actors[self.saved_coords_item].coords,fmt='%.4f',delimiter=',',header='X (m), Y(m), Z(m)')
 
 
-    # Load arbitrary 3D lines from file to display
+
     def update_lines(self,data):
+        # Load or update coordinate data to display
 
         if self.sender() is self.load_lines_button:
-
+            # User clicked the "Load from ASCII" button
             filename_filter = 'ASCII Data (*.txt *.csv *.dat)'
-
             filedialog = qt.QFileDialog(self)
-
             filedialog.setAcceptMode(filedialog.AcceptOpen)
             filedialog.setFileMode(filedialog.ExistingFile)
-
             filedialog.setWindowTitle('Open...')
             filedialog.setNameFilter(filename_filter)
             filedialog.exec()
@@ -278,35 +493,20 @@ class Viewer(CalcamGUIWindow):
                     except ValueError:
                         continue
 
-                if coords is None or len(coords.shape) != 2 or coords.shape[1] not in [3,6]:
+                if coords is None or len(coords.shape) != 2 or coords.shape[1] not in [2,3,4,6]:
+                    # We didn't manage to load any data, or it's a shape we don't know how to interpret
                     raise UserWarning('Could not load coordinates from the file. Please ensure the file is formatted as N rows, 3 or 6 columns and is tab, space or comma delimited.')
 
                 else:
+                    # Ask the user what coordinate system the data are in
                     coords_dialog = CoordsDialog(self,coords.shape)
                     coords_dialog.exec()
                     if coords_dialog.result() == coords_dialog.Accepted:
-                        
-                        # If the coordinates are in R,Z,phi, convert them to cartesian.
-                        if coords_dialog.line_coords_combobox.currentIndex() == 1:
-                            x = coords[:,0] * np.cos(coords[:,2])
-                            y = coords[:,0] * np.sin(coords[:,2])
-                            coords[:,2] = coords[:,1]
-                            coords[:,0] = x
-                            coords[:,1] = y
-
-                            if coords.shape[1] == 6:
-                                x = coords[:,3] * np.cos(coords[:,5])
-                                y = coords[:,3] * np.sin(coords[:,5])
-                                coords[:,5] = coords[:,4]
-                                coords[:,3] = x
-                                coords[:,4] = y
-
-
+                        self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
                         # Add it to the lines list
                         listitem = qt.QListWidgetItem(lines_name)
 
-                        self.line_actors[listitem] = render.CoordsActor(coords,coords_dialog.show_lines.isChecked(),coords_dialog.show_points.isChecked())
-
+                        self.line_actors[listitem] = render.CoordsActor(coords,coords_type=coords_dialog.coords_type,linewidth=3,markersize=0,frustrumsize=(0,0),rz_to_3d=False,closed_contour=coords_dialog.closed_contour_checkbox.isChecked())
                         listitem.setFlags(listitem.flags() | qt.Qt.ItemIsEditable | qt.Qt.ItemIsSelectable)
                         listitem.setToolTip(lines_name)
                         self.lines_3d_list.addItem(listitem)
@@ -315,14 +515,13 @@ class Viewer(CalcamGUIWindow):
 
 
         elif self.sender() is self.lines_3d_list:
-
+            self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
             if data.checkState() == qt.Qt.Checked:
                 self.interactor3d.add_extra_actor(self.line_actors[data])
+                self.lines_3d_list.setCurrentItem(data)
             else:
                 self.interactor3d.remove_extra_actor(self.line_actors[data])
-
-            self.refresh_3d()
-
+            self.update_selected_lines()
 
         elif self.sender() is self.pick_lines_colour and len(self.lines_3d_list.selectedItems()) > 0:
 
@@ -330,51 +529,77 @@ class Viewer(CalcamGUIWindow):
             picked_colour = self.pick_colour(current_colour)
 
             if picked_colour is not None:
+                self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
                 for item in self.lines_3d_list.selectedItems():
-                    self.line_actors[item].set_colour(picked_colour)
+                    self.line_actors[item].colour = picked_colour + [self.lines_opacity_slider.value()/100]
 
-        elif self.sender() is self.enable_lines_checkbox:
-            for item in self.lines_3d_list.selectedItems():
-                self.line_actors[item].set_lines(data)
-            if data:
-                self.line_width_box.setEnabled(True)
-            else:
-                self.line_width_box.setEnabled(False)
-            self.refresh_3d()
+        elif self.sender() is self.lines_opacity_slider and len(self.lines_3d_list.selectedItems()) > 0:
 
-        elif self.sender() is self.enable_points_checkbox:
-            for item in self.lines_3d_list.selectedItems():
-                self.line_actors[item].set_markers(data)
-            if data:
-                self.marker_diameter_box.setEnabled(True)
-            else:
-                self.marker_diameter_box.setEnabled(False)
-            self.refresh_3d()
+            colour = list(self.line_actors[self.lines_3d_list.selectedItems()[0]].colour)[:3]
 
-        elif self.sender() is self.line_width_box:
             for item in self.lines_3d_list.selectedItems():
-                self.line_actors[item].linewidth = self.line_width_box.value()
-                if self.line_actors[item].lines:
-                    self.line_actors[item].set_lines(False)
-                    self.line_actors[item].set_lines(True)
-            self.refresh_3d()
+                self.line_actors[item].colour = colour + [self.lines_opacity_slider.value()/100]
 
-        elif self.sender() is self.marker_diameter_box:
-            for item in self.lines_3d_list.selectedItems():
-                self.line_actors[item].markersize = self.marker_diameter_box.value() / 100
-            if self.line_actors[item].markers:
-                self.line_actors[item].set_markers(False)
-                self.line_actors[item].set_markers(True)
-            self.refresh_3d()
 
         elif self.sender() is self.remove_lines_button:
             for item in self.lines_3d_list.selectedItems():
                 self.interactor3d.remove_extra_actor(self.line_actors[item])
                 self.lines_3d_list.takeItem(self.lines_3d_list.row(item))
                 del self.line_actors[item]
-            self.refresh_3d()
 
+
+        else:
+            self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
+            item = self.lines_3d_list.selectedItems()[0]
+            actor = self.line_actors[item]
+            enabled = item.checkState() == qt.Qt.Checked
+            self.interactor3d.remove_extra_actor(actor)
+
+            if self.phi_settings.isEnabled():
+                if self.lines_rz_to_3d_rb.isChecked():
+                    actor.rz_to_3d = True
+                    self.lines_toroidal_angle_box.setEnabled(False)
+                    self.lines_toroidal_angle_to_cursor.setEnabled(False)
+                    self.lines_type_settings.setEnabled(False)
+                else:
+                    actor.rz_to_3d = False
+                    actor.phi = self.lines_toroidal_angle_box.value()
+                    self.lines_toroidal_angle_box.setEnabled(True)
+                    self.lines_toroidal_angle_to_cursor.setEnabled(self.cursor_angles[0] is not None)
+                    self.lines_type_settings.setEnabled(True)
+            else:
+                self.lines_type_settings.setEnabled(True)
+
+            if self.lines_type_settings.isEnabled():
+                if self.lines_lines_rb.isChecked():
+                    actor.linewidth = self.line_width_box.value()
+                    actor.markersize = 0
+                    actor.frustrumsize = (0,0)
+                    self.lines_line_settings.show()
+                    self.lines_cone_settings.hide()
+                    self.lines_marker_settings.hide()
+                elif self.lines_frustrum_rb.isChecked():
+                    actor.linewidth = 0
+                    actor.markersize = 0
+                    actor.frustrumsize = (self.lines_frustrum_d0_box.value()/100,self.lines_frustrum_angle_box.value())
+                    self.lines_line_settings.hide()
+                    self.lines_cone_settings.show()
+                    self.lines_marker_settings.hide()
+                elif self.lines_points_rb.isChecked():
+                    actor.linewidth = 0
+                    actor.markersize = self.marker_diameter_box.value()/100
+                    actor.frustrumsize = (0,0)
+                    self.lines_line_settings.hide()
+                    self.lines_cone_settings.hide()
+                    self.lines_marker_settings.show()
+
+            if enabled:
+                self.interactor3d.add_extra_actor(actor)
+
+        self.refresh_3d()
         self.update_legend()
+        self.app.restoreOverrideCursor()
+
 
     def get_fov_opacity(self,actor_type):
 
@@ -440,64 +665,62 @@ class Viewer(CalcamGUIWindow):
 
         if len(self.lines_3d_list.selectedItems()) > 0:
 
-            lines = 0
-            markers = 0
-            linewidth = []
-            markersize = []
-            for item in self.lines_3d_list.selectedItems():
-                if self.line_actors[item].lines:
-                    lines += 1
-                if self.line_actors[item].markers:
-                    markers += 1
-                linewidth.append(self.line_actors[item].linewidth)
-                markersize.append(self.line_actors[item].markersize*100)
+            lines_actor = self.line_actors[self.lines_3d_list.selectedItems()[0]]
+            enabled = self.lines_3d_list.selectedItems()[0].checkState() == qt.Qt.Checked
 
-            linewidth = int(np.round(np.mean(linewidth)))
-            markersize = np.mean(markersize)
-
-            if lines == len(self.lines_3d_list.selectedItems()):
-
-                linecheckstate = qt.Qt.Checked
-            elif lines == 0:
-                linecheckstate = qt.Qt.Unchecked
-            elif lines < len(self.lines_3d_list.selectedItems()):
-                linecheckstate = qt.Qt.PartiallyChecked
-
-            if markers == len(self.lines_3d_list.selectedItems()):
-                markercheckstate = qt.Qt.Checked
-            elif markers == 0:
-                markercheckstate = qt.Qt.Unchecked
-            elif markers < len(self.lines_3d_list.selectedItems()):
-                markercheckstate = qt.Qt.PartiallyChecked
-
-            self.line_width_box.blockSignals(True)
-            self.line_width_box.setValue(linewidth)
-            self.line_width_box.blockSignals(False)
-
-            self.marker_diameter_box.blockSignals(True)
-            self.marker_diameter_box.setValue(markersize)
-            self.marker_diameter_box.blockSignals(False)
-
-            self.enable_lines_checkbox.blockSignals(True)
-            self.enable_lines_checkbox.setCheckState(linecheckstate)
-            self.enable_lines_checkbox.blockSignals(False)
-
-            if linecheckstate == qt.Qt.Unchecked:
-                self.line_width_box.setEnabled(False)
+            if self.lines_3d_list.selectedItems()[0]  not in [self.wall_contour_listitem,self.saved_coords_item]:
+                self.remove_lines_button.setEnabled(True)
             else:
-                self.line_width_box.setEnabled(True)
+                self.remove_lines_button.setEnabled(False)
 
-            self.enable_points_checkbox.blockSignals(True)
-            self.enable_points_checkbox.setCheckState(markercheckstate)
-            self.enable_points_checkbox.blockSignals(False)
-
-            if markercheckstate == qt.Qt.Unchecked:
-                self.marker_diameter_box.setEnabled(False)
+            if lines_actor.coords_type == 'rz':
+                self.phi_settings.setEnabled(True)
+                if lines_actor.rz_to_3d:
+                    self.lines_rz_to_3d_rb.setChecked(True)
+                else:
+                    self.lines_toroidal_angle_rb.setChecked(True)
+                    self.lines_toroidal_angle_box.setValue(lines_actor.phi)
             else:
-                self.marker_diameter_box.setEnabled(True)
+                self.phi_settings.setEnabled(False)
 
-            self.lines_appearance_box.setEnabled(True)
-            self.remove_lines_button.setEnabled(True)
+            if lines_actor.linewidth > 0:
+                self.lines_lines_rb.setChecked(True)
+                self.lines_line_settings.show()
+                self.lines_marker_settings.hide()
+                self.lines_cone_settings.hide()
+                self.line_width_box.setValue(lines_actor.linewidth)
+
+            if lines_actor.frustrumsize != (0,0):
+                self.lines_frustrum_rb.setChecked(True)
+                self.lines_line_settings.hide()
+                self.lines_marker_settings.hide()
+                self.lines_cone_settings.show()
+                self.lines_frustrum_d0_box.setValue(lines_actor.frustrumsize[0]*100)
+                self.lines_frustrum_angle_box.setValue(lines_actor.frustrumsize[1])
+
+            if lines_actor.markersize > 0:
+                self.lines_points_rb.setChecked(True)
+                self.lines_line_settings.hide()
+                self.lines_marker_settings.show()
+                self.lines_cone_settings.hide()
+                self.marker_diameter_box.setValue(lines_actor.markersize*100)
+
+            self.lines_appearance_box.setEnabled(enabled)
+
+            if enabled:
+                if lines_actor.coords.shape[0] != 2 and lines_actor.coords.shape[1] in [2, 3]:
+                    self.lines_frustrum_rb.setChecked(False)
+                    self.lines_frustrum_rb.setToolTip('Option only available for straight line segments')
+                    self.lines_frustrum_d0_box.setEnabled(False)
+                    self.lines_frustrum_angle_label.setEnabled(False)
+                    self.lines_frustrum_angle_box.setEnabled(False)
+                    self.lines_frustrum_rb.setEnabled(False)
+                else:
+                    self.lines_frustrum_rb.setEnabled(True)
+                    self.lines_frustrum_rb.setToolTip('')
+                    self.lines_frustrum_d0_box.setEnabled(True)
+                    self.lines_frustrum_angle_label.setEnabled(True)
+                    self.lines_frustrum_angle_box.setEnabled(True)
 
         else:
             self.lines_appearance_box.setEnabled(False)
@@ -520,25 +743,6 @@ class Viewer(CalcamGUIWindow):
 
 
     def on_view_changed(self):
-
-        self.xsection_checkbox.blockSignals(True)
-        self.xsection_cursor.blockSignals(True)
-        self.xsection_origin.blockSignals(True)
-
-        if self.interactor3d.get_xsection() is not None:
-            self.xsection_checkbox.setChecked(True)
-            if np.all( np.array(self.interactor3d.get_xsection()) == 0):
-                self.xsection_origin.setChecked(True)
-            else:
-                self.add_cursor(self.interactor3d.get_xsection())
-                self.interactor3d.set_cursor_coords(0,self.interactor3d.get_xsection())
-                self.xsection_cursor.setChecked(True)
-        else:
-            self.xsection_checkbox.setChecked(False)
-
-        self.xsection_checkbox.blockSignals(False)
-        self.xsection_cursor.blockSignals(False)
-        self.xsection_origin.blockSignals(False)
 
         if self.interactor3d.get_projection() == 'perspective':
             self.proj_perspective.setChecked(True)
@@ -581,19 +785,20 @@ class Viewer(CalcamGUIWindow):
             self.centre_at_cursor.setEnabled(True)
             self.update_cursor_position(0,coords)
 
+    def load_model(self, data=None, featurelist=None, hold_view=False):
 
-    def update_xsection(self):
+        keep_tla_features = []
+        keep_tla_actors = []
+        if self.feature_tree.topLevelItemCount() > 1:
+            for i in range(1,self.feature_tree.topLevelItemCount()):
+                keep_tla_features.append(self.feature_tree.takeTopLevelItem(i))
+                keep_tla_actors.append(self.cad_tree_items[keep_tla_features[-1]])
 
-        if self.xsection_checkbox.isChecked():
-            if self.xsection_cursor.isChecked():
-                self.interactor3d.set_xsection(self.interactor3d.get_cursor_coords(0))
-            else:
-                self.interactor3d.set_xsection((0,0,0))
-        else:
-            self.interactor3d.set_xsection(None)
+        super().load_model(data,featurelist,hold_view)
 
-        self.interactor3d.update_clipping()
-        self.refresh_3d()
+        for key,item in zip(keep_tla_features,keep_tla_actors):
+            self.feature_tree.addTopLevelItem(key)
+            self.cad_tree_items[key] = item
 
 
     def on_model_load(self):
@@ -613,24 +818,38 @@ class Viewer(CalcamGUIWindow):
 
         # Enable or disable contour controls as appropriate
         contour_exists = self.cadmodel.wall_contour is not None
-        self.contour_off.setEnabled(contour_exists)
-        self.contour_2d.setEnabled(contour_exists & (self.interactor3d.focus_cursor is not None) )
-        self.contour_3d.setEnabled(contour_exists)
         self.render_unfolded_view.setEnabled(contour_exists)
         self.render_unfolded_view_description.setEnabled(contour_exists)
+        if self.wall_contour_listitem is not None:
+            self.lines_3d_list.takeItem(self.lines_3d_list.row(self.wall_contour_listitem))
+            self.interactor3d.remove_extra_actor(self.line_actors[self.wall_contour_listitem])
+            del self.line_actors[self.wall_contour_listitem]
+            self.wall_contour_listitem = None
         if contour_exists:
-            self.update_contour()
+
             self.render_unfolded_view.setToolTip('')
             self.render_unfolded_view_description.setToolTip('')
+            listitem = qt.QListWidgetItem('Wall Contour - {:s} ({:s})'.format(self.cadmodel.machine_name,self.cadmodel.model_variant))
+            listitem.setCheckState(qt.Qt.Unchecked)
+
+            self.line_actors[listitem] = render.CoordsActor(self.cadmodel.wall_contour, coords_type='rz',linewidth=3,colour=(1,0,0,1))
+
+            listitem.setFlags(listitem.flags() | qt.Qt.ItemIsSelectable)
+            listitem.setToolTip('Wall contour data contained in the CAD model definition file.')
+            self.lines_3d_list.addItem(listitem)
+            self.wall_contour_listitem = listitem
         else:
-            if not self.contour_off.isChecked():
-                self.contour_off.toggle()
-                self.update_contour()
             if self.render_unfolded_view.isChecked():
                 self.render_current_view.toggle()
             self.render_unfolded_view.setToolTip('Rendering un-folded first wall view is only available for CAD models with R,Z wall contours defined.')
             self.render_unfolded_view_description.setToolTip('Rendering un-folded first wall view is only available for CAD models with R,Z wall contours defined.')
 
+        model_extent = self.cadmodel.get_extent()
+        rmax = np.max(np.abs(model_extent[:4]))
+        self.chordslice_r.setValue(rmax/2)
+        self.zslice_zmin.setValue(model_extent[4]-1e-3)
+        self.zslice_zmax.setValue(model_extent[5]+1e-3)
+        self.toggle_wireframe(self.rendertype_edges.isChecked())
 
     def update_selected_sightlines(self):
 
@@ -660,34 +879,6 @@ class Viewer(CalcamGUIWindow):
                     self.set_fov_opacity(self.sightlines[sightlines][1].GetProperty().GetOpacity(),self.sightlines[sightlines][2])
 
                     break
-            
-
-
-    def update_contour(self):
-
-        self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
-
-        if self.contour_actor is not None:
-            self.interactor3d.remove_extra_actor(self.contour_actor)
-            self.contour_actor = None
-
-        if self.contour_2d.isChecked():
-            cursor_pos = self.interactor3d.get_cursor_coords(0)
-            phi = np.arctan2(cursor_pos[1],cursor_pos[0])
-            self.contour_actor = render.get_wall_contour_actor(self.cadmodel.wall_contour,'contour',phi)
-            self.contour_actor.GetProperty().SetLineWidth(3)
-            self.contour_actor.GetProperty().SetColor((1,0,0))
-            self.interactor3d.add_extra_actor(self.contour_actor)
-
-        elif self.contour_3d.isChecked():
-            self.contour_actor = render.get_wall_contour_actor(self.cadmodel.wall_contour,'surface')
-            self.contour_actor.GetProperty().SetColor((1,0,0))
-            self.interactor3d.add_extra_actor(self.contour_actor)
-
-        self.refresh_3d()
-        self.app.restoreOverrideCursor()
-
-
 
 
     def save_cad_colours(self):
@@ -857,8 +1048,6 @@ class Viewer(CalcamGUIWindow):
                 if listitem.checkState() == qt.Qt.Checked:
                     extra_actors.append(lines_3d)                
 
-            if self.contour_actor is not None:
-                extra_actors.append(self.contour_actor)
 
             coords = ['Display','Original'][ self.render_coords_combobox.currentIndex()]
             
@@ -1052,7 +1241,7 @@ class Viewer(CalcamGUIWindow):
 
             for item in self.line_actors.keys():
                 if item.checkState() == qt.Qt.Checked:
-                    legend_items.append((str(item.text()), self.line_actors[item].colour))
+                    legend_items.append((str(item.text()), self.line_actors[item].colour[:3]))
 
         self.interactor3d.set_legend(legend_items)
         self.refresh_3d()
@@ -1062,14 +1251,6 @@ class Viewer(CalcamGUIWindow):
         info = 'Cursor location: ' + self.cadmodel.format_coord(position).replace('\n',' | ')
         self.statusbar.showMessage(info)
 
-        self.contour_2d.setEnabled(self.cadmodel.wall_contour is not None)
-        
-        if self.contour_2d.isChecked():
-            self.update_contour()
-
-        self.xsection_cursor.setEnabled(True)
-        if self.xsection_checkbox.isChecked():
-            self.interactor3d.set_xsection(self.interactor3d.get_cursor_coords(0))
 
         phi = np.arctan2(position[1], position[0])
         if phi < 0.:
@@ -1094,7 +1275,10 @@ class Viewer(CalcamGUIWindow):
             if self.centre_at_cursor.isChecked():
                 self.toroidal_centre_box.setValue(phi)
                 self.poloidal_centre_box.setValue(theta)
+        else:
+            self.cursor_angles = (phi,None)
 
+        self.lines_toroidal_angle_to_cursor.setEnabled(True)
 
 
 class CoordsDialog(qt.QDialog):
@@ -1109,14 +1293,45 @@ class CoordsDialog(qt.QDialog):
 
         if coords_shape[1] == 6:
             self.lines_label.setText('Importing coordinates for {:d} 3D lines from file.'.format(coords_shape[0]))
+            self.closed_contour_checkbox.hide()
+            self.coord_types = ['xyz','rzd','rzr']
+            coord_type_options = ['X (m) , Y (m) , Z (m)','R (m) , Z (m) , Phi (degrees)','R (m) , Z (m) , Phi (radians)']
         elif coords_shape[1] == 3:
-            self.lines_label.setText('Importing a sequence of {:d} points from file.'.format(coords_shape[0]))
+            self.lines_label.setText('Importing a sequence of {:d} 3D points from file.'.format(coords_shape[0]))
+            self.closed_contour_checkbox.hide()
+            self.coord_types = ['xyz','rzd','rzr']
+            coord_type_options = ['X (m) , Y (m) , Z (m)','R (m) , Z (m) , Phi (degrees)','R (m) , Z (m) , Phi (radians)']
+        elif coords_shape[1] == 4:
+            self.lines_label.setText('Importing coordinates for {:d} 2D lines from file.'.format(coords_shape[0]))
+            self.closed_contour_checkbox.show()
+            self.coord_types = ['rz']
+            coord_type_options = ['R (m) , Z (m)']
+        elif coords_shape[1] == 2:
+            self.lines_label.setText('Importing a sequence of {:d} 2D points from file.'.format(coords_shape[0]))
+            self.closed_contour_checkbox.show()
+            self.coord_types = ['rz']
+            coord_type_options = ['R (m) , Z (m)']
 
-        if coords_shape[0] == 1:
-            self.show_lines.setChecked(False)
-            self.show_lines.setEnabled(False)
-            self.show_points.setChecked(True)
+        self.line_coords_combobox.currentIndexChanged.connect(self.change_coords)
+        self.line_coords_combobox.addItems(coord_type_options)
+        self.line_coords_combobox.setCurrentIndex(0)
+        if len(coord_type_options) < 2:
+            self.line_coords_combobox.setEnabled(False)
 
+    def change_coords(self,index):
+        self.coords_type = self.coord_types[index]
+
+
+class MeshImportDialog(qt.QDialog):
+
+    def __init__(self, parent,filename):
+
+        # GUI initialisation
+        qt.QDialog.__init__(self, parent)
+        qt.uic.loadUi(os.path.join(guipath,'qt_designer_files','mesh_import_settings.ui'), self)
+
+        self.parent = parent
+        self.filename.setText(os.path.split(filename)[-1])
 
 
 class RenderUnfoldedDialog(qt.QDialog):

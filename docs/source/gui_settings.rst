@@ -32,4 +32,8 @@ Custom image sources can be selected by clicking them in the image source list, 
 
 Environment Information
 -----------------------
-At the bottom of the settings window, information about the current software environment is displayed. This includes the OS platform, current versions of Python and Calcam, and the most critical dependencies: VTK, OpenCV and PyQt. This information can be useful when troubleshooting bugs or unexpected behaviour of the software.
+At the bottom of the settings window, information about the current software environment is displayed.
+
+The :guilabel:`Calcam Information` section displays the installed version of Calcam, and the locations of the Calcam GUI executable and icons storage path. These paths can be copied to the clipboard for example to use to make shortcuts to easily launch the Calcam GUI.
+
+Below this, the :guilabel:`Software Environment Information` section gives information about the broader software environment including the OS platform, Python version, and the most critical dependencies: VTK, OpenCV and PyQt. This information can be useful when troubleshooting bugs or unexpected behaviour of the software.

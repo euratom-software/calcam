@@ -1,5 +1,5 @@
 '''
-* Copyright 2015-2018 European Atomic Energy Community (EURATOM)
+* Copyright 2015-2025 European Atomic Energy Community (EURATOM)
 *
 * Licensed under the EUPL, Version 1.1 or - as soon they
   will be approved by the European Commission - subsequent
@@ -28,6 +28,7 @@ import atexit
 import warnings
 from .config import CalcamConfig
 from .io import ZipSaveFile
+from .render import get_rz_contour_actor
 
 
 
@@ -104,6 +105,7 @@ class CADModel():
             self.initial_view = model_def['initial_view']
             self.linewidth = 1
             self.mesh_path_roots = model_def['mesh_path_roots']
+            self.slice_params = (None,0,None)
 
             if self.model_variant is None:
                 self.model_variant = model_def['default_variant']
@@ -186,6 +188,7 @@ class CADModel():
             self.mesh_path_roots = {}
 
         self.renderers = []
+        self.slice_planes = None
         self.flat_shading = False
         self.edges = False
         self.cell_locator = None
@@ -245,6 +248,138 @@ class CADModel():
                     renderer.AddActor(actor)
 
             self.renderers.append(renderer)
+
+
+    def set_slicing(self,slice_phi=None,slice_r=0,slice_z=None):
+        """
+        Apply slicing / cross-sectioning to the model.
+
+        This will affect the geometry, octree etc returned from other methods, and will update
+        any renderers that the model is currently in to show the sliced model.
+
+        Calling without any arguments (i.e. with default slice_phi=None and slice_z = None) will reset
+        the model to not be sliced.
+
+        Parameters:
+
+            slice_phi        : Either None, a single float or sequence of 2 floats: toroidal angles in degrees.  \
+                               If None, no toroidal slicing is done. \
+                               If a single number, slices the model with a plane whose normal is at toroidal angle phi, possibly \
+                               with a radial offset from machine centre (see slice_r).
+                               If a sequence of 2 numbers, the part of the machine between the two given toroidal angles is kept.
+
+            slice_r (float)  : If slicing at a single toroidal angle, this will offset the slicing plane so it goes through this major radius \
+                               at its tangency point.
+
+            slice_z          : Either None or a sequence of 2 floats. \
+                               If None, no slicing by horizontal planes is done.
+                               If a 2 element sequence, parts of the model between these 2 Z values are kept. \
+                               -np.inf or np.inf can be used for the Z values to include all the way to the top or bottom of the model.
+        """
+
+        slice_params = (slice_phi,slice_r,slice_z)
+
+        outside = True
+
+        if slice_r < 0:
+            raise ValueError('slice_r is a major radius so cannot be < 0 (passed value of slice_r: {:.3f}m)'.format(slice_r))
+
+        if slice_phi is not None:
+            slice_phi = np.array(slice_phi)
+            if slice_phi.size == 2:
+
+                if slice_phi[0] > slice_phi[1]:
+                    slice_phi[1] = slice_phi[1] + 360
+
+                if slice_phi[1] - slice_phi[0] > 180:
+                    outside = False
+
+                elif slice_phi[1] - slice_phi[0] == 180:
+                    slice_phi = np.mean(slice_phi)
+
+                if slice_r > 0 and slice_phi.size == 2:
+                    # If we have an r > 0 slice, the above check should have made slice_phi a single value here
+                    raise ValueError('Cannot use slice_r > 0 when slice_phi angles differ by other than 180 degrees!')
+
+            elif slice_phi.size != 1:
+                raise ValueError('Slice angle must be a single value or sequence of 2 values specifying the toroidal angle range to show')
+
+            slice_phi = slice_phi / 180 * np.pi
+
+        if slice_z is not None:
+            if len(slice_z) == 2:
+                slice_z = np.sort(slice_z)
+            else:
+                raise ValueError('Slice height must be a sequence of 2 values specifying the Z range to show')
+
+
+        if slice_z is None and slice_phi is None:
+            if self.slice_planes is None:
+                # No need to update renderers etc; nothing has changed so just return
+                return
+            else:
+                # Set planes to None and skips to the end to update renderers etc
+                self.slice_planes = None
+
+        else:
+            # VTK objects to define the slicing
+            planes = vtk.vtkPlanes()
+            points = vtk.vtkPoints()
+            norms = vtk.vtkFloatArray()
+            norms.SetNumberOfComponents(3)
+
+            npt = 0
+
+            if slice_phi is not None:
+
+                if slice_phi.size == 1:
+                    # Single slice at possibly offset R
+                    norm_x = np.cos(slice_phi)
+                    norm_y = np.sin(slice_phi)
+                    points.InsertPoint(0, slice_r*norm_x, slice_r*norm_y, 0.)
+                    norms.InsertTuple3(0, norm_x, norm_y, 0.)
+                    npt = 1
+                else:
+                    # Cake slice from origin
+                    if outside:
+                        normal_sign = 1
+                    else:
+                        normal_sign = -1
+                    points.InsertPoint(0, 0.,0.,0.)
+                    points.InsertPoint(1, 0., 0., 0.)
+                    norms.InsertTuple3(0,normal_sign*np.sin(slice_phi[0]),-normal_sign*np.cos(slice_phi[0]),0.)
+                    norms.InsertTuple3(1, -normal_sign*np.sin(slice_phi[1]), normal_sign*np.cos(slice_phi[1]), 0.)
+                    npt = 2
+
+            if slice_z is not None:
+
+                if slice_z[0] > -np.inf:
+                    points.InsertPoint(npt, 0.,0.,slice_z[0])
+                    norms.InsertTuple3(npt, 0.,0., -1. if outside else 1)
+                    npt += 1
+                if slice_z[1] < np.inf:
+                    points.InsertPoint(npt, 0.,0.,slice_z[1])
+                    norms.InsertTuple3(npt, 0.,0., 1. if outside else -1)
+
+            planes.SetPoints(points)
+            planes.SetNormals(norms)
+            self.slice_planes = (planes,outside)
+
+        # If we are attached to any renderers, this will update the actual display
+        if len(self.renderers) > 0:
+            enable_features = self.get_enabled_features()
+            for feature in self.features:
+                self.features[feature].set_enabled(False)
+                self.features[feature].solid_actor = None
+                self.features[feature].edge_actor = None
+
+            for feature in enable_features:
+                self.features[feature].set_enabled(True)
+
+        self.slice_params = slice_params
+
+        if self.cell_locator is not None and self.cell_locator[1]:
+            self.cell_locator = None
 
 
 
@@ -578,7 +713,7 @@ class CADModel():
                 raise ValueError('Unknown feature "{:s}"!'.format(requested))
 
 
-    def build_octree(self):
+    def get_vtk_cell_locator(self,apply_slicing=False):
         '''
         Create a vtkCellLocator object used for testing
         the intersection of the CAD model with line segments.
@@ -588,29 +723,38 @@ class CADModel():
         if len(self.get_enabled_features()) == 0:
             return
 
-        if self.cell_locator is None:
+        if self.cell_locator is None or self.cell_locator[1] != apply_slicing:
 
             appender = vtk.vtkAppendPolyData()
+
+            if not apply_slicing:
+                slice_planes = self.slice_planes
+                self.slice_planes = None
 
             for fname in self.get_enabled_features():
                 appender.AddInputData(self.features[fname].get_polydata())
 
             appender.Update()
             if vtk.vtkVersion().GetVTKMajorVersion() > 8:
-                self.cell_locator = vtk.vtkStaticCellLocator()
+                self.cell_locator = [vtk.vtkStaticCellLocator(),apply_slicing]
             else:
-                self.cell_locator = vtk.vtkCellLocator()
+                self.cell_locator = [vtk.vtkCellLocator(),apply_slicing]
 
-            self.cell_locator.SetTolerance(1e-6)
-            self.cell_locator.SetDataSet(appender.GetOutput())
-            self.cell_locator.BuildLocator()
+            self.cell_locator[0].SetTolerance(1e-6)
+            self.cell_locator[0].SetDataSet(appender.GetOutput())
+            self.cell_locator[0].BuildLocator()
+
+            if not apply_slicing:
+                self.slice_planes = slice_planes
 
             # Initialise some faffy input variables for c-like interface of cellLocator's IntersectWithLine()
             # Keep these as properties so we only have to bother once
             self.raycast_args = (vtk.mutable(0), np.zeros(3), np.zeros(3), vtk.mutable(0), vtk.mutable(0), vtk.vtkGenericCell())
 
+        return self.cell_locator[0]
 
-    def intersect_with_line(self,line_start,line_end,surface_normal=False):
+
+    def intersect_with_line(self,line_start,line_end,surface_normal=False,apply_slicing=False):
         """
         Find the first intersection of a straight line segment with the CAD geometry, if one
         occurs ("first" meaning first when moving from the start to the end of the line segment).
@@ -632,7 +776,8 @@ class CADModel():
                                       If there is no intersection, returns `None`.
 
         """
-
+        line_start = np.array(line_start)
+        line_end = np.array(line_end)
         if len(self.get_enabled_features()) == 0:
             # Don't return anything if we have no enabled geometry
             intersects = False
@@ -641,10 +786,10 @@ class CADModel():
 
         else:
             # Make sure we have an octree
-            self.build_octree()
+            cell_locator = self.get_vtk_cell_locator(apply_slicing=apply_slicing)
 
             # Actually do the intersection using VTK
-            result = self.cell_locator.IntersectWithLine(line_start, line_end, 1.e-6, *self.raycast_args)
+            result = cell_locator.IntersectWithLine(line_start, line_end, 1.e-6, *self.raycast_args)
 
             if abs(result) > 0:
                 intersects = True
@@ -731,6 +876,26 @@ class CADModel():
         return sorted(self.views.keys())
 
 
+    def get_wall_contour_actor(self,actor_type,phi=None,toroidal_res=128):
+        """
+        Get vtkActor for the wall contour
+        """
+        actor = get_rz_contour_actor(self.wall_contour,actor_type,phi=phi,toroidal_res=toroidal_res,closed_contour=True)
+
+        if self.slice_planes is not None:
+            slice_filter = vtk.vtkExtractPolyDataGeometry()
+            slice_filter.SetImplicitFunction(self.slice_planes[0])
+            slice_filter.SetExtractInside(self.slice_planes[1])
+            slice_filter.SetInputData(actor.GetMapper().GetInput())
+            slice_filter.Update()
+
+            mapper = vtk.vtkPolyDataMapper()
+            mapper.SetInputData(slice_filter.GetOutput())
+            actor = vtk.vtkActor()
+            actor.SetMapper(mapper)
+
+        return actor
+
 
     def get_view(self,view_name):
         '''
@@ -761,7 +926,7 @@ class CADModel():
 
 
 
-    def add_view(self,viewname,campos,camtar,fov,xsection,roll,projection):
+    def add_view(self,viewname,campos,camtar,fov,roll,projection,slicing=None,xsection=None):
         '''
         Add a specified camera view to the model's pre-defined views.
 
@@ -771,14 +936,15 @@ class CADModel():
             campos (array-like)     : 3-element array-like specifying the camera position (X,Y,Z) in metres.
             camtar (array-like)     : 3-element array-like specifying a 3D point at which the camera is pointing.
             fov (float)             : Vertical field-of-view of the camera.
-            xsection (array-like)   : A 3D point through which the model will be cross-sectioned. If set to None, \
-                                      the model is not cross-sectioned.
             roll (float)            : Camera roll in degrees. This is the angle between the model's +Z direction \
                                       and the camera view up direction. Positie values indicate an anti-clockwise \
                                       roll of the camera.
             projection (str)        : Either ``perspective`` or ``orthographic``, what camera projection to use.
+            slicing (3 el. sequence): Slicing parameters slice_phi,slice_r,slice_z ("new" style cross-sectioning)
+            xsection (array-like)   : A 3D point through which the model will be cross-sectioned ("old style" cross-section; kept \
+                                      only to allow backwards-compatibility of CAD def files - should not be used).
         '''
-        self.views[viewname] = {'cam_pos':campos,'target':camtar,'y_fov':fov,'xsection':xsection,'roll':roll,'projection':projection}
+        self.views[viewname] = {'cam_pos':campos,'target':camtar,'y_fov':fov,'xsection':xsection,'roll':roll,'projection':projection,'slicing':slicing}
         self.model_def['views'] = self.views
         if not self.discard_changes:
             self.update_definition_file()
@@ -955,10 +1121,6 @@ class ModelFeature():
             elif self.coord_handedness == 'right':
                 self.polydata = transformer.GetOutput()
 
-
-
-
-
             # Remove all the lines from the PolyData. As far as I can tell for "normal" mesh files this shouldn't
             # remove anything visually important, but it avoids running in to issues with vtkFeatureEdges trying to allocate
             # way too much memory in VTK 9.1+.
@@ -966,7 +1128,16 @@ class ModelFeature():
 
             self.parent.status_callback(None)
 
-        return self.polydata
+        if self.parent.slice_planes is None:
+            return self.polydata
+        else:
+            slice_filter = vtk.vtkExtractPolyDataGeometry()
+            slice_filter.SetImplicitFunction(self.parent.slice_planes[0])
+            slice_filter.SetExtractInside(self.parent.slice_planes[1])
+            slice_filter.SetInputData(self.polydata)
+            slice_filter.Update()
+            return slice_filter.GetOutput()
+
 
 
     # Enable or disable the feature
@@ -1022,8 +1193,23 @@ class ModelFeature():
                 edge_finder.ColoringOff()
                 edge_finder.Update()
 
+                data = edge_finder.GetOutput()
+                n_edges = data.GetNumberOfCells()
+                angle = 20
+                while n_edges < 1 and angle > 5:
+                    angle = angle - 5
+                    edge_finder.SetFeatureAngle(angle)
+                    edge_finder.Update()
+                    data = edge_finder.GetOutput()
+                    n_edges = data.GetNumberOfCells()
+
+                if n_edges == 0:
+                    edge_finder.BoundaryEdgesOn()
+                    edge_finder.Update()
+                    data = edge_finder.GetOutput()
+
                 mapper = vtk.vtkPolyDataMapper()
-                mapper.SetInputConnection(edge_finder.GetOutputPort())
+                mapper.SetInputData(data)
 
                 self.edge_actor = vtk.vtkActor()
                 self.edge_actor.SetMapper(mapper)

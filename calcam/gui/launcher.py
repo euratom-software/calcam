@@ -1,5 +1,5 @@
 '''
-* Copyright 2015-2018 European Atomic Energy Community (EURATOM)
+* Copyright 2015-2025 European Atomic Energy Community (EURATOM)
 *
 * Licensed under the EUPL, Version 1.1 or - as soon they
   will be approved by the European Commission - subsequent
@@ -35,8 +35,7 @@ from .core import qt, guipath
 
 
 def launch(args):
-    subprocess.Popen([sys.executable,os.path.join( os.path.split(__file__)[0],'launch_script.py' )] + args,stdin=None)
-
+    subprocess.Popen([sys.executable,'-m','calcam'] + args,stdin=None)
 
 # Generate a rich text string prompting the user to go to the github page
 # if the latest release of calcam has a higher version number than the current one.
@@ -82,7 +81,6 @@ def update_prompt_string(queue):
     queue.put(updatestring)
 
   except Exception as e:
-      print(e)
       queue.put(None)
 
 

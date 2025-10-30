@@ -1,5 +1,5 @@
 '''
-* Copyright 2015-2021 European Atomic Energy Community (EURATOM)
+* Copyright 2015-2025 European Atomic Energy Community (EURATOM)
 *
 * Licensed under the EUPL, Version 1.1 or - as soon they
 will be approved by the European Commission - subsequent
@@ -123,6 +123,7 @@ class FittingCalib(CalcamGUIWindow):
         self.comparison_overlay_type.currentIndexChanged.connect(self.update_overlay)
         self.comparison_overlay_opacity_slider.valueChanged.connect(self.change_comparison_colour)
         self.rendertype_edges.toggled.connect(self.toggle_wireframe)
+        self.coords_table_button.clicked.connect(self.open_coords_window)
 
         self.control_sensitivity_slider.valueChanged.connect(lambda x: self.interactor3d.set_control_sensitivity(x*0.01))
         self.rmb_rotate.toggled.connect(self.interactor3d.set_rmb_rotate)
@@ -184,8 +185,10 @@ class FittingCalib(CalcamGUIWindow):
         self.chessboard_history = []
 
         self.fit_results = []
+        self.focal_length_spinboxes = []
 
         self.filename = None
+        self.coords_table_window = None
 
         self.waiting_pointpairs = None
 
@@ -236,6 +239,58 @@ class FittingCalib(CalcamGUIWindow):
         self.update_pointpairs()
         self.update_n_points()
         self.unsaved_changes = True
+
+
+    def move_point(self,index,new_pos,subview=0):
+
+        self.record_undo_state()
+
+        if len(new_pos) == 3:
+            if self.point_pairings[index][2]:
+                self.interactor3d.set_cursor_coords(self.point_pairings[index][0],new_pos)
+            else:
+                self.point_pairings[index][0] = new_pos
+        else:
+            if self.point_pairings[index][2]:
+                self.interactor2d.set_cursor_coords(self.point_pairings[index][1], new_pos,subview)
+            else:
+                self.point_pairings[index][1][subview] = new_pos
+
+        self.unsaved_changes = True
+        self.update_cursor_info()
+        self.update_pointpairs()
+
+
+    def set_point_enabled(self,index,enable):
+
+        if enable and not self.point_pairings[index][2]:
+            if self.point_pairings[index][0] is not None:
+                self.point_pairings[index][0] = self.interactor3d.add_cursor(self.point_pairings[index][0])
+            if self.point_pairings[index][1] is not None:
+                coords2d = self.point_pairings[index][1]
+                self.point_pairings[index][1] = self.interactor2d.add_active_cursor(coords2d[0])
+                for coords in coords2d[1:]:
+                    self.interactor2d.add_active_cursor(coords,add_to=self.point_pairings[index][1])
+            self.point_pairings[index][2] = True
+            self.change_point_focus('table',index)
+
+        elif not enable and self.point_pairings[index][2]:
+            if self.point_pairings[index][0] is not None:
+                cursor_ind = self.point_pairings[index][0]
+                self.point_pairings[index][0] = self.interactor3d.get_cursor_coords(cursor_ind)
+                self.interactor3d.remove_cursor(cursor_ind)
+            if self.point_pairings[index][1] is not None:
+                cursor_ind = self.point_pairings[index][1]
+                self.point_pairings[index][1] = [coords for coords in self.interactor2d.get_cursor_coords(cursor_ind) if coords is not None]
+                if len(self.point_pairings[index][1]) == 0:
+                    self.point_pairings[index][1] = None
+                self.interactor2d.remove_active_cursor(cursor_ind)
+            self.point_pairings[index][2] = False
+            self.selected_pointpair = None
+
+        self.update_pointpairs()
+        self.update_cursor_info()
+        self.update_n_points()
 
 
     def select_comparison_calib(self):
@@ -297,7 +352,16 @@ class FittingCalib(CalcamGUIWindow):
     def on_close(self):
         self.qvtkwidget_2d.close()
         self.qvtkwidget_3d.close()
+        if self.coords_table_window is not None:
+            self.coords_table_window.close()
 
+
+    def open_coords_window(self):
+
+        if self.coords_table_window is None:
+            self.coords_table_window = PointsDataWindow(self)
+        else:
+            self.coords_table_window.activateWindow()
 
     def reset(self,keep_cadmodel=False):
 
@@ -318,6 +382,9 @@ class FittingCalib(CalcamGUIWindow):
         self.interactor2d.set_image(None)
 
         self.calibration = Calibration(cal_type='fit')
+
+        if self.coords_table_window is not None:
+            self.coords_table_window.update_subviews()
 
         self.image_settings.hide()
 
@@ -341,6 +408,7 @@ class FittingCalib(CalcamGUIWindow):
 
         self.refresh_2d()
         self.refresh_3d()
+
         self.unsaved_changes = False
 
 
@@ -429,13 +497,16 @@ class FittingCalib(CalcamGUIWindow):
                 self.update_n_points()
                 return
 
-        self.point_pairings.append( [None,self.interactor2d.add_active_cursor(im_coords)] )
+        self.point_pairings.append( [None,self.interactor2d.add_active_cursor(im_coords),True] )
         self.interactor2d.set_cursor_focus(self.point_pairings[-1][1])
         self.interactor3d.set_cursor_focus(None)
         self.selected_pointpair = len(self.point_pairings) - 1
         self.update_cursor_info()
 
         self.update_n_points()
+
+        if self.coords_table_window is not None:
+            self.coords_table_window.update_points()
 
 
     def new_point_3d(self,coords):
@@ -449,7 +520,7 @@ class FittingCalib(CalcamGUIWindow):
                 self.update_n_points()
                 return
 
-        self.point_pairings.append( [self.interactor3d.add_cursor(coords),None] )
+        self.point_pairings.append( [self.interactor3d.add_cursor(coords),None,True] )
         self.interactor3d.set_cursor_focus(self.point_pairings[-1][0])
         self.interactor2d.set_cursor_focus(None)
         self.selected_pointpair = len(self.point_pairings) - 1
@@ -457,11 +528,15 @@ class FittingCalib(CalcamGUIWindow):
 
         self.update_n_points()
 
+        if self.coords_table_window is not None:
+            self.coords_table_window.update_points()
+
 
 
 
     def change_point_focus(self,sender,new_focus):
 
+        force_update_table = False
         if self.selected_pointpair is not None:
             if None in self.point_pairings[self.selected_pointpair]:
                 if self.point_pairings[self.selected_pointpair][0] is not None:
@@ -469,6 +544,7 @@ class FittingCalib(CalcamGUIWindow):
                 if self.point_pairings[self.selected_pointpair][1] is not None:
                     self.interactor2d.remove_active_cursor(self.point_pairings[self.selected_pointpair][1])
                 self.point_pairings.remove(self.point_pairings[self.selected_pointpair])
+                force_update_table = True
 
         if sender == '3d':
             for i,pointpair in enumerate(self.point_pairings):
@@ -480,6 +556,24 @@ class FittingCalib(CalcamGUIWindow):
                 if pointpair[1] == new_focus:
                     self.interactor3d.set_cursor_focus(pointpair[0])
                     self.selected_pointpair = i
+        elif sender == 'table':
+            if self.point_pairings[new_focus][2]:
+                cursor2d = self.point_pairings[new_focus][1]
+                cursor3d = self.point_pairings[new_focus][0]
+                if cursor2d is not None:
+                    self.interactor2d.set_cursor_focus(cursor2d)
+                if cursor3d is not None:
+                    self.interactor3d.set_cursor_focus(cursor3d)
+                self.selected_pointpair = new_focus
+            else:
+                self.interactor2d.set_cursor_focus(None)
+                self.interactor3d.set_cursor_focus(None)
+                self.selected_pointpair = None
+
+        if self.coords_table_window is not None and ( sender != 'table' or force_update_table):
+            if force_update_table:
+                self.coords_table_window.update_points()
+            self.coords_table_window.update_selected_point(self.selected_pointpair,update_parent=False)
 
         self.update_cursor_info()
 
@@ -659,9 +753,30 @@ class FittingCalib(CalcamGUIWindow):
                     self.init_fitting()
 
 
-    def change_fit_params(self,fun,state):
+    def change_fit_params(self,field,param,value):
 
-        fun(state)
+        fitter = self.fitters[field]
+
+        if param == 'fix_k1':
+            fitter.fix_k1(value)
+        elif param == 'fix_k2':
+            fitter.fix_k2(value)
+        elif param == 'fix_k3':
+            fitter.fix_k3(value)
+        elif param == 'fix_k4':
+            fitter.fix_k4(value)
+        elif param == 'fix_tangential':
+            fitter.fix_tangential(value)
+        elif param == 'fix_cc':
+                fitter.fix_cc(value[0],Cx=value[1],Cy=value[2])
+        elif param == 'f_guess':
+            if self.calibration.pixel_size is not None:
+                value = 1e-3*value / self.calibration.pixel_size
+            fitter.f_guess = value
+        elif param == 'fix_aspect':
+            fitter.fix_aspect(value)
+        else:
+            raise ValueError('Fit parameter "{:}" not recognised by change_fit_params()!'.format(param))
         self.fit_enable_check()
 
 
@@ -682,6 +797,7 @@ class FittingCalib(CalcamGUIWindow):
         self.fisheye_settings = []
         self.fit_buttons = []
         self.fit_results = []
+        self.focal_length_spinboxes = []
 
         if reset_options or len(self.fitters) != self.calibration.n_subviews:
             self.fitters = []
@@ -709,6 +825,7 @@ class FittingCalib(CalcamGUIWindow):
 
             widgetlist[0].toggled.connect(self.change_dist_model)
             widgetlist[1].toggled.connect(self.change_dist_model)
+
             sub_widget = qt.QWidget()
             sub_layout = qt.QHBoxLayout()
             sub_widget.setLayout(sub_layout)
@@ -716,6 +833,25 @@ class FittingCalib(CalcamGUIWindow):
             sub_layout.addWidget(widgetlist[1])
             sub_layout.setContentsMargins(0,0,0,0)
             options_layout.addWidget(sub_widget)
+
+            im_dims = self.calibration.geometry.get_display_shape()
+
+            # Initial / default values for focal length and principal point.
+            try:
+                # If these already exist in the calibration, use the values from the calibration
+                cam_matrix = self.calibration.get_cam_matrix(field)
+                cc_x = cam_matrix[0,2]
+                cc_y = cam_matrix[1,2]
+                f = (cam_matrix[0,0] + cam_matrix[1,1])/2
+                self.fitters[field].set_fitflags_strings(self.calibration.view_models[field].fit_options)
+                self.fitters[field].set_model(self.calibration.view_models[field].model)
+            except Exception as e:
+                # If they don't already exist, use the sub-view centre for the cc initial guess and sensor diagonal
+                # as the focal length
+                cc_y,cc_x = CoM(self.calibration.get_subview_mask(coords='Display') == field)
+                f = np.sqrt(im_dims[0]**2+im_dims[1]**2)
+
+            self.fitters[field].f_guess = f
 
 
             # Settings for perspective model
@@ -725,6 +861,72 @@ class FittingCalib(CalcamGUIWindow):
             perspective_settings_layout.setContentsMargins(0,0,0,0)
             self.perspective_settings[-1].setLayout(perspective_settings_layout)
 
+            #   --- focal length
+            sub_widget = qt.QWidget()
+            sub_layout = qt.QHBoxLayout()
+            sub_widget.setLayout(sub_layout)
+            sub_layout.addWidget(qt.QLabel('Focal length guess:'))
+            widgetlist.append(qt.QDoubleSpinBox())
+            self.focal_length_spinboxes.append(widgetlist[-1])
+            widgetlist[-1].setButtonSymbols(widgetlist[-1].NoButtons)
+            if self.calibration.pixel_size is not None:
+                widgetlist[-1].setDecimals(1)
+                widgetlist[-1].setMinimum(0.1)
+                widgetlist[-1].setMaximum(1000)
+
+                widgetlist[-1].setValue(f*self.calibration.pixel_size*1e3)
+                widgetlist[-1].setSuffix(' mm')
+            else:
+                widgetlist[-1].setDecimals(0)
+                widgetlist[-1].setMinimum(1)
+                widgetlist[-1].setMaximum(1e7)
+                widgetlist[-1].setValue(f)
+                widgetlist[-1].setSuffix(' px')
+
+            widgetlist[-1].valueChanged.connect(lambda value,field=field: self.change_fit_params(field,'f_guess',value))
+            sub_layout.addWidget(widgetlist[-1])
+            widgetlist.append(qt.QCheckBox('Fix Fx = Fy'))
+            widgetlist[-1].setChecked(self.fitters[field].fixaspectratio)
+            widgetlist[-1].toggled.connect(lambda state,field=field: self.change_fit_params(field,'fix_aspect',state))
+            sub_layout.addWidget(widgetlist[-1])
+            sub_layout.setContentsMargins(0,0,0,0)
+            perspective_settings_layout.addWidget(sub_widget)
+            #   --- end of focal length
+
+            #   --- principal point
+            sub_widget = qt.QWidget()
+            sub_layout = qt.QHBoxLayout()
+            sub_widget.setLayout(sub_layout)
+
+            widgetlist.append(qt.QLabel('Principal point guess:'))
+
+            sub_layout.addWidget(widgetlist[-1])
+
+            widgetlist.append(qt.QSpinBox())
+            widgetlist[-1].setMinimum(-im_dims[0])
+            widgetlist[-1].setMaximum(im_dims[0]*2)
+            widgetlist[-1].setValue(int(cc_x))
+            widgetlist[-1].setButtonSymbols(widgetlist[-1].NoButtons)
+            sub_layout.addWidget(widgetlist[-1])
+            sub_layout.addWidget(qt.QLabel(','))
+            widgetlist.append(qt.QSpinBox())
+            widgetlist[-1].setMinimum(-im_dims[1])
+            widgetlist[-1].setMaximum(im_dims[1]*2)
+            widgetlist[-1].setValue(int(cc_y))
+            widgetlist[-1].setButtonSymbols(widgetlist[-1].NoButtons)
+            sub_layout.addWidget(widgetlist[-1])
+            sub_layout.setContentsMargins(0,0,0,0)
+            widgetlist.append(qt.QCheckBox('Fix in fit'))
+            widgetlist[-1].toggled.connect(lambda state, field=field,cx_widget=widgetlist[-3],cy_widget=widgetlist[-2]: self.change_fit_params(field, 'fix_cc', (state,cx_widget.value(),cy_widget.value())))
+            widgetlist[-2].valueChanged.connect(lambda cy_value, field=field,checkbox=widgetlist[-1], cx_widget=widgetlist[-3]: self.change_fit_params(field, 'fix_cc', (checkbox.isChecked(), cx_widget.value(), cy_value)))
+            widgetlist[-3].valueChanged.connect(lambda cx_value, field=field, checkbox=widgetlist[-1], cy_widget=widgetlist[-2]: self.change_fit_params(field, 'fix_cc', (checkbox.isChecked(), cx_value, cy_widget.value())))
+            widgetlist[-1].setChecked(self.fitters[field].fixcc)
+            sub_layout.addWidget(widgetlist[-1])
+            perspective_settings_layout.addWidget(sub_widget)
+            #   --- end of principal point
+
+            #   ---- distortion parameters
+            perspective_settings_layout.addWidget(qt.QLabel('Enable / Disable distortion terms:'))
             widgetlist = widgetlist + [qt.QCheckBox('Disable k1'),qt.QCheckBox('Disable k2'),qt.QCheckBox('Disable k3')]
 
             sub_widget = qt.QWidget()
@@ -737,23 +939,15 @@ class FittingCalib(CalcamGUIWindow):
             perspective_settings_layout.addWidget(sub_widget)
 
             widgetlist[-3].setChecked(self.fitters[field].fixk1)
-            widgetlist[-3].toggled.connect(lambda state,field=field: self.change_fit_params(self.fitters[field].fix_k1,state))
+            widgetlist[-3].toggled.connect(lambda state,field=field: self.change_fit_params(field,'fix_k1',state))
             widgetlist[-2].setChecked(self.fitters[field].fixk2)
-            widgetlist[-2].toggled.connect(lambda state,field=field: self.change_fit_params(self.fitters[field].fix_k2,state))
+            widgetlist[-2].toggled.connect(lambda state,field=field: self.change_fit_params(field,'fix_k2',state))
             widgetlist[-1].setChecked(self.fitters[field].fixk3)
-            widgetlist[-1].toggled.connect(lambda state,field=field: self.change_fit_params(self.fitters[field].fix_k3,state))
-            widgetlist.append(qt.QCheckBox('Disable Tangential Distortion'))
+            widgetlist[-1].toggled.connect(lambda state,field=field: self.change_fit_params(field,'fix_k3',state))
+            widgetlist.append(qt.QCheckBox('Disable tangential distortion'))
             perspective_settings_layout.addWidget(widgetlist[-1])
             widgetlist[-1].setChecked(self.fitters[field].disabletangentialdist)
-            widgetlist[-1].toggled.connect(lambda state,field=field: self.change_fit_params(self.fitters[field].fix_tangential,state))
-            widgetlist.append(qt.QCheckBox('Fix Fx = Fy'))
-            widgetlist[-1].setChecked(self.fitters[field].fixaspectratio)
-            widgetlist[-1].toggled.connect(lambda state,field=field: self.change_fit_params(self.fitters[field].fix_aspect,state))
-            perspective_settings_layout.addWidget(widgetlist[-1])
-            widgetlist.append(qt.QCheckBox('Fix Principal Point at Centre'))
-            widgetlist[-1].setChecked(self.fitters[field].fixcc)
-            widgetlist[-1].toggled.connect(lambda state,field=field: self.change_fit_params(self.fitters[field].fix_cc,state))
-            perspective_settings_layout.addWidget(widgetlist[-1])
+            widgetlist[-1].toggled.connect(lambda state,field=field: self.change_fit_params(field,'fix_tangential',state))
 
 
             # ------- End of perspective settings -----------------
@@ -765,6 +959,68 @@ class FittingCalib(CalcamGUIWindow):
             fisheye_settings_layout.setContentsMargins(0,0,0,0)
             self.fisheye_settings[-1].setLayout(fisheye_settings_layout)
 
+            #   --- focal length
+            sub_widget = qt.QWidget()
+            sub_layout = qt.QHBoxLayout()
+            sub_widget.setLayout(sub_layout)
+            sub_layout.addWidget(qt.QLabel('Focal length initial guess:'))
+            widgetlist.append(qt.QDoubleSpinBox())
+            self.focal_length_spinboxes.append(widgetlist[-1])
+            widgetlist[-1].setButtonSymbols(widgetlist[-1].NoButtons)
+            if self.calibration.pixel_size is not None:
+                widgetlist[-1].setDecimals(1)
+                widgetlist[-1].setMinimum(0.1)
+                widgetlist[-1].setMaximum(1000)
+
+                widgetlist[-1].setValue(f*self.calibration.pixel_size*1e3)
+                widgetlist[-1].setSuffix(' mm')
+            else:
+                widgetlist[-1].setDecimals(0)
+                widgetlist[-1].setMinimum(1)
+                widgetlist[-1].setMaximum(1e7)
+                widgetlist[-1].setValue(f)
+                widgetlist[-1].setSuffix(' px')
+
+            widgetlist[-1].valueChanged.connect(lambda value,field=field: self.change_fit_params(field,'f_guess',value))
+            sub_layout.addWidget(widgetlist[-1])
+            sub_layout.setContentsMargins(0,0,0,0)
+            fisheye_settings_layout.addWidget(sub_widget)
+            #   --- end of focal length
+
+            #   --- principal point
+            sub_widget = qt.QWidget()
+            sub_layout = qt.QHBoxLayout()
+            sub_widget.setLayout(sub_layout)
+
+            widgetlist.append(qt.QLabel('Principal Point guess:'))
+
+            sub_layout.addWidget(widgetlist[-1])
+
+            widgetlist.append(qt.QSpinBox())
+            widgetlist[-1].setMinimum(-im_dims[0])
+            widgetlist[-1].setMaximum(im_dims[0]*2)
+            widgetlist[-1].setValue(int(cc_x))
+            widgetlist[-1].setButtonSymbols(widgetlist[-1].NoButtons)
+            sub_layout.addWidget(widgetlist[-1])
+            sub_layout.addWidget(qt.QLabel(','))
+            widgetlist.append(qt.QSpinBox())
+            widgetlist[-1].setMinimum(-im_dims[1])
+            widgetlist[-1].setMaximum(im_dims[1]*2)
+            widgetlist[-1].setValue(int(cc_y))
+            widgetlist[-1].setButtonSymbols(widgetlist[-1].NoButtons)
+            sub_layout.addWidget(widgetlist[-1])
+            sub_layout.setContentsMargins(0,0,0,0)
+            widgetlist.append(qt.QCheckBox('Fix in fit'))
+            widgetlist[-1].toggled.connect(lambda state, field=field,cx_widget=widgetlist[-3],cy_widget=widgetlist[-2]: self.change_fit_params(field, 'fix_cc', (state,cx_widget.value(),cy_widget.value())))
+            widgetlist[-2].valueChanged.connect(lambda cy_value, field=field,checkbox=widgetlist[-1], cx_widget=widgetlist[-3]: self.change_fit_params(field, 'fix_cc', (checkbox.isChecked(), cx_widget.value(), cy_value)))
+            widgetlist[-3].valueChanged.connect(lambda cx_value, field=field, checkbox=widgetlist[-1], cy_widget=widgetlist[-2]: self.change_fit_params(field, 'fix_cc', (checkbox.isChecked(), cx_value, cy_widget.value())))
+            widgetlist[-1].setChecked(self.fitters[field].fixcc)
+            sub_layout.addWidget(widgetlist[-1])
+            fisheye_settings_layout.addWidget(sub_widget)
+            #   --- end of principal point
+
+
+            fisheye_settings_layout.addWidget(qt.QLabel('Enable / Disable distortion terms:'))
             widgetlist = widgetlist + [qt.QCheckBox('Disable k1'),qt.QCheckBox('Disable k2'),qt.QCheckBox('Disable k3'),qt.QCheckBox('Disable k4')]
 
             sub_widget = qt.QWidget()
@@ -778,13 +1034,13 @@ class FittingCalib(CalcamGUIWindow):
             fisheye_settings_layout.addWidget(sub_widget)
 
             widgetlist[-4].setChecked(self.fitters[field].fixk1)
-            widgetlist[-4].toggled.connect(lambda state,field=field: self.change_fit_params(self.fitters[field].fix_k1,state))
+            widgetlist[-4].toggled.connect(lambda state,field=field: self.change_fit_params(field,'fix_k1',state))
             widgetlist[-3].setChecked(self.fitters[field].fixk2)
-            widgetlist[-3].toggled.connect(lambda state,field=field: self.change_fit_params(self.fitters[field].fix_k2,state))
+            widgetlist[-3].toggled.connect(lambda state,field=field: self.change_fit_params(field,'fix_k2',state))
             widgetlist[-2].setChecked(self.fitters[field].fixk3)
-            widgetlist[-2].toggled.connect(lambda state,field=field: self.change_fit_params(self.fitters[field].fix_k3,state))
+            widgetlist[-2].toggled.connect(lambda state,field=field: self.change_fit_params(field,'fix_k3',state))
             widgetlist[-1].setChecked(self.fitters[field].fixk4)
-            widgetlist[-1].toggled.connect(lambda state,field=field: self.change_fit_params(self.fitters[field].fix_k4,state))
+            widgetlist[-1].toggled.connect(lambda state,field=field: self.change_fit_params(field,'fix_k4',state))
 
             for widgetno in [-4,-3,-2,-1]:
                 widgetlist[widgetno].toggled.connect(self.fit_enable_check)
@@ -820,7 +1076,6 @@ class FittingCalib(CalcamGUIWindow):
 
 
             # Build GUI to show the fit results, according to the number of fields.
-
             widgets = [ qt.QLabel('Fit RMS residual = ') , qt.QLabel('Parameter names'),  qt.QLabel('Parameter values'), qt.QPushButton('Set CAD view to match fit')]
             self.view_to_fit_buttons.append(widgets[-1])
             widgets[1].setAlignment(qt.Qt.AlignRight)
@@ -955,7 +1210,7 @@ class FittingCalib(CalcamGUIWindow):
 
                 if cursorid_2d is not None:
                     cursorid_3d = self.interactor3d.add_cursor(pointpairs.object_points[i])
-                    self.point_pairings.append([cursorid_3d,cursorid_2d])
+                    self.point_pairings.append([cursorid_3d,cursorid_2d,True])
 
             self.update_pointpairs(src=src,history=history,clear_fit=clear_fit)
             self.update_n_points()
@@ -1081,7 +1336,7 @@ class FittingCalib(CalcamGUIWindow):
         pp = PointPairs()
 
         for pointpair in self.point_pairings:
-            if pointpair[0] is not None and pointpair[1] is not None:
+            if pointpair[0] is not None and pointpair[1] is not None and pointpair[2]:
                 pp.add_pointpair(self.interactor3d.get_cursor_coords(pointpair[0]) , self.interactor2d.get_cursor_coords(pointpair[1]) )
 
         if clear_fit and self.calibration.pointpairs is not None:
@@ -1134,7 +1389,8 @@ class FittingCalib(CalcamGUIWindow):
 
 
         self.unsaved_changes = True
-
+        if self.coords_table_window is not None:
+            self.coords_table_window.update_points()
 
 
     def update_fit_results(self,show_points=True):
@@ -1168,7 +1424,7 @@ class FittingCalib(CalcamGUIWindow):
             widgets = self.fit_results_widgets[subview]
 
             if self.calibration.view_models[subview].model == 'rectilinear':
-                widgets[0].setText( '<b>RMS Fit Residual: {: .1f} pixels<b>'.format(params.reprojection_error) )
+                widgets[0].setText( '<b>Rectilinear lens fit<br>RMS Fit Residual: {: .1f} pixels<b>'.format(params.reprojection_error) )
                 widgets[1].setText( ' : <br>'.join( [  'Pupil position' ,
                                                     'View direction' ,
                                                     'Field of view',
@@ -1204,7 +1460,7 @@ class FittingCalib(CalcamGUIWindow):
                                                 ''
                                                 ] ) )
             elif params.model == 'fisheye':
-                widgets[0].setText( '<b>RMS Fit Residual: {: .1f} pixels<b>'.format(params.reprojection_error) )
+                widgets[0].setText( '<b>Fisheye lens fit<br>RMS Fit Residual: {: .1f} pixels<b>'.format(params.reprojection_error) )
                 widgets[1].setText( ' : <br>'.join( [  'Pupil position' ,
                                                     'View direction' ,
                                                     'Field of view',
@@ -1276,6 +1532,12 @@ class FittingCalib(CalcamGUIWindow):
             self.show_msgbox('The fitted calibration indicates that the images is upside down! Try rotating the image 180 degrees and fitting again.')
             self.app.restoreOverrideCursor()
             return
+        except Exception as e:
+            if self.fitters[subview].model == 'fisheye':
+                self.app.restoreOverrideCursor()
+                self.show_msgbox('Fisheye fitting failed with this set of points and parameters.','Consider trying with different fit initial guesses. Otherwise, the fisheye model may not be suitable for this data.')
+            else:
+                raise
 
         self.update_fit_results()
 
@@ -1290,6 +1552,8 @@ class FittingCalib(CalcamGUIWindow):
             dialog.exec()
 
         self.unsaved_changes = True
+        if self.coords_table_window is not None:
+            self.coords_table_window.update_points()
 
 
     def render_overlay_image(self,calibration,wireframe):
@@ -1375,7 +1639,7 @@ class FittingCalib(CalcamGUIWindow):
 
             npts = 0
             for pp in self.point_pairings:
-                if pp[0] is not None and pp[1] is not None:
+                if pp[0] is not None and pp[1] is not None and pp[2]:
                     im_coords = self.interactor2d.get_cursor_coords(pp[1])
 
                     if im_coords[subview] is not None:
@@ -1522,8 +1786,10 @@ class FittingCalib(CalcamGUIWindow):
 
         self.calibration = opened_calib
 
-        if not self.fit_initted:
-            self.init_fitting(reset_fit=False)
+        if self.coords_table_window is not None:
+            self.coords_table_window.update_subviews()
+
+        self.init_fitting(reset_fit=False)
 
         self.interactor2d.set_subview_lookup(self.calibration.n_subviews,self.calibration.subview_lookup)
 
@@ -1599,24 +1865,6 @@ class FittingCalib(CalcamGUIWindow):
             self.camFOV.setValue(cconfig['viewport']['fov'])
             self.cam_roll.setValue(cconfig['viewport']['roll'])
 
-        for field in range(len(self.fit_settings_widgets)):
-            if opened_calib.view_models[field] is not None:
-
-                if opened_calib.view_models[field].model == 'rectilinear':
-                    self.fit_settings_widgets[field][0].setChecked(True)
-                    widget_index_start = 2
-                    widget_index_end = 7
-                elif opened_calib.view_models[field].model == 'fisheye':
-                    self.fit_settings_widgets[field][1].setChecked(True)
-                    widget_index_start = 7
-                    widget_index_end = 10
-
-                for widget in self.fit_settings_widgets[field][widget_index_start:widget_index_end+1]:
-                    widget.setChecked(False)
-                    if (str(widget.text()) in opened_calib.view_models[field].fit_options) or ( ('Fix Principal Point' in str(widget.text()) and any(['Fix CC' in txt for txt in opened_calib.view_models[field].fit_options] ))):
-                        widget.setChecked(True)
-
-
 
         if self.calibration.readonly:
             self.action_save.setEnabled(False)
@@ -1653,6 +1901,8 @@ class FittingCalib(CalcamGUIWindow):
             self.interactor2d.set_subview_lookup(self.calibration.n_subviews,self.calibration.subview_lookup)
             self.init_fitting()
             self.unsaved_changes = True
+            if self.coords_table_window is not None:
+                self.coords_table_window.update_subviews()
             self.update_n_points()
             self.pointpairs_history.clear()
             self.points_undo_button.setEnabled(False)
@@ -1684,6 +1934,16 @@ class FittingCalib(CalcamGUIWindow):
         else:
             self.pixel_size_box.setEnabled(False)
             self.calibration.pixel_size = None
+
+        for spinbox in self.focal_length_spinboxes:
+                if spinbox.suffix() == ' px' and self.pixel_size_checkbox.isChecked():
+                    spinbox.setValue(spinbox.value() * self.pixel_size_box.value() / 1000)
+                    spinbox.setSuffix(' mm')
+                    spinbox.setDecimals(1)
+                elif spinbox.suffix() == ' mm' and not self.pixel_size_checkbox.isChecked():
+                    spinbox.setValue(spinbox.value() / (self.pixel_size_box.value() / 1000))
+                    spinbox.setSuffix(' px')
+                    spinbox.setDecimals(0)
 
         self.update_fit_results()
         self.unsaved_changes = True
@@ -1737,3 +1997,269 @@ class FittingCalib(CalcamGUIWindow):
         self.update_pointpairs()
         self.update_n_points()
         self.fit_enable_check()
+
+
+class PointsDataWindow(qt.QDialog):
+
+    def __init__(self, parent):
+
+        # GUI initialisation
+        qt.QDialog.__init__(self)
+        self.parent=parent
+        self.setWindowTitle('Calcam - Point pair coordinates')
+        self.setWindowIcon(qt.QIcon(os.path.join(guipath, 'icons', 'calcam.png')))
+
+        self.checkbox_table = qt.QTableWidget()
+        self.checkbox_table.verticalScrollBar().valueChanged.connect(self._scroll_all_tables)
+        self.checkbox_table.setColumnCount(1)
+        self.checkbox_table.verticalHeader().setVisible(False)
+        self.checkbox_table.setHorizontalHeaderLabels(['Include'])
+        self.checkbox_table.currentCellChanged.connect(self.update_selected_point)
+        self.checkbox_table.setShowGrid(False)
+
+        self.coords3d_table = qt.QTableWidget()
+        self.coords3d_table.verticalScrollBar().valueChanged.connect(self._scroll_all_tables)
+        self.coords3d_table.setSelectionBehavior(self.coords3d_table.SelectRows)
+        self.coords3d_table.setSelectionMode(self.coords3d_table.SingleSelection)
+        self.coords3d_table.verticalHeader().setVisible(False)
+        self.coords3d_table.setColumnCount(3)
+        self.coords3d_table.setHorizontalHeaderLabels(['X (m)','Y (m)','Z (m)'])
+        self.coords3d_table.currentCellChanged.connect(self.update_selected_point)
+        self.coords3d_table.itemChanged.connect(self.move_point)
+        self.coords3d_table.itemDoubleClicked.connect(self._on_table_doubleclick)
+
+
+        self.coords2d_tables = []
+        self.coords2d_labels = []
+        self.hspace = None
+
+        self.all_tables = [self.checkbox_table,self.coords3d_table]
+
+        layout = qt.QGridLayout()
+        layout.addWidget(qt.QLabel('3D (CAD model) Coordinates'), 0, 1)
+        layout.addWidget(self.checkbox_table,1,0)
+        layout.addWidget(self.coords3d_table, 1, 1)
+
+        self.setLayout(layout)
+
+        sc = qt.QShortcut(qt.QKeySequence(qt.QKeySequence.Delete),self)
+        sc.setContext(qt.Qt.WindowShortcut)
+        sc.activated.connect(self.parent.remove_current_pointpair)
+
+        self.update_subviews()
+        self.resize(self.width(),parent.height())
+        self.show()
+
+
+
+
+    def _adjust_table_widths(self):
+
+        self.checkbox_table.resizeColumnsToContents()
+        for table in self.all_tables:
+            cols = table.columnCount()
+            contents_width = 0
+            for col in range(cols):
+                contents_width = contents_width + table.columnWidth(col)
+
+            table.setFixedWidth(contents_width+20)
+
+    def _on_table_doubleclick(self,item):
+
+        if item.text() == '':
+            self.parent.show_msgbox('New points cannot be added from the coordinates table.<br>Please use the main window to add a new point and then you can edit the coordinates in this window.',alt_parent=self)
+
+    def update_subviews(self,update_points=True):
+
+        for label,table in zip(self.coords2d_labels,self.coords2d_tables):
+            self.layout().removeWidget(label)
+            self.layout().removeWidget(table)
+            self.all_tables.remove(table)
+
+        self.coords2d_tables = []
+        self.coords2d_labels = []
+
+        if self.hspace is not None:
+            self.layout().removeItem(self.hspace)
+        self.hspace = None
+
+        for subview in range(self.parent.calibration.n_subviews):
+            if self.parent.calibration.n_subviews > 1:
+                label = qt.QLabel('Image Coordinates: {:s}'.format(self.parent.calibration.subview_names[subview]))
+            else:
+                label = qt.QLabel('Image Coordinates')
+            self.coords2d_labels.append(label)
+            self.layout().addWidget(label,0,subview+2)
+
+            table = qt.QTableWidget()
+            table.setSelectionBehavior(table.SelectRows)
+            table.setSelectionMode(table.SingleSelection)
+            table.verticalHeader().setVisible(False)
+            table.verticalScrollBar().valueChanged.connect(self._scroll_all_tables)
+            table.setColumnCount(3)
+            table.setHorizontalHeaderLabels(['X (px)','Y (px)','Fit residual (px)'])
+            table.currentCellChanged.connect(self.update_selected_point)
+            table.itemDoubleClicked.connect(self._on_table_doubleclick)
+            table.itemChanged.connect(self.move_point)
+            self.coords2d_tables.append(table)
+            self.all_tables.append(table)
+            self.layout().addWidget(table, 1, subview + 2)
+
+        self.hspace = qt.QSpacerItem(40, 20, qt.QSizePolicy.Policy.Expanding,qt.QSizePolicy.Policy.Minimum)
+        self.layout().addItem(self.hspace,0,subview+3)
+
+        self._adjust_table_widths()
+
+        if update_points:
+            self.update_points()
+
+
+
+
+    def update_selected_point(self,index=None,col=None,leaving_index=None,leaving_col=None,update_parent=True):
+
+        for table in self.all_tables:
+            table.blockSignals(True)
+            if index is not None:
+                table.selectRow(index)
+            else:
+                table.clearSelection()
+            table.blockSignals(False)
+
+        if update_parent:
+            self.parent.change_point_focus('table',index)
+
+
+    def _scroll_all_tables(self,value):
+
+        for table in self.all_tables:
+            scrollbar = table.verticalScrollBar()
+            if self.sender() is not scrollbar:
+                scrollbar.setValue(value)
+
+
+    def move_point(self):
+
+        subview = None
+        coords = [item.text() for item in self.sender().selectedItems()]
+
+        if len(coords) < 3:
+            return
+
+        if self.sender() is not self.coords3d_table:
+            coords = coords[:2]
+
+        try:
+            coords = [float(num) for num in coords]
+        except ValueError as e:
+            self.parent.show_msgbox('Value entered is not a valid numerical value',alt_parent=self)
+            self.update_points()
+            return
+
+        for i,table in enumerate(self.coords2d_tables):
+            if self.sender() is table:
+                subview = i
+                break
+
+        point_ind = self.sender().currentRow()
+
+        self.parent.move_point(point_ind,coords,subview)
+
+
+    def update_points(self):
+        """
+        Update the point coordinates table from the data in the parent window
+        """
+
+        n_pointpairs = len(self.parent.point_pairings)
+
+        restore_scroll_location = self.checkbox_table.verticalScrollBar().value()
+
+        for table in self.all_tables:
+            # Brute force updating: clear everything and make it all again
+            table.blockSignals(True)
+            table.clearContents()
+            table.setRowCount(n_pointpairs)
+
+
+        for point in range(n_pointpairs):
+            # Loop over the point pairings in the parent window
+
+            # Checkbox for whether the point is enabled
+            checkbox = qt.QCheckBox('Point {:d}'.format(point))
+            checkbox.setChecked(self.parent.point_pairings[point][2])
+            checkbox.toggled.connect(lambda enable,point=point: self.parent.set_point_enabled(point,enable))
+            self.checkbox_table.setCellWidget(point,0,checkbox)
+
+            if self.parent.point_pairings[point][0] is not None:
+                # 3D coordinates, if they exist
+                if self.parent.point_pairings[point][2]:
+                    coords3d = self.parent.interactor3d.get_cursor_coords(self.parent.point_pairings[point][0])
+                else:
+                    coords3d = self.parent.point_pairings[point][0]
+
+                for component in range(3):
+                    item = qt.QTableWidgetItem('{:.3f}'.format(coords3d[component]))
+                    self.coords3d_table.setItem(point,component,item)
+            else:
+                # if they don't exist, make blank but not editable
+                for component in range(3):
+                    blank_item = qt.QTableWidgetItem('')
+                    blank_item.setFlags(qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled)
+                    self.coords3d_table.setItem(point, component, blank_item)
+
+            if self.parent.point_pairings[point][1] is not None:
+                # Image point coords is they exist
+
+                if self.parent.point_pairings[point][2]:
+                    coords2d_all = self.parent.interactor2d.get_cursor_coords(self.parent.point_pairings[point][1])
+                else:
+                    coords2d_all = self.parent.point_pairings[point][1]
+
+                for subview,coords2d in enumerate(coords2d_all):
+                    # For each subview
+
+                    if coords2d is not None:
+                        for component in range(2):
+                            item = qt.QTableWidgetItem('{:.2f}'.format(coords2d[component]))
+                            self.coords2d_tables[subview].setItem(point, component, item)
+
+                        if coords2d is not None and coords3d is not None and self.parent.calibration.view_models[subview] is not None:
+                            # If we have all of 3D coords, 2D coords and a fit, then do the point re-projection
+                            # and display the re-projection error in the table
+                            projected2d = self.parent.calibration.view_models[subview].project_points(coords3d)
+                            delta = np.sqrt(np.sum((projected2d-coords2d)**2))
+                            item = qt.QTableWidgetItem('{:.2f}'.format(delta))
+                            item.setFlags(qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled)
+                            self.coords2d_tables[subview].setItem(point, 2, item)
+                        else:
+                            nofit_item = qt.QTableWidgetItem('Not Fitted')
+                            nofit_item.setFlags(qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled)
+                            self.coords2d_tables[subview].setItem(point, 2, nofit_item)
+                    else:
+                        # if they don't exist, make blank but not editable
+                        for component in range(3):
+                            blank_item = qt.QTableWidgetItem('')
+                            blank_item.setFlags(qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled)
+                            self.coords2d_tables[subview].setItem(point, component, blank_item)
+
+            else:
+                # if they don't exist, make blank but not editable
+                for subview in range(len(self.coords2d_tables)):
+                    for component in range(3):
+                        blank_item = qt.QTableWidgetItem('')
+                        blank_item.setFlags(qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled)
+                        self.coords2d_tables[subview].setItem(point, component, blank_item)
+
+        # Make sure we (re) select the correct table row
+        self.update_selected_point(self.parent.selected_pointpair,update_parent=False)
+        self._adjust_table_widths()
+
+        self.checkbox_table.verticalScrollBar().setValue(restore_scroll_location)
+
+        for table in self.all_tables:
+            table.blockSignals(False)
+
+
+    def closeEvent(self, event):
+        self.parent.coords_table_window = None

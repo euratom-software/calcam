@@ -1,5 +1,5 @@
 '''
-* Copyright 2015-2021 European Atomic Energy Community (EURATOM)
+* Copyright 2015-2025 European Atomic Energy Community (EURATOM)
 *
 * Licensed under the EUPL, Version 1.1 or - as soon they
   will be approved by the European Commission - subsequent
@@ -45,58 +45,185 @@ max_render_dimension = 5120
 
 class CoordsActor(vtk.vtkAssembly):
 
-    def __init__(self,coords,lines=True,markers=False,markersize=1e-2,marker_flat_shading=True,linewidth=2):
+    def __init__(self,coords,coords_type='xyz',linewidth=3,markersize=0,frustrumsize=(0,0),phi=0,closed_contour=False,colour=(1,1,1,1),rz_to_3d=False):
+        """
+        A class to represent a vtkActor type thing
+        """
+
         super().__init__()
-        self.coords = coords
-        self.markersize = markersize
-        self.linewidth = linewidth
-        self.marker_flat_shading = marker_flat_shading
+
+        if coords_type.lower() in ['rzr','rzd'] and coords[:, 2].max() - coords[:, 1].min() < 1e-6:
+            # If we have an R,Z,phi contour but all at a single phi, mark it has R,Z instead
+            coords_type = 'rz'
+            phi = coords[0,2]
+            if coords_type.lower() == 'rzr':
+                phi = 180*phi / np.pi
+            coords = coords[:,:2]
+
+        if coords_type.lower() == 'rz':
+            self._coords = coords
+            self._phi = phi
+            self.coords_type = 'rz'
+            self.closed_contour = closed_contour
+
+        elif coords_type.lower() == 'xyz':
+            self._coords = coords
+            self.coords_type = 'xyz'
+
+        elif coords_type.lower() in ['rzr','rzd']:
+            self._coords = np.zeros_like(coords)
+            phi = coords[:,2]
+            if coords_type.lower() == 'rzd':
+                phi = phi / 180 * np.pi
+
+            self._coords[:,0] = coords[:,0]*np.cos(phi)
+            self._coords[:,1] = coords[:,0]*np.sin(phi)
+            self._coords[:,2] = coords[:,1]
+            self.coords_type = 'xyz'
+        else:
+            raise ValueError('Coordinate type "{:s}" not understood: should be one of "xyz","rz","rzr" or "rzd"')
+
+        # Lines, markers, frustrums, 3D surface
         self.line_actors = []
         self.marker_actors = []
-        self.colour = (1,1,1)
+        self.frustrum_actors = []
+        self.surface_actor = None
 
-        self.lines = False
-        self.markers = False
+        self._frustrumsize = (0,0)
 
-        self.set_lines(lines)
-        self.set_markers(markers)
+        self._colour = list(colour)
+
+        self.rz_to_3d = rz_to_3d
+        self.markersize = markersize
+        self.linewidth = linewidth
+        self.frustrumsize = frustrumsize
+
+    @property
+    def coords(self):
+        return self._coords
+
+    @coords.setter
+    def coords(self,new_coords):
+
+        if self._coords is not None and new_coords.shape[1] != self._coords.shape[1]:
+            raise ValueError('Cannot change number of columns in coordinates!')
+
+        self._coords = new_coords
+
+        if self.linewidth > 0:
+            lw = self.linewidth
+            self.linewidth = 0
+            self.linewidth = lw
+
+        if self.markersize > 0:
+            ms = self.markersize
+            self.markersize = 0
+            self.markersize = ms
+
+        if self.frustrumsize != (0,0):
+            fs = self.frustrumsize
+            self.frustrumsize = fs
+
+        if self.rz_to_3d:
+            self.rz_to_3d = False
+            self.rz_to_3d = True
+
+    @property
+    def phi(self):
+        if self.coords_type != 'rz':
+            raise Exception('Coordinates are not an R,Z contour so display phi value is not defined.')
+        else:
+            return self._phi
+
+    @phi.setter
+    def phi(self,value):
+        if self.coords_type != 'rz':
+            raise Exception('Coordinates are not an R,Z contour so display phi value is not defined.')
+        else:
+            for actor in self.marker_actors + self.frustrum_actors + self.line_actors:
+                actor.SetOrientation(0,0,value)
+                self._phi = value
 
 
-    def set_colour(self,colour):
-        for actor in self.line_actors + self.marker_actors:
-            actor.GetProperty().SetColor(colour)
-        self.colour = colour
 
-    def set_lines(self,enable):
+    @property
+    def colour(self):
+        return self._colour
 
-        if enable and not self.lines:
+    @colour.setter
+    def colour(self,value):
+        for actor in self.marker_actors + self.frustrum_actors + self.line_actors:
+            actor.GetProperty().SetColor(value[:3])
+            actor.GetProperty().SetOpacity(value[3])
+
+        if self.surface_actor is not None:
+            self.surface_actor.GetProperty().SetColor(value[:3])
+            self.surface_actor.GetProperty().SetOpacity(value[3])
+        self._colour = tuple(value)
+
+    @property
+    def linewidth(self):
+        return self._linewidth
+
+    @linewidth.setter
+    def linewidth(self,value):
+
+        if value > 0 and len(self.line_actors) == 0:
             # Create an actor for the lines
             points = vtk.vtkPoints()
             lines = vtk.vtkCellArray()
             point_ind = -1
-            if self.coords.shape[1] == 6:
 
-                for lineseg in range(self.coords.shape[0]):
-                    points.InsertNextPoint(self.coords[lineseg, :3])
-                    points.InsertNextPoint(self.coords[lineseg, 3:])
-                    point_ind = point_ind + 2
-                    line = vtk.vtkLine()
-                    line.GetPointIds().SetId(0, point_ind - 1)
-                    line.GetPointIds().SetId(1, point_ind)
-                    lines.InsertNextCell(line)
+            if self.coords_type == 'xyz':
 
-            elif self.coords.shape[1] == 3:
-
-                for pointind in range(self.coords.shape[0]):
-
-                    points.InsertNextPoint(self.coords[pointind, :])
-                    point_ind = point_ind + 1
-
-                    if point_ind > 0:
+                if self.coords.shape[1] == 6:
+                    for lineseg in range(self.coords.shape[0]):
+                        points.InsertNextPoint(self.coords[lineseg, :3])
+                        points.InsertNextPoint(self.coords[lineseg, 3:])
+                        point_ind = point_ind + 2
                         line = vtk.vtkLine()
                         line.GetPointIds().SetId(0, point_ind - 1)
                         line.GetPointIds().SetId(1, point_ind)
                         lines.InsertNextCell(line)
+
+                elif self.coords.shape[1] == 3:
+                    for pointind in range(self.coords.shape[0]):
+                        points.InsertNextPoint(self.coords[pointind, :])
+                        point_ind = point_ind + 1
+                        if point_ind > 0:
+                            line = vtk.vtkLine()
+                            line.GetPointIds().SetId(0, point_ind - 1)
+                            line.GetPointIds().SetId(1, point_ind)
+                            lines.InsertNextCell(line)
+
+            elif self.coords_type == 'rz':
+
+                if self.coords.shape[1] == 4:
+                    for lineseg in range(self.coords.shape[0]):
+                        points.InsertNextPoint([self.coords[lineseg,0],0,self.coords[lineseg,1]])
+                        points.InsertNextPoint([self.coords[lineseg,2],0,self.coords[lineseg,3]])
+                        point_ind = point_ind + 2
+                        line = vtk.vtkLine()
+                        line.GetPointIds().SetId(0, point_ind - 1)
+                        line.GetPointIds().SetId(1, point_ind)
+                        lines.InsertNextCell(line)
+
+                elif self.coords.shape[1] == 2:
+                    for pointind in range(self.coords.shape[0]):
+                        points.InsertNextPoint([self.coords[pointind,0],0,self.coords[pointind,1]])
+                        point_ind = point_ind + 1
+                        if point_ind > 0:
+                            line = vtk.vtkLine()
+                            line.GetPointIds().SetId(0, point_ind - 1)
+                            line.GetPointIds().SetId(1, point_ind)
+                            lines.InsertNextCell(line)
+
+                    if self.closed_contour:
+                        line = vtk.vtkLine()
+                        line.GetPointIds().SetId(0, point_ind)
+                        line.GetPointIds().SetId(1, 0)
+                        lines.InsertNextCell(line)
+
 
             polydata = vtk.vtkPolyData()
             polydata.SetPoints(points)
@@ -108,59 +235,215 @@ class CoordsActor(vtk.vtkAssembly):
             actor = vtk.vtkActor()
             actor.SetMapper(mapper)
 
-            actor.GetProperty().SetLineWidth(self.linewidth)
-            actor.GetProperty().SetColor(self.colour)
+            if self.coords_type == 'rz':
+                actor.SetOrientation(0, 0, self._phi)
 
-            self.line_actors.append(actor)
+            actor.GetProperty().SetLineWidth(value)
+            self._linewidth = value
+
+            actor.GetProperty().SetColor(self._colour[:3])
+            actor.GetProperty().SetOpacity(self._colour[3])
+
+            self.line_actors = [actor]
             self.AddPart(actor)
 
-        elif not enable and self.lines:
-            # Remove line actors
+        elif value == 0 and len(self.line_actors) > 0:
+            # Remove line actor
             for actor in self.line_actors:
                 self.RemovePart(actor)
             self.line_actors = []
 
-        self.lines = enable
+        elif value > 0:
+            for actor in self.line_actors:
+                actor.GetProperty().SetLineWidth(value)
+
+        self._linewidth = value
 
 
-    def set_markers(self,enable):
+    @property
+    def markersize(self):
+        return self._markersize
 
-        if enable and not self.markers:
-            if self.coords.shape[1] == 6:
-                x = np.concatenate((self.coords[:, 0], self.coords[:, 3]))
-                y = np.concatenate((self.coords[:, 1], self.coords[:, 4]))
-                z = np.concatenate((self.coords[:, 2], self.coords[:, 5]))
-            elif self.coords.shape[1] == 3:
-                x = self.coords[:, 0]
-                y = self.coords[:, 1]
-                z = self.coords[:, 2]
+    @markersize.setter
+    def markersize(self,value):
+
+        for actor in self.marker_actors:
+            self.RemovePart(actor)
+        self.marker_actors = []
+
+        if value > 0:
+
+            if self.coords_type == 'xyz':
+                if self.coords.shape[1] == 6:
+                    x = np.concatenate((self.coords[:, 0], self.coords[:, 3]))
+                    y = np.concatenate((self.coords[:, 1], self.coords[:, 4]))
+                    z = np.concatenate((self.coords[:, 2], self.coords[:, 5]))
+                elif self.coords.shape[1] == 3:
+                    x = self.coords[:, 0]
+                    y = self.coords[:, 1]
+                    z = self.coords[:, 2]
+            elif self.coords_type == 'rz':
+                if self.coords.shape[1] == 4:
+                    x = np.concatenate((self.coords[:, 0], self.coords[:, 2]))
+                    y = np.concatenate((self.coords[:, 0]*0, self.coords[:, 2]*0))
+                    z = np.concatenate((self.coords[:, 1], self.coords[:, 3]))
+                elif self.coords.shape[1] == 2:
+                    x = self.coords[:, 0]
+                    y = self.coords[:, 0]*0
+                    z = self.coords[:, 1]
 
             for x_, y_, z_ in zip(x, y, z):
                 sphere = vtk.vtkSphereSource()
                 sphere.SetCenter(x_, y_, z_)
-                sphere.SetRadius(self.markersize / 2)
+                sphere.SetRadius(value / 2)
                 sphere.SetPhiResolution(12)
                 sphere.SetThetaResolution(12)
                 mapper = vtk.vtkPolyDataMapper()
                 mapper.SetInputConnection(sphere.GetOutputPort())
                 actor = vtk.vtkActor()
                 actor.SetMapper(mapper)
-                actor.GetProperty().SetColor(self.colour)
-                if self.marker_flat_shading:
-                    actor.GetProperty().LightingOff()
+                actor.GetProperty().SetColor(self.colour[:3])
+                actor.GetProperty().SetOpacity(self.colour[3])
+                actor.GetProperty().LightingOff()
+
+                if self.coords_type == 'rz':
+                    actor.SetOrientation(0, 0, self._phi)
+
                 self.marker_actors.append(actor)
                 self.AddPart(actor)
 
-        elif not enable and self.markers:
+        self._markersize = value
 
-            for actor in self.marker_actors:
+
+    @property
+    def frustrumsize(self):
+        return self._frustrumsize
+
+    @frustrumsize.setter
+    def frustrumsize(self,value):
+
+        if value != (0,0) and (self.coords.shape[0] != 2 and self.coords.shape[1] in [2, 3]):
+            raise Exception('Can only use frustrum display for disconnected line segments!')
+
+        if value != self.frustrumsize:
+            for actor in self.frustrum_actors:
                 self.RemovePart(actor)
-            self.marker_actors = []
+            self.frustrum_actors = []
 
-        self.markers = enable
+            if value != (0,0):
+
+                if self.coords.shape[1] == 6:
+                    for seg_ind in range(self.coords.shape[0]):
+                        actor = self._make_frustrun_actor(self.coords[seg_ind, :3],self.coords[seg_ind, 3:],value[0],value[1])
+                        actor.GetProperty().SetColor(self.colour[:3])
+                        actor.GetProperty().SetOpacity(self.colour[3])
+                        self.frustrum_actors.append(actor)
+                        self.AddPart(actor)
+
+                if self.coords.shape[1] == 4:
+                    for seg_ind in range(self.coords.shape[0]):
+                        start = np.array([self.coords[seg_ind,0],self.coords[seg_ind,1],0])
+                        end = np.array([self.coords[seg_ind, 2], self.coords[seg_ind, 3], 0])
+                        actor = self._make_frustrun_actor(start,end,value[0],value[1])
+                        actor.GetProperty().SetColor(self.colour[:3])
+                        actor.GetProperty().SetOpacity(self.colour[3])
+                        actor.SetOrientation(0,0,self.phi)
+                        self.frustrum_actors.append(actor)
+                        self.AddPart(actor)
+
+                elif self.coords.shape[1] == 3:
+                    actor = self._make_frustrun_actor(self.coords[0,:], self.coords[1,:], value[0],value[1])
+                    actor.GetProperty().SetColor(self.colour[:3])
+                    actor.GetProperty().SetOpacity(self.colour[3])
+                    self.frustrum_actors.append(actor)
+                    self.AddPart(actor)
+
+                elif self.coords.shape[1] == 2:
+                    start = np.array([self.coords[0, 0], self.coords[0, 1],0])
+                    end = np.array([self.coords[1, 0], self.coords[1, 1], 0])
+                    actor = self._make_frustrun_actor(start, end, value[0], value[1])
+                    actor.GetProperty().SetColor(self.colour[:3])
+                    actor.GetProperty().SetOpacity(self.colour[3])
+                    actor.SetOrientation(0, 0, self.phi)
+                    actor.SetOrientation(0, 0, self.phi)
+                    self.frustrum_actors.append(actor)
+                    self.AddPart(actor)
 
 
+            self._frustrumsize = value
 
+        return
+
+    @property
+    def rz_to_3d(self):
+        return self.surface_actor is not None
+
+    @rz_to_3d.setter
+    def rz_to_3d(self,value):
+
+        if value and not self.rz_to_3d:
+            self.linewidth = 0
+            self.markersize = 0
+            self.frustrumsize = (0,0)
+
+            actor = get_rz_contour_actor(self.coords,actor_type='surface',closed_contour=self.closed_contour)
+            actor.GetProperty().SetColor(self.colour[:3])
+            actor.GetProperty().SetOpacity(self.colour[3])
+            self.AddPart(actor)
+            self.surface_actor = actor
+        elif not value and self.rz_to_3d:
+            self.RemovePart(self.surface_actor)
+            self.surface_actor = None
+
+
+    def _make_frustrun_actor(self,start,end,d0,angle):
+
+        direction = end - start
+        length = np.sqrt(np.sum(direction ** 2))
+        direction = direction / length
+
+        points = vtk.vtkPoints()
+
+        # Vector defining the radius of the cone caps
+        if np.abs(direction[2]) > 0.01:
+            dz =  -(direction[0] + direction[1]) / direction[2]
+            r_vec = np.array([1, 1, dz]) / np.sqrt(dz ** 2 + 2)
+        elif np.abs(direction[1]) > 0.01:
+            dy = -(direction[0] + direction[2]) / direction[1]
+            r_vec = np.array([1, dy, 1]) / np.sqrt(dy ** 2 + 2)
+        elif np.abs(direction[0]) > 0.01:
+            dx = -(direction[1] + direction[2]) / direction[0]
+            r_vec = np.array([dx, 1, 1]) / np.sqrt(dx ** 2 + 2)
+
+        points.InsertNextPoint([0,0,0])
+        points.InsertNextPoint(r_vec * d0 / 2)
+
+        r1 = d0 / 2 + length * np.tan(angle / 180 * np.pi)
+        points.InsertNextPoint(direction*length+r_vec * r1)
+        points.InsertNextPoint(direction*length)
+
+        lines = vtk.vtkCellArray()
+        lines.InsertNextCell(4)
+        for i in range(4):
+            lines.InsertCellPoint(i)
+
+        profile = vtk.vtkPolyData()
+        profile.SetPoints(points)
+        profile.SetLines(lines)
+
+        extruder = vtk.vtkRotationalExtrusionFilter()
+        extruder.SetInputData(profile)
+        extruder.SetRotationAxis(direction)
+        extruder.SetResolution(64)
+
+        mapper = vtk.vtkPolyDataMapper()
+        mapper.SetInputConnection(extruder.GetOutputPort())
+
+        actor = vtk.vtkActor()
+        actor.SetMapper(mapper)
+        actor.SetPosition(start)
+
+        return actor
 
 def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampling=1,aa=1,transparency=False,verbose=True,coords = 'display',interpolation='cubic'):
     '''
@@ -897,8 +1180,32 @@ class MappedImageActor(vtk.vtkActor):
         self.celldata.SetScalars(colours)
 
 
-def get_wall_contour_actor(wall_contour,actor_type='contour',phi=None,toroidal_res=128):
+def get_rz_contour_actor(contour, actor_type='contour', phi=None, toroidal_res=128,closed_contour=True):
+    """
+    Get a VTK actor for a contour defined in R,Z.
 
+    Can be either a line at a single toroidal angle, or an axisymmetric surface
+    by rotating the R,Z contour around the vertical axis.
+
+    Parameters:
+
+        contour (array)       : Nx2 array of the input contour. Each row should contain [R,Z] coordinates \
+                                of a single point along the contour, and the contour has N points along its length.
+
+        actor_type (str)      : Type of actor to generate: either 'contour' for a line at given phi \
+                                or 'surface' for a 3D axisymmetric surface
+
+        phi (float)           : For actor_type = 'contour', the toroidal angle in radians to place the contour
+
+        toroidal_res (int)    : For actor_type = 'surface', how many toroidal facets to use when rotating in to 3D.
+
+        closed_contour (bool) : Whether to connect the 2 ends of the contour to form a closed path.
+
+    Returns:
+
+        vtkActor
+
+    """
     if actor_type == 'contour' and phi is None:
         raise ValueError('Toroidal angle must be specified if type==contour!')
 
@@ -907,26 +1214,27 @@ def get_wall_contour_actor(wall_contour,actor_type='contour',phi=None,toroidal_r
     if actor_type == 'contour':
 
         lines = vtk.vtkCellArray()
-        x = wall_contour[-1,0]*np.cos(phi)
-        y = wall_contour[-1,0]*np.sin(phi)
-        points.InsertNextPoint(x,y,wall_contour[-1,1])
+        x = contour[-1,0] * np.cos(phi)
+        y = contour[-1,0] * np.sin(phi)
+        points.InsertNextPoint(x, y, contour[-1,1])
 
-        for i in range(wall_contour.shape[0]-1):
-            x = wall_contour[i,0]*np.cos(phi)
-            y = wall_contour[i,0]*np.sin(phi)
-            points.InsertNextPoint(x,y,wall_contour[i,1])
+        for i in range(contour.shape[0] - 1):
+            x = contour[i,0] * np.cos(phi)
+            y = contour[i,0] * np.sin(phi)
+            points.InsertNextPoint(x, y, contour[i,1])
 
             line = vtk.vtkLine()
             line.GetPointIds().SetId(0,i)
             line.GetPointIds().SetId(1,i+1)
             lines.InsertNextCell(line)
 
-        line = vtk.vtkLine()
-        line.GetPointIds().SetId(0,i+1)
-        line.GetPointIds().SetId(1,0)
-        lines.InsertNextCell(line)
+        if closed_contour:
+            line = vtk.vtkLine()
+            line.GetPointIds().SetId(0,i+1)
+            line.GetPointIds().SetId(1,0)
+            lines.InsertNextCell(line)
 
-        polydata = polydata = vtk.vtkPolyData()
+        polydata = vtk.vtkPolyData()
         polydata.SetPoints(points)
         polydata.SetLines(lines)
 
@@ -935,25 +1243,25 @@ def get_wall_contour_actor(wall_contour,actor_type='contour',phi=None,toroidal_r
         polygons = vtk.vtkCellArray()
 
         npoints = 0
-        for i in range(wall_contour.shape[0]):
-            points.InsertNextPoint(wall_contour[i,0],0,wall_contour[i,1])
+        for i in range(contour.shape[0]):
+            points.InsertNextPoint(contour[i,0], 0, contour[i,1])
             npoints = npoints + 1
 
         tor_step = 3.14159*(360./toroidal_res)/180
         for phi in np.linspace(tor_step,2*3.14159-tor_step,toroidal_res-1):
 
-            x = wall_contour[0,0]*np.cos(phi)
-            y = wall_contour[0,0]*np.sin(phi)
-            points.InsertNextPoint(x,y,wall_contour[0,1])
+            x = contour[0,0] * np.cos(phi)
+            y = contour[0,0] * np.sin(phi)
+            points.InsertNextPoint(x, y, contour[0,1])
             npoints = npoints + 1
 
-            for i in range(1,wall_contour.shape[0]):
+            for i in range(1, contour.shape[0]):
 
-                x = wall_contour[i,0]*np.cos(phi)
-                y = wall_contour[i,0]*np.sin(phi)
-                points.InsertNextPoint(x,y,wall_contour[i,1])
+                x = contour[i,0] * np.cos(phi)
+                y = contour[i,0] * np.sin(phi)
+                points.InsertNextPoint(x, y, contour[i,1])
                 npoints = npoints + 1
-                lasttor = npoints - wall_contour.shape[0] - 1
+                lasttor = npoints - contour.shape[0] - 1
 
                 polygon = vtk.vtkPolygon()
                 polygon.GetPointIds().SetNumberOfIds(3)
@@ -968,23 +1276,24 @@ def get_wall_contour_actor(wall_contour,actor_type='contour',phi=None,toroidal_r
                 polygon.GetPointIds().SetId(2,lasttor-1)
                 polygons.InsertNextCell(polygon)
 
-            # Close the end (poloidally)
-            polygon = vtk.vtkPolygon()
-            polygon.GetPointIds().SetNumberOfIds(3)
-            polygon.GetPointIds().SetId(0,npoints-2*wall_contour.shape[0])
-            polygon.GetPointIds().SetId(1,npoints-wall_contour.shape[0]-1)
-            polygon.GetPointIds().SetId(2,npoints-1)
-            polygons.InsertNextCell(polygon)
-            polygon = vtk.vtkPolygon()
-            polygon.GetPointIds().SetNumberOfIds(3)
-            polygon.GetPointIds().SetId(0,npoints-wall_contour.shape[0])
-            polygon.GetPointIds().SetId(1,npoints-1)
-            polygon.GetPointIds().SetId(2,npoints-2*wall_contour.shape[0])
-            polygons.InsertNextCell(polygon)
+            if closed_contour:
+                # Close the end (poloidally)
+                polygon = vtk.vtkPolygon()
+                polygon.GetPointIds().SetNumberOfIds(3)
+                polygon.GetPointIds().SetId(0, npoints - 2 * contour.shape[0])
+                polygon.GetPointIds().SetId(1, npoints - contour.shape[0] - 1)
+                polygon.GetPointIds().SetId(2,npoints-1)
+                polygons.InsertNextCell(polygon)
+                polygon = vtk.vtkPolygon()
+                polygon.GetPointIds().SetNumberOfIds(3)
+                polygon.GetPointIds().SetId(0, npoints - contour.shape[0])
+                polygon.GetPointIds().SetId(1,npoints-1)
+                polygon.GetPointIds().SetId(2, npoints - 2 * contour.shape[0])
+                polygons.InsertNextCell(polygon)
         
         # Close the end (toroidally)
-        startpoint = npoints - wall_contour.shape[0]
-        for i in range(1,wall_contour.shape[0]):
+        startpoint = npoints - contour.shape[0]
+        for i in range(1, contour.shape[0]):
             polygon = vtk.vtkPolygon()
             polygon.GetPointIds().SetNumberOfIds(3)
             polygon.GetPointIds().SetId(0,startpoint+i-1)
