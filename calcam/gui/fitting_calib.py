@@ -825,6 +825,7 @@ class FittingCalib(CalcamGUIWindow):
 
             widgetlist[0].toggled.connect(self.change_dist_model)
             widgetlist[1].toggled.connect(self.change_dist_model)
+
             sub_widget = qt.QWidget()
             sub_layout = qt.QHBoxLayout()
             sub_widget.setLayout(sub_layout)
@@ -843,6 +844,7 @@ class FittingCalib(CalcamGUIWindow):
                 cc_y = cam_matrix[1,2]
                 f = (cam_matrix[0,0] + cam_matrix[1,1])/2
                 self.fitters[field].set_fitflags_strings(self.calibration.view_models[field].fit_options)
+                self.fitters[field].set_model(self.calibration.view_models[field].model)
             except Exception as e:
                 # If they don't already exist, use the sub-view centre for the cc initial guess and sensor diagonal
                 # as the focal length
