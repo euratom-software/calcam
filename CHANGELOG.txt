@@ -26,7 +26,7 @@ Fixes:
 
 Compatibility / Dependencies:
 * Revert declared PyQt dependency to PyQt5 instead of PyQt6, since PyQt6 seems to fail to install on many more systems (#156) so PyQt5 gives a smoother install experience (Hopefully if PEP771 gets implemented it will provide a better long-term solution to the PyQt version issue)
-
+* Officially drop support for Python versions older than 3.7. This was probably already broken some time ago because the build requirement setuptools>=61 is not available for Python<3.7.
 
 
 Patch Release 2.15.3 (June 2025)
