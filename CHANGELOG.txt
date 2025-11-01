@@ -1,6 +1,19 @@
 Calcam Changelog
 ================
 
+
+
+Patch Release 2.16.1 (November 2025)
+------------------------------------
+
+Fixes:
+* Fixed a bug introduced in 2.16.0 which prevented the CAD definition editor GUI from starting (#161)
+* Fixed a bug which raised exceptions when using the "Open" toolbar button in the CAD definition editor
+* Made the slicing options in the CAD definition editor behave in the same way as the 3D viewer (as intended) and fixed half-finished sentence in the docs
+* Fixed broken Anaconda build GitHub action
+
+
+
 Point Release 2.16.0 (October 2025)
 -----------------------------------
 
@@ -14,6 +27,7 @@ New & Enhancements:
 * Added option to load additional 3D mesh files (beyond those stored in the CAD model definition) in to the 3D viewer
 * Add package __main__ so that the GUI can be invoked with `python -m calcam`
 * Add display of GUI executable and icons paths to Settings GUI
+* Add cross-section / slicing options to the CAD model editor for creating preset views with slicing / sectioning
 
 Fixes:
 * Fixed bug in Calibration.set_detector_window() which resulted in wrong cropping of intrinsics constraint images and occasionally raising exceptions (#155)
@@ -27,6 +41,7 @@ Fixes:
 Compatibility / Dependencies:
 * Revert declared PyQt dependency to PyQt5 instead of PyQt6, since PyQt6 seems to fail to install on many more systems (#156) so PyQt5 gives a smoother install experience (Hopefully if PEP771 gets implemented it will provide a better long-term solution to the PyQt version issue)
 * Officially drop support for Python versions older than 3.7. This was probably already broken some time ago because the build requirement setuptools>=61 is not available for Python<3.7.
+
 
 
 Patch Release 2.15.3 (June 2025)

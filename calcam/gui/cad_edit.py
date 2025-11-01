@@ -94,12 +94,17 @@ class CADEdit(CalcamGUIWindow):
         self.z_rotate_box.valueChanged.connect(self.edit_feature)
         self.z_rotate_box.valueChanged.connect(self.edit_feature)
         self.handedness_box.currentIndexChanged.connect(self.edit_feature)
-        self.slice_apply_button.clicked.connect(self.update_xsection)
         self.proj_perspective.toggled.connect(self.set_projection)
-        self.no_slicing_rb.clicked.connect(self.update_slicing_options)
-        self.cakeslice_rb.clicked.connect(self.update_slicing_options)
-        self.chordslice_rb.clicked.connect(self.update_slicing_options)
-        self.zslice_checkbox.toggled.connect(self.update_slicing_options)
+        self.no_slicing_rb.clicked.connect(self.update_xsection)
+        self.cakeslice_rb.clicked.connect(self.update_xsection)
+        self.chordslice_rb.clicked.connect(self.update_xsection)
+        self.cakeslice_phi0.valueChanged.connect(self.update_xsection)
+        self.cakeslice_phi1.valueChanged.connect(self.update_xsection)
+        self.chordslice_phi.valueChanged.connect(self.update_xsection)
+        self.chordslice_r.valueChanged.connect(self.update_xsection)
+        self.zslice_zmax.valueChanged.connect(self.update_xsection)
+        self.zslice_zmin.valueChanged.connect(self.update_xsection)
+        self.zslice_checkbox.toggled.connect(self.update_xsection)
 
         self.new_group_button.clicked.connect(self.add_group)
 
@@ -665,7 +670,7 @@ class CADEdit(CalcamGUIWindow):
             filedialog.setNameFilter('Calcam CAD model definitions (*.ccm)')
             filedialog.exec()
 
-            if filedialog.result() == dialog.Accepted:
+            if filedialog.result() == filedialog.Accepted:
                 filename = filedialog.selectedFiles()[0]
             else:
                 return
