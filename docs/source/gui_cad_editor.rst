@@ -75,7 +75,7 @@ and keyboard keys:
 
 In the :guilabel:`3D projection` box, the projection of the 3D view can be switched between perspective (natural view where closer parts appear larger) and orthographic (parallel projection where objects appear the same size regardless of distance from the viewer).
 
-The viewport settings also include the ability to slice or cross-section the CAD model. Note this does not affect the geometry data stored in the CAD model definition and is saved as part of the viewport setup (i.e. setting this is non-destructive). For more information about the cross-sectioning controls see
+The viewport settings also include the ability to slice or cross-section the CAD model. Note this does not affect the geometry data stored in the CAD model definition and is saved as part of the viewport setup (i.e. setting this is non-destructive). For more information about the cross-sectioning controls see :ref:`slicing_options`.
 
 When multiple views are defined in a CAD model, the default view, i.e. the view set automatically when the model is loaded, can be set by selecting the view in the view list and clicking :guilabel:`Set As Default (*)` under the view list. The current default view is marked with an asterisk `*`. To remove an existing view, select it and click the :guilabel:`Remove` button.
 

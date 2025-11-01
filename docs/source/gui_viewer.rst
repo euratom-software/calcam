@@ -78,6 +78,9 @@ Underneath the list of pre-defined viewports are editable boxes showing the curr
 
 Below the viewport coordinate boxes is an option to switch the 3D projection between a perspective projection view of the model (i.e. a natural view where closer objects appear larger) and an orthographic view (where objects appear the same size regardless of their distance from the viewier). This can be helpful for making e.g. cross-section figures.
 
+
+.. _slicing_options:
+
 CAD model slicing / cross-section view
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 The :guilabel:`3D Viewport` tab also contains options to display the machine CAD model as sliced or cross-sectioned, which can be used if making visualisations. These settings are considered part of the viewport setup, so will be saved and recalled if saving a viewport configuration, and are reset when selecting a preset view to load.
