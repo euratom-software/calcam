@@ -3,6 +3,14 @@ Calcam Changelog
 
 
 
+Patch Release 2.16.2 (November 2025)
+------------------------------------
+
+Fixes:
+* Fixed a bug in Calibration.set_detector_window() related to cropping of intrinsics constraint images and which could sometimes raise exceptions (related to the other bug fixed in 2.16.0)
+
+
+
 Patch Release 2.16.1 (November 2025)
 ------------------------------------
 
@@ -41,15 +49,6 @@ Fixes:
 Compatibility / Dependencies:
 * Revert declared PyQt dependency to PyQt5 instead of PyQt6, since PyQt6 seems to fail to install on many more systems (#156) so PyQt5 gives a smoother install experience (Hopefully if PEP771 gets implemented it will provide a better long-term solution to the PyQt version issue)
 * Officially drop support for Python versions older than 3.7. This was probably already broken some time ago because the build requirement setuptools>=61 is not available for Python<3.7.
-
-
-
-Patch Release 2.15.3 (June 2025)
---------------------------------
-
-Fixes / Compatibility:
-* Fixed compatibility with NumPy =>2.3 (#149)
-* RayData.get_ray_start(), get_ray_end(), and dependent functions now raise a ValueError if the "coords" argument is invalid, instead of just returning `None` (#148)
 
 
 
