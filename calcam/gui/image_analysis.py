@@ -654,7 +654,7 @@ class ImageAnalyser(CalcamGUIWindow):
 
         self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
         self.statusbar.showMessage('Generating model octree...')
-        self.cadmodel.build_octree()
+        self.cadmodel.get_vtk_cell_locator()
         self.statusbar.clearMessage()
         self.app.restoreOverrideCursor()
         self.overlay = None
@@ -958,7 +958,7 @@ class ImageAnalyser(CalcamGUIWindow):
     def on_change_cad_features(self):
         self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
         self.statusbar.showMessage('Updating model octree...')
-        self.cadmodel.build_octree()
+        self.cadmodel.get_vtk_cell_locator()
         self.statusbar.clearMessage()
         self.app.restoreOverrideCursor()
         if self.overlay_checkbox.isChecked():
