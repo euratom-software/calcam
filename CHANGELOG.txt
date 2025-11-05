@@ -7,7 +7,7 @@ Patch Release 2.16.2 (November 2025)
 ------------------------------------
 
 Fixes:
-* Fixed a bug in Calibration.set_detector_window() related to cropping of intrinsics constraint images and which could sometimes raise exceptions (related to the other bug fixed in 2.16.0)
+* Fixed a bug in Calibration.set_detector_window() related to cropping of intrinsics constraint images (#155) which I thought was fixed in 2.16.0 but was not fixed properly.
 
 
 
