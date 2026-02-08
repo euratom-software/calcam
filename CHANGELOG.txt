@@ -2,6 +2,15 @@ Calcam Changelog
 ================
 
 
+Changes on master branch since last release (v2.16.3.dev; Feb 2026)
+-------------------------------------------------------------------
+
+Fixes:
+* Opacity slider for 3D data now updates correctly when different 3D data are selected from the list (#165)
+* Fixed a bug which could raise exceptions in the Image Analyser tool if a calibration was loaded but a CAD model was not (#166)
+* Fixed a bug which caused exceptions if trying to set the colour of the entire model at once in the 3D viewer tool (#167)
+
+
 
 Patch Release 2.16.2 (November 2025)
 ------------------------------------

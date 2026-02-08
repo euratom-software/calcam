@@ -314,11 +314,11 @@ class Viewer(CalcamGUIWindow):
         # Note: this does not mean nothing is selected;
         # rather it means the root of the model is selected!
         if None in selected_features:
-            selected_features = None
+            selected_features = self.cadmodel.get_feature_list()
 
         if self.sender() is self.cad_colour_choose_button:
 
-            if len(selected_features) > 0 or selected_features is None:
+            if len(selected_features) > 0:
                 picked_colour = self.pick_colour(self.cadmodel.get_colour( selected_features )[0] )
             else:
                 picked_colour = self.pick_colour(extra_actors[0].GetProperty().GetColor())
@@ -706,6 +706,7 @@ class Viewer(CalcamGUIWindow):
                 self.marker_diameter_box.setValue(lines_actor.markersize*100)
 
             self.lines_appearance_box.setEnabled(enabled)
+            self.lines_opacity_slider.setValue(int(100*lines_actor.colour[3]))
 
             if enabled:
                 if lines_actor.coords.shape[0] != 2 and lines_actor.coords.shape[1] in [2, 3]:
