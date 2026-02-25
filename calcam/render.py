@@ -52,13 +52,20 @@ class CoordsActor(vtk.vtkAssembly):
 
         super().__init__()
 
-        if coords_type.lower() in ['rzr','rzd'] and coords[:, 2].max() - coords[:, 1].min() < 1e-6:
-            # If we have an R,Z,phi contour but all at a single phi, mark it has R,Z instead
-            coords_type = 'rz'
-            phi = coords[0,2]
-            if coords_type.lower() == 'rzr':
-                phi = 180*phi / np.pi
-            coords = coords[:,:2]
+        if coords_type.lower() in ['rzr','rzd']:
+            if coords.shape[1] == 3 and coords[:, 2].max() - coords[:, 2].min() < 1e-6:
+                # If we have an R,Z,phi contour but all at a single phi, mark it has R,Z instead
+                phi = coords[0,2]
+                if coords_type.lower() == 'rzr':
+                    phi = 180*phi / np.pi
+                coords = coords[:, :2]
+                coords_type = 'rz'
+            if coords.shape[1] == 6 and coords[:, 2].max() - coords[:, 2].min() < 1e-6 and coords[:, 5].max() - coords[:, 5].min() < 1e-6 and np.abs(coords[0,2] - coords[0,5]) < 1e-6:
+                phi = coords[0, 2]
+                if coords_type.lower() == 'rzr':
+                    phi = 180*phi / np.pi
+                coords = np.hstack((coords[:, :2], coords[:, 3:5]))
+                coords_type = 'rz'
 
         if coords_type.lower() == 'rz':
             self._coords = coords
@@ -76,10 +83,22 @@ class CoordsActor(vtk.vtkAssembly):
             if coords_type.lower() == 'rzd':
                 phi = phi / 180 * np.pi
 
+            self._coords[:,1] = coords[:, 0]*np.sin(phi)
             self._coords[:,0] = coords[:,0]*np.cos(phi)
-            self._coords[:,1] = coords[:,0]*np.sin(phi)
             self._coords[:,2] = coords[:,1]
+
+            if coords.shape[1] == 6:
+
+                phi = coords[:, 5]
+                if coords_type.lower() == 'rzd':
+                    phi = phi / 180 * np.pi
+
+                self._coords[:, 4] = coords[:, 3] * np.sin(phi)
+                self._coords[:, 3] = coords[:, 3] * np.cos(phi)
+                self._coords[:, 5] = coords[:, 4]
+
             self.coords_type = 'xyz'
+
         else:
             raise ValueError('Coordinate type "{:s}" not understood: should be one of "xyz","rz","rzr" or "rzd"')
 

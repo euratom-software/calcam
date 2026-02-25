@@ -10,6 +10,7 @@ Fixes / Compatibility:
 * Fixed a bug which could raise exceptions in the Image Analyser tool if a calibration was loaded but a CAD model was not (#166)
 * Fixed a bug which caused exceptions if trying to set the colour of the entire model at once in the 3D viewer tool (#167)
 * Fixed a VTK / Python version compatibility issue which raised exceptions when working with the CAD model in the GUI (issue found on Python 3.13 on Windows)
+* Fixed loading of 3D coordinate data specified in cylindrical coordinates in the 3D viewer GUI
 
 
 Patch Release 2.16.2 (November 2025)

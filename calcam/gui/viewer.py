@@ -675,6 +675,12 @@ class Viewer(CalcamGUIWindow):
 
             if lines_actor.coords_type == 'rz':
                 self.phi_settings.setEnabled(True)
+                if lines_actor.coords.shape[1] == 2:
+                    self.lines_rz_to_3d_rb.setEnabled(True)
+                if lines_actor.coords.shape[1] == 4:
+                    self.lines_rz_to_3d_rb.setChecked(False)
+                    self.lines_rz_to_3d_rb.setEnabled(False)
+
                 if lines_actor.rz_to_3d:
                     self.lines_rz_to_3d_rb.setChecked(True)
                 else:
