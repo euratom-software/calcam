@@ -121,7 +121,6 @@ class FittingCalib(CalcamGUIWindow):
         self.comparison_overlay_checkbox.toggled.connect(self.update_overlay)
         self.overlay_type.currentIndexChanged.connect(self.update_overlay)
         self.comparison_overlay_type.currentIndexChanged.connect(self.update_overlay)
-        self.comparison_overlay_opacity_slider.valueChanged.connect(self.change_comparison_colour)
         self.rendertype_edges.toggled.connect(self.toggle_wireframe)
         self.coords_table_button.clicked.connect(self.open_coords_window)
 
@@ -134,7 +133,9 @@ class FittingCalib(CalcamGUIWindow):
 
         self.points_undo_button.clicked.connect(self.pointpairs_undo)
 
+        self.overlay_opacity_slider.setValue(int(self.config.main_overlay_colour[3]*100))
         self.overlay_opacity_slider.valueChanged.connect(self.change_overlay_colour)
+        self.comparison_overlay_opacity_slider.valueChanged.connect(self.change_comparison_colour)
 
         # Set up some keyboard shortcuts
         # It is done this way in 3 lines per shortcut to avoid segfaults on some configurations
@@ -200,7 +201,6 @@ class FittingCalib(CalcamGUIWindow):
 
         self.fit_initted = False
 
-        self.overlay_opacity_slider.setValue(int(self.config.main_overlay_colour[3]*100))
         self.overlay_appearance_controls.hide()
         self.comparison_overlay_appearance.hide()
 
