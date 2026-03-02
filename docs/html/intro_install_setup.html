@@ -7,8 +7,8 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Getting Up &amp; Running &mdash; Calcam  documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
@@ -112,8 +112,16 @@
              
   <section id="getting-up-running">
 <h1>Getting Up &amp; Running<a class="headerlink" href="#getting-up-running" title="Link to this heading"></a></h1>
-<p>Calcam runs under Python 3.7 or newer on Windows, Linux or OSX. As of October 2025, Python 3.13 or older is recommended, because suitable versions of VTK (one of Calcam’s major dependencies) are not available from the Python Package Index (PyPi) for newer versions (for newer Python versions you will have to build and install VTK and its Python bindings yourself, which can be quite involved).</p>
-<p>You can download Python installers for Windows or OSX from <a class="reference external" href="https://www.python.org/downloads/">Python.org</a> ; get it from your favourite software repository on Linux; get it from the Microsoft Store on Windows; or use a python environment manager such as <a class="reference external" href="https://www.anaconda.com">Anaconda</a>.</p>
+<p>Calcam runs under Python 3.7 or newer on Windows, Linux or MaxOS.</p>
+<p>You can download Python installers for Windows or MacOS from <a class="reference external" href="https://www.python.org/downloads/">Python.org</a> ; get it from your favourite software repository on Linux; get it from the Microsoft Store on Windows; or use a python environment manager such as <a class="reference external" href="https://www.anaconda.com">Anaconda</a>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>As of March 2026, Python 3.12 or older is recommended, because:</p>
+<ul class="simple">
+<li><p>There are multiple known compatibility issues with Calcam and Python 3.13 on multiple platforms (see <a class="reference external" href="https://github.com/euratom-software/calcam/issues">GitHub issues page</a>)</p></li>
+<li><p>One of the dependencies (triangle) can cause errors in the installation process with Python 3.14. Calcam can still be installed in this case if you do not need to use <a class="reference internal" href="api_geom_matrix.html#calcam.gm.trigrid" title="calcam.gm.trigrid"><code class="xref py py-func docutils literal notranslate"><span class="pre">calcam.gm.trigrid()</span></code></a>, however it is more work since you will have to install with the <cite>–no-deps</cite> option and install the other dependencies manually.</p></li>
+</ul>
+</div>
 <section id="installing-using-pip">
 <h2>Installing using pip<a class="headerlink" href="#installing-using-pip" title="Link to this heading"></a></h2>
 <p>Once you have Python installed, the recommended way to install Calcam is to use <code class="docutils literal notranslate"><span class="pre">pip</span></code> (unless you are using Anaconda, in which case see <a class="reference internal" href="#conda-install"><span class="std std-ref">below</span></a>), which on most configurations should come installed with Python as standard . If not, documentation for how to get <code class="docutils literal notranslate"><span class="pre">pip</span></code> can be found <a class="reference external" href="https://pip.pypa.io/en/stable/installing/">here</a>.</p>
@@ -186,12 +194,12 @@
 </pre></div>
 </div>
 <p>If you will be using the Calcam GUI often, it is highly recommended to make a shortcut to the calcam GUI executable for covenience, and/or make sure the executable is included in your <code class="docutils literal notranslate"><span class="pre">PATH</span></code> environment variable. You can find the executable location in the <a class="reference internal" href="gui_settings.html"><span class="doc">Calcam Settings</span></a> GUI, or by using the following Python code:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">calcam</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">calcam</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">calcam</span><span class="o">.</span><span class="n">gui</span><span class="o">.</span><span class="n">exe_path</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Calcam is also provided with icons which can be used for program shortcuts or icons for associated file types. You can find the location of these icons similarly with:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">calcam</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">calcam</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">calcam</span><span class="o">.</span><span class="n">gui</span><span class="o">.</span><span class="n">icons_path</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -217,7 +225,7 @@
 <p>If installing Calcam on a multi-user system, it may be desirable to provide a default configuration (CAD model file locations, image sources) for users running Calcam for the first time on that system. Since version 2.9, Calcam supports this by placing a suitable default configuration file in the Calcam installation directory.</p>
 <p>The default configuration file is a json file with the same format as Calcam’s normal user configuration file. Therefore the easiest way to set up a default configuration file is to configure Calcam how you want it on your own user account, then copy the configuration file <code class="docutils literal notranslate"><span class="pre">~/.calcam_config</span></code> (where <code class="docutils literal notranslate"><span class="pre">~</span></code> is your home directory e.g. <code class="docutils literal notranslate"><span class="pre">/home/username</span></code> on Unix or <code class="docutils literal notranslate"><span class="pre">C:\Users\username</span></code> on windows) to the relevant location.</p>
 <p>The place Calcam will look for the default configuration file - where you need to place it to be effective - can be checked with:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">calcam</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">calcam</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">calcam</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">default_cfg_path</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -238,22 +246,22 @@
 </thead>
 <tbody>
 <tr class="row-even"><td><p>SciPy</p></td>
-<td><p>Tested up to v1.15.3</p></td>
+<td><p>Tested up to v1.17.1</p></td>
 </tr>
 <tr class="row-odd"><td><p>NumPy</p></td>
-<td><p>Tested up to v2.3.1 (will also work fine with 1.x)</p></td>
+<td><p>Tested up to v2.4.2 (will also work fine with 1.x)</p></td>
 </tr>
 <tr class="row-even"><td><p>MatPlotLib</p></td>
-<td><p>Tested up to v3.9.2</p></td>
+<td><p>Tested up to v3.10.8</p></td>
 </tr>
 <tr class="row-odd"><td><p>OpenCV (a.k.a. cv2)</p></td>
-<td><p>Tested up to to v4.10</p>
+<td><p>Tested up to to v4.13</p>
 <p>Fisheye camera model only available if using 3.x or newer.</p>
 <p>If running under OSX older than 10.12, versions of OpenCV newer than 3.2 may cause crashes on import (downgrade to OpenCV &lt; 3.3 to fix this).</p>
 </td>
 </tr>
 <tr class="row-even"><td><p>VTK</p></td>
-<td><p>Requires version =&gt;7, somewhat tested up to 9.3.1. Note Versions 9.1.x cause crashes when setting large CAD models to wireframe rendering.</p></td>
+<td><p>Requires version =&gt;7, somewhat tested up to 9.6.0. Note Versions 9.1.x cause crashes when setting large CAD models to wireframe rendering.</p></td>
 </tr>
 <tr class="row-odd"><td><p>PyQt</p></td>
 <td><p>Works with PyQt4; PyQt5 or PyQt6; PyQt6 or 5 are recommended; pip will try to install PyQt5 because it has better success installing on different platforms.</p>
@@ -262,10 +270,10 @@
 </td>
 </tr>
 <tr class="row-even"><td><p>h5py</p></td>
-<td><p>Tested with 3.11.1. Used for MATLAB 7.3 file support in calcam.gm.GeometryMatrix.</p></td>
+<td><p>Tested with 3.15.1. Used for MATLAB 7.3 file support in calcam.gm.GeometryMatrix.</p></td>
 </tr>
 <tr class="row-odd"><td><p>triangle</p></td>
-<td><p>Tested with 20230923. Used for generating triangular meshes in calcam.gm module. Can cause installation error on OSX will apple silicon (see GitHub issue #122)</p></td>
+<td><p>Tested with 20230923. Used for triangular meshing in calcam.gm module. Can cause install errors on apple silicon or Python 3.14 (see GitHub issue #122)</p></td>
 </tr>
 </tbody>
 </table>
@@ -278,18 +286,18 @@
 <section id="manually-troubleshooting-dependencies">
 <h4>Manually troubleshooting dependencies<a class="headerlink" href="#manually-troubleshooting-dependencies" title="Link to this heading"></a></h4>
 <p>If it is not clear that a dependency is the problem, or which it might be, open a python prompt and check if all of the following import commands work without errors:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">vtk</span> <span class="kn">import</span> <span class="n">vtkVersion</span>
-<span class="kn">from</span> <span class="nn">cv2</span> <span class="kn">import</span> <span class="n">__version__</span>
-<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">__version__</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span>
-<span class="kn">import</span> <span class="nn">h5py</span>
-<span class="kn">import</span> <span class="nn">triangle</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">vtk</span><span class="w"> </span><span class="kn">import</span> <span class="n">vtkVersion</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cv2</span><span class="w"> </span><span class="kn">import</span> <span class="n">__version__</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">__version__</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">h5py</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">triangle</span>
 </pre></div>
 </div>
 <p>In addition to these, at least one of the following PyQt imports must work for the Calcam GUI to be available ( it doesn’t matter which - as long as one works Calcam will be able to use it):</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">PyQt6</span> <span class="kn">import</span> <span class="n">QtCore</span>
-<span class="kn">from</span> <span class="nn">PyQt5</span> <span class="kn">import</span> <span class="n">QtCore</span>
-<span class="kn">from</span> <span class="nn">PyQt4</span> <span class="kn">import</span> <span class="n">QtCore</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">PyQt6</span><span class="w"> </span><span class="kn">import</span> <span class="n">QtCore</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PyQt5</span><span class="w"> </span><span class="kn">import</span> <span class="n">QtCore</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PyQt4</span><span class="w"> </span><span class="kn">import</span> <span class="n">QtCore</span>
 </pre></div>
 </div>
 <p>If any of these required imports fail with errors, you will need to fix the relevant Python module installation before Calcam will work (re-installing the relevant module is a good first thing to try). If all of the required imports work properly, there could be a bug or issue with Calcam.</p>

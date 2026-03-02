@@ -7,8 +7,8 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Examples &mdash; Calcam  documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
@@ -117,10 +117,10 @@
 <h2>Mapping a magnetic field line on to an image<a class="headerlink" href="#mapping-a-magnetic-field-line-on-to-an-image" title="Link to this heading"></a></h2>
 <p>We start with an image of a MAST plasma on to which we want to overlay a magnetic field line, which we will assume is saved as <code class="docutils literal notranslate"><span class="pre">image.png</span></code> in the current directory. We also have a Calcam calibration for that image stored in the file <code class="docutils literal notranslate"><span class="pre">mycalib.ccc</span></code>, which for convenience we assume is also saved in the current directory. Finally, we have a <code class="docutils literal notranslate"><span class="pre">.csv</span></code> file containing a set of 3D coordinates of points along a magnetic field line (generated using a field line tracing tool), with each row of the file containg X,Y,Z coordinates of a single point.</p>
 <p>We can plot the field line on top of the image with the following code:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">calcam</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">cv2</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">calcam</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">cv2</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 
 <span class="c1"># Load the image using OpenCV</span>
 <span class="n">cam_image</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="s1">&#39;image.png&#39;</span><span class="p">)</span>
@@ -145,10 +145,10 @@
 <p>This results in the figure below:</p>
 <img alt="MAST field line projection example" src="_images/mast_fieldline_example_1.png" />
 <p>Note that the parts of the field line hidden behind the centre stack are still visible, which looks strange. To only show the parts of the field line which are not hidden behind parts of the machine, we can modify the above code to also load the MAST CAD model and check which points are hidden from the camera by the CAD geometry:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">calcam</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">cv2</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">calcam</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">cv2</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 
 <span class="c1"># Load the image using OpenCV</span>
 <span class="n">cam_image</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="s1">&#39;image.png&#39;</span><span class="p">)</span>
@@ -182,8 +182,8 @@
 <section id="rendering-camera-view-wireframe">
 <h2>Rendering: camera view wireframe<a class="headerlink" href="#rendering-camera-view-wireframe" title="Link to this heading"></a></h2>
 <p>For this example, we start with a Calcam calibration for a MAST camera, and we want to render a wireframe version of the MAST CAD model which aligns with the camera image. This might be used, for example, to use as an overlay on a plasma image to give context to the image. We can do this with the following code:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">calcam</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">calcam</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 
 <span class="c1"># Load the calcam calibration</span>
 <span class="n">cam_calib</span> <span class="o">=</span> <span class="n">calcam</span><span class="o">.</span><span class="n">Calibration</span><span class="p">(</span><span class="s1">&#39;mycalib.ccc&#39;</span><span class="p">)</span>
@@ -209,7 +209,7 @@
 <section id="ray-casting">
 <h2>Ray casting<a class="headerlink" href="#ray-casting" title="Link to this heading"></a></h2>
 <p>Imagine we have an IR image from a first wall monitoring camera which shows some unusual event at pixel coordinates (100,250). We might want to get the 3D coordinates on the CAD model corresponding to this pixel to tell us where exactly this event took place. We could do this by ray-casting that particular pixel:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">calcam</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">calcam</span>
 
 <span class="c1"># Load the calibration</span>
 <span class="n">cam_calib</span> <span class="o">=</span> <span class="n">calcam</span><span class="o">.</span><span class="n">Calibration</span><span class="p">(</span><span class="s1">&#39;my_calibration.ccc&#39;</span><span class="p">)</span>
@@ -240,9 +240,9 @@
 <section id="tomography-geometry-matrices">
 <h2>Tomography Geometry Matrices<a class="headerlink" href="#tomography-geometry-matrices" title="Link to this heading"></a></h2>
 <p>For this example, we assume we already have a set of saved raydata relating to a camera we want to tomographically invert. For the purposes of this example we imagine it is a divertor camera on MAST, which can see Z heights up to about -0.6m in its field of view. To make the geometry matrix, we do this:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">calcam</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">calcam</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
 <span class="c1"># Note that including &quot;if __name__ == &#39;__main__&#39; is actually important here;</span>
 <span class="c1"># because the geometry matrix calculation uses multiprocessing, this</span>
