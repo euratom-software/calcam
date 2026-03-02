@@ -7,8 +7,8 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Camera Movement Correction &mdash; Calcam  documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
@@ -200,7 +200,7 @@ See the <a class="reference internal" href="gui_movement.html"><span class="doc"
 <p>The above functions return movement correction objects, which represent the geometrical transform between the reference and moved images. These objects then have various methods for transforming between reference and moved images and coordinates.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="calcam.movement.MovementCorrection">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">calcam.movement.</span></span><span class="sig-name descname"><span class="pre">MovementCorrection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moved_points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.movement.MovementCorrection" title="Link to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">calcam.movement.</span></span><span class="sig-name descname"><span class="pre">MovementCorrection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moved_points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.movement.MovementCorrection" title="Link to this definition"></a></dt>
 <dd><p>Class to represent a geometric transform from a moved image
 to a reference image. This type of object is returned by image movement
 correction related functions.</p>
@@ -242,7 +242,7 @@ The score ranges from -1 to 1, where negative values indicate the alignment gets
 
 <dl class="py method">
 <dt class="sig sig-object py" id="calcam.movement.MovementCorrection.load">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.movement.MovementCorrection.load" title="Link to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.movement.MovementCorrection.load" title="Link to this definition"></a></dt>
 <dd><p>Load a movement correction from a .cmc file on disk.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -297,7 +297,7 @@ np.ndarray : Array of y (vertical) pixel coordinates in the moved image</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="calcam.movement.MovementCorrection.rotation">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">rotation</span></span><a class="headerlink" href="#calcam.movement.MovementCorrection.rotation" title="Link to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">rotation</span></span><a class="headerlink" href="#calcam.movement.MovementCorrection.rotation" title="Link to this definition"></a></dt>
 <dd><p>Image rotation to go from the moved to reference image in degrees clockwise.</p>
 </dd></dl>
 
@@ -313,13 +313,13 @@ np.ndarray : Array of y (vertical) pixel coordinates in the moved image</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="calcam.movement.MovementCorrection.scale">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">scale</span></span><a class="headerlink" href="#calcam.movement.MovementCorrection.scale" title="Link to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">scale</span></span><a class="headerlink" href="#calcam.movement.MovementCorrection.scale" title="Link to this definition"></a></dt>
 <dd><p>Scale factor to go from moved to reference image.</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="calcam.movement.MovementCorrection.translation">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">translation</span></span><a class="headerlink" href="#calcam.movement.MovementCorrection.translation" title="Link to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">translation</span></span><a class="headerlink" href="#calcam.movement.MovementCorrection.translation" title="Link to this definition"></a></dt>
 <dd><p>x, y translation in pixels to go from the moved to reference image.</p>
 </dd></dl>
 
@@ -405,7 +405,7 @@ point pair fitting calibrations, not manual alignment calibrations.</p>
 <h2>Exceptions<a class="headerlink" href="#exceptions" title="Link to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="calcam.movement.DetectionFailedError">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">calcam.movement.</span></span><span class="sig-name descname"><span class="pre">DetectionFailedError</span></span><a class="headerlink" href="#calcam.movement.DetectionFailedError" title="Link to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">calcam.movement.</span></span><span class="sig-name descname"><span class="pre">DetectionFailedError</span></span><a class="headerlink" href="#calcam.movement.DetectionFailedError" title="Link to this definition"></a></dt>
 <dd><p>Exception raised if the automatic image movement detection fails to determine the image movement with sufficient confidence or quality.</p>
 </dd></dl>
 

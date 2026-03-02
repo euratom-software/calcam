@@ -921,7 +921,8 @@ class CalcamGUIWindow(qt.QMainWindow):
             self.no_slicing_rb.setChecked(True)
             self.update_xsection()
         except AttributeError:
-            self.cadmodel.set_slicing()
+            if self.cadmodel is not None:
+                self.cadmodel.set_slicing()
   
         self.refresh_3d()
 

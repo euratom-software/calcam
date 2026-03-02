@@ -725,7 +725,7 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
         view_direction = self.camera.GetDirectionOfProjection()
         if np.abs(view_direction[2]) < 0.999:
             z_projection = np.array([ -view_direction[0]*view_direction[2], -view_direction[1]*view_direction[2], 1-view_direction[2]**2 ])
-            upvec = rotate_3d(z_projection,view_direction,self.cam_roll)
+            upvec = np.squeeze(rotate_3d(z_projection,view_direction,self.cam_roll))
             self.camera.SetViewUp(upvec)
             roll = self.camera.GetRoll()
             tar = self.camera.GetFocalPoint()

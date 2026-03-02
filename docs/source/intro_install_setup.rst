@@ -3,10 +3,15 @@ Getting Up & Running
 ====================
 .. highlight:: none
 
-Calcam runs under Python 3.7 or newer on Windows, Linux or OSX. As of October 2025, Python 3.13 or older is recommended, because suitable versions of VTK (one of Calcam's major dependencies) are not available from the Python Package Index (PyPi) for newer versions (for newer Python versions you will have to build and install VTK and its Python bindings yourself, which can be quite involved).
+Calcam runs under Python 3.7 or newer on Windows, Linux or MaxOS.
 
-You can download Python installers for Windows or OSX from `Python.org <https://www.python.org/downloads/>`_ ; get it from your favourite software repository on Linux; get it from the Microsoft Store on Windows; or use a python environment manager such as `Anaconda <https://www.anaconda.com>`_. 
+You can download Python installers for Windows or MacOS from `Python.org <https://www.python.org/downloads/>`_ ; get it from your favourite software repository on Linux; get it from the Microsoft Store on Windows; or use a python environment manager such as `Anaconda <https://www.anaconda.com>`_.
 
+.. note::
+    As of March 2026, Python 3.12 or older is recommended, because:
+
+    * There are multiple known compatibility issues with Calcam and Python 3.13 on multiple platforms (see `GitHub issues page <https://github.com/euratom-software/calcam/issues>`_)
+    * One of the dependencies (triangle) can cause errors in the installation process with Python 3.14. Calcam can still be installed in this case if you do not need to use :func:`calcam.gm.trigrid()`, however it is more work since you will have to install with the `--no-deps` option and install the other dependencies manually.
 
 Installing using pip
 --------------------
@@ -149,19 +154,19 @@ The most common reason for errors or problems getting Calcam up and running are 
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Module / Library    | Versions Tested / comments                                                                                                                                         |
 +=====================+====================================================================================================================================================================+
-| SciPy               | Tested up to v1.15.3                                                                                                                                               |
+| SciPy               | Tested up to v1.17.1                                                                                                                                               |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| NumPy               | Tested up to v2.3.1 (will also work fine with 1.x)                                                                                                                 |
+| NumPy               | Tested up to v2.4.2 (will also work fine with 1.x)                                                                                                                 |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| MatPlotLib          | Tested up to v3.9.2                                                                                                                                                |
+| MatPlotLib          | Tested up to v3.10.8                                                                                                                                               |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| OpenCV (a.k.a. cv2) | Tested up to to v4.10                                                                                                                                              |
+| OpenCV (a.k.a. cv2) | Tested up to to v4.13                                                                                                                                              |
 |                     |                                                                                                                                                                    |
 |                     | Fisheye camera model only available if using 3.x or newer.                                                                                                         |
 |                     |                                                                                                                                                                    |
 |                     | If running under OSX older than 10.12, versions of OpenCV newer than 3.2 may cause crashes on import (downgrade to OpenCV < 3.3 to fix this).                      |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| VTK                 | Requires version =>7, somewhat tested up to 9.3.1. Note Versions 9.1.x cause crashes when setting large CAD models to wireframe rendering.                         |
+| VTK                 | Requires version =>7, somewhat tested up to 9.6.0. Note Versions 9.1.x cause crashes when setting large CAD models to wireframe rendering.                         |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | PyQt                | Works with PyQt4; PyQt5 or PyQt6; PyQt6 or 5 are recommended; pip will try to install PyQt5 because it has better success installing on different platforms.       |
 |                     |                                                                                                                                                                    |
@@ -169,9 +174,9 @@ The most common reason for errors or problems getting Calcam up and running are 
 |                     |                                                                                                                                                                    |
 |                     | Some versions can result in click positions being registered wrong on OSX using High DPI mode; not clear what version ranges this affects (see GitHub issue #79)   |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| h5py                | Tested with 3.11.1. Used for MATLAB 7.3 file support in calcam.gm.GeometryMatrix.                                                                                  |
+| h5py                | Tested with 3.15.1. Used for MATLAB 7.3 file support in calcam.gm.GeometryMatrix.                                                                                  |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| triangle            | Tested with 20230923. Used for generating triangular meshes in calcam.gm module. Can cause installation error on OSX will apple silicon (see GitHub issue #122)    |
+| triangle            | Tested with 20230923. Used for triangular meshing in calcam.gm module. Can cause install errors on apple silicon or Python 3.14 (see GitHub issue #122)            |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 Also check the  `GitHub issues page <https://github.com/euratom-software/calcam/issues>`_ for any more known compatibility issues not yet updated here.
