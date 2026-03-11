@@ -646,7 +646,7 @@ class GeometryMatrix:
             
             # Number of grid cells and sight lines
             n_cells = grid.n_cells
-            n_los = raydata.transform.x_pixels * raydata.transform.y_pixels
+            n_los = raydata.x.size
     
             # Flatten out the ray start and end coords
             ray_start_coords = raydata.get_ray_start().reshape(-1,3,order=self.pixel_order)
