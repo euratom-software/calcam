@@ -612,7 +612,7 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
         fov_y = 360 * np.arctan( height / (2*fy) ) / 3.14159
         cam_pos = calibration.get_pupilpos(subview=field)
         cam_tar = calibration.get_los_direction(cx,cy,subview=field) + cam_pos
-        upvec = -1.*calibration.get_cam_to_lab_rotation(subview=field)[:,1]
+        upvec = np.squeeze(np.array(-1.*calibration.get_cam_to_lab_rotation(subview=field)[:,1]))
         camera.SetPosition(cam_pos)
         camera.SetViewAngle(fov_y)
         camera.SetFocalPoint(cam_tar)
