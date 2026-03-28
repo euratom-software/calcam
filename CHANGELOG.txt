@@ -8,6 +8,7 @@ Changes on master branch since last release (2.16.4.dev0)
 Fixes:
 * Fixed a bug in calcam.gm.GeometryMatrix() which caused errors when calculating a geometry matrix from RayData with binning != 1
 * Fixed a compatibility issue in render_cam_view() with Python 3.13
+* Fixed a bug in the CADModel class which could raise exceptions when trying to create new views in the CAD definition editor tool
 
 
 Patch Release 2.16.3 (March 2026)
