@@ -105,7 +105,6 @@ class CADModel():
             self.initial_view = model_def['initial_view']
             self.linewidth = 1
             self.mesh_path_roots = model_def['mesh_path_roots']
-            self.slice_params = (None,0,None)
 
             if self.model_variant is None:
                 self.model_variant = model_def['default_variant']
@@ -188,6 +187,7 @@ class CADModel():
             self.mesh_path_roots = {}
 
         self.renderers = []
+        self.slice_params = (None, 0, None)
         self.slice_planes = None
         self.flat_shading = False
         self.edges = False

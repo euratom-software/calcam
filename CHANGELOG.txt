@@ -8,7 +8,9 @@ Changes on master branch since last release (2.16.dev1)
 Fixes:
 * Fixed a bug in calcam.gm.GeometryMatrix() which caused errors when calculating a geometry matrix from RayData with binning != 1
 * Fixed a compatibility issue in render_cam_view() with Python 3.13
+* Fixed a bug in the CADModel class which could raise exceptions when trying to create new views in the CAD definition editor tool
 * Calibration.project_points() no longer returns spurious, incorrect projected coordinates for some 3D points with rectilinear distortion model calibrations which have large distortion coefficients
+
 
 
 Patch Release 2.16.3 (March 2026)
