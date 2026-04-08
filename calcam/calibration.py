@@ -271,18 +271,18 @@ class RectilinearViewModel(ViewModel):
 
             r_matrix = self.get_cam_to_lab_rotation().T
 
-            for point_ind in range(proj_points.shape[0]):
-                local_coords = r_matrix * np.matrix(points[0][point_ind,:]).T + self.tvec
-                xp = local_coords[0]/local_coords[2]
-                yp = local_coords[1]/local_coords[2]
-                r = np.sqrt(xp**2+yp**2)
+            xlocal = r_matrix[0,0]*points[0][:,0] + r_matrix[0,1]*points[0][:,1] + r_matrix[0,2]*points[0][:,2] + self.tvec[0]
+            ylocal = r_matrix[1,0]*points[0][:,0] + r_matrix[1,1]*points[0][:,1] + r_matrix[1,2]*points[0][:,2] + self.tvec[1]
+            zlocal = r_matrix[2,0]*points[0][:,0] + r_matrix[2,1]*points[0][:,1] + r_matrix[2,2]*points[0][:,2] + self.tvec[2]
 
-                deriv_x = k1*r**2 + k2*r**4 + k3*r**6 + 2*p1*yp + 6*p2*xp + xp*(2*k1*xp + 4*k2*xp*r**2+6*k3*xp*r**4) + 1
-                deriv_y = k1*r**2 + k2*r**4 + k3*r**6 + 2*p2*xp + 6*p1*yp + yp*(2*k1*yp + 4*k2*yp*r**2+6*k3*yp*r**4) + 1
+            xp = xlocal/zlocal
+            yp = ylocal/zlocal
+            r = np.sqrt(xp**2+yp**2)
 
-                if deriv_x < 0 or deriv_y < 0:
-                    warn = True
-                    proj_points[point_ind,:] = np.nan
+            deriv_x = k1*r**2 + k2*r**4 + k3*r**6 + 2*p1*yp + 6*p2*xp + xp*(2*k1*xp + 4*k2*xp*r**2+6*k3*xp*r**4) + 1
+            deriv_y = k1*r**2 + k2*r**4 + k3*r**6 + 2*p2*xp + 6*p1*yp + yp*(2*k1*yp + 4*k2*yp*r**2+6*k3*yp*r**4) + 1
+
+            proj_points[(deriv_x < 0) | (deriv_y < 0),:] = np.nan
 
         return proj_points
 
