@@ -282,7 +282,11 @@ class RectilinearViewModel(ViewModel):
             deriv_x = k1*r**2 + k2*r**4 + k3*r**6 + 2*p1*yp + 6*p2*xp + xp*(2*k1*xp + 4*k2*xp*r**2+6*k3*xp*r**4) + 1
             deriv_y = k1*r**2 + k2*r**4 + k3*r**6 + 2*p2*xp + 6*p1*yp + yp*(2*k1*yp + 4*k2*yp*r**2+6*k3*yp*r**4) + 1
 
-            proj_points[(deriv_x < 0) | (deriv_y < 0),:] = np.nan
+            if proj_points.ndim == 2:
+                proj_points[(deriv_x < 0) | (deriv_y < 0),:] = np.nan
+            else:
+                if deriv_x < 0 or deriv_y < 0:
+                    proj_points[:] = np.nan
 
         return proj_points
 
