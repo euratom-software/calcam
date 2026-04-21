@@ -26,18 +26,18 @@ Here :math:`f_x` and :math:`f_y` are the effective focal length of the imaging s
 
 Rectilinear Lens Distortion Model
 ---------------------------------
-The image distortion model for rectilinear lenses takes in to account radial (barrel or pincushion) distortion, and tangential (wedge-prism like, usually due to de-centring of optical components) distortions. The equation relating the undistorted and distorted normalised image coordinates in this model is:
+For rectilinear lenses (which in the ideal distortion-free case, re-produce straight lines in the scene as straight lines in the image), Calcam uses the Brown–Conrady model [1]_ to characterise geometrical lens distortions. The equation relating the undistorted and distorted normalised image coordinates in this model is:
 
 .. _distortion_eqn:
 .. math::
-	\begin{pmatrix}x_d\\y_d\end{pmatrix} = \left[ 1 + k_1r^2 + k_2r^4 + k_3r^6\right]\begin{pmatrix}x_n\\y_n\end{pmatrix} +  \begin{pmatrix}2p_1x_ny_n + p_2(r^2 + 2x_n^2)\\p_1(r^2 + 2y^2) + 2p_2x{_n}y{_n}\end{pmatrix},
+	\begin{pmatrix}x_d\\y_d\end{pmatrix} = \left[ 1 + k_1r^2 + k_2r^4 + k_3r^6\right]\begin{pmatrix}x_n\\y_n\end{pmatrix} +  \begin{pmatrix}2p_1x_ny_n + p_2(r^2 + 2x_n^2)\\2p_2x_ny_n + p_1(r^2 + 2y_n^2)\end{pmatrix},
 	\label{eq:perspective_distortion}
 
-where :math:`r = \sqrt{x_n^2 + y_n^2}`, and :math:`k_n` and :math:`p_n` are radial and tangential distortion coefficients, respectively. The polynomial in :math:`r^2` in the first term describes the radial distortion while the second term represents tangential distortion.
+where :math:`r = \sqrt{x_n^2 + y_n^2}`. The polynomial in :math:`r^2` describes radial distortion: the :math:`k_1` term corresponds to barrel or pincushion distortion, and the combination of :math:`k_1` and :math:`k_2` terms can describe moustache distortion. Including a :math:`k_3` term allows for an even higher order radial distortion model. The second term with coefficients :math:`p_1,p_2` describes tangential, or decentring distortion, which results from de-centring or misalignment of individual optical elements. When fitting a camera calibration in calcam, each term of the radial distortion polynomial, and the tangential distortion term, can either be enabled or set to zero to simplify the distortion model.
 
 Fisheye Lens Distirtion Model
 -----------------------------
-The fisheye distortion model only includes radial fisheye distortion. Unlike the rectilinear lens model, the polynomial describing the radial distortion is a function of an anglular distance from the centre of perspective, rather than a linear distance in the image:
+Fisheye lenses use deliberate geometrical distortion to produce an image with much wider field of view than rectilinear lenses. In this case, the polynomial describing the radial distortion is a function of an anglular distance from the centre of perspective, rather than a linear distance in the image like in the rectilinear lens model:
 
 .. math::
 	\begin{pmatrix}x_d\\y_d\end{pmatrix} = \frac{\theta}{r}\left[ 1 + k_1\theta^2 + k_2\theta^4 + k_3\theta^6 + k_4\theta^8\right]\begin{pmatrix}x_n\\y_n\end{pmatrix},
@@ -46,7 +46,14 @@ The fisheye distortion model only includes radial fisheye distortion. Unlike the
 
 where :math:`r = \sqrt{x_n^2 + y_n^2}` and :math:`\theta = \tan^{-1}(r)`.
 
+Similarly to the rectilinear lens model, when fitting a fisheye calibration in Calcam the individual polynomial terms can be switched on or off to fit a different order of distortion model.
+
 
 Underlying OpenCV Documentation
 --------------------------------
 Calcam does not implement the above camera models within its own code; under the hood it uses the OpenCV camera calibration functions. It may therefore be helpful to also refer to the OpenCV camera calibration documentation, which can be found on the `OpenCV webpages <https://opencv.org/>`_.
+
+
+References
+----------
+.. [1] Duane C. Brown, "Decentering distortion of lenses" Photogrammetric Engineering. 32 (3): 444–462  (1966) `PDF available on archive.org <https://web.archive.org/web/20180312205006/https://www.asprs.org/wp-content/uploads/pers/1966journal/may/1966_may_444-462.pdf>`_.

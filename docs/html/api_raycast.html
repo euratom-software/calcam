@@ -14,8 +14,8 @@
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="_static/documentation_options.js?v=7f41d439"></script>
-      <script src="_static/doctools.js?v=9bcbadda"></script>
-      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -141,7 +141,7 @@
 
 <dl class="py class">
 <dt class="sig sig-object py" id="calcam.RayData">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">calcam.</span></span><span class="sig-name descname"><span class="pre">RayData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData" title="Link to this definition"></a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">calcam.</span></span><span class="sig-name descname"><span class="pre">RayData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData" title="Link to this definition"></a></dt>
 <dd><p>Class representing ray casting results.</p>
 <p>Objects of this class are returned by <a class="reference internal" href="#calcam.raycast_sightlines" title="calcam.raycast_sightlines"><code class="xref py py-func docutils literal notranslate"><span class="pre">calcam.raycast_sightlines()</span></code></a>.
 It can also be used to save and load ray cast results to disk.</p>
@@ -150,6 +150,22 @@ It can also be used to save and load ray cast results to disk.</p>
 <dd class="field-odd"><p><strong>filename</strong> (<em>str</em>) – File name of netCDF file containing saved RayData to load.                           If not given, an empty RayData object is created.</p>
 </dd>
 </dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="calcam.RayData.get_detector_window">
+<span class="sig-name descname"><span class="pre">get_detector_window</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData.get_detector_window" title="Link to this definition"></a></dt>
+<dd><p>Get the coordinates of the detector region included in this ray-cast result
+(including any effect of previous calls to <a class="reference internal" href="#calcam.RayData.set_detector_window" title="calcam.RayData.set_detector_window"><code class="xref py py-func docutils literal notranslate"><span class="pre">set_detector_window()</span></code></a>).</p>
+<p>Detector window coordinates are always in original coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(left,top,width,height) coordinates of the detector ROI for the calibration. (left,top) are the offset                     of the ROI from the top-left corner of the image, and (width,height) are the image width and height.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="calcam.RayData.get_model_normals">
 <span class="sig-name descname"><span class="pre">get_model_normals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im_position_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Display'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData.get_model_normals" title="Link to this definition"></a></dt>

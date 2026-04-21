@@ -14,9 +14,9 @@
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="_static/documentation_options.js?v=7f41d439"></script>
-      <script src="_static/doctools.js?v=9bcbadda"></script>
-      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -53,6 +53,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#rectilinear-lens-distortion-model">Rectilinear Lens Distortion Model</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#fisheye-lens-distirtion-model">Fisheye Lens Distirtion Model</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#underlying-opencv-documentation">Underlying OpenCV Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#references">References</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="intro_conventions.html">Concepts &amp; Conventions</a></li>
@@ -127,23 +128,33 @@
 </section>
 <section id="rectilinear-lens-distortion-model">
 <h2>Rectilinear Lens Distortion Model<a class="headerlink" href="#rectilinear-lens-distortion-model" title="Link to this heading"></a></h2>
-<p>The image distortion model for rectilinear lenses takes in to account radial (barrel or pincushion) distortion, and tangential (wedge-prism like, usually due to de-centring of optical components) distortions. The equation relating the undistorted and distorted normalised image coordinates in this model is:</p>
+<p>For rectilinear lenses (which in the ideal distortion-free case, re-produce straight lines in the scene as straight lines in the image), Calcam uses the Brown–Conrady model <a class="footnote-reference brackets" href="#id2" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> to characterise geometrical lens distortions. The equation relating the undistorted and distorted normalised image coordinates in this model is:</p>
 <div class="math notranslate nohighlight" id="distortion-eqn">
-\[\begin{split}\begin{pmatrix}x_d\\y_d\end{pmatrix} = \left[ 1 + k_1r^2 + k_2r^4 + k_3r^6\right]\begin{pmatrix}x_n\\y_n\end{pmatrix} +  \begin{pmatrix}2p_1x_ny_n + p_2(r^2 + 2x_n^2)\\p_1(r^2 + 2y^2) + 2p_2x{_n}y{_n}\end{pmatrix},
+\[\begin{split}\begin{pmatrix}x_d\\y_d\end{pmatrix} = \left[ 1 + k_1r^2 + k_2r^4 + k_3r^6\right]\begin{pmatrix}x_n\\y_n\end{pmatrix} +  \begin{pmatrix}2p_1x_ny_n + p_2(r^2 + 2x_n^2)\\2p_2x_ny_n + p_1(r^2 + 2y_n^2)\end{pmatrix},
 \label{eq:perspective_distortion}\end{split}\]</div>
-<p>where <span class="math notranslate nohighlight">\(r = \sqrt{x_n^2 + y_n^2}\)</span>, and <span class="math notranslate nohighlight">\(k_n\)</span> and <span class="math notranslate nohighlight">\(p_n\)</span> are radial and tangential distortion coefficients, respectively. The polynomial in <span class="math notranslate nohighlight">\(r^2\)</span> in the first term describes the radial distortion while the second term represents tangential distortion.</p>
+<p>where <span class="math notranslate nohighlight">\(r = \sqrt{x_n^2 + y_n^2}\)</span>. The polynomial in <span class="math notranslate nohighlight">\(r^2\)</span> describes radial distortion: the <span class="math notranslate nohighlight">\(k_1\)</span> term corresponds to barrel or pincushion distortion, and the combination of <span class="math notranslate nohighlight">\(k_1\)</span> and <span class="math notranslate nohighlight">\(k_2\)</span> terms can describe moustache distortion. Including a <span class="math notranslate nohighlight">\(k_3\)</span> term allows for an even higher order radial distortion model. The second term with coefficients <span class="math notranslate nohighlight">\(p_1,p_2\)</span> describes tangential, or decentring distortion, which results from de-centring or misalignment of individual optical elements. When fitting a camera calibration in calcam, each term of the radial distortion polynomial, and the tangential distortion term, can either be enabled or set to zero to simplify the distortion model.</p>
 </section>
 <section id="fisheye-lens-distirtion-model">
 <h2>Fisheye Lens Distirtion Model<a class="headerlink" href="#fisheye-lens-distirtion-model" title="Link to this heading"></a></h2>
-<p>The fisheye distortion model only includes radial fisheye distortion. Unlike the rectilinear lens model, the polynomial describing the radial distortion is a function of an anglular distance from the centre of perspective, rather than a linear distance in the image:</p>
+<p>Fisheye lenses use deliberate geometrical distortion to produce an image with much wider field of view than rectilinear lenses. In this case, the polynomial describing the radial distortion is a function of an anglular distance from the centre of perspective, rather than a linear distance in the image like in the rectilinear lens model:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\begin{pmatrix}x_d\\y_d\end{pmatrix} = \frac{\theta}{r}\left[ 1 + k_1\theta^2 + k_2\theta^4 + k_3\theta^6 + k_4\theta^8\right]\begin{pmatrix}x_n\\y_n\end{pmatrix},
 \label{eqn:fisheye_distortion}\end{split}\]</div>
 <p>where <span class="math notranslate nohighlight">\(r = \sqrt{x_n^2 + y_n^2}\)</span> and <span class="math notranslate nohighlight">\(\theta = \tan^{-1}(r)\)</span>.</p>
+<p>Similarly to the rectilinear lens model, when fitting a fisheye calibration in Calcam the individual polynomial terms can be switched on or off to fit a different order of distortion model.</p>
 </section>
 <section id="underlying-opencv-documentation">
 <h2>Underlying OpenCV Documentation<a class="headerlink" href="#underlying-opencv-documentation" title="Link to this heading"></a></h2>
 <p>Calcam does not implement the above camera models within its own code; under the hood it uses the OpenCV camera calibration functions. It may therefore be helpful to also refer to the OpenCV camera calibration documentation, which can be found on the <a class="reference external" href="https://opencv.org/">OpenCV webpages</a>.</p>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="id2" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<p>Duane C. Brown, “Decentering distortion of lenses” Photogrammetric Engineering. 32 (3): 444–462  (1966) <a class="reference external" href="https://web.archive.org/web/20180312205006/https://www.asprs.org/wp-content/uploads/pers/1966journal/may/1966_may_444-462.pdf">PDF available on archive.org</a>.</p>
+</aside>
+</aside>
 </section>
 </section>
 

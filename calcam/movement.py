@@ -189,7 +189,7 @@ def manual_movement(ref,moved,correction=None,parent_window=None):
     Determine camera movement (semi-)manually using a GUI tool.
     See the :doc:`gui_movement` GUI doc page for the GUI user guide.
 
-    Paremeters:
+    Parameters:
 
         ref (np.ndarray or calcam.Calibration)    : Reference image or calibration to align to. This can \
                                                     be either an array containg a refrence image, or a \

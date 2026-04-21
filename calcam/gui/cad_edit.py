@@ -743,11 +743,18 @@ class CADEdit(CalcamGUIWindow):
         self.set_default_view_button.setEnabled(True)
 
         if self.cadmodel.usermodule is None:
-            self.formatter_info.setText('Coordinate formatter: Built-in default')
-            self.load_formatter_button.setText('Load Custom...')
-            self.refresh_formatter_button.setEnabled(False)
-            self.remove_formatter_button.setEnabled(False)
-            self.coord_formatter = [None,False]
+            if self.cadmodel._formatcoord_test_error is None:
+                self.formatter_info.setText('Coordinate formatter: Built-in default')
+                self.load_formatter_button.setText('Load Custom...')
+                self.refresh_formatter_button.setEnabled(False)
+                self.remove_formatter_button.setEnabled(False)
+                self.coord_formatter = [None,False]
+            else:
+                self.formatter_info.setText('Coordinate formatter: Model Specific')
+                self.load_formatter_button.setText('Edit...')
+                self.refresh_formatter_button.setEnabled(True)
+                self.remove_formatter_button.setEnabled(True)
+                self.coord_formatter = [self.cadmodel.def_file.get_usercode(), False]
         else:
             self.formatter_info.setText('Coordinate formatter: Model Specific')
             self.load_formatter_button.setText('Edit...')
@@ -1118,7 +1125,7 @@ class CADEdit(CalcamGUIWindow):
             if self.coord_formatter[1]:
                 self.coord_info.setText(self.coord_formatter[0].format_coord(position))
             else:
-                self.coord_info.setText('Custom coordinate formatter is not functional!')
+                self.coord_info.setText('Custom coordinate formatter is not functional! (Click "Refresh" for details)')
         else:
             self.coord_info.setText(self.cadmodel.format_coord(position))
 

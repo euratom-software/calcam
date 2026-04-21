@@ -58,6 +58,7 @@ class CADModel():
     def __init__(self,model_name=None,model_variant=None,status_callback=print_status,verbose=True):
 
         self.verbose = verbose
+        self._formatcoord_test_error = None
         self.set_status_callback(status_callback)
 
         if model_name is not None:
@@ -141,16 +142,16 @@ class CADModel():
                     # it only if it does.
                     try:
                         test_out = usermodule.format_coord( (0.1,0.1,0.1) )
+
+                        if type(test_out) in [str, bytes]:
+                            self.usermodule = usermodule
+                        else:
+                            self._formatcoord_test_error = 'CAD model user function format_coord() did not return a string as required.'
+                            warnings.warn(f'Error when testing format_coord() function defined by CAD model: function did not return a string as required.')
+
                     except Exception as e:
-                        self.def_file.close()
-                        raise
-
-                    if type(test_out) in [str,bytes]:
-                        self.usermodule = usermodule
-                    else:
-                        self.def_file.close()
-                        raise Exception('CAD model user function format_coord() did not return a string as required.')
-
+                        self._formatcoord_test_error = f'{e}'
+                        warnings.warn(f'Error when testing format_coord() function defined by CAD model: {e}. This function will not be used.')
 
             # Create the features!
             self.features = {}

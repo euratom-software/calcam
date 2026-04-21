@@ -1,5 +1,5 @@
 '''
-* Copyright 2015-2025 European Atomic Energy Community (EURATOM)
+* Copyright 2015-2026 European Atomic Energy Community (EURATOM)
 *
 * Licensed under the EUPL, Version 1.1 or - as soon they
   will be approved by the European Commission - subsequent
@@ -743,6 +743,19 @@ class Calibration():
             raise ValueError('Cannot understand window argument: expected None or sequence of left,top,width,height')
 
 
+    def get_detector_window(self):
+        """
+        Get the coordinates of the detector region to which this calibration currently
+        applies (including any effect of previous calls to :func:`set_detector_window`).
+
+        Detector window coordinates are always in original coordinates.
+
+        Returns:
+
+            tuple : (left,top,width,height) coordinates of the detector ROI for the calibration. (left,top) are the offset \
+                    of the ROI from the top-left corner of the image, and (width,height) are the image width and height.
+        """
+        return (self.geometry.offset[0],self.geometry.offset[1],self.geometry.x_pixels,self.geometry.y_pixels)
 
 
     def add_intrinsics_constraints(self,image=None,pointpairs=None,calibration=None,im_history=None,pp_history=None):
