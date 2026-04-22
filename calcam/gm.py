@@ -92,25 +92,24 @@ class PoloidalVolumeGrid:
         src (str)                   : Human readable string describing where the grid came from, \
                                       for data provenance purposes.
 
-        symmetry_axis (sequence)    : 3D vector (x,y,z) defining the direction of the axisymmetry axis of the \
-                                      plasma / device (in CAD model coordinates). This corresponds to \
-                                      the direction of the +Z axis of the grid. Default is (0,0,1) \
-                                      i.e. the CAD +Z axis which is conventional for tokamaks.
+        zaxis (sequence)            : 3D vector (x,y,z) in CAD model coordinate system defining the \
+                                      +Z axis direction of the grid. This must be the axisymmetry axis \
+                                      of the plasma / device. Default is (0,0,1) i.e. matching the CAD \
+                                      +Z axis which is conventional for tokamaks.
 
-        symmetry_origin (sequence)  : 3D origin (x,y,z) of the grid R,Z coordinates. This point defines \
-                                      R=0,Z=0 of the grid and the symmetry_axis passes through it. The default \
-                                      is (0,0,0) i.e. the CAD coordinate origin, which is conventional for tokamaks.
+        origin (sequence)           : 3D origin (x,y,z) of the grid R,Z coordinates. This point defines \
+                                      R=0,Z=0 of the grid. The default is (0,0,0) i.e. the CAD \
+                                      coordinate origin, which is conventional for tokamaks.
                                    
     '''
     
-    def __init__(self,vertices,cells,wall_contour=None,src=None,symmetry_axis=(0,0,1),symmetry_origin=(0,0,0)):
+    def __init__(self, vertices, cells, wall_contour=None, src=None, zaxis=(0, 0, 1), origin=(0, 0, 0)):
 
         self.vertices = vertices.copy()
         self.cells = cells.copy()
         self.wall_contour = wall_contour.copy()
-        self._rmat = misc.rmat_from_vectors(symmetry_axis,(0,0,1))
-        self.origin = np.array(symmetry_origin)
-        self.axis = np.array(symmetry_axis)
+        self.origin = np.array(origin,dtype=float)
+        self.zaxis3d = np.array(zaxis,dtype=float)
         
         if src is None:
             self.history = 'Created by {:s} on {:s} at {:s}'.format(misc.username,misc.hostname,misc.get_formatted_time())
@@ -119,6 +118,7 @@ class PoloidalVolumeGrid:
         else:
             self.history = src + ' by {:s} on {:s} at {:s}'.format(misc.username,misc.hostname,misc.get_formatted_time())
 
+        self._rmat = misc.rmat_from_vectors(self.zaxis3d, (0, 0, 1))
         self._validate_grid()
         self._build_edge_list()
         self._cull_unused_verts()
@@ -198,17 +198,17 @@ class PoloidalVolumeGrid:
         with np.errstate(divide='ignore',invalid='ignore'):
 
             # Put ray_start and ray_end in to the coordinate system of the grid and its symmetry
-            sx = ray_start[0] - self._origin[0]
-            sy = ray_start[1] - self._origin[1]
-            sz = ray_start[2] - self._origin[2]
+            sx = ray_start[0] - self.origin[0]
+            sy = ray_start[1] - self.origin[1]
+            sz = ray_start[2] - self.origin[2]
             ray_start = np.array([self._rmat[0,0]*sx + self._rmat[0,1]*sy + self._rmat[0,2]*sz,
                                   self._rmat[1,0]*sx + self._rmat[1,1]*sy + self._rmat[1,2]*sz,
                                   self._rmat[2,0]*sx + self._rmat[2,1]*sy + self._rmat[2,2]*sz])
 
 
-            ex = ray_end[0] - self._origin[0]
-            ey = ray_end[1] - self._origin[1]
-            ez = ray_end[2] - self._origin[2]
+            ex = ray_end[0] - self.origin[0]
+            ey = ray_end[1] - self.origin[1]
+            ez = ray_end[2] - self.origin[2]
             ray_end = np.array([self._rmat[0,0]*ex + self._rmat[0,1]*ey + self._rmat[0,2]*ez,
                                   self._rmat[1,0]*ex + self._rmat[1,1]*ey + self._rmat[1,2]*ez,
                                   self._rmat[2,0]*ex + self._rmat[2,1]*ey + self._rmat[2,2]*ez])
@@ -1155,25 +1155,25 @@ class GeometryMatrix:
         '''
         coo_data = self.data.tocoo()
         
-        np.savez_compressed( filename,
-                             mat_row_inds = coo_data.row,
-                             mat_col_inds = coo_data.col,
-                             mat_data = coo_data.data,
-                             mat_shape = self.data.shape,
-                             grid_verts = self.grid.vertices,
-                             grid_cells = self.grid.cells,
-                             grid_wall = self.grid.wall_contour,
-                             grid_origin = self.grid.origin,
-                             grid_axis = self.grid.axis,
-                             binning = self.binning,
-                             pixel_order = self.pixel_order,
-                             pixel_mask = self.pixel_mask,
-                             history = self.history,
-                             grid_type = self.grid.__class__.__name__,
-                             im_transforms = self.image_geometry.transform_actions,
-                             im_px_aspect = self.image_geometry.pixel_aspectratio,
-                             im_shape = self.pixel_mask.shape[::-1],
-                             im_coords = self.image_coords
+        np.savez_compressed(filename,
+                            mat_row_inds = coo_data.row,
+                            mat_col_inds = coo_data.col,
+                            mat_data = coo_data.data,
+                            mat_shape = self.data.shape,
+                            grid_verts = self.grid.vertices,
+                            grid_cells = self.grid.cells,
+                            grid_wall = self.grid.wall_contour,
+                            grid_origin = self.grid.origin,
+                            grid_zaxis = self.grid.zaxis3d,
+                            binning = self.binning,
+                            pixel_order = self.pixel_order,
+                            pixel_mask = self.pixel_mask,
+                            history = self.history,
+                            grid_type = self.grid.__class__.__name__,
+                            im_transforms = self.image_geometry.transform_actions,
+                            im_px_aspect = self.image_geometry.pixel_aspectratio,
+                            im_shape = self.pixel_mask.shape[::-1],
+                            im_coords = self.image_coords
                             )
 
     def _load_npz(self,filename):
@@ -1193,7 +1193,7 @@ class GeometryMatrix:
         self.image_geometry.set_image_shape(*self.binning*np.array(self.pixel_mask.shape[::-1]),coords=self.image_coords)
 
         try:
-            grid_axis = f['grid_axis']
+            grid_axis = f['grid_zaxis']
         except KeyError:
             grid_axis = (0,0,1)
 
@@ -1202,7 +1202,7 @@ class GeometryMatrix:
         except KeyError:
             grid_origin = (0,0,0)
         
-        self.grid = PoloidalVolumeGrid(f['grid_verts'],f['grid_cells'],f['grid_wall'],src=self.history['grid'],symmetry_origin=grid_origin,symmetry_axis=grid_axis)
+        self.grid = PoloidalVolumeGrid(f['grid_verts'], f['grid_cells'], f['grid_wall'], src=self.history['grid'], origin=grid_origin,zaxis=grid_axis)
         self.data = scipy.sparse.csr_matrix((f['mat_data'],(f['mat_row_inds'],f['mat_col_inds'])),shape=f['mat_shape'])
 
 
@@ -1217,7 +1217,7 @@ class GeometryMatrix:
                            'grid_cells':self.grid.cells,
                            'grid_wall':self.grid.wall_contour,
                            'grid_origin':self.grid.origin,
-                           'grid_axis':self.grid.axis,
+                           'grid_zaxis':self.grid.zaxis3d,
                            'binning':self.binning,
                            'pixel_order':self.pixel_order,
                            'sightline_history':self.history['los'],
@@ -1276,7 +1276,7 @@ class GeometryMatrix:
                 grid_origin = (0,0,0)
 
             try:
-                grid_axis = f['grid_axis'][:]
+                grid_axis = f['grid_zaxis'][:]
             except KeyError:
                 grid_axis = (0,0,1)
 
@@ -1292,7 +1292,7 @@ class GeometryMatrix:
             }
  
             # Initialize PoloidalVolumeGrid with transposed arrays
-            self.grid = PoloidalVolumeGrid(grid_verts_transposed, grid_cells_transposed, grid_wall_transposed, src=self.history['grid'],symmetry_origin=grid_origin,symmetry_axis=grid_axis)
+            self.grid = PoloidalVolumeGrid(grid_verts_transposed, grid_cells_transposed, grid_wall_transposed, src=self.history['grid'], origin=grid_origin,zaxis=grid_axis)
 
             # Load sparse matrix data
             data = f['geom_mat/data'][:]
@@ -1332,15 +1332,16 @@ class GeometryMatrix:
                 grid_origin = (0, 0, 0)
 
             try:
-                grid_axis = f['grid_axis'][:]
+                grid_axis = f['grid_zaxis'][:]
             except KeyError:
                 grid_axis = (0, 0, 1)
-            self.grid = PoloidalVolumeGrid(f['grid_verts'], f['grid_cells'], f['grid_wall'], src=self.history['grid'],symmetry_axis=grid_axis,symmetry_origin=grid_origin)
+
+            self.grid = PoloidalVolumeGrid(f['grid_verts'], f['grid_cells'], f['grid_wall'], src=self.history['grid'],zaxis=grid_axis, origin=grid_origin)
             self.data = f['geom_mat'].tocsr()
             self.image_geometry = CoordTransformer()  # Ensure CoordTransformer is defined/imported
             self.image_geometry.set_transform_actions(f['im_transforms'])
-            self.image_geometry.set_pixel_aspect(f['im_px_aspect'], relative_to='Original')
-            self.image_geometry.set_image_shape(*self.binning * np.array(self.pixel_mask.shape[::-1]), coords=self.image_coords)
+            self.image_geometry.set_pixel_aspect(f['im_px_aspect'].item(), relative_to='Original')
+            self.image_geometry.set_image_shape(*(self.binning * np.array(self.pixel_mask.shape[::-1])), coords=self.image_coords)
 
 
     def _save_txt(self,filename):
@@ -1360,7 +1361,7 @@ class GeometryMatrix:
             np.savetxt(os.path.join(dest,'grid_wall.txt'),self.grid.wall_contour)
             np.savetxt(os.path.join(dest,'pixel_mask.txt'),self.pixel_mask,fmt='%d')
             
-            meta = {'mat_shape':self.data.shape, 'binning':self.binning, 'pixel_order':self.pixel_order, 'grid_type':self.grid.__class__.__name__,'grid_origin':self.grid.origin,'grid_axis':self.grid.axis,'history':self.history,'im_transform_actions':self.image_geometry.transform_actions,'im_px_aspect':self.image_geometry.pixel_aspectratio,'im_coords':self.image_coords}
+            meta = {'mat_shape':self.data.shape, 'binning':self.binning, 'pixel_order':self.pixel_order, 'grid_type':self.grid.__class__.__name__,'grid_origin':tuple(self.grid.origin),'grid_zaxis':tuple(self.grid.zaxis3d), 'history':self.history, 'im_transform_actions':self.image_geometry.transform_actions, 'im_px_aspect':self.image_geometry.pixel_aspectratio, 'im_coords':self.image_coords}
             
             with zfile.open_file('metadata.json','w') as metafile:
                 
@@ -1404,15 +1405,15 @@ class GeometryMatrix:
                 grid_origin = (0, 0, 0)
 
             try:
-                grid_axis = meta['grid_axis'][:]
+                grid_axis = meta['grid_zaxis'][:]
             except KeyError:
                 grid_axis = (0, 0, 1)
 
-            self.grid = PoloidalVolumeGrid(verts,cells,wall,meta['history']['grid'],src=self.history['grid'],symmetry_axis=grid_axis,symmetry_origin=grid_origin)
+            self.grid = PoloidalVolumeGrid(verts, cells, wall, meta['history']['grid'],zaxis=grid_axis, origin=grid_origin)
             self.data = scipy.sparse.csr_matrix((data,(row_ind,col_ind)),shape=meta['mat_shape'])
 
             self.image_geometry = CoordTransformer()
-            self.image_geometry.set_transform_actions(meta['im_transforms'])
+            self.image_geometry.set_transform_actions(meta['im_transform_actions'])
             self.image_geometry.set_pixel_aspect(meta['im_px_aspect'],relative_to='Original')
             self.image_geometry.set_image_shape(*self.binning*np.array(self.pixel_mask.shape[::-1]),coords=self.image_coords)
 
@@ -1484,7 +1485,7 @@ class GeometryMatrix:
         return geommat
         
 
-def squaregrid(wall_contour,cell_size,rmin=None,rmax=None,zmin=None,zmax=None,symmetry_axis=(0,0,1),symmetry_origin=(0,0,0)):
+def squaregrid(wall_contour,cell_size,rmin=None,rmax=None,zmin=None,zmax=None,zaxis=(0,0,1),origin=(0,0,0)):
     '''
     Create a reconstruction grid with square grid cells.
     
@@ -1500,14 +1501,14 @@ def squaregrid(wall_contour,cell_size,rmin=None,rmax=None,zmin=None,zmax=None,sy
                                               Any combination of these may or may not be given; if none \
                                               are given the entire wall contour interior is gridded.
 
-        symmetry_axis (sequence)            : 3D vector (x,y,z) defining the direction of the axisymmetry axis of the \
-                                              plasma / device (in CAD model coordinates). This corresponds to \
-                                              the direction of the +Z axis of the grid. Default is (0,0,1) \
-                                              i.e. the CAD +Z axis which is conventional for tokamaks.
+        zaxis (sequence)                    : 3D vector (x,y,z) in CAD model coordinate system defining the \
+                                              +Z axis direction of the grid. This must be the axisymmetry axis \
+                                              of the plasma / device. Default is (0,0,1) i.e. matching the CAD \
+                                              +Z axis which is conventional for tokamaks.
 
-        symmetry_origin (sequence)          : 3D origin (x,y,z) of the grid R,Z coordinates. This point defines \
-                                              R=0,Z=0 of the grid and the symmetry_axis passes through it. The default \
-                                              is (0,0,0) i.e. the CAD coordinate origin, which is conventional for tokamaks.
+        origin (sequence)                   : 3D origin (x,y,z) of the grid R,Z coordinates. This point defines \
+                                              R=0,Z=0 of the grid. The default is (0,0,0) i.e. the CAD \
+                                              coordinate origin, which is conventional for tokamaks.
                                            
     Returns:
         
@@ -1588,12 +1589,12 @@ def squaregrid(wall_contour,cell_size,rmin=None,rmax=None,zmin=None,zmax=None,sy
             cell_ind += 1
 
     
-    return PoloidalVolumeGrid(vertices[:vert_ind,:],cells[:cell_ind,:],wall_contour,src='Square grid with {:.1f}cm cells generated using squaregrid()'.format(cell_size*1e2),symmetry_axis=symmetry_axis,symmetry_origin=symmetry_origin)
+    return PoloidalVolumeGrid(vertices[:vert_ind,:], cells[:cell_ind,:], wall_contour, src='Square grid with {:.1f}cm cells generated using squaregrid()'.format(cell_size*1e2),zaxis=zaxis, origin=origin)
 
 
 
 
-def trigrid(wall_contour,max_cell_scale,rmin=None,rmax=None,zmin=None,zmax=None,triopts=[],symmetry_axis=(0,0,1),symmetry_origin=(0,0,0)):
+def trigrid(wall_contour,max_cell_scale,rmin=None,rmax=None,zmin=None,zmax=None,triopts=[],zaxis=(0,0,1),origin=(0,0,0)):
     '''
     Create a reconstruction grid with triangular grid cells conforming to the 
     wall contour, using Jonathan Richard Shewchuk’s "triangle" triangulation library.
@@ -1614,14 +1615,15 @@ def trigrid(wall_contour,max_cell_scale,rmin=None,rmax=None,zmin=None,zmax=None,
         trioppts (list of str)              : List of string options to pass to triangle.triangulate(), see the \
                                               `triangle documentation page <https://rufat.be/triangle/API.html>`_ for possible options.
 
-        symmetry_axis (sequence)            : 3D vector (x,y,z) defining the direction of the axisymmetry axis of the \
-                                              plasma / device (in CAD model coordinates). This corresponds to \
-                                              the direction of the +Z axis of the grid. Default is (0,0,1) \
-                                              i.e. the CAD +Z axis which is conventional for tokamaks.
+        zaxis (sequence)                    : 3D vector (x,y,z) in CAD model coordinate system defining the \
+                                              +Z axis direction of the grid. This must be the axisymmetry axis \
+                                              of the plasma / device. Default is (0,0,1) i.e. matching the CAD \
+                                              +Z axis which is conventional for tokamaks.
 
-        symmetry_origin (sequence)          : 3D origin (x,y,z) of the grid R,Z coordinates. This point defines \
-                                              R=0,Z=0 of the grid and the symmetry_axis passes through it. The default \
-                                              is (0,0,0) i.e. the CAD coordinate origin, which is conventional for tokamaks.
+        origin (sequence)                   : 3D origin (x,y,z) of the grid R,Z coordinates. This point defines \
+                                              R=0,Z=0 of the grid. The default is (0,0,0) i.e. the CAD \
+                                              coordinate origin, which is conventional for tokamaks.
+
     Returns:
         
         calcam.gm.PoloidalVolumeGrid    : Generated grid.
@@ -1712,7 +1714,7 @@ def trigrid(wall_contour,max_cell_scale,rmin=None,rmax=None,zmin=None,zmax=None,
 
     mesh = triangle.triangulate(geometry,opts)
 
-    return PoloidalVolumeGrid(mesh['vertices'],mesh['triangles'],wall_contour,src='Wall-conforming triangular mesh with ~{:.1f}cm cells generated with trigrid()'.format(max_cell_scale*1e2),symmetry_axis=symmetry_axis,symmetry_origin=symmetry_origin)
+    return PoloidalVolumeGrid(mesh['vertices'], mesh['triangles'], wall_contour, src='Wall-conforming triangular mesh with ~{:.1f}cm cells generated with trigrid()'.format(max_cell_scale*1e2),zaxis=zaxis, origin=origin)
 
 
 def solps_grid(solps_file,wall_contour,rmin=None,rmax=None,zmin=None,zmax=None,cell_attrs=False):
