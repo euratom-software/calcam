@@ -6,6 +6,7 @@ Changes on master branch since last release (2.17.dev)
 -------------------------------------------------------
 
 New & Enhancements:
+* It is now possible to load a new image of different size / shape in to an existing calibration in the fitting calibration tool (#172)
 * Enabled use of Calcam.gm for machines where the axisymmetry axis is not about the +Z axis through the origin, by adding  zaxis and origin parameters to PoloidalVolumeGrid (#174)
 * Added the Calibration.get_detector_window() and RayData.get_detector_window() methods (#171)
 * Changed behaviour of the CADModel class if a custom "format_coord()" function fails: now only raises a warning instead of an exception
