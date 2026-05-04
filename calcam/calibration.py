@@ -246,10 +246,9 @@ class RectilinearViewModel(ViewModel):
     def project_points(self,points,include_distortion=True):
 
         # Check the input points are in a suitable format
-        if np.ndim(points) < 3:
+        points = np.array(points, dtype='float32')
+        while np.ndim(points) < 3:
             points = np.array([points],dtype='float32')
-        else:
-            points = np.array(points,dtype='float32')
 
         if include_distortion:
             kc = self.kc
