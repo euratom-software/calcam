@@ -1,21 +1,22 @@
-
-
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" data-content_root="./">
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Getting Up &amp; Running &mdash; Calcam  documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
-
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
-      <script src="_static/jquery.js?v=5d32c60e"></script>
-      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=7f41d439"></script>
-      <script src="_static/doctools.js?v=fd6eb6e6"></script>
-      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -28,16 +29,15 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-
-          
-          
-          <a href="index.html">
-            
-              <img src="_static/logo.png" class="logo" alt="Logo"/>
+            <a href="index.html">
+            <img src="_static/logo.png" class="logo" alt="Logo"/>
           </a>
+              <div class="version">
+                Version 2.17
+              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -100,7 +100,7 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li><a href="index.html" class="icon icon-home"></a></li>
       <li class="breadcrumb-item active">Getting Up &amp; Running</li>
       <li class="wy-breadcrumbs-aside">
       </li>
@@ -111,7 +111,7 @@
            <div itemprop="articleBody">
              
   <section id="getting-up-running">
-<h1>Getting Up &amp; Running<a class="headerlink" href="#getting-up-running" title="Link to this heading"></a></h1>
+<h1>Getting Up &amp; Running<a class="headerlink" href="#getting-up-running" title="Permalink to this heading"></a></h1>
 <p>Calcam runs under Python 3.7 or newer on Windows, Linux or MaxOS.</p>
 <p>You can download Python installers for Windows or MacOS from <a class="reference external" href="https://www.python.org/downloads/">Python.org</a> ; get it from your favourite software repository on Linux; get it from the Microsoft Store on Windows; or use a python environment manager such as <a class="reference external" href="https://www.anaconda.com">Anaconda</a>.</p>
 <div class="admonition note">
@@ -123,17 +123,17 @@
 </ul>
 </div>
 <section id="installing-using-pip">
-<h2>Installing using pip<a class="headerlink" href="#installing-using-pip" title="Link to this heading"></a></h2>
+<h2>Installing using pip<a class="headerlink" href="#installing-using-pip" title="Permalink to this heading"></a></h2>
 <p>Once you have Python installed, the recommended way to install Calcam is to use <code class="docutils literal notranslate"><span class="pre">pip</span></code> (unless you are using Anaconda, in which case see <a class="reference internal" href="#conda-install"><span class="std std-ref">below</span></a>), which on most configurations should come installed with Python as standard . If not, documentation for how to get <code class="docutils literal notranslate"><span class="pre">pip</span></code> can be found <a class="reference external" href="https://pip.pypa.io/en/stable/installing/">here</a>.</p>
 <section id="option-1-from-pypi-recommended">
-<h3>Option 1: From PyPi (recommended)<a class="headerlink" href="#option-1-from-pypi-recommended" title="Link to this heading"></a></h3>
+<h3>Option 1: From PyPi (recommended)<a class="headerlink" href="#option-1-from-pypi-recommended" title="Permalink to this heading"></a></h3>
 <p>The current release version of Calcam is available on the Python Package Index (PyPi), so can be installed with the single command:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>pip install calcam
 </pre></div>
 </div>
 </section>
 <section id="option-2-from-github">
-<h3>Option 2: From GitHub<a class="headerlink" href="#option-2-from-github" title="Link to this heading"></a></h3>
+<h3>Option 2: From GitHub<a class="headerlink" href="#option-2-from-github" title="Permalink to this heading"></a></h3>
 <p>If you want to get the “cutting edge” development / pre-release version of Calcam from GitHub rather than the release version, you can install this with the command:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>pip install https://github.com/euratom-software/calcam/zipball/master
 </pre></div>
@@ -141,7 +141,7 @@
 <p>Or if you need the version from a different <code class="docutils literal notranslate"><span class="pre">git</span></code> branch, simply replace <code class="docutils literal notranslate"><span class="pre">master</span></code> in the above URL with the name of the branch. Note that doing this with <code class="docutils literal notranslate"><span class="pre">release</span></code> should have the same results as installing from PyPi, as described above.</p>
 </section>
 <section id="option-3-from-manually-downloaded-source">
-<h3>Option 3: From manually downloaded source<a class="headerlink" href="#option-3-from-manually-downloaded-source" title="Link to this heading"></a></h3>
+<h3>Option 3: From manually downloaded source<a class="headerlink" href="#option-3-from-manually-downloaded-source" title="Permalink to this heading"></a></h3>
 <p>If you prefer to download the calcam source code manually, the latest release version can be downloaded from the <a class="reference external" href="https://github.com/euratom-software/calcam/releases">Releases page on GitHub</a>.</p>
 <p>Alternatively, the “cutting edge” live development version (which is not guaranteed to be in a fully working state at all times) can be downloaded using the green <span class="guilabel">Code</span> button on the <a class="reference external" href="https://github.com/euratom-software/calcam">GitHub repository page</a>.</p>
 <p>If you prefer to use Git, which is recommended if you want to do any development on Calcam, the source for the current development / pre-release version can be cloned from the GitHub reporepository with the command:</p>
@@ -160,7 +160,7 @@
 </section>
 </section>
 <section id="installing-with-anaconda">
-<span id="conda-install"></span><h2>Installing with Anaconda<a class="headerlink" href="#installing-with-anaconda" title="Link to this heading"></a></h2>
+<span id="conda-install"></span><h2>Installing with Anaconda<a class="headerlink" href="#installing-with-anaconda" title="Permalink to this heading"></a></h2>
 <p>If you are using <a class="reference external" href="https://www.anaconda.com">Anaconda</a> to manage your Python environment, you can install Calcam as a conda package with the command:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>conda install -c calcam -c conda-forge calcam
 </pre></div>
@@ -168,10 +168,10 @@
 <p>This will install Calcam in your current conda environment, and add a launcher for the Calcam GUI to the Anaconda Navigator. Note that calcam is also available from the conda-forge channel rather than the calcam channel, but this may not be updated immediately with new Calcam releases.</p>
 </section>
 <section id="installing-for-development">
-<h2>Installing for Development<a class="headerlink" href="#installing-for-development" title="Link to this heading"></a></h2>
+<h2>Installing for Development<a class="headerlink" href="#installing-for-development" title="Permalink to this heading"></a></h2>
 <p>If you plan to make any modifications to /  do any development work on Calcam, and want to be able to edit the Calcam source code without having to run the setup script again to have your changes take effect, you can install Calcam in development / eidtable mode.</p>
 <section id="option-1-using-git">
-<h3>Option 1: Using Git<a class="headerlink" href="#option-1-using-git" title="Link to this heading"></a></h3>
+<h3>Option 1: Using Git<a class="headerlink" href="#option-1-using-git" title="Permalink to this heading"></a></h3>
 <p>If you want to clone the project directly from GuitHub and install in editable mode, this can be done with the command:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>pip install -e git+https://github.com/euratom-software/calcam.git@master#egg=calcam
 </pre></div>
@@ -179,7 +179,7 @@
 <p>This will clone the calcam git repository and install in editable mode, so you can make changes to the downloaded code which will take effect without reinstalling.</p>
 </section>
 <section id="option-2-from-manually-downloaded-source">
-<h3>Option 2: From manually downloaded source<a class="headerlink" href="#option-2-from-manually-downloaded-source" title="Link to this heading"></a></h3>
+<h3>Option 2: From manually downloaded source<a class="headerlink" href="#option-2-from-manually-downloaded-source" title="Permalink to this heading"></a></h3>
 <p>If you prefer to download the calcam source manually, you can get the source as described in the above section, and modify the <code class="docutils literal notranslate"><span class="pre">pip</span></code> installation command to:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>pip install -e .
 </pre></div>
@@ -188,32 +188,32 @@
 </section>
 </section>
 <section id="initial-configuration">
-<h2>Initial Configuration<a class="headerlink" href="#initial-configuration" title="Link to this heading"></a></h2>
+<h2>Initial Configuration<a class="headerlink" href="#initial-configuration" title="Permalink to this heading"></a></h2>
 <p>Once installed, the Calcam GUI can be started with the command:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>python -m calcam
 </pre></div>
 </div>
 <p>If you will be using the Calcam GUI often, it is highly recommended to make a shortcut to the calcam GUI executable for covenience, and/or make sure the executable is included in your <code class="docutils literal notranslate"><span class="pre">PATH</span></code> environment variable. You can find the executable location in the <a class="reference internal" href="gui_settings.html"><span class="doc">Calcam Settings</span></a> GUI, or by using the following Python code:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">calcam</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">calcam</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">calcam</span><span class="o">.</span><span class="n">gui</span><span class="o">.</span><span class="n">exe_path</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Calcam is also provided with icons which can be used for program shortcuts or icons for associated file types. You can find the location of these icons similarly with:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">calcam</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">calcam</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">calcam</span><span class="o">.</span><span class="n">gui</span><span class="o">.</span><span class="n">icons_path</span><span class="p">)</span>
 </pre></div>
 </div>
 <section id="setting-up-cad-model-definitions">
-<h3>Setting up CAD Model Definitions<a class="headerlink" href="#setting-up-cad-model-definitions" title="Link to this heading"></a></h3>
+<h3>Setting up CAD Model Definitions<a class="headerlink" href="#setting-up-cad-model-definitions" title="Permalink to this heading"></a></h3>
 <p>Camera calibration in Calcam is based on matching features between camera images and a CAD model of the scene viewed by the camera. As such, it is necessary to define one or more CAD models for use in calcam.</p>
 <p>When you first start one of the Calcam GUI tools which requires CAD models, you will be prompted to either browse for a folder containing existing Calcam CAD model files or create a new one by importing mesh files. For creating CAD model definitions from mesh files, it is recommended to read the <a class="reference internal" href="intro_conventions.html#cadmodel-intro"><span class="std std-ref">CAD Models</span></a> section in concepts and conventions, then consult the user guide for the <a class="reference internal" href="gui_cad_editor.html"><span class="doc">CAD Model Definition Editor</span></a> for details of how to use the CAD model definition editing tool.</p>
 </section>
 <section id="setting-up-custom-image-sources-optional">
-<h3>Setting up custom image sources (optional)<a class="headerlink" href="#setting-up-custom-image-sources-optional" title="Link to this heading"></a></h3>
+<h3>Setting up custom image sources (optional)<a class="headerlink" href="#setting-up-custom-image-sources-optional" title="Permalink to this heading"></a></h3>
 <p>As standard, Calcam can load camera images from most common image file formats. If desired, you can set up additional custom “image sources”, which are user-defined Python modules for loading camera images in to Calcam. For example you may want to load camera data directly from a central data server, or read images from an unusual file format. This can be done by writing a small python module which plugs in to calcam and handles the image loading. A full guide to writing such modules can be found in the <a class="reference internal" href="dev_imsources.html"><span class="doc">Image Sources</span></a> developer documentation page. Once written, they can be added to Calcam with the <a class="reference internal" href="gui_settings.html"><span class="doc">Calcam Settings</span></a> interface.</p>
 </section>
 <section id="file-type-associations-optional">
-<h3>File type associations (optional)<a class="headerlink" href="#file-type-associations-optional" title="Link to this heading"></a></h3>
+<h3>File type associations (optional)<a class="headerlink" href="#file-type-associations-optional" title="Permalink to this heading"></a></h3>
 <p>Since version 2.6, it is possible to open .ccc files directly with the Calcam GUI executable / launch script to make opening calibrations more convenient. To take advantage of this, follow your operating system’s normal procedure to associate the Calcam executable with opening files with extension <cite>.ccc</cite>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -221,11 +221,11 @@
 </div>
 </section>
 <section id="system-wide-default-configuration">
-<h3>System-wide default configuration<a class="headerlink" href="#system-wide-default-configuration" title="Link to this heading"></a></h3>
+<h3>System-wide default configuration<a class="headerlink" href="#system-wide-default-configuration" title="Permalink to this heading"></a></h3>
 <p>If installing Calcam on a multi-user system, it may be desirable to provide a default configuration (CAD model file locations, image sources) for users running Calcam for the first time on that system. Since version 2.9, Calcam supports this by placing a suitable default configuration file in the Calcam installation directory.</p>
 <p>The default configuration file is a json file with the same format as Calcam’s normal user configuration file. Therefore the easiest way to set up a default configuration file is to configure Calcam how you want it on your own user account, then copy the configuration file <code class="docutils literal notranslate"><span class="pre">~/.calcam_config</span></code> (where <code class="docutils literal notranslate"><span class="pre">~</span></code> is your home directory e.g. <code class="docutils literal notranslate"><span class="pre">/home/username</span></code> on Unix or <code class="docutils literal notranslate"><span class="pre">C:\Users\username</span></code> on windows) to the relevant location.</p>
 <p>The place Calcam will look for the default configuration file - where you need to place it to be effective - can be checked with:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">calcam</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">calcam</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">calcam</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">default_cfg_path</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -233,12 +233,16 @@
 </section>
 </section>
 <section id="troubleshooting">
-<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading"></a></h2>
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permalink to this heading"></a></h2>
 <p>This section contains advice on how to troubleshoot any problems you may encounter getting up &amp; running with Calcam.</p>
 <section id="dependencies">
-<h3>Dependencies<a class="headerlink" href="#dependencies" title="Link to this heading"></a></h3>
+<h3>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this heading"></a></h3>
 <p>The most common reason for errors or problems getting Calcam up and running are issues caused by its dependencies, i.e. the other python packages that Calcam depends on. Calcam requires the following Python modules to be available to work, and the installation process will try to install them if they are not already installed:</p>
 <table class="docutils align-default">
+<colgroup>
+<col style="width: 11%" />
+<col style="width: 89%" />
+</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Module / Library</p></th>
 <th class="head"><p>Versions Tested / comments</p></th>
@@ -280,31 +284,31 @@
 <p>Also check the  <a class="reference external" href="https://github.com/euratom-software/calcam/issues">GitHub issues page</a> for any more known compatibility issues not yet updated here.</p>
 <p>In most cases with dependency issues, the installation process or Calcam itself should give an error message which makes it clear which dependency is not working properly. In such cases, you will have to install or fix the relevant module yourself before you can continue installing or using Calcam. The sections below give some advice on how to force Calcam to install ignoring dependencies and to troubleshoot them manually.</p>
 <section id="installing-without-dependencies">
-<h4>Installing without dependencies<a class="headerlink" href="#installing-without-dependencies" title="Link to this heading"></a></h4>
+<h4>Installing without dependencies<a class="headerlink" href="#installing-without-dependencies" title="Permalink to this heading"></a></h4>
 <p>If you encounter problems due to dependencies during the installation, you can force <code class="docutils literal notranslate"><span class="pre">pip</span></code> to install Calcam without trying to install any dependencies by adding the <code class="docutils literal notranslate"><span class="pre">--no-deps</span></code> option to the installation command. You can then try installing the dependencies individually and fix any problems as you go. For the exact names to use with <code class="docutils literal notranslate"><span class="pre">pip</span></code>, see the <code class="docutils literal notranslate"><span class="pre">dependencies</span></code> list in Calcam’s <a class="reference external" href="https://github.com/euratom-software/calcam/blob/master/pyproject.toml">pyproject.toml</a> file.</p>
 </section>
 <section id="manually-troubleshooting-dependencies">
-<h4>Manually troubleshooting dependencies<a class="headerlink" href="#manually-troubleshooting-dependencies" title="Link to this heading"></a></h4>
+<h4>Manually troubleshooting dependencies<a class="headerlink" href="#manually-troubleshooting-dependencies" title="Permalink to this heading"></a></h4>
 <p>If it is not clear that a dependency is the problem, or which it might be, open a python prompt and check if all of the following import commands work without errors:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">vtk</span><span class="w"> </span><span class="kn">import</span> <span class="n">vtkVersion</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">cv2</span><span class="w"> </span><span class="kn">import</span> <span class="n">__version__</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">__version__</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">h5py</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">triangle</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">vtk</span> <span class="kn">import</span> <span class="n">vtkVersion</span>
+<span class="kn">from</span> <span class="nn">cv2</span> <span class="kn">import</span> <span class="n">__version__</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">__version__</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span>
+<span class="kn">import</span> <span class="nn">h5py</span>
+<span class="kn">import</span> <span class="nn">triangle</span>
 </pre></div>
 </div>
 <p>In addition to these, at least one of the following PyQt imports must work for the Calcam GUI to be available ( it doesn’t matter which - as long as one works Calcam will be able to use it):</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">PyQt6</span><span class="w"> </span><span class="kn">import</span> <span class="n">QtCore</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">PyQt5</span><span class="w"> </span><span class="kn">import</span> <span class="n">QtCore</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">PyQt4</span><span class="w"> </span><span class="kn">import</span> <span class="n">QtCore</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">PyQt6</span> <span class="kn">import</span> <span class="n">QtCore</span>
+<span class="kn">from</span> <span class="nn">PyQt5</span> <span class="kn">import</span> <span class="n">QtCore</span>
+<span class="kn">from</span> <span class="nn">PyQt4</span> <span class="kn">import</span> <span class="n">QtCore</span>
 </pre></div>
 </div>
 <p>If any of these required imports fail with errors, you will need to fix the relevant Python module installation before Calcam will work (re-installing the relevant module is a good first thing to try). If all of the required imports work properly, there could be a bug or issue with Calcam.</p>
 </section>
 </section>
 <section id="black-screen-corrupted-graphics">
-<h3>Black screen / corrupted graphics<a class="headerlink" href="#black-screen-corrupted-graphics" title="Link to this heading"></a></h3>
+<h3>Black screen / corrupted graphics<a class="headerlink" href="#black-screen-corrupted-graphics" title="Permalink to this heading"></a></h3>
 <p>If you get blank / black displays in Calcam where the CAD model and image are supposed to be displayed, or get a corrupted view of the CAD model, this could be an issue with VTK (the OpenGL visualisation library which Calcam uses to display the CAD and some images). To confirm if your VTK installation is working, you can try running the VTK example code on <a class="reference external" href="https://kitware.github.io/vtk-examples/site/Python/GeometricObjects/CylinderExample/">this page</a> to check if it gives a result like the picture. If you get correct display testing VTK on its own but not in Calcam, it could be caused by your particilar combination of VTK, PyQt and graphics drivers - see the above section about dependencies. If you do have a problem with VTK, the easiest thing to try is installing a different version (you can check the current version of VTK in the calcam <a class="reference internal" href="gui_settings.html"><span class="doc">Calcam Settings</span></a> interface). You can try installing different versions using <cite>pip</cite>, for example if VTK 9 is causing issues, you can install an older version with the command:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>pip install &quot;vtk&lt;9&quot;
 </pre></div>
@@ -312,21 +316,21 @@
 <p>If you cannot get VTK working properly, you may need to try using Calcam on a different computer with a different graphics hardware / software environment.</p>
 </section>
 <section id="reporting-problems">
-<h3>Reporting Problems<a class="headerlink" href="#reporting-problems" title="Link to this heading"></a></h3>
+<h3>Reporting Problems<a class="headerlink" href="#reporting-problems" title="Permalink to this heading"></a></h3>
 <p>If you find bugs / problems, please check the <a class="reference external" href="https://github.com/euratom-software/calcam/issues">GitHub issues page</a> and report the problem there if it isn’t already listed.</p>
 </section>
 </section>
 <section id="updating">
-<h2>Updating<a class="headerlink" href="#updating" title="Link to this heading"></a></h2>
+<h2>Updating<a class="headerlink" href="#updating" title="Permalink to this heading"></a></h2>
 <section id="updating-using-pip">
-<h3>Updating using pip<a class="headerlink" href="#updating-using-pip" title="Link to this heading"></a></h3>
+<h3>Updating using pip<a class="headerlink" href="#updating-using-pip" title="Permalink to this heading"></a></h3>
 <p>To update to the latest release version of calcam using <code class="docutils literal notranslate"><span class="pre">pip</span></code>, use the command:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>pip install --upgrade calcam
 </pre></div>
 </div>
 </section>
 <section id="from-source">
-<h3>From source<a class="headerlink" href="#from-source" title="Link to this heading"></a></h3>
+<h3>From source<a class="headerlink" href="#from-source" title="Permalink to this heading"></a></h3>
 <p>To upgrade from manually downloaded source, follow the installation instructions near the top of this page to download the version you want and install.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -334,14 +338,14 @@
 </div>
 </section>
 <section id="updating-with-anaconda">
-<h3>Updating with Anaconda<a class="headerlink" href="#updating-with-anaconda" title="Link to this heading"></a></h3>
+<h3>Updating with Anaconda<a class="headerlink" href="#updating-with-anaconda" title="Permalink to this heading"></a></h3>
 <p>For Anaconda users, you can update the Calcam package with the command:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>conda update -c calcam -c conda-forge calcam
 </pre></div>
 </div>
 </section>
 <section id="version-cross-compatibility">
-<h3>Version Cross-Compatibility<a class="headerlink" href="#version-cross-compatibility" title="Link to this heading"></a></h3>
+<h3>Version Cross-Compatibility<a class="headerlink" href="#version-cross-compatibility" title="Permalink to this heading"></a></h3>
 <p>Calcam uses something close to semanic versioning, to try to make it clear for users to decide when to update. The version number consists of 3 numbers separated by points, in the format <code class="docutils literal notranslate"><span class="pre">major.minor.patch</span></code>:</p>
 <ul class="simple">
 <li><p>The <code class="docutils literal notranslate"><span class="pre">patch</span></code> version is incremented for bug fixes which do not change the functionality.</p></li>
@@ -350,7 +354,7 @@
 </ul>
 <p>Therefore if you are using Calcam integrated in to some analysis toolchain, it should be safe to upgrade to a newer <code class="docutils literal notranslate"><span class="pre">minor</span></code> version but not to a newer major version.</p>
 <section id="file-compatibility">
-<h4>File Compatibility<a class="headerlink" href="#file-compatibility" title="Link to this heading"></a></h4>
+<h4>File Compatibility<a class="headerlink" href="#file-compatibility" title="Permalink to this heading"></a></h4>
 <p>Newer <code class="docutils literal notranslate"><span class="pre">minor</span></code> versions of Calcam will maintain backwards compatibility with files created by earlier versions, but forward compatibility is not guaranteed i.e. files created with newer versions of Calcam may not work properly with older versions.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
@@ -373,7 +377,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2015-2025, European Atomic Energy Community (EURATOM).</p>
+    <p>&#169; Copyright 2015-2026, European Atomic Energy Community (EURATOM).</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

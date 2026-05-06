@@ -1,22 +1,23 @@
-
-
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" data-content_root="./">
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tomography Geometry Matrices &mdash; Calcam  documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
-
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
-      <script src="_static/jquery.js?v=5d32c60e"></script>
-      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=7f41d439"></script>
-      <script src="_static/doctools.js?v=fd6eb6e6"></script>
-      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
-      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -29,16 +30,15 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-
-          
-          
-          <a href="index.html">
-            
-              <img src="_static/logo.png" class="logo" alt="Logo"/>
+            <a href="index.html">
+            <img src="_static/logo.png" class="logo" alt="Logo"/>
           </a>
+              <div class="version">
+                Version 2.17
+              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -98,7 +98,7 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li><a href="index.html" class="icon icon-home"></a></li>
       <li class="breadcrumb-item active">Tomography Geometry Matrices</li>
       <li class="wy-breadcrumbs-aside">
       </li>
@@ -109,21 +109,21 @@
            <div itemprop="articleBody">
              
   <section id="tomography-geometry-matrices">
-<h1>Tomography Geometry Matrices<a class="headerlink" href="#tomography-geometry-matrices" title="Link to this heading"></a></h1>
+<h1>Tomography Geometry Matrices<a class="headerlink" href="#tomography-geometry-matrices" title="Permalink to this heading"></a></h1>
 <section id="background">
-<h2>Background<a class="headerlink" href="#background" title="Link to this heading"></a></h2>
+<h2>Background<a class="headerlink" href="#background" title="Permalink to this heading"></a></h2>
 <p>It is common to want to recover the distribution of light emission from the plasma in the poloidal plane, assuming toroidal symmetry, from cameras viewing approximately tangentially. The emission is reconstructed on a grid defined the poloidal <span class="math notranslate nohighlight">\((R,Z)\)</span> plane. The relationship between the brightness of emission from each grid element and the signal at each camera pixel is then a large system of linear equations, where the brightness of a pixel is given by a weighted sum of the brightness of each grid element along that pixel’s line of sight. This is most compactly expressed by a matrix multiplication <span class="math notranslate nohighlight">\(\mathbf{Ax = b}\)</span> where <span class="math notranslate nohighlight">\(\mathbf{A}\)</span> is the <em>geometry matrix</em>, <span class="math notranslate nohighlight">\(\mathbf{x}\)</span> is a vector of the brightnesses of each grid element (which we want to find), and <span class="math notranslate nohighlight">\(\mathbf{b}\)</span> is a vector of the pixel brightnesses. The calcam.gm module provides tools for generating the geometry matrix <span class="math notranslate nohighlight">\(\mathbf{A}\)</span>.</p>
 <p>For examples of using the features documented on this page, see the <a class="reference internal" href="api_examples.html"><span class="doc">Examples</span></a> page.</p>
 <section id="model-assumptions-and-limitations">
-<h3>Model assumptions and limitations<a class="headerlink" href="#model-assumptions-and-limitations" title="Link to this heading"></a></h3>
+<h3>Model assumptions and limitations<a class="headerlink" href="#model-assumptions-and-limitations" title="Permalink to this heading"></a></h3>
 <p>In calculation of the geometry matrices, camera sight-lines are assumed to be infinitely thin pencil beams, i.e. finite etendue and depth-of-field effects are not included. If ray casting with binning = 1, each image pixel is characterised by a single pencil beam sight-line at the image centre, i.e. the finite size of the pixels is not accounted for. The values of matrix element <span class="math notranslate nohighlight">\(i,j\)</span> is given by the length, in metres, of the <span class="math notranslate nohighlight">\(i^{th}\)</span> sight line which passes through the <span class="math notranslate nohighlight">\(j^{th}\)</span> grid cell.</p>
 </section>
 </section>
 <section id="the-geometry-matrix-class">
-<h2>The Geometry Matrix class<a class="headerlink" href="#the-geometry-matrix-class" title="Link to this heading"></a></h2>
+<h2>The Geometry Matrix class<a class="headerlink" href="#the-geometry-matrix-class" title="Permalink to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="calcam.gm.GeometryMatrix">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">calcam.gm.</span></span><span class="sig-name descname"><span class="pre">GeometryMatrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">raydata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pixel_order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'C'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trim_rows</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trim_columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calc_status_callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">calcam_status_printer</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.GeometryMatrix" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">calcam.gm.</span></span><span class="sig-name descname"><span class="pre">GeometryMatrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">raydata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pixel_order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'C'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trim_rows</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trim_columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calc_status_callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">calcam_status_printer</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.GeometryMatrix" title="Permalink to this definition"></a></dt>
 <dd><p>Class to represent a scalar geometry matrix and associated metadata.</p>
 <p>A new geometry matrix can be created by instantiating this class
 with the below parameters, or a saved geometry matrix can be loaded
@@ -131,7 +131,7 @@ from disk using the <a class="reference internal" href="#calcam.gm.GeometryMatri
 <p>The matrix itself can be accessed in the <cite>data</cite> attribute, where it is
 stored as a sparse matrix using the scipy.sprase.csr_matrix class.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>grid</strong> (<a class="reference internal" href="#calcam.gm.PoloidalVolumeGrid" title="calcam.gm.PoloidalVolumeGrid"><em>calcam.gm.PoloidalVolumeGrid</em></a>) – Reconstruction grid to use</p></li>
 <li><p><strong>raydata</strong> (<a class="reference internal" href="api_raycast.html#calcam.RayData" title="calcam.RayData"><em>calcam.RayData</em></a>) – Ray data for the camera to be inverted</p></li>
@@ -144,10 +144,10 @@ stored as a sparse matrix using the scipy.sprase.csr_matrix class.</p>
 </dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="calcam.gm.GeometryMatrix.data">
-<span class="sig-name descname"><span class="pre">data</span></span><a class="headerlink" href="#calcam.gm.GeometryMatrix.data" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">data</span></span><a class="headerlink" href="#calcam.gm.GeometryMatrix.data" title="Permalink to this definition"></a></dt>
 <dd><p>The geometry matrix data itself.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dt class="field-odd">Type</dt>
 <dd class="field-odd"><p>scipy.sparse.csr_matrix</p>
 </dd>
 </dl>
@@ -155,22 +155,22 @@ stored as a sparse matrix using the scipy.sprase.csr_matrix class.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="calcam.gm.GeometryMatrix.format_image">
-<span class="sig-name descname"><span class="pre">format_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.GeometryMatrix.format_image" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">format_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.GeometryMatrix.format_image" title="Permalink to this definition"></a></dt>
 <dd><p>Format a given 2D camera image in to a 1D data vector
 (i.e. <span class="math notranslate nohighlight">\(b\)</span> in <span class="math notranslate nohighlight">\(Ax = b\)</span>) appropriate for use with this
 geometry matrix. This will bin the image, remove any excluded
 pixels and reshape it to a 1D vector.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>image</strong> (<em>numpy.ndarray</em>) – Input image.</p></li>
 <li><p><strong>coords</strong> (<em>str</em>) – Either ‘Display’ or ‘Original’,                                     specifies what orientation the input                                     image is in. If not givwn, it will be                                     auto-detected if possible.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p>1xN_pixels image data vector. Note that this is                                       returned as a sparse matrix object despite its                                       density being 100%; this is for consistency with the                                       matrix itself.</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>scipy.sparse.csr_matrix</p>
 </dd>
 </dl>
@@ -178,16 +178,16 @@ pixels and reshape it to a 1D vector.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="calcam.gm.GeometryMatrix.fromfile">
-<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">fromfile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.GeometryMatrix.fromfile" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fromfile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.GeometryMatrix.fromfile" title="Permalink to this definition"></a></dt>
 <dd><p>Load a saved geometry matrix from disk.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>filename</strong> (<em>str</em>) – File name to load from. Can be a NumPy (.npz), MATLAB (.mat) or                               zipped ASCII (.zip) file.</p>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p>Loaded geometry matrix.</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>calcam.GeometryMatrix</p>
 </dd>
 </dl>
@@ -195,14 +195,14 @@ pixels and reshape it to a 1D vector.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="calcam.gm.GeometryMatrix.get_included_pixels">
-<span class="sig-name descname"><span class="pre">get_included_pixels</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.GeometryMatrix.get_included_pixels" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_included_pixels</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.GeometryMatrix.get_included_pixels" title="Permalink to this definition"></a></dt>
 <dd><p>Get a mask showing which image pixels are included in the
 geometry matrix.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>Boolean array the same shape as the camera image after binning,                             where True indicates the corresponding pixel is included                             and False indicates the pixel is excluded.</p>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dt class="field-even">Return type</dt>
 <dd class="field-even"><p>numpy.ndarray</p>
 </dd>
 </dl>
@@ -210,13 +210,13 @@ geometry matrix.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="calcam.gm.GeometryMatrix.get_los_coverage">
-<span class="sig-name descname"><span class="pre">get_los_coverage</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.GeometryMatrix.get_los_coverage" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_los_coverage</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.GeometryMatrix.get_los_coverage" title="Permalink to this definition"></a></dt>
 <dd><p>Get the number of lines of sight viewing each grid element.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>Vector with as many elements as there grid cells,                             with values being how many sight-lines interact with                             that grid element.</p>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dt class="field-even">Return type</dt>
 <dd class="field-even"><p>numpy.ndarray</p>
 </dd>
 </dl>
@@ -224,10 +224,10 @@ geometry matrix.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="calcam.gm.GeometryMatrix.grid">
-<span class="sig-name descname"><span class="pre">grid</span></span><a class="headerlink" href="#calcam.gm.GeometryMatrix.grid" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">grid</span></span><a class="headerlink" href="#calcam.gm.GeometryMatrix.grid" title="Permalink to this definition"></a></dt>
 <dd><p>The inversion grid associated with the geometry matrix.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dt class="field-odd">Type</dt>
 <dd class="field-odd"><p><a class="reference internal" href="#calcam.gm.PoloidalVolumeGrid" title="calcam.gm.PoloidalVolumeGrid">calcam.gm.PoloidalVolumeGrid</a></p>
 </dd>
 </dl>
@@ -235,7 +235,7 @@ geometry matrix.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="calcam.gm.GeometryMatrix.save">
-<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.GeometryMatrix.save" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.GeometryMatrix.save" title="Permalink to this definition"></a></dt>
 <dd><p>Save the geometry matrix to a file.</p>
 <blockquote>
 <div><div class="admonition note">
@@ -246,7 +246,7 @@ to make maximally compatible data files but is extremely slow to save and load.<
 </div>
 </div></blockquote>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>filename</strong> (<em>str</em>) – File name to save to, including file extension.                              The file extension determines the format to be saved:                              ‘.npz’ for compressed NumPy binary format,                              ‘.mat’ for MATLAB format or
 ‘.zip’ for Zipped collection of ASCII files.</p>
 </dd>
@@ -255,12 +255,12 @@ to make maximally compatible data files but is extremely slow to save and load.<
 
 <dl class="py method">
 <dt class="sig sig-object py" id="calcam.gm.GeometryMatrix.set_binning">
-<span class="sig-name descname"><span class="pre">set_binning</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">binning</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.GeometryMatrix.set_binning" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">set_binning</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">binning</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.GeometryMatrix.set_binning" title="Permalink to this definition"></a></dt>
 <dd><p>Set the level of image binning. Can be used to
 decrease the size of the matrix to reduce memory or
 computation requirements for inversions.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>binning</strong> (<em>float</em>) – Desired image binning. Must be larger than the                               existing binning value.</p>
 </dd>
 </dl>
@@ -268,7 +268,7 @@ computation requirements for inversions.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="calcam.gm.GeometryMatrix.set_included_pixels">
-<span class="sig-name descname"><span class="pre">set_included_pixels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pixel_mask</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.GeometryMatrix.set_included_pixels" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">set_included_pixels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pixel_mask</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.GeometryMatrix.set_included_pixels" title="Permalink to this definition"></a></dt>
 <dd><p>Set which image pixels should be included, or not. Can be
 used to exclude image pixels which are known to have bad data or
 otherwise do not conform to the assumptions of the inversion.</p>
@@ -280,7 +280,7 @@ master copy of the matrix with all pixels included and then
 use this function on a transient copy of the matrix.</p>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>pixel_mask</strong> (<em>numpy.ndarray</em>) – Boolean array the same shape as the un-binned                                          camera image, where True or 1 indicates a                                          pixel to be included and False or 0 represents                                          a pixel to be excluded.</p></li>
 <li><p><strong>coords</strong> (<em>str</em>) – Either ‘Display’ or ‘Original’,                                          specifies what orientation the input                                          pixel mask is in. If not givwn, it will be                                          auto-detected if possible.</p></li>
@@ -291,21 +291,21 @@ use this function on a transient copy of the matrix.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="calcam.gm.GeometryMatrix.unformat_image">
-<span class="sig-name descname"><span class="pre">unformat_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im_vector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Native'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">nan</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.GeometryMatrix.unformat_image" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">unformat_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im_vector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Native'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">nan</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.GeometryMatrix.unformat_image" title="Permalink to this definition"></a></dt>
 <dd><p>Formats a given a 1D data vector of image pixel values (i.e. <span class="math notranslate nohighlight">\(b\)</span> in <span class="math notranslate nohighlight">\(Ax = b\)</span>)
 back in to a 2D image array.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>im_vector</strong> (<em>numpy.ndarray</em><em> or </em><em>sparse matrix</em>) – 1D vector of image data, must have length equal to the number of rows in the geometry matrix.</p></li>
 <li><p><strong>coords</strong> (<em>str</em>) – What image orientation to return the image: ‘Original’, ‘Display’ or ‘Native’ (whichever was used when creating the geometry matrix).</p></li>
 <li><p><strong>fill_value</strong> (<em>float</em>) – Value to return in any image pixels which are not included in the geometry matrix.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p>2D array containing the image.</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>numpy.ndarray</p>
 </dd>
 </dl>
@@ -315,10 +315,10 @@ back in to a 2D image array.</p>
 
 </section>
 <section id="reconstruction-grids">
-<h2>Reconstruction grids<a class="headerlink" href="#reconstruction-grids" title="Link to this heading"></a></h2>
+<h2>Reconstruction grids<a class="headerlink" href="#reconstruction-grids" title="Permalink to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="calcam.gm.PoloidalVolumeGrid">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">calcam.gm.</span></span><span class="sig-name descname"><span class="pre">PoloidalVolumeGrid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vertices</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cells</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_contour</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zaxis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">0,</span> <span class="pre">1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">0,</span> <span class="pre">0)</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.PoloidalVolumeGrid" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">calcam.gm.</span></span><span class="sig-name descname"><span class="pre">PoloidalVolumeGrid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vertices</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cells</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_contour</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zaxis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">0,</span> <span class="pre">1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">0,</span> <span class="pre">0)</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.PoloidalVolumeGrid" title="Permalink to this definition"></a></dt>
 <dd><p>Class for representing tomographic reconstruction grids with
 polygonal grid cells in the R, Z plane. Quantities are assumed to be
 uniform within the volume of each grid cell. Grid cells can be arbitrary
@@ -328,7 +328,7 @@ sides.</p>
 following parameters, or alternatively convenience functions such as
 <a class="reference internal" href="#calcam.gm.squaregrid" title="calcam.gm.squaregrid"><code class="xref py py-func docutils literal notranslate"><span class="pre">calcam.gm.squaregrid()</span></code></a> are provided for easily creating various types of grid.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>vertices</strong> (<em>numpy.ndarray</em>) – (N_verts x 2) array of floats containing the                                       (R,Z) coordinates of the grid cell vertices.</p></li>
 <li><p><strong>cells</strong> (<em>numpy.ndarray</em>) – (N_cells x N_verts_per_cell) array of integers                                       specifying which vertices (indexes in to the vertices                                       array) define each grid cell. For each cell (array row),                                       the vertices must be listed in order around the                                       cell perimeter (in either direction).</p></li>
@@ -341,23 +341,23 @@ following parameters, or alternatively convenience functions such as
 </dl>
 <dl class="py property">
 <dt class="sig sig-object py" id="calcam.gm.PoloidalVolumeGrid.extent">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">extent</span></span><a class="headerlink" href="#calcam.gm.PoloidalVolumeGrid.extent" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">extent</span></span><a class="headerlink" href="#calcam.gm.PoloidalVolumeGrid.extent" title="Permalink to this definition"></a></dt>
 <dd><p>A 4-element tuple of floats containing the         R,Z extent of the grid in metres (Rmin,Rmax,Zmin,Zmax)</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="calcam.gm.PoloidalVolumeGrid.get_cell_intersections">
-<span class="sig-name descname"><span class="pre">get_cell_intersections</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ray_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ray_end</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.PoloidalVolumeGrid.get_cell_intersections" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_cell_intersections</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ray_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ray_end</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.PoloidalVolumeGrid.get_cell_intersections" title="Permalink to this definition"></a></dt>
 <dd><p>Get the intersections of a ray, i.e. a straight line in 3D space, with the grid cell boundaries.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>ray_start</strong> (<em>sequence</em>) – 3-element sequence containing the X,Y,Z coordinates                                    of the ray’s start position (in CAD model coordinates).</p></li>
 <li><p><strong>ray_end</strong> (<em>sequence</em>) – 3-element sequence containing the X,Y,Z coordinates                                    of the ray’s end position (in CAD model coordinates).</p></li>
 <li><p><strong>plot</strong> (<em>bool</em>) – If set to True, the function will also plot the ray                                    in R,Z and red circles at each intersection location.                                    Mainly intended for debugging and algorithm demonstration.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p><p>Intersection information:</p>
 <blockquote>
 <div><ul class="simple">
@@ -367,7 +367,7 @@ following parameters, or alternatively convenience functions such as
 </div></blockquote>
 </p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>tuple</p>
 </dd>
 </dl>
@@ -375,7 +375,7 @@ following parameters, or alternatively convenience functions such as
 
 <dl class="py method">
 <dt class="sig sig-object py" id="calcam.gm.PoloidalVolumeGrid.interpolate">
-<span class="sig-name descname"><span class="pre">interpolate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r_new</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_new</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">nan</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.PoloidalVolumeGrid.interpolate" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">interpolate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r_new</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_new</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">nan</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.PoloidalVolumeGrid.interpolate" title="Permalink to this definition"></a></dt>
 <dd><p>Given a vector of data on the grid, return the data values at
 positions (r_new,z_new). Since quantities are assumed uniform
 within each grid cell, this is a “nearest neighbour” type
@@ -384,7 +384,7 @@ the value of the grid cell that point lies within.</p>
 <p>Note: this is not particularly optimised for speed, but at least
 provides the functionality for now.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>data</strong> (<em>np.ndarray</em>) – 1D array containing the data defined on the grid;                                  must have the same number of elements as there are                                  grid cells.</p></li>
 <li><p><strong>r_new</strong> (<em>np.ndarray</em>) – Arry of new R positions; must be the same shape as z_new</p></li>
@@ -392,10 +392,10 @@ provides the functionality for now.</p>
 <li><p><strong>fill_value</strong> (<em>float</em>) – What value to return for (r_new,z_new) points which lie                                  outside the grid. Default is np.nan.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p>Array the same shape as r_new and z_new containing the data                         values at positions (r_new,z_new).</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>np.ndarray</p>
 </dd>
 </dl>
@@ -403,29 +403,29 @@ provides the functionality for now.</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="calcam.gm.PoloidalVolumeGrid.n_cells">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">n_cells</span></span><a class="headerlink" href="#calcam.gm.PoloidalVolumeGrid.n_cells" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">n_cells</span></span><a class="headerlink" href="#calcam.gm.PoloidalVolumeGrid.n_cells" title="Permalink to this definition"></a></dt>
 <dd><p>The number of cells in the grid.</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="calcam.gm.PoloidalVolumeGrid.n_segments">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">n_segments</span></span><a class="headerlink" href="#calcam.gm.PoloidalVolumeGrid.n_segments" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">n_segments</span></span><a class="headerlink" href="#calcam.gm.PoloidalVolumeGrid.n_segments" title="Permalink to this definition"></a></dt>
 <dd><p>The number of line segments (cell sides) in the grid.</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="calcam.gm.PoloidalVolumeGrid.n_vertices">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">n_vertices</span></span><a class="headerlink" href="#calcam.gm.PoloidalVolumeGrid.n_vertices" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">n_vertices</span></span><a class="headerlink" href="#calcam.gm.PoloidalVolumeGrid.n_vertices" title="Permalink to this definition"></a></dt>
 <dd><p>The number of vertices in the grid.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="calcam.gm.PoloidalVolumeGrid.plot">
-<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">line_colour</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">0,</span> <span class="pre">0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell_linewidth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cblabel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell_numbers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.PoloidalVolumeGrid.plot" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">line_colour</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">0,</span> <span class="pre">0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell_linewidth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cblabel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell_numbers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.PoloidalVolumeGrid.plot" title="Permalink to this definition"></a></dt>
 <dd><p>Either plot a given data vector on the grid, or if no data vector is given,
 plot the grid itself.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>data</strong> (<em>array</em>) – Data to plot on the grid. Must be a 1D array with as many elements                                               as there are grid cells. If not given, only the grid structure is plotted.</p></li>
 <li><p><strong>clim</strong> (<em>sequence</em><em> or </em><em>None</em>) – 2 element sequence giving the colourmap limits for the data [min,max].                                               If set to None, the data min and max are used.</p></li>
@@ -437,7 +437,7 @@ plot the grid itself.</p>
 <li><p><strong>cell_numbers</strong> (<em>bool</em>) – If set to True, displays the indices of the grid cells as text at the grid cell centre.                                               This is itended mainly for debugging and can be very slow on some systems.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p><p>MatPlotLib objects comprising the plot:</p>
 <blockquote>
 <div><ul class="simple">
@@ -448,7 +448,7 @@ plot the grid itself.</p>
 </div></blockquote>
 </p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>tuple</p>
 </dd>
 </dl>
@@ -456,10 +456,10 @@ plot the grid itself.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="calcam.gm.PoloidalVolumeGrid.remove_cells">
-<span class="sig-name descname"><span class="pre">remove_cells</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cell_inds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.PoloidalVolumeGrid.remove_cells" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">remove_cells</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cell_inds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.PoloidalVolumeGrid.remove_cells" title="Permalink to this definition"></a></dt>
 <dd><p>Remove grid cells with the given indices from the grid.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>cell_inds</strong> (<em>sequence</em>) – Sequence of integers specifying which                                    cell indices to remove.</p>
 </dd>
 </dl>
@@ -468,14 +468,14 @@ plot the grid itself.</p>
 </dd></dl>
 
 <section id="creating-commonly-used-grid-types">
-<h3>Creating commonly used grid types<a class="headerlink" href="#creating-commonly-used-grid-types" title="Link to this heading"></a></h3>
+<h3>Creating commonly used grid types<a class="headerlink" href="#creating-commonly-used-grid-types" title="Permalink to this heading"></a></h3>
 <p>The following functions are provided for convenience to easily generate some commonly used types of grid.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="calcam.gm.squaregrid">
-<span class="sig-prename descclassname"><span class="pre">calcam.gm.</span></span><span class="sig-name descname"><span class="pre">squaregrid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wall_contour</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zaxis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">0,</span> <span class="pre">1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">0,</span> <span class="pre">0)</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.squaregrid" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">calcam.gm.</span></span><span class="sig-name descname"><span class="pre">squaregrid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wall_contour</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zaxis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">0,</span> <span class="pre">1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">0,</span> <span class="pre">0)</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.squaregrid" title="Permalink to this definition"></a></dt>
 <dd><p>Create a reconstruction grid with square grid cells.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>wall_contour</strong> (<em>str</em><em> or </em><em>numpy.ndarray</em>) – Either the name of a Calcam CAD model                                               from which to use the wall contour, or an                                               N x 2 array of R,Z points defining the machine wall.</p></li>
 <li><p><strong>cell_size</strong> (<em>float</em>) – Side length of each grid cell in metres.</p></li>
@@ -487,10 +487,10 @@ plot the grid itself.</p>
 <li><p><strong>origin</strong> (<em>sequence</em>) – 3D origin (x,y,z) of the grid R,Z coordinates. This point defines                                               R=0,Z=0 of the grid. The default is (0,0,0) i.e. the CAD                                               coordinate origin, which is conventional for tokamaks.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p>Generated grid.</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p><a class="reference internal" href="#calcam.gm.PoloidalVolumeGrid" title="calcam.gm.PoloidalVolumeGrid">calcam.gm.PoloidalVolumeGrid</a></p>
 </dd>
 </dl>
@@ -498,11 +498,11 @@ plot the grid itself.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="calcam.gm.trigrid">
-<span class="sig-prename descclassname"><span class="pre">calcam.gm.</span></span><span class="sig-name descname"><span class="pre">trigrid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wall_contour</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_cell_scale</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">triopts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zaxis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">0,</span> <span class="pre">1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">0,</span> <span class="pre">0)</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.trigrid" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">calcam.gm.</span></span><span class="sig-name descname"><span class="pre">trigrid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wall_contour</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_cell_scale</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">triopts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zaxis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">0,</span> <span class="pre">1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">0,</span> <span class="pre">0)</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.trigrid" title="Permalink to this definition"></a></dt>
 <dd><p>Create a reconstruction grid with triangular grid cells conforming to the
 wall contour, using Jonathan Richard Shewchuk’s “triangle” triangulation library.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>wall_contour</strong> (<em>str</em><em> or </em><em>numpy.ndarray</em>) – Either the name of a Calcam CAD model                                               from which to use the wall contour, or an                                               N x 2 array of R,Z points defining the machine wall.</p></li>
 <li><p><strong>max_cell_scale</strong> (<em>float</em>) – Approximate maximum allowed length scale for a grid                                               cell, in metres.</p></li>
@@ -515,10 +515,10 @@ wall contour, using Jonathan Richard Shewchuk’s “triangle” triangulation l
 <li><p><strong>origin</strong> (<em>sequence</em>) – 3D origin (x,y,z) of the grid R,Z coordinates. This point defines                                               R=0,Z=0 of the grid. The default is (0,0,0) i.e. the CAD                                               coordinate origin, which is conventional for tokamaks.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p>Generated grid.</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p><a class="reference internal" href="#calcam.gm.PoloidalVolumeGrid" title="calcam.gm.PoloidalVolumeGrid">calcam.gm.PoloidalVolumeGrid</a></p>
 </dd>
 </dl>
@@ -526,10 +526,10 @@ wall contour, using Jonathan Richard Shewchuk’s “triangle” triangulation l
 
 <dl class="py function">
 <dt class="sig sig-object py" id="calcam.gm.solps_grid">
-<span class="sig-prename descclassname"><span class="pre">calcam.gm.</span></span><span class="sig-name descname"><span class="pre">solps_grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">solps_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_contour</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell_attrs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.solps_grid" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">calcam.gm.</span></span><span class="sig-name descname"><span class="pre">solps_grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">solps_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_contour</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell_attrs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.gm.solps_grid" title="Permalink to this definition"></a></dt>
 <dd><p>Load a grid from a SOLPS-ITER DivGeo-Carre file.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>solps_file</strong> (<em>str</em>) – Filename of DivGeo-Carre .geo file containing grid coordinates to load.</p></li>
 <li><p><strong>wall_contour</strong> (<em>str</em><em> or </em><em>numpy.ndarray</em>) – Either the name of a Calcam CAD model                                               from which to use the wall contour, or an                                               N x 2 array of R,Z points defining the machine wall.</p></li>
@@ -540,12 +540,12 @@ wall contour, using Jonathan Richard Shewchuk’s “triangle” triangulation l
 <li><p><strong>cell_attrs</strong> (<em>bool</em>) – Whether to return the cell centre coordinates and cell                                               indices as provided by SOLPS-ITER.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p><p>The reconstruction grid.</p>
 <p>if cell_attrs is set to true, also returns an Nx8 NumPy array where N is the number of         grid cells. The 8 columns of this array contain for each cell: Poloidal index, Radial index, R centre,        Z centre, and indices in to the resulting grid object’s vertex list of the 4 vertices of the cell.</p>
 </p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p><a class="reference internal" href="#calcam.gm.PoloidalVolumeGrid" title="calcam.gm.PoloidalVolumeGrid">calcam.gm.PoloidalVolumeGrid</a></p>
 </dd>
 </dl>
@@ -566,7 +566,7 @@ wall contour, using Jonathan Richard Shewchuk’s “triangle” triangulation l
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2015-2025, European Atomic Energy Community (EURATOM).</p>
+    <p>&#169; Copyright 2015-2026, European Atomic Energy Community (EURATOM).</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

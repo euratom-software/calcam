@@ -1,21 +1,22 @@
-
-
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" data-content_root="./">
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Ray Casting &mdash; Calcam  documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
-
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
-      <script src="_static/jquery.js?v=5d32c60e"></script>
-      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=7f41d439"></script>
-      <script src="_static/doctools.js?v=fd6eb6e6"></script>
-      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -28,16 +29,15 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-
-          
-          
-          <a href="index.html">
-            
-              <img src="_static/logo.png" class="logo" alt="Logo"/>
+            <a href="index.html">
+            <img src="_static/logo.png" class="logo" alt="Logo"/>
           </a>
+              <div class="version">
+                Version 2.17
+              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -96,7 +96,7 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li><a href="index.html" class="icon icon-home"></a></li>
       <li class="breadcrumb-item active">Ray Casting</li>
       <li class="wy-breadcrumbs-aside">
       </li>
@@ -107,14 +107,14 @@
            <div itemprop="articleBody">
              
   <section id="ray-casting">
-<h1>Ray Casting<a class="headerlink" href="#ray-casting" title="Link to this heading"></a></h1>
+<h1>Ray Casting<a class="headerlink" href="#ray-casting" title="Permalink to this heading"></a></h1>
 <p>While the <a class="reference internal" href="api_calib.html#calcam.Calibration" title="calcam.Calibration"><code class="xref py py-class docutils literal notranslate"><span class="pre">calcam.Calibration</span></code></a> class can provide information about the camera line-of-sight geometry based on a calibration, it is often necessary to also know where these sight lines intersect with a surface in the CAD model. For example for infrared thermography cameras, the mapping of image pixels to positions on the physical surfaces (of the CAD model) is usually of most interest. The function <a class="reference internal" href="#calcam.raycast_sightlines" title="calcam.raycast_sightlines"><code class="xref py py-func docutils literal notranslate"><span class="pre">calcam.raycast_sightlines()</span></code></a> is provided for this purpose; it determines the 3D coordinates where the given pixels’ sight-lines intersect the CAD model. Results of these calculations are represented by the <a class="reference internal" href="#calcam.RayData" title="calcam.RayData"><code class="xref py py-class docutils literal notranslate"><span class="pre">calcam.RayData</span></code></a> class. Both of these are documented on this page. For examples of usage, see the <a class="reference internal" href="api_examples.html"><span class="doc">Examples</span></a> page.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="calcam.raycast_sightlines">
-<span class="sig-prename descclassname"><span class="pre">calcam.</span></span><span class="sig-name descname"><span class="pre">raycast_sightlines</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calibration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cadmodel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclusion_radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">binning</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Display'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intersecting_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_subview</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calc_normals</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.raycast_sightlines" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">calcam.</span></span><span class="sig-name descname"><span class="pre">raycast_sightlines</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calibration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cadmodel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclusion_radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">binning</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Display'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intersecting_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_subview</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calc_normals</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.raycast_sightlines" title="Permalink to this definition"></a></dt>
 <dd><p>Ray cast camera sight-lines to determine where they intersect the given CAD model.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>calibration</strong> (<a class="reference internal" href="api_calib.html#calcam.Calibration" title="calcam.Calibration"><em>calcam.Calibration</em></a>) – Calibration whose sight-lines to raycast.</p></li>
 <li><p><strong>cadmodel</strong> (<a class="reference internal" href="api_cadmodel.html#calcam.CADModel" title="calcam.CADModel"><em>calcam.CADModel</em></a>) – CAD model to check intersection with.</p></li>
@@ -130,10 +130,10 @@
 <li><p><strong>calc_normals</strong> (<em>bool</em>) – Whether to calculate the normal vectors of the CAD model where the sight-lines intersect it.                                            Not turned on by default because it seems to add around 80% extra calculation time, so best used                                            only if actyally needed.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p>Object containing the results.</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p><a class="reference internal" href="#calcam.RayData" title="calcam.RayData">calcam.RayData</a></p>
 </dd>
 </dl>
@@ -141,26 +141,26 @@
 
 <dl class="py class">
 <dt class="sig sig-object py" id="calcam.RayData">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">calcam.</span></span><span class="sig-name descname"><span class="pre">RayData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">calcam.</span></span><span class="sig-name descname"><span class="pre">RayData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData" title="Permalink to this definition"></a></dt>
 <dd><p>Class representing ray casting results.</p>
 <p>Objects of this class are returned by <a class="reference internal" href="#calcam.raycast_sightlines" title="calcam.raycast_sightlines"><code class="xref py py-func docutils literal notranslate"><span class="pre">calcam.raycast_sightlines()</span></code></a>.
 It can also be used to save and load ray cast results to disk.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>filename</strong> (<em>str</em>) – File name of netCDF file containing saved RayData to load.                           If not given, an empty RayData object is created.</p>
 </dd>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="calcam.RayData.get_detector_window">
-<span class="sig-name descname"><span class="pre">get_detector_window</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData.get_detector_window" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_detector_window</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData.get_detector_window" title="Permalink to this definition"></a></dt>
 <dd><p>Get the coordinates of the detector region included in this ray-cast result
 (including any effect of previous calls to <a class="reference internal" href="#calcam.RayData.set_detector_window" title="calcam.RayData.set_detector_window"><code class="xref py py-func docutils literal notranslate"><span class="pre">set_detector_window()</span></code></a>).</p>
 <p>Detector window coordinates are always in original coordinates.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>(left,top,width,height) coordinates of the detector ROI for the calibration. (left,top) are the offset                     of the ROI from the top-left corner of the image, and (width,height) are the image width and height.</p>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dt class="field-even">Return type</dt>
 <dd class="field-even"><p>tuple</p>
 </dd>
 </dl>
@@ -168,11 +168,11 @@ It can also be used to save and load ray cast results to disk.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="calcam.RayData.get_model_normals">
-<span class="sig-name descname"><span class="pre">get_model_normals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im_position_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Display'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData.get_model_normals" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_model_normals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im_position_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Display'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData.get_model_normals" title="Permalink to this definition"></a></dt>
 <dd><p>Get the 3D unit normal vectors of the CAD model surface where the camera sight-lines hit the model.
 Only available if calc_normals = True was given when running raycast_sightlines().</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>x</strong> (<em>array-like</em>) – Image pixel coordinates at which to get the model normals.                                      If not specified, the end coordinates of all casted sight lines will be returned.</p></li>
 <li><p><strong>y</strong> (<em>array-like</em>) – Image pixel coordinates at which to get the model normals.                                      If not specified, the end coordinates of all casted sight lines will be returned.</p></li>
@@ -180,10 +180,10 @@ Only available if calc_normals = True was given when running raycast_sightlines(
 <li><p><strong>coords</strong> (<em>str</em>) – Either <code class="docutils literal notranslate"><span class="pre">Display</span></code> or <code class="docutils literal notranslate"><span class="pre">Coords</span></code>, specifies what orientation the input x                                       and y correspond to or orientation of the returned array.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p>An array containing the normal vectors of the CAD model surface where                                      each sight line intersects the CAD model. If x and y coordinates were                                       given either to this function or to calcam.raycast_sightlines(), the shape of                                       this array is the same as the input x and y arrays with an additional                                       dimension added which contains the  [X,Y,Z] components of the normals. Otherwise the shape                                      is (h x w x 3) where w and h are the image width and height (in display coords).</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>np.ndarray</p>
 </dd>
 </dl>
@@ -191,10 +191,10 @@ Only available if calc_normals = True was given when running raycast_sightlines(
 
 <dl class="py method">
 <dt class="sig sig-object py" id="calcam.RayData.get_ray_directions">
-<span class="sig-name descname"><span class="pre">get_ray_directions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im_position_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Display'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData.get_ray_directions" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_ray_directions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im_position_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Display'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData.get_ray_directions" title="Permalink to this definition"></a></dt>
 <dd><p>Get unit vectors specifying the sight-line directions. Note that ray casting         is not required to get this information: see <a class="reference internal" href="api_calib.html#calcam.Calibration.get_los_direction" title="calcam.Calibration.get_los_direction"><code class="xref py py-func docutils literal notranslate"><span class="pre">calcam.Calibration.get_los_direction()</span></code></a>         for the same functionality, however this can be useful if you have the RayData         but not <a class="reference internal" href="api_calib.html#calcam.Calibration" title="calcam.Calibration"><code class="xref py py-class docutils literal notranslate"><span class="pre">calcam.Calibration</span></code></a> object loaded when doing the analysis.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>x</strong> (<em>array-like</em>) – x and y pixel coordinates at which to get the ray directions.                                       If not specified, the ray directions of every sight-line are returned.</p></li>
 <li><p><strong>y</strong> (<em>array-like</em>) – x and y pixel coordinates at which to get the ray directions.                                       If not specified, the ray directions of every sight-line are returned.</p></li>
@@ -202,10 +202,10 @@ Only available if calc_normals = True was given when running raycast_sightlines(
 <li><p><strong>coords</strong> (<em>str</em>) – Either <code class="docutils literal notranslate"><span class="pre">Display</span></code> or <code class="docutils literal notranslate"><span class="pre">Original</span></code>, specifies what orientation the input x                                       and y correspond to or orientation of the returned array.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p>Array containing the sight-line directions. If the ray cast was for the                                       full detector and x and y are not specified, the array shape will be                                       (h x w x 3) where w nd h are the image width and height. Otherwise it will                                       be the same shape as the input x and y coordinates plus an extra dimension.</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>np.ndarray</p>
 </dd>
 </dl>
@@ -213,10 +213,10 @@ Only available if calc_normals = True was given when running raycast_sightlines(
 
 <dl class="py method">
 <dt class="sig sig-object py" id="calcam.RayData.get_ray_end">
-<span class="sig-name descname"><span class="pre">get_ray_end</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im_position_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Display'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData.get_ray_end" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_ray_end</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im_position_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Display'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData.get_ray_end" title="Permalink to this definition"></a></dt>
 <dd><p>Get the 3D x,y,z coordinates where the casted rays / sightlines intersect the CAD model.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>x</strong> (<em>array-like</em>) – Image pixel coordinates at which to get the sight-line end coordinates.                                      If not specified, the end coordinates of all casted sight lines will be returned.</p></li>
 <li><p><strong>y</strong> (<em>array-like</em>) – Image pixel coordinates at which to get the sight-line end coordinates.                                      If not specified, the end coordinates of all casted sight lines will be returned.</p></li>
@@ -224,10 +224,10 @@ Only available if calc_normals = True was given when running raycast_sightlines(
 <li><p><strong>coords</strong> (<em>str</em>) – Either <code class="docutils literal notranslate"><span class="pre">Display</span></code> or <code class="docutils literal notranslate"><span class="pre">Coords</span></code>, specifies what orientation the input x                                       and y correspond to or orientation of the returned array.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p>An array containing the 3D coordinates, in metres, of the points where                                      each sight line intersects the CAD model. If x and y coordinates were                                       given either to this function or to calcam.raycast_sightlines(), the shape of                                       this array is the same as the input x and y arrays with an additional                                       dimension added which contains the  [X,Y,Z] 3D coordinates. Otherwise the shape                                      is (h x w x 3) where w and h are the image width and height (in display coords).</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>np.ndarray</p>
 </dd>
 </dl>
@@ -235,10 +235,10 @@ Only available if calc_normals = True was given when running raycast_sightlines(
 
 <dl class="py method">
 <dt class="sig sig-object py" id="calcam.RayData.get_ray_lengths">
-<span class="sig-name descname"><span class="pre">get_ray_lengths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im_position_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Display'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData.get_ray_lengths" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_ray_lengths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im_position_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Display'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData.get_ray_lengths" title="Permalink to this definition"></a></dt>
 <dd><p>Get the sight-line lengths either of all casted sight-lines or at the specified image coordinates.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>x</strong> (<em>array-like</em>) – Image pixel coordinates at which to get the sight-line lengths.                                       If not specified, the lengths of all casted sight lines will be returned.</p></li>
 <li><p><strong>y</strong> (<em>array-like</em>) – Image pixel coordinates at which to get the sight-line lengths.                                       If not specified, the lengths of all casted sight lines will be returned.</p></li>
@@ -246,10 +246,10 @@ Only available if calc_normals = True was given when running raycast_sightlines(
 <li><p><strong>coords</strong> (<em>str</em>) – Either <code class="docutils literal notranslate"><span class="pre">Display</span></code> or <code class="docutils literal notranslate"><span class="pre">Coords</span></code>, specifies what orientation the input x                                       and y correspond to or orientation of the returned array.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p>Array containing the sight-line lengths. If the ray cast was for the                                       full detector and x and y are not specified, the array shape will be                                       (h x w) where w nd h are the image width and height. Otherwise it will                                       be the same shape as the input x and y coordinates.</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>np.ndarray</p>
 </dd>
 </dl>
@@ -257,10 +257,10 @@ Only available if calc_normals = True was given when running raycast_sightlines(
 
 <dl class="py method">
 <dt class="sig sig-object py" id="calcam.RayData.get_ray_start">
-<span class="sig-name descname"><span class="pre">get_ray_start</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im_position_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Display'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData.get_ray_start" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_ray_start</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im_position_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Display'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData.get_ray_start" title="Permalink to this definition"></a></dt>
 <dd><p>Get the 3D x,y,z coordinates of the “start” of the casted rays / sightlines.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>x</strong> (<em>array-like</em>) – Image pixel coordinates at which to get the sight-line start coordinates.                                      If not specified, the start coordinates of all casted sight lines will be returned.</p></li>
 <li><p><strong>y</strong> (<em>array-like</em>) – Image pixel coordinates at which to get the sight-line start coordinates.                                      If not specified, the start coordinates of all casted sight lines will be returned.</p></li>
@@ -268,10 +268,10 @@ Only available if calc_normals = True was given when running raycast_sightlines(
 <li><p><strong>coords</strong> (<em>str</em>) – Either <code class="docutils literal notranslate"><span class="pre">Display</span></code> or <code class="docutils literal notranslate"><span class="pre">Coords</span></code>, specifies what orientation the input x                                       and y correspond to or orientation of the returned array.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p>An array containing the 3D coordinates, in metres, of the start of                                       each sight line (i.e. camera pupil position). If x and y coordinates were                                       given either to this function or to calcam.raycast_sightlines(), the shape of                                       this array is the same as the input x and y arrays with an additional                                       dimension added which contains the  [X,Y,Z] 3D coordinates. Otherwise the shape                                      is (h x w x 3) where w and h are the image width and height (in display coords).</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>np.ndarray</p>
 </dd>
 </dl>
@@ -279,10 +279,10 @@ Only available if calc_normals = True was given when running raycast_sightlines(
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="calcam.RayData.history">
-<span class="sig-name descname"><span class="pre">history</span></span><a class="headerlink" href="#calcam.RayData.history" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">history</span></span><a class="headerlink" href="#calcam.RayData.history" title="Permalink to this definition"></a></dt>
 <dd><p>Human readable description of where the raydata came from.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dt class="field-odd">Type</dt>
 <dd class="field-odd"><p>str</p>
 </dd>
 </dl>
@@ -290,10 +290,10 @@ Only available if calc_normals = True was given when running raycast_sightlines(
 
 <dl class="py method">
 <dt class="sig sig-object py" id="calcam.RayData.save">
-<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData.save" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData.save" title="Permalink to this definition"></a></dt>
 <dd><p>Save the RayData to a netCDF file.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>filename</strong> (<em>str</em>) – File name to save to.</p>
 </dd>
 </dl>
@@ -301,7 +301,7 @@ Only available if calc_normals = True was given when running raycast_sightlines(
 
 <dl class="py method">
 <dt class="sig sig-object py" id="calcam.RayData.set_detector_window">
-<span class="sig-name descname"><span class="pre">set_detector_window</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">window</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData.set_detector_window" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">set_detector_window</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">window</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.RayData.set_detector_window" title="Permalink to this definition"></a></dt>
 <dd><p>Adjust the raydata to apply to a different detector region for than was used
 to perform the original raycast. Useful for example if a CMOS camera has been calibrated
 over the full frame, but you now want to use this calibration for data which
@@ -311,7 +311,7 @@ back to its “native” state. Otherwise, call with a 4 element tuple specifyin
 left,top,width and height of the detector window.</p>
 <p>Detector window coordinates must always be in original coordinates.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>window</strong> (<em>tuple</em><em> or </em><em>list</em>) – A 4-element tuple or list of integers defining the                                      detector window coordinates (Left,Top,Width,Height)</p>
 </dd>
 </dl>
@@ -332,7 +332,7 @@ left,top,width and height of the detector window.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2015-2025, European Atomic Energy Community (EURATOM).</p>
+    <p>&#169; Copyright 2015-2026, European Atomic Energy Community (EURATOM).</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

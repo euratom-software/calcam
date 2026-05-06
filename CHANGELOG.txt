@@ -2,8 +2,8 @@ Calcam Changelog
 ================
 
 
-Changes on master branch since last release (2.17.dev)
--------------------------------------------------------
+Point Release 2.17.0 (May 2026)
+-------------------------------
 
 New & Enhancements:
 * It is now possible to load a new image of different size / shape in to an existing calibration in the fitting calibration tool (#172)
