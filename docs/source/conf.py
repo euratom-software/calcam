@@ -42,7 +42,7 @@ templates_path = ['_templates']
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 # source_suffix = ['.rst', '.md']
-source_suffix = '.rst'
+source_suffix = {'.rst': 'restructuredtext'}
 
 # The encoding of source files.
 #source_encoding = 'utf-8-sig'
@@ -52,7 +52,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Calcam'
-copyright = u'2015-2025, European Atomic Energy Community (EURATOM)'
+copyright = u'2015-2026, European Atomic Energy Community (EURATOM)'
 author = u'Scott Silburn et. al.'
 
 # The version info for the project you're documenting, acts as replacement for

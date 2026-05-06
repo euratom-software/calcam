@@ -1,5 +1,5 @@
 '''
-* Copyright 2015-2025 European Atomic Energy Community (EURATOM)
+* Copyright 2015-2026 European Atomic Energy Community (EURATOM)
 *
 * Licensed under the EUPL, Version 1.1 or - as soon they
   will be approved by the European Commission - subsequent
@@ -508,6 +508,21 @@ class RayData:
 
         else:
             raise ValueError('Cannot understand detector window; should be None or (Left,Top,Width,Height)')
+
+
+    def get_detector_window(self):
+        """
+        Get the coordinates of the detector region included in this ray-cast result
+        (including any effect of previous calls to :func:`set_detector_window`).
+
+        Detector window coordinates are always in original coordinates.
+
+        Returns:
+
+            tuple : (left,top,width,height) coordinates of the detector ROI for the calibration. (left,top) are the offset \
+                    of the ROI from the top-left corner of the image, and (width,height) are the image width and height.
+        """
+        return (self.transform.offset[0],self.transform.offset[1],self.transform.x_pixels,self.transform.y_pixels)
 
 
     def get_ray_start(self,x=None,y=None,im_position_tol = 1,coords='Display'):

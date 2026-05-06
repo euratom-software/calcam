@@ -631,43 +631,38 @@ class FittingCalib(CalcamGUIWindow):
 
     def on_load_image(self,newim):
 
+        # Shape of the new image we have loaded
         imshape = newim['image_data'].shape[1::-1]
 
-        # If we already have an image in the calibration, check if the new one is the same size.
-        try:
-            # If the new image is the same size, assume all its metadata are the same as the existing image.
-            if imshape == tuple(self.calibration.geometry.get_display_shape()) or imshape == tuple(self.calibration.geometry.get_original_shape()):
+        if self.calibration.get_image() is not None:
+            # If we already have an image...
 
-                if self.calibration.geometry.get_display_shape() == self.calibration.geometry.get_original_shape():
-                    if 'coords' not in newim:
-                        newim['coords'] = 'display'
-                elif imshape == tuple(self.calibration.geometry.get_display_shape()):
-                    newim['coords'] = 'display'
-                else:
-                    newim['coords'] = 'original'
+            # Set the detector window of the existing calibration to match the loaded image. This
+            # will adjust all the point pairs for a difference in offset and crop points out of the view
+            window = (newim['image_offset'][0],newim['image_offset'][1],imshape[0],imshape[1])
+            self.calibration.set_detector_window(window,bounds_error='silent')
+            self.detector_window = window
 
-                newim['subview_names'] = self.calibration.subview_names
-                newim['subview_mask'] = self.calibration.get_subview_mask(coords=newim['coords'])
-                newim['transform_actions'] = self.calibration.geometry.transform_actions
-                newim['pixel_aspect'] = self.calibration.geometry.pixel_aspectratio
-                newim['pixel_size'] = self.calibration.pixel_size
-
-            else:
-                # If the new image is the wrong size, we have to start a new calibration.
-                msg = 'The selected image has different dimensions ({:d}x{:d}) to the current one so cannot be loaded without starting a new calibration.<br><br>Do you want to start a new calibration based on the loaded image?'.format(imshape[0],imshape[1])
-                reply = qt.QMessageBox.question(self, 'Start new calibration?', msg, qt.QMessageBox.Yes, qt.QMessageBox.Cancel)
-
-                if reply == qt.QMessageBox.Cancel:
-                    return
-                elif reply == qt.QMessageBox.Yes:
-                    self.reset()
-
+            # Get a copy of the old image (after cropping for different window)
             old_image = self.calibration.get_image(coords='Display')
 
-        # A TypeError signifies no image in the existing calibration
-        except TypeError:
+            # If the image loader has made assumptions about the new image, we can replace those
+            # assumed properties with the correct values already in the current calibration:
+            if 'subview_mask' in newim['assumptions']:
+                newim['subview_names'] = self.calibration.subview_names
+                newim['subview_mask'] = self.calibration.get_subview_mask(coords=newim['coords'])
+
+            if 'transform_actions' in newim['assumptions']:
+                newim['transform_actions'] = self.calibration.geometry.transform_actions
+
+            if 'pixel_aspect' in newim['assumptions']:
+                newim['pixel_aspect'] = self.calibration.geometry.pixel_aspectratio
+
+            if 'pixel_size' in newim['assumptions']:
+                newim['pixel_size'] = self.calibration.pixel_size
+
+        else:
             old_image = None
-            pass
 
         if newim['pixel_size'] is not None:
             self.pixel_size_checkbox.setChecked(True)
@@ -676,11 +671,11 @@ class FittingCalib(CalcamGUIWindow):
             self.pixel_size_checkbox.setChecked(False)
 
         self.calibration.set_image( scale_to_8bit(newim['image_data']) , newim['source'],subview_mask = newim['subview_mask'], transform_actions = newim['transform_actions'],coords=newim['coords'],subview_names=newim['subview_names'],pixel_aspect=newim['pixel_aspect'],pixel_size=newim['pixel_size'],offset=newim['image_offset'] )
-
         self.interactor2d.set_image(self.calibration.get_image(coords='Display'),n_subviews = self.calibration.n_subviews,subview_lookup = self.calibration.subview_lookup)
 
-        oshape = self.calibration.geometry.get_original_shape()
-        self.detector_window = (int(self.calibration.geometry.offset[0]),int(self.calibration.geometry.offset[1]),int(oshape[0]),int(oshape[1]))
+        # Force full refresh of the point positions; this is needed when loading an image with different detector window.
+        if self.calibration.pointpairs is not None:
+            self.load_pointpairs(pointpairs=self.calibration.pointpairs, history=self.calibration.history['pointpairs'],force_clear=True, clear_fit=False)
 
         self.image_settings.show()
         if self.enhance_checkbox.isChecked():

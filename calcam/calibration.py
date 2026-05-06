@@ -1,5 +1,5 @@
 '''
-* Copyright 2015-2025 European Atomic Energy Community (EURATOM)
+* Copyright 2015-2026 European Atomic Energy Community (EURATOM)
 *
 * Licensed under the EUPL, Version 1.1 or - as soon they
   will be approved by the European Commission - subsequent
@@ -246,20 +246,48 @@ class RectilinearViewModel(ViewModel):
     def project_points(self,points,include_distortion=True):
 
         # Check the input points are in a suitable format
-        if np.ndim(points) < 3:
+        points = np.array(points, dtype='float32')
+        while np.ndim(points) < 3:
             points = np.array([points],dtype='float32')
-        else:
-            points = np.array(points,dtype='float32')
 
         if include_distortion:
             kc = self.kc
+            k1, k2, p1, p2 = kc[0][:4]
+            if len(kc[0]) == 5:
+                k3 = kc[0][4]
         else:
             kc = np.zeros(4)
 
         # Do reprojection
-        points,_ = cv2.projectPoints(points,self.rvec,self.tvec,self.cam_matrix,kc)
+        proj_points,_ = cv2.projectPoints(points,self.rvec,self.tvec,self.cam_matrix,kc)
+        proj_points = np.squeeze(proj_points)
 
-        return np.squeeze(points)
+        # If including distortion, check where the model is valid.
+        # This is where the derivatives of the distorted coordinates wrt the undistorted coordinates are positive.
+        # Not doing this can lead to returning spurious re-projected points in some calibrations because we go in to
+        # a range of coordinates where the model is not valid.
+        if include_distortion:
+
+            r_matrix = self.get_cam_to_lab_rotation().T
+
+            xlocal = r_matrix[0,0]*points[0][:,0] + r_matrix[0,1]*points[0][:,1] + r_matrix[0,2]*points[0][:,2] + self.tvec[0]
+            ylocal = r_matrix[1,0]*points[0][:,0] + r_matrix[1,1]*points[0][:,1] + r_matrix[1,2]*points[0][:,2] + self.tvec[1]
+            zlocal = r_matrix[2,0]*points[0][:,0] + r_matrix[2,1]*points[0][:,1] + r_matrix[2,2]*points[0][:,2] + self.tvec[2]
+
+            xp = xlocal/zlocal
+            yp = ylocal/zlocal
+            r = np.sqrt(xp**2+yp**2)
+
+            deriv_x = k1*r**2 + k2*r**4 + k3*r**6 + 2*p1*yp + 6*p2*xp + xp*(2*k1*xp + 4*k2*xp*r**2+6*k3*xp*r**4) + 1
+            deriv_y = k1*r**2 + k2*r**4 + k3*r**6 + 2*p2*xp + 6*p1*yp + yp*(2*k1*yp + 4*k2*yp*r**2+6*k3*yp*r**4) + 1
+
+            if proj_points.ndim == 2:
+                proj_points[(deriv_x < 0) | (deriv_y < 0),:] = np.nan
+            else:
+                if deriv_x < 0 or deriv_y < 0:
+                    proj_points[:] = np.nan
+
+        return proj_points
 
 
 
@@ -714,6 +742,19 @@ class Calibration():
             raise ValueError('Cannot understand window argument: expected None or sequence of left,top,width,height')
 
 
+    def get_detector_window(self):
+        """
+        Get the coordinates of the detector region to which this calibration currently
+        applies (including any effect of previous calls to :func:`set_detector_window`).
+
+        Detector window coordinates are always in original coordinates.
+
+        Returns:
+
+            tuple : (left,top,width,height) coordinates of the detector ROI for the calibration. (left,top) are the offset \
+                    of the ROI from the top-left corner of the image, and (width,height) are the image width and height.
+        """
+        return (self.geometry.offset[0],self.geometry.offset[1],self.geometry.x_pixels,self.geometry.y_pixels)
 
 
     def add_intrinsics_constraints(self,image=None,pointpairs=None,calibration=None,im_history=None,pp_history=None):

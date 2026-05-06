@@ -1,21 +1,22 @@
-
-
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" data-content_root="./">
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Camera Movement Correction &mdash; Calcam  documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
-
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
-      <script src="_static/jquery.js?v=5d32c60e"></script>
-      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=7f41d439"></script>
-      <script src="_static/doctools.js?v=9bcbadda"></script>
-      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -28,16 +29,15 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-
-          
-          
-          <a href="index.html">
-            
-              <img src="_static/logo.png" class="logo" alt="Logo"/>
+            <a href="index.html">
+            <img src="_static/logo.png" class="logo" alt="Logo"/>
           </a>
+              <div class="version">
+                Version 2.17
+              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -99,7 +99,7 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li><a href="index.html" class="icon icon-home"></a></li>
       <li class="breadcrumb-item active">Camera Movement Correction</li>
       <li class="wy-breadcrumbs-aside">
       </li>
@@ -110,9 +110,9 @@
            <div itemprop="articleBody">
              
   <section id="camera-movement-correction">
-<h1>Camera Movement Correction<a class="headerlink" href="#camera-movement-correction" title="Link to this heading"></a></h1>
+<h1>Camera Movement Correction<a class="headerlink" href="#camera-movement-correction" title="Permalink to this heading"></a></h1>
 <section id="background">
-<h2>Background<a class="headerlink" href="#background" title="Link to this heading"></a></h2>
+<h2>Background<a class="headerlink" href="#background" title="Permalink to this heading"></a></h2>
 <p>A common issue to deal with is that after a camera has been spatially calibrated, the camera then moves and needs to be re-calibrated. The calcam.movement module contains tools for dealing with this. The problem is framed as movement of the camera image (a “moved image”) with respect to a “reference image” e.g. an image that has already been calibrated. There are two approaches to deal with this:</p>
 <ul class="simple">
 <li><p>Apply transformations to warped images, or pixel coordinates in warped images, to make them conform to a reference calibration.</p></li>
@@ -121,28 +121,28 @@
 <p>Which approach is preferable will depend on how you are using calcam results. See the detailed documentation below for details of how these methods are implemented in calcam.movement, or see the <a class="reference internal" href="api_examples.html"><span class="doc">Examples</span></a> page for examples of how to use this functionality.</p>
 </section>
 <section id="determining-camera-movement">
-<h2>Determining Camera Movement<a class="headerlink" href="#determining-camera-movement" title="Link to this heading"></a></h2>
+<h2>Determining Camera Movement<a class="headerlink" href="#determining-camera-movement" title="Permalink to this heading"></a></h2>
 <p>Calcam can try to detect the movement between two images automatically, or there is a GUI tool which allows manual feature matching by the user or automatic detection but user validation.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="calcam.movement.detect_movement">
-<span class="sig-prename descclassname"><span class="pre">calcam.movement.</span></span><span class="sig-name descname"><span class="pre">detect_movement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moved</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.movement.detect_movement" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">calcam.movement.</span></span><span class="sig-name descname"><span class="pre">detect_movement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moved</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.movement.detect_movement" title="Permalink to this definition"></a></dt>
 <dd><p>Attempt to auto-detect image movement between two images using sparse optical flow and return a
 MovementCorrection object representing the movement. If the movement cannot
 be successfully determined, raises calcam.movement.DetectionFailedError</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>ref</strong> (<em>np.ndarray</em><em> or </em><a class="reference internal" href="api_calib.html#calcam.Calibration" title="calcam.Calibration"><em>calcam.Calibration</em></a>) – Reference image or calibration to align to. This can                                                     be either an array containg a refrence image, or a                                                     calcam calibrationn containing an image.</p></li>
 <li><p><strong>moved</strong> (<em>np.ndarray</em><em> or </em><a class="reference internal" href="api_calib.html#calcam.Calibration" title="calcam.Calibration"><em>calcam.Calibration</em></a>) – Moved image or calibration to align. This can                                                     be either an array containg a refrence image, or a                                                     calcam calibrationn containing an image.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p>Movement correction object representing the movement correction.</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p><a class="reference internal" href="#calcam.movement.MovementCorrection" title="calcam.movement.MovementCorrection">MovementCorrection</a></p>
 </dd>
-<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dt class="field-even">Raises</dt>
 <dd class="field-even"><p><a class="reference internal" href="#calcam.movement.DetectionFailedError" title="calcam.movement.DetectionFailedError"><strong>DetectionFailedError</strong></a> – </p>
 </dd>
 </dl>
@@ -150,23 +150,23 @@ be successfully determined, raises calcam.movement.DetectionFailedError</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="calcam.movement.phase_correlation_movement">
-<span class="sig-prename descclassname"><span class="pre">calcam.movement.</span></span><span class="sig-name descname"><span class="pre">phase_correlation_movement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moved</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.movement.phase_correlation_movement" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">calcam.movement.</span></span><span class="sig-name descname"><span class="pre">phase_correlation_movement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moved</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.movement.phase_correlation_movement" title="Permalink to this definition"></a></dt>
 <dd><p>Attempt to auto-detect a simple rigid translation of an image relative to a reference image
 using Phase Correlation and return a MovementCorrection object representing the movement.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>ref</strong> (<em>np.ndarray</em><em> or </em><a class="reference internal" href="api_calib.html#calcam.Calibration" title="calcam.Calibration"><em>calcam.Calibration</em></a>) – Reference image or calibration to align to. This can                                                     be either an array containg a refrence image, or a                                                     calcam calibrationn containing an image.</p></li>
 <li><p><strong>moved</strong> (<em>np.ndarray</em><em> or </em><a class="reference internal" href="api_calib.html#calcam.Calibration" title="calcam.Calibration"><em>calcam.Calibration</em></a>) – Moved image or calibration to align. This can                                                     be either an array containg a refrence image, or a                                                     calcam calibrationn containing an image.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p>Movement correction object representing the movement correction.</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p><a class="reference internal" href="#calcam.movement.MovementCorrection" title="calcam.movement.MovementCorrection">MovementCorrection</a></p>
 </dd>
-<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dt class="field-even">Raises</dt>
 <dd class="field-even"><p><a class="reference internal" href="#calcam.movement.DetectionFailedError" title="calcam.movement.DetectionFailedError"><strong>DetectionFailedError</strong></a> – </p>
 </dd>
 </dl>
@@ -174,38 +174,39 @@ using Phase Correlation and return a MovementCorrection object representing the 
 
 <dl class="py function">
 <dt class="sig sig-object py" id="calcam.movement.manual_movement">
-<span class="sig-prename descclassname"><span class="pre">calcam.movement.</span></span><span class="sig-name descname"><span class="pre">manual_movement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moved</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">correction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.movement.manual_movement" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">calcam.movement.</span></span><span class="sig-name descname"><span class="pre">manual_movement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moved</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">correction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.movement.manual_movement" title="Permalink to this definition"></a></dt>
 <dd><p>Determine camera movement (semi-)manually using a GUI tool.
 See the <a class="reference internal" href="gui_movement.html"><span class="doc">Camera Movement Determination</span></a> GUI doc page for the GUI user guide.</p>
-<p>Paremeters:</p>
-<blockquote>
-<div><p>ref (np.ndarray or calcam.Calibration)    : Reference image or calibration to align to. This can                                                     be either an array containg a refrence image, or a                                                     calcam calibrationn containing an image.</p>
-<p>mmoved (np.ndarray or calcam.Calibration) : Moved image or calibration to align. This can                                                     be either an array containg a refrence image, or a                                                     calcam calibrationn containing an image.</p>
-<p>correction (MovementCorrection)           : Existing movement correction object to start from.</p>
-<p>parent_window (QWidget)                   : If being called from a QT GUI window class, a reference to                                                     the parent window must be passed. If it is not, the parent                                                     window might irrecoverably freeze when the movement dialog is closed.</p>
-</div></blockquote>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Either the image transofmration, or None is the user does not define one.</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ref</strong> (<em>np.ndarray</em><em> or </em><a class="reference internal" href="api_calib.html#calcam.Calibration" title="calcam.Calibration"><em>calcam.Calibration</em></a>) – Reference image or calibration to align to. This can                                                     be either an array containg a refrence image, or a                                                     calcam calibrationn containing an image.</p></li>
+<li><p><strong>mmoved</strong> (<em>np.ndarray</em><em> or </em><a class="reference internal" href="api_calib.html#calcam.Calibration" title="calcam.Calibration"><em>calcam.Calibration</em></a>) – Moved image or calibration to align. This can                                                     be either an array containg a refrence image, or a                                                     calcam calibrationn containing an image.</p></li>
+<li><p><strong>correction</strong> (<a class="reference internal" href="#calcam.movement.MovementCorrection" title="calcam.movement.MovementCorrection"><em>MovementCorrection</em></a>) – Existing movement correction object to start from.</p></li>
+<li><p><strong>parent_window</strong> (<em>QWidget</em>) – If being called from a QT GUI window class, a reference to                                                     the parent window must be passed. If it is not, the parent                                                     window might irrecoverably freeze when the movement dialog is closed.</p></li>
+</ul>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference internal" href="#calcam.movement.MovementCorrection" title="calcam.movement.MovementCorrection">MovementCorrection</a> or NoneType</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Either the image transofmration, or None is the user does not define one.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#calcam.movement.MovementCorrection" title="calcam.movement.MovementCorrection">MovementCorrection</a> or NoneType</p>
 </dd>
 </dl>
 </dd></dl>
 
 </section>
 <section id="the-movementcorrection-class">
-<h2>The MovementCorrection class<a class="headerlink" href="#the-movementcorrection-class" title="Link to this heading"></a></h2>
+<h2>The MovementCorrection class<a class="headerlink" href="#the-movementcorrection-class" title="Permalink to this heading"></a></h2>
 <p>The above functions return movement correction objects, which represent the geometrical transform between the reference and moved images. These objects then have various methods for transforming between reference and moved images and coordinates.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="calcam.movement.MovementCorrection">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">calcam.movement.</span></span><span class="sig-name descname"><span class="pre">MovementCorrection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moved_points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.movement.MovementCorrection" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">calcam.movement.</span></span><span class="sig-name descname"><span class="pre">MovementCorrection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moved_points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.movement.MovementCorrection" title="Permalink to this definition"></a></dt>
 <dd><p>Class to represent a geometric transform from a moved image
 to a reference image. This type of object is returned by image movement
 correction related functions.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>matrix</strong> (<em>np.matrix</em>) – 2x3 or 3x3 Affine or projective transform matrix</p></li>
 <li><p><strong>im_shape</strong> (<em>tuple</em>) – Image array dimensions (rows,cols) to which this transform applies</p></li>
@@ -217,24 +218,24 @@ correction related functions.</p>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="calcam.movement.MovementCorrection.get_ddscore">
-<span class="sig-name descname"><span class="pre">get_ddscore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref_im</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moved_im</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.movement.MovementCorrection.get_ddscore" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_ddscore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref_im</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moved_im</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.movement.MovementCorrection.get_ddscore" title="Permalink to this definition"></a></dt>
 <dd><p>Get the DDScore for this movement correction when applied to the given image pair.
 DDScore is a score developed by Van-Stroud et.al. which indicates how much better
 the alignment of two input images after application of the correction.
 The score ranges from -1 to 1, where negative values indicate the alignment gets worse,
 0 is no change or undetermined, and positive values are an improvement.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>ref_im</strong> (<em>np.ndarray</em>) – Reference aligned image</p></li>
 <li><p><strong>moved_im</strong> (<em>np.ndarray</em>) – Moved image</p></li>
 <li><p><strong>tol</strong> (<em>float</em>) – Tolerance</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p>DDscore in the range -1,1</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>float</p>
 </dd>
 </dl>
@@ -242,10 +243,10 @@ The score ranges from -1 to 1, where negative values indicate the alignment gets
 
 <dl class="py method">
 <dt class="sig sig-object py" id="calcam.movement.MovementCorrection.load">
-<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.movement.MovementCorrection.load" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.movement.MovementCorrection.load" title="Permalink to this definition"></a></dt>
 <dd><p>Load a movement correction from a .cmc file on disk.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>filename</strong> (<em>string</em>) – File name to load from.</p>
 </dd>
 </dl>
@@ -253,21 +254,21 @@ The score ranges from -1 to 1, where negative values indicate the alignment gets
 
 <dl class="py method">
 <dt class="sig sig-object py" id="calcam.movement.MovementCorrection.moved_to_ref_coords">
-<span class="sig-name descname"><span class="pre">moved_to_ref_coords</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.movement.MovementCorrection.moved_to_ref_coords" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">moved_to_ref_coords</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.movement.MovementCorrection.moved_to_ref_coords" title="Permalink to this definition"></a></dt>
 <dd><p>Given image coordinates in the moved image, return the corresponding
 coordinates in the reference image.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>x</strong> (<em>np.ndarray</em>) – Array of x (horizontal) pixel coordinates in the moved image</p></li>
 <li><p><strong>y</strong> (<em>np.ndarray</em>) – Array of y (vertucal) pixel coordinates in the moved image</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p>Array of x (horizontal) pixel coordinates in the reference image
 np.ndarray : Array of y (vertical) pixel coordinates in the reference image</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>np.ndarray</p>
 </dd>
 </dl>
@@ -275,21 +276,21 @@ np.ndarray : Array of y (vertical) pixel coordinates in the reference image</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="calcam.movement.MovementCorrection.ref_to_moved_coords">
-<span class="sig-name descname"><span class="pre">ref_to_moved_coords</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.movement.MovementCorrection.ref_to_moved_coords" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">ref_to_moved_coords</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.movement.MovementCorrection.ref_to_moved_coords" title="Permalink to this definition"></a></dt>
 <dd><p>Given image coordinates in the reference image, return the corresponding
 coordinates in the moved image.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>x</strong> (<em>np.ndarray</em>) – Array of x (horizontal) pixel coordinates in the reference image</p></li>
 <li><p><strong>y</strong> (<em>np.ndarray</em>) – Array of y (vertucal) pixel coordinates in the reference image</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p>Array of x (horizontal) pixel coordinates in the moved image
 np.ndarray : Array of y (vertical) pixel coordinates in the moved image</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>np.ndarray</p>
 </dd>
 </dl>
@@ -297,13 +298,13 @@ np.ndarray : Array of y (vertical) pixel coordinates in the moved image</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="calcam.movement.MovementCorrection.rotation">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">rotation</span></span><a class="headerlink" href="#calcam.movement.MovementCorrection.rotation" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">rotation</span></span><a class="headerlink" href="#calcam.movement.MovementCorrection.rotation" title="Permalink to this definition"></a></dt>
 <dd><p>Image rotation to go from the moved to reference image in degrees clockwise.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="calcam.movement.MovementCorrection.save">
-<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.movement.MovementCorrection.save" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.movement.MovementCorrection.save" title="Permalink to this definition"></a></dt>
 <dd><p>Save the correction to a given filename.</p>
 <p>Paremeters:</p>
 <blockquote>
@@ -313,35 +314,35 @@ np.ndarray : Array of y (vertical) pixel coordinates in the moved image</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="calcam.movement.MovementCorrection.scale">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">scale</span></span><a class="headerlink" href="#calcam.movement.MovementCorrection.scale" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">scale</span></span><a class="headerlink" href="#calcam.movement.MovementCorrection.scale" title="Permalink to this definition"></a></dt>
 <dd><p>Scale factor to go from moved to reference image.</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="calcam.movement.MovementCorrection.translation">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">translation</span></span><a class="headerlink" href="#calcam.movement.MovementCorrection.translation" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">translation</span></span><a class="headerlink" href="#calcam.movement.MovementCorrection.translation" title="Permalink to this definition"></a></dt>
 <dd><p>x, y translation in pixels to go from the moved to reference image.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="calcam.movement.MovementCorrection.warp_moved_to_ref">
-<span class="sig-name descname"><span class="pre">warp_moved_to_ref</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_edges</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.movement.MovementCorrection.warp_moved_to_ref" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">warp_moved_to_ref</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_edges</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.movement.MovementCorrection.warp_moved_to_ref" title="Permalink to this definition"></a></dt>
 <dd><p>Warp a moved image to align with the reference one. Note: this can also be used
 on binned or englarged images, with respect to the one used for the original movement
 correction determination, provided they are scaled proportionally i.e. have the same
 aspect ratio as the originals.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>image</strong> (<em>np.ndarray</em>) – Moved image to warp</p></li>
 <li><p><strong>interp</strong> (<em>string</em>) – Interpolation method to use, can be ‘linear’ or ‘nearest’</p></li>
 <li><p><strong>fill_edges</strong> (<em>bool</em>) – Whether to fill the warped image edges with a repetition                                  of the edge pixels from the image (if True), or leave un-filled                                  images edges as 0 value (if False; this is the default).</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p>Two ndarrays: the warped image, and a boolean mask the same shape             as the image indicating which pixels contain valid image data (True) and which do not (False).</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>np.ndarray</p>
 </dd>
 </dl>
@@ -349,22 +350,22 @@ aspect ratio as the originals.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="calcam.movement.MovementCorrection.warp_ref_to_moved">
-<span class="sig-name descname"><span class="pre">warp_ref_to_moved</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_edges</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.movement.MovementCorrection.warp_ref_to_moved" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">warp_ref_to_moved</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_edges</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.movement.MovementCorrection.warp_ref_to_moved" title="Permalink to this definition"></a></dt>
 <dd><p>Warp a reference-aligned image to align with the moved one. Note: this can also be used
 on binned or englarged images, with respect to the one used for the original movement
 correction determination, provided they are scaled proportionally i.e. have the same
 aspect ratio as the originals.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>image</strong> (<em>np.ndarray</em>) – Image to warp</p></li>
 <li><p><strong>interp</strong> (<em>string</em>) – Interpolation method to use, can be ‘linear’ or ‘nearest’</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p>Two ndarrays: the warped image, and a boolean mask the same shape             as the image indicating which pixels contain valid image data (True) and which do not (False).</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>np.ndarray</p>
 </dd>
 </dl>
@@ -374,15 +375,15 @@ aspect ratio as the originals.</p>
 
 </section>
 <section id="adjusting-calibrations-for-image-movement">
-<h2>Adjusting calibrations for image movement<a class="headerlink" href="#adjusting-calibrations-for-image-movement" title="Link to this heading"></a></h2>
+<h2>Adjusting calibrations for image movement<a class="headerlink" href="#adjusting-calibrations-for-image-movement" title="Permalink to this heading"></a></h2>
 <p>Having obtained a movement correction object describing the movement, you can update an exicting calcam calibration to apply to the new image:</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="calcam.movement.update_calibration">
-<span class="sig-prename descclassname"><span class="pre">calcam.movement.</span></span><span class="sig-name descname"><span class="pre">update_calibration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calibration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moved_image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mov_correction</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_src</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Display'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.movement.update_calibration" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">calcam.movement.</span></span><span class="sig-name descname"><span class="pre">update_calibration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calibration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moved_image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mov_correction</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_src</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Display'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#calcam.movement.update_calibration" title="Permalink to this definition"></a></dt>
 <dd><p>Update a given calibration to account for image movement. This currently only supports
 point pair fitting calibrations, not manual alignment calibrations.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>calibration</strong> (<a class="reference internal" href="api_calib.html#calcam.Calibration" title="calcam.Calibration"><em>calcam.Calibration</em></a>) – Calibration to update.</p></li>
 <li><p><strong>moved_image</strong> (<em>np.ndarray</em>) – Moved image</p></li>
@@ -391,10 +392,10 @@ point pair fitting calibrations, not manual alignment calibrations.</p>
 <li><p><strong>coords</strong> (<em>string</em>) – ‘Display’ or ‘Original’, whether the movement correction  and moved image                                               are in the calibration’s display or original image orientation.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p>Updated calibration object for the moved image</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p><a class="reference internal" href="api_calib.html#calcam.Calibration" title="calcam.Calibration">calcam.Calibration</a></p>
 </dd>
 </dl>
@@ -402,10 +403,10 @@ point pair fitting calibrations, not manual alignment calibrations.</p>
 
 </section>
 <section id="exceptions">
-<h2>Exceptions<a class="headerlink" href="#exceptions" title="Link to this heading"></a></h2>
+<h2>Exceptions<a class="headerlink" href="#exceptions" title="Permalink to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="calcam.movement.DetectionFailedError">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">calcam.movement.</span></span><span class="sig-name descname"><span class="pre">DetectionFailedError</span></span><a class="headerlink" href="#calcam.movement.DetectionFailedError" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">calcam.movement.</span></span><span class="sig-name descname"><span class="pre">DetectionFailedError</span></span><a class="headerlink" href="#calcam.movement.DetectionFailedError" title="Permalink to this definition"></a></dt>
 <dd><p>Exception raised if the automatic image movement detection fails to determine the image movement with sufficient confidence or quality.</p>
 </dd></dl>
 
@@ -423,7 +424,7 @@ point pair fitting calibrations, not manual alignment calibrations.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2015-2025, European Atomic Energy Community (EURATOM).</p>
+    <p>&#169; Copyright 2015-2026, European Atomic Energy Community (EURATOM).</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

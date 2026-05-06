@@ -1,22 +1,23 @@
-
-
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" data-content_root="./">
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Camera Calibration Theory &mdash; Calcam  documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
-
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
-      <script src="_static/jquery.js?v=5d32c60e"></script>
-      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=7f41d439"></script>
-      <script src="_static/doctools.js?v=9bcbadda"></script>
-      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -29,16 +30,15 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-
-          
-          
-          <a href="index.html">
-            
-              <img src="_static/logo.png" class="logo" alt="Logo"/>
+            <a href="index.html">
+            <img src="_static/logo.png" class="logo" alt="Logo"/>
           </a>
+              <div class="version">
+                Version 2.17
+              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -53,6 +53,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#rectilinear-lens-distortion-model">Rectilinear Lens Distortion Model</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#fisheye-lens-distirtion-model">Fisheye Lens Distirtion Model</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#underlying-opencv-documentation">Underlying OpenCV Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#references">References</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="intro_conventions.html">Concepts &amp; Conventions</a></li>
@@ -99,7 +100,7 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li><a href="index.html" class="icon icon-home"></a></li>
       <li class="breadcrumb-item active">Camera Calibration Theory</li>
       <li class="wy-breadcrumbs-aside">
       </li>
@@ -110,10 +111,10 @@
            <div itemprop="articleBody">
              
   <section id="camera-calibration-theory">
-<h1>Camera Calibration Theory<a class="headerlink" href="#camera-calibration-theory" title="Link to this heading"></a></h1>
+<h1>Camera Calibration Theory<a class="headerlink" href="#camera-calibration-theory" title="Permalink to this heading"></a></h1>
 <p>This page details the mathematics of the camera calibration.</p>
 <section id="camera-model">
-<h2>Camera Model<a class="headerlink" href="#camera-model" title="Link to this heading"></a></h2>
+<h2>Camera Model<a class="headerlink" href="#camera-model" title="Permalink to this heading"></a></h2>
 <p>Calcam is based on fitting or otherwise creating a model which describes the relationship between 3D real-world coordinates and image coordinates. It supports two different models: one for “conventional” rectilinear lenses and one for fisheye lenses. In both cases, we wish to relate the coordinates of a point <span class="math notranslate nohighlight">\((X,Y,Z)\)</span> in the lab frame to its pixel coordinates <span class="math notranslate nohighlight">\((x{_p},y{_p})\)</span> in the camera image. First, we must consider the position and viewing direction of the camera in the lab frame, which is described by a 3D translation and rotation. The translation and rotation parameters are known as the <em>extrinsic</em> parameters in the model.  Knowing these, we can apply a suitable translation and rotation to obtain the point of interest’s coordinates in the camera frame: a 3D real space coordinate system where the camera pupil is at the origin and the camera looks along the positive <span class="math notranslate nohighlight">\(Z\)</span> axis. We denote the coordinates of our point of interest in the camera frame as <span class="math notranslate nohighlight">\((X^\prime,Y^\prime,Z^\prime)\)</span>.</p>
 <p>In order to find the pixel coordinates of this point in the camera image, we start with a simple perspective projection, where the height of an object in the image is inversely proportional to its distance from the camera pupil:</p>
 <div class="math notranslate nohighlight">
@@ -126,24 +127,33 @@
 <p>Here <span class="math notranslate nohighlight">\(f_x\)</span> and <span class="math notranslate nohighlight">\(f_y\)</span> are the effective focal length of the imaging system measured in units of detector pixels in the horizontal and vertical directions, and are  expected to be equal for square pixels and non-anamorphic optics. <span class="math notranslate nohighlight">\(c_x\)</span> and <span class="math notranslate nohighlight">\(c_y\)</span> are the pixel coordinates of the centre of the perspective projection on the sensor, expected to be close to the detector centre. The parameters in the camera matrix, along with those describing the distortion model, constitute the <em>intrinsic</em> camera parameters, i.e. they are characteristic of the camera and optical system and are independent of how that system is placed in the lab.</p>
 </section>
 <section id="rectilinear-lens-distortion-model">
-<h2>Rectilinear Lens Distortion Model<a class="headerlink" href="#rectilinear-lens-distortion-model" title="Link to this heading"></a></h2>
-<p>The image distortion model for rectilinear lenses takes in to account radial (barrel or pincushion) distortion, and tangential (wedge-prism like, usually due to de-centring of optical components) distortions. The equation relating the undistorted and distorted normalised image coordinates in this model is:</p>
+<h2>Rectilinear Lens Distortion Model<a class="headerlink" href="#rectilinear-lens-distortion-model" title="Permalink to this heading"></a></h2>
+<p>For rectilinear lenses (which in the ideal distortion-free case, re-produce straight lines in the scene as straight lines in the image), Calcam uses the Brown–Conrady model <a class="footnote-reference brackets" href="#id2" id="id1">1</a> to characterise geometrical lens distortions. The equation relating the undistorted and distorted normalised image coordinates in this model is:</p>
 <div class="math notranslate nohighlight" id="distortion-eqn">
-\[\begin{split}\begin{pmatrix}x_d\\y_d\end{pmatrix} = \left[ 1 + k_1r^2 + k_2r^4 + k_3r^6\right]\begin{pmatrix}x_n\\y_n\end{pmatrix} +  \begin{pmatrix}2p_1x_ny_n + p_2(r^2 + 2x_n^2)\\p_1(r^2 + 2y^2) + 2p_2x{_n}y{_n}\end{pmatrix},
+\[\begin{split}\begin{pmatrix}x_d\\y_d\end{pmatrix} = \left[ 1 + k_1r^2 + k_2r^4 + k_3r^6\right]\begin{pmatrix}x_n\\y_n\end{pmatrix} +  \begin{pmatrix}2p_1x_ny_n + p_2(r^2 + 2x_n^2)\\2p_2x_ny_n + p_1(r^2 + 2y_n^2)\end{pmatrix},
 \label{eq:perspective_distortion}\end{split}\]</div>
-<p>where <span class="math notranslate nohighlight">\(r = \sqrt{x_n^2 + y_n^2}\)</span>, and <span class="math notranslate nohighlight">\(k_n\)</span> and <span class="math notranslate nohighlight">\(p_n\)</span> are radial and tangential distortion coefficients, respectively. The polynomial in <span class="math notranslate nohighlight">\(r^2\)</span> in the first term describes the radial distortion while the second term represents tangential distortion.</p>
+<p>where <span class="math notranslate nohighlight">\(r = \sqrt{x_n^2 + y_n^2}\)</span>. The polynomial in <span class="math notranslate nohighlight">\(r^2\)</span> describes radial distortion: the <span class="math notranslate nohighlight">\(k_1\)</span> term corresponds to barrel or pincushion distortion, and the combination of <span class="math notranslate nohighlight">\(k_1\)</span> and <span class="math notranslate nohighlight">\(k_2\)</span> terms can describe moustache distortion. Including a <span class="math notranslate nohighlight">\(k_3\)</span> term allows for an even higher order radial distortion model. The second term with coefficients <span class="math notranslate nohighlight">\(p_1,p_2\)</span> describes tangential, or decentring distortion, which results from de-centring or misalignment of individual optical elements. When fitting a camera calibration in calcam, each term of the radial distortion polynomial, and the tangential distortion term, can either be enabled or set to zero to simplify the distortion model.</p>
 </section>
 <section id="fisheye-lens-distirtion-model">
-<h2>Fisheye Lens Distirtion Model<a class="headerlink" href="#fisheye-lens-distirtion-model" title="Link to this heading"></a></h2>
-<p>The fisheye distortion model only includes radial fisheye distortion. Unlike the rectilinear lens model, the polynomial describing the radial distortion is a function of an anglular distance from the centre of perspective, rather than a linear distance in the image:</p>
+<h2>Fisheye Lens Distirtion Model<a class="headerlink" href="#fisheye-lens-distirtion-model" title="Permalink to this heading"></a></h2>
+<p>Fisheye lenses use deliberate geometrical distortion to produce an image with much wider field of view than rectilinear lenses. In this case, the polynomial describing the radial distortion is a function of an anglular distance from the centre of perspective, rather than a linear distance in the image like in the rectilinear lens model:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\begin{pmatrix}x_d\\y_d\end{pmatrix} = \frac{\theta}{r}\left[ 1 + k_1\theta^2 + k_2\theta^4 + k_3\theta^6 + k_4\theta^8\right]\begin{pmatrix}x_n\\y_n\end{pmatrix},
 \label{eqn:fisheye_distortion}\end{split}\]</div>
 <p>where <span class="math notranslate nohighlight">\(r = \sqrt{x_n^2 + y_n^2}\)</span> and <span class="math notranslate nohighlight">\(\theta = \tan^{-1}(r)\)</span>.</p>
+<p>Similarly to the rectilinear lens model, when fitting a fisheye calibration in Calcam the individual polynomial terms can be switched on or off to fit a different order of distortion model.</p>
 </section>
 <section id="underlying-opencv-documentation">
-<h2>Underlying OpenCV Documentation<a class="headerlink" href="#underlying-opencv-documentation" title="Link to this heading"></a></h2>
+<h2>Underlying OpenCV Documentation<a class="headerlink" href="#underlying-opencv-documentation" title="Permalink to this heading"></a></h2>
 <p>Calcam does not implement the above camera models within its own code; under the hood it uses the OpenCV camera calibration functions. It may therefore be helpful to also refer to the OpenCV camera calibration documentation, which can be found on the <a class="reference external" href="https://opencv.org/">OpenCV webpages</a>.</p>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Permalink to this heading"></a></h2>
+<dl class="footnote brackets">
+<dt class="label" id="id2"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
+<dd><p>Duane C. Brown, “Decentering distortion of lenses” Photogrammetric Engineering. 32 (3): 444–462  (1966) <a class="reference external" href="https://web.archive.org/web/20180312205006/https://www.asprs.org/wp-content/uploads/pers/1966journal/may/1966_may_444-462.pdf">PDF available on archive.org</a>.</p>
+</dd>
+</dl>
 </section>
 </section>
 
@@ -158,7 +168,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2015-2025, European Atomic Energy Community (EURATOM).</p>
+    <p>&#169; Copyright 2015-2026, European Atomic Energy Community (EURATOM).</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
