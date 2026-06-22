@@ -1,6 +1,13 @@
 Calcam Changelog
 ================
 
+Patch Release 2.17.1 (June 2026)
+--------------------------------
+
+Fixes / Compatibility:
+* Fixed bug/compatibility issue which would cause Calcam to fail to import with Matplotlib >= 3.11 (#177)
+
+
 
 Point Release 2.17.0 (May 2026)
 -------------------------------

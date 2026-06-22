@@ -31,7 +31,8 @@ from .calibration import Calibration
 
 # The Matplotlib cmap API changed at v3.9.0
 try:
-    from matplotlib.colormaps import get_cmap
+    from matplotlib import colormaps
+    get_cmap = colormaps.get_cmap
 except ImportError:
     from matplotlib.cm import get_cmap
 
