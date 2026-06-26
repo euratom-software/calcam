@@ -1,6 +1,18 @@
 Calcam Changelog
 ================
 
+Point Release 2.18.0 (June 2026)
+--------------------------------
+
+New & Enhancements:
+* Added new keyword argument `make_native` to Calibration.set_detector_window() (this was motivated by the fix of issue #180; the default behaviour is unchanged)
+
+Fixes (these were likely regressions appearing at v2.17):
+* Fixed bug which sometimes raised exceptions when loading a new image in the calibration GUI, for calibrations with intrinsics constraints (#180)
+* Fixed a bug which could sometimes raise exceptions when saving in the fitting calibration tool (#181)
+
+
+
 Patch Release 2.17.1 (June 2026)
 --------------------------------
 

@@ -508,14 +508,14 @@ class Calibration():
             self.history['pointpairs'][1] = 'Last modified by {:s} on {:s} at {:s}'.format(misc.username,misc.hostname,misc.get_formatted_time())
 
 
-    def set_detector_window(self,window,bounds_error='warn'):
+    def set_detector_window(self,window,bounds_error='warn',make_native=False):
         '''
         Adjust the calibration to apply to a different detector region for than was used
         to perform the calibration. Useful for example if a CMOS camera has been calibrated
         over the full frame, but you now want to use this calibration for data which
         has been cropped.
 
-        Calling this function with windiw=`None` sets the calibration
+        Calling this function with window=None sets the calibration
         back to its "native" state. Otherwise, call with a 4 element tuple specifying the
         left,top,width and height of the detector window.
 
@@ -534,6 +534,13 @@ class Calibration():
                                      map. 'except' will raise an exception, 'warn' will raise a warning \
                                      and 'silent' will not alert the user at all. If 'warn' or 'silent', \
                                      only pixels within the original calibrated area will be usable. Default is 'warn'.
+
+            make_native (bool)    : Whether to make the specified detector window the new "native" one \
+                                    for this calibration. If False (default), this will apply to the calibration \
+                                    in memory but not when saved, and can be un-done later by calling this function \
+                                    again with window=None. If passing make_native=True, then if the calibration is \
+                                    saved it will be saved with this new detector window, and future calls to this \
+                                    function with window=None will set it back to this new native window.
         '''
 
         # Reset crop
@@ -552,9 +559,11 @@ class Calibration():
                 self.image = self.native_image
                 del self.native_image
 
+                self.intrinsics_constraints = [list(ic) for ic in self.intrinsics_constraints]
                 for ic,native_im in zip(self.intrinsics_constraints,self.native_intrinsics_images):
                     ic[0] = native_im
                 del self.native_intrinsics_images
+                self.intrinsics_constraints = [tuple(ic) for ic in self.intrinsics_constraints]
 
             # Put the optical centre back to normal
             for i,model in enumerate(self.view_models):
@@ -592,9 +601,10 @@ class Calibration():
             if self.pointpairs is not None:
                 self.pointpairs = self.geometry.original_to_display_pointpairs(pp_before)
 
+            self.intrinsics_constraints = [list(ic) for ic in self.intrinsics_constraints]
             for ic,newic in zip(self.intrinsics_constraints,ip_before):
                 ic[1] = self.geometry.original_to_display_pointpairs(newic)
-
+            self.intrinsics_constraints = [tuple(ic) for ic in self.intrinsics_constraints]
 
             self.crop = None
 
@@ -602,6 +612,10 @@ class Calibration():
         elif len(window) == 4:
 
             window = (int(window[0]),int(window[1]),int(window[2]),int(window[3]))
+
+            # Check if we are actually changing from the native geometry or not.
+            if window == self.get_detector_window():
+                return
 
             if self.crop is not None:
                 self.set_detector_window(None)
@@ -667,6 +681,7 @@ class Calibration():
                     self.image = self.image[ int(window[1] - self.geometry.offset[1]):int(window[1] - self.geometry.offset[1] + window[3]),int(window[0] - self.geometry.offset[0]):int(window[0] - self.geometry.offset[0] + window[2])]
 
                 self.native_intrinsics_images = []
+                self.intrinsics_constraints = [list(ic) for ic in self.intrinsics_constraints]
                 for ic in self.intrinsics_constraints:
                     self.native_intrinsics_images.append(copy.deepcopy(ic[0]))
                     # Unlike main and subview mask images, intrinsics images are stored in display coords so we have to transform them to original to do this part
@@ -684,7 +699,7 @@ class Calibration():
                     else:
                         # Simply crop the original
                         ic[0] = intrinsics_im[int(window[1] - self.geometry.offset[1]):int(window[1] - self.geometry.offset[1] + window[3]), int(window[0] - self.geometry.offset[0]):int(window[0] - self.geometry.offset[0] + window[2])]
-
+                self.intrinsics_constraints = [tuple(ic) for ic in self.intrinsics_constraints]
 
             # Adjust point pairs
             if self.pointpairs is not None:
@@ -715,6 +730,7 @@ class Calibration():
             self.geometry.set_image_shape(window[2],window[3],coords='Original')
 
             # Convert the intrinsics constraints back to display coords
+            self.intrinsics_constraints = [list(ic) for ic in self.intrinsics_constraints]
             for ic in self.intrinsics_constraints:
                 ic[0] = self.geometry.original_to_display_image(ic[0])
 
@@ -723,8 +739,11 @@ class Calibration():
 
             for ic,newic in zip(self.intrinsics_constraints,ip_before):
                 ic[1] = self.geometry.original_to_display_pointpairs(newic)
+            self.intrinsics_constraints = [tuple(ic) for ic in self.intrinsics_constraints]
 
-            self.crop = copy.deepcopy(window)
+            if not make_native:
+                self.crop = copy.deepcopy(window)
+
             try:
                 self.set_subview_mask(new_subview_mask,new_subview_names,coords='Original',keep_models=True)
             except NoSubviews:
@@ -754,7 +773,7 @@ class Calibration():
             tuple : (left,top,width,height) coordinates of the detector ROI for the calibration. (left,top) are the offset \
                     of the ROI from the top-left corner of the image, and (width,height) are the image width and height.
         """
-        return (self.geometry.offset[0],self.geometry.offset[1],self.geometry.x_pixels,self.geometry.y_pixels)
+        return (int(self.geometry.offset[0]),int(self.geometry.offset[1]),int(self.geometry.x_pixels),int(self.geometry.y_pixels))
 
 
     def add_intrinsics_constraints(self,image=None,pointpairs=None,calibration=None,im_history=None,pp_history=None):
@@ -1616,7 +1635,7 @@ class Calibration():
                             ray_lengths = raycast_sightlines(self,check_occlusion_with,p2d[:,0],p2d[:,1],verbose=False,force_subview=nview).get_ray_lengths()
                         else:
                             if not check_occlusion_with.fullchip:
-                                print('WARNING: Checking for point occlusion using a RayData object which is not for the whole detector. This will be very, very slow - it is highly recommended to raycast the whole detector and use that RayData.') 
+                                warnings.warn('Checking for point occlusion using a RayData object which is not for the whole detector. This will be very, very slow - it is highly recommended to raycast the whole detector and use that RayData.')
                             try:
                                 if check_occlusion_with.binning is not None:
                                     postol = np.sqrt(2) * check_occlusion_with.binning / 2.
