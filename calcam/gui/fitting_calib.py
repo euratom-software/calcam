@@ -640,7 +640,7 @@ class FittingCalib(CalcamGUIWindow):
             # Set the detector window of the existing calibration to match the loaded image. This
             # will adjust all the point pairs for a difference in offset and crop points out of the view
             window = (newim['image_offset'][0],newim['image_offset'][1],imshape[0],imshape[1])
-            self.calibration.set_detector_window(window,bounds_error='silent')
+            self.calibration.set_detector_window(window,bounds_error='silent',make_native=True)
             self.detector_window = window
 
             # Get a copy of the old image (after cropping for different window)

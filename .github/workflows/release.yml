@@ -36,7 +36,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Conda environment creation and activation
-        uses: conda-incubator/setup-miniconda@v3
+        uses: conda-incubator/setup-miniconda@v4
         with:
           python-version: ${{ matrix.python-version }}
           environment-file: conda/build_env.yaml
@@ -44,7 +44,7 @@ jobs:
           auto-activate-base: false
           show-channel-urls: true
       - name: Build and upload the conda packages
-        uses: ACCESS-NRI/action-build-and-upload-conda-packages@v2.0.1
+        uses: ACCESS-NRI/action-build-and-upload-conda-packages@v3.1.0
         with:
           meta_yaml_dir: conda
           platform_linux-64: true

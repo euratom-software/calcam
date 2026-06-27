@@ -1,22 +1,21 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Image Sources &mdash; Calcam  documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
   
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=7f41d439"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -29,15 +28,16 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="index.html">
-            <img src="_static/logo.png" class="logo" alt="Logo"/>
+
+          
+          
+          <a href="index.html">
+            
+              <img src="_static/logo.png" class="logo" alt="Logo"/>
           </a>
-              <div class="version">
-                Version 2.17
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -98,7 +98,7 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a></li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
       <li class="breadcrumb-item active">Image Sources</li>
       <li class="wy-breadcrumbs-aside">
       </li>
@@ -109,7 +109,7 @@
            <div itemprop="articleBody">
              
   <section id="image-sources">
-<h1>Image Sources<a class="headerlink" href="#image-sources" title="Permalink to this heading"></a></h1>
+<h1>Image Sources<a class="headerlink" href="#image-sources" title="Link to this heading"></a></h1>
 <p>Custom image soruces are a way to plug in custon code for loading images to Calcam, and having it integrate nicely in to the Calcam GUI. A custom image source takes the form of a python module or package. The module or package is required to have the following attributes at its top level:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">get_image_function</span></code> : A function, or referece to a function, which actually loads the image data.</p></li>
@@ -117,14 +117,9 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">get_image_arguments</span></code> : A list of dictionaries documenting the required inputs to the image loading function.</p></li>
 </ul>
 <section id="return-format-of-image-loading-function">
-<h2>Return format of image loading function<a class="headerlink" href="#return-format-of-image-loading-function" title="Permalink to this heading"></a></h2>
+<h2>Return format of image loading function<a class="headerlink" href="#return-format-of-image-loading-function" title="Link to this heading"></a></h2>
 <p>The return type of the image loading dunction must be a Python dictionary. The following keys are mandatory:</p>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 17%" />
-<col style="width: 19%" />
-<col style="width: 64%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Key</p></th>
 <th class="head"><p>Data Type</p></th>
@@ -144,11 +139,6 @@
 </table>
 <p>The dictionary can also contain the following optional image metadata:</p>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 19%" />
-<col style="width: 18%" />
-<col style="width: 62%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Key</p></th>
 <th class="head"><p>Data Type</p></th>
@@ -226,14 +216,9 @@
 </table>
 </section>
 <section id="structure-of-get-image-arguments">
-<h2>Structure of get_image_arguments<a class="headerlink" href="#structure-of-get-image-arguments" title="Permalink to this heading"></a></h2>
+<h2>Structure of get_image_arguments<a class="headerlink" href="#structure-of-get-image-arguments" title="Link to this heading"></a></h2>
 <p>The top-level module attribute <code class="docutils literal notranslate"><span class="pre">get_image_arguments</span></code> must be a list of dictionaries describing the required input parameters to the image loading function. Each dictionary in the list corresponds to one input arguument. All argument dictionaries must contain the following keys:</p>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 10%" />
-<col style="width: 80%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Key</p></th>
 <th class="head"><p>Data Type</p></th>
@@ -257,14 +242,9 @@
 </table>
 <p>Additional keys are required depending on the type of variable.</p>
 <section id="input-argument-type-filename">
-<h3>Input argument type: filename<a class="headerlink" href="#input-argument-type-filename" title="Permalink to this heading"></a></h3>
+<h3>Input argument type: filename<a class="headerlink" href="#input-argument-type-filename" title="Link to this heading"></a></h3>
 <p>If the inpit variable type is <code class="docutils literal notranslate"><span class="pre">filename</span></code>, the user will be presented with a text box and “Browse…” button to browse for the file. Additional keys in the dictionary describing the parameter are:</p>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 11%" />
-<col style="width: 10%" />
-<col style="width: 79%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Key</p></th>
 <th class="head"><p>Data Type</p></th>
@@ -291,14 +271,9 @@
 </table>
 </section>
 <section id="input-argument-type-float">
-<h3>Input argument type: float<a class="headerlink" href="#input-argument-type-float" title="Permalink to this heading"></a></h3>
+<h3>Input argument type: float<a class="headerlink" href="#input-argument-type-float" title="Link to this heading"></a></h3>
 <p>If the inpit variable type is <code class="docutils literal notranslate"><span class="pre">float</span></code>, the user will be presented with a box in which to input the value. Additional keys in the dictionary describing the parameter are:</p>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 11%" />
-<col style="width: 79%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Key</p></th>
 <th class="head"><p>Data Type</p></th>
@@ -332,14 +307,9 @@
 </table>
 </section>
 <section id="input-argument-type-int">
-<h3>Input argument type: int<a class="headerlink" href="#input-argument-type-int" title="Permalink to this heading"></a></h3>
+<h3>Input argument type: int<a class="headerlink" href="#input-argument-type-int" title="Link to this heading"></a></h3>
 <p>If the inpit variable type is <code class="docutils literal notranslate"><span class="pre">int</span></code>, the user will be presented with a box in which to input the value. Additional keys in the dictionary describing the parameter are:</p>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 11%" />
-<col style="width: 79%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Key</p></th>
 <th class="head"><p>Data Type</p></th>
@@ -366,14 +336,9 @@
 </table>
 </section>
 <section id="input-argument-type-string">
-<h3>Input argument type: string<a class="headerlink" href="#input-argument-type-string" title="Permalink to this heading"></a></h3>
+<h3>Input argument type: string<a class="headerlink" href="#input-argument-type-string" title="Link to this heading"></a></h3>
 <p>If the inpit variable type is <code class="docutils literal notranslate"><span class="pre">string</span></code>, the user will be presented with a single line box in which which to input the string. Additional keys in the dictionary describing the parameter are:</p>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 11%" />
-<col style="width: 79%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Key</p></th>
 <th class="head"><p>Data Type</p></th>
@@ -392,14 +357,9 @@
 </table>
 </section>
 <section id="input-argument-type-bool">
-<h3>Input argument type: bool<a class="headerlink" href="#input-argument-type-bool" title="Permalink to this heading"></a></h3>
+<h3>Input argument type: bool<a class="headerlink" href="#input-argument-type-bool" title="Link to this heading"></a></h3>
 <p>If the inpit variable type is <code class="docutils literal notranslate"><span class="pre">bool</span></code>, the user will be presented with a checkbox to set the value true or false. Additional keys in the dictionary describing the parameter are:</p>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 11%" />
-<col style="width: 79%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Key</p></th>
 <th class="head"><p>Data Type</p></th>
@@ -418,14 +378,9 @@
 </table>
 </section>
 <section id="input-argument-type-choice">
-<h3>Input argument type: choice<a class="headerlink" href="#input-argument-type-choice" title="Permalink to this heading"></a></h3>
+<h3>Input argument type: choice<a class="headerlink" href="#input-argument-type-choice" title="Link to this heading"></a></h3>
 <p>If the inpit variable type is <code class="docutils literal notranslate"><span class="pre">choice</span></code>, the user will be presented with a dropdown box from whih they can choose a number of strings. The value passed to the image loading function is whatever string the user selects. Additional keys in the dictionary describing the parameter are:</p>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 12%" />
-<col style="width: 12%" />
-<col style="width: 76%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Key</p></th>
 <th class="head"><p>Data Type</p></th>
@@ -452,7 +407,7 @@
 </section>
 </section>
 <section id="example">
-<h2>Example<a class="headerlink" href="#example" title="Permalink to this heading"></a></h2>
+<h2>Example<a class="headerlink" href="#example" title="Link to this heading"></a></h2>
 <p>Below is a minimal example: an image source for loading images from standard format image files (this is a previous version of the image source built-in to Calcam).</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">Built-in Calcam image source for loading images from an image file.</span>
@@ -460,11 +415,11 @@
 <span class="sd">Loads images using OpenCV.</span>
 <span class="sd">&#39;&#39;&#39;</span>
 
-<span class="kn">import</span> <span class="nn">cv2</span>
-<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">cv2</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 
 <span class="c1"># The function which loads the image</span>
-<span class="k">def</span> <span class="nf">get_image</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_image</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
 
     <span class="c1"># Get the image data from a file</span>
     <span class="n">dat</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
@@ -512,7 +467,7 @@
 </div>
 </section>
 <section id="adding-to-calcam">
-<h2>Adding to Calcam<a class="headerlink" href="#adding-to-calcam" title="Permalink to this heading"></a></h2>
+<h2>Adding to Calcam<a class="headerlink" href="#adding-to-calcam" title="Link to this heading"></a></h2>
 <p>Once written, custom image sources are added to Calcam using the <a class="reference internal" href="gui_settings.html"><span class="doc">Calcam Settings</span></a> interface.</p>
 </section>
 </section>
