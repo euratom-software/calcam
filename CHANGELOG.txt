@@ -1,6 +1,15 @@
 Calcam Changelog
 ================
 
+Patch Release 2.18.1 (September 2026)
+-------------------------------------
+
+Fixes / Compatibility:
+* Fixed compatibility with VTK versions 9.7+ (#184)
+* Fixed bug in 3D viewer which could raise exceptions when deleting picked points (#183)
+* Fixed bug which raised exceptions if instantiating PoloidalVolumeGrid with wall_contour=None (#185)
+
+
 Point Release 2.18.0 (June 2026)
 --------------------------------
 

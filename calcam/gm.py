@@ -77,29 +77,29 @@ class PoloidalVolumeGrid:
 
     Parameters:
         
-        vertices (numpy.ndarray)    : (N_verts x 2) array of floats containing the \
-                                      (R,Z) coordinates of the grid cell vertices.
+        vertices (numpy.ndarray)     : (N_verts x 2) array of floats containing the \
+                                       (R,Z) coordinates of the grid cell vertices.
                                 
-        cells (numpy.ndarray)       : (N_cells x N_verts_per_cell) array of integers \
-                                      specifying which vertices (indexes in to the vertices \
-                                      array) define each grid cell. For each cell (array row), \
-                                      the vertices must be listed in order around the \
-                                      cell perimeter (in either direction).
+        cells (numpy.ndarray)        : (N_cells x N_verts_per_cell) array of integers \
+                                       specifying which vertices (indexes in to the vertices \
+                                       array) define each grid cell. For each cell (array row), \
+                                       the vertices must be listed in order around the \
+                                       cell perimeter (in either direction).
                                 
-        wall_contour (numpy.ndaray) : Nx2 array containing the R,Z wall contour of the machine. \
-                                      If provided, this is used for plotting purposes.
+        wall_contour (numpy.ndarray) : Nx2 array containing the R,Z wall contour of the machine. \
+                                       If provided, this is used for plotting purposes.
                                    
-        src (str)                   : Human readable string describing where the grid came from, \
-                                      for data provenance purposes.
+        src (str)                    : Human readable string describing where the grid came from, \
+                                       for data provenance purposes.
 
-        zaxis (sequence)            : 3D vector (x,y,z) in CAD model coordinate system defining the \
-                                      +Z axis direction of the grid. This must be the axisymmetry axis \
-                                      of the plasma / device. Default is (0,0,1) i.e. matching the CAD \
-                                      +Z axis which is conventional for tokamaks.
+        zaxis (sequence)             : 3D vector (x,y,z) in CAD model coordinate system defining the \
+                                       +Z axis direction of the grid. This must be the axisymmetry axis \
+                                       of the plasma / device. Default is (0,0,1) i.e. matching the CAD \
+                                       +Z axis which is conventional for tokamaks.
 
-        origin (sequence)           : 3D origin (x,y,z) of the grid R,Z coordinates. This point defines \
-                                      R=0,Z=0 of the grid. The default is (0,0,0) i.e. the CAD \
-                                      coordinate origin, which is conventional for tokamaks.
+        origin (sequence)            : 3D origin (x,y,z) of the grid R,Z coordinates. This point defines \
+                                       R=0,Z=0 of the grid. The default is (0,0,0) i.e. the CAD \
+                                       coordinate origin, which is conventional for tokamaks.
                                    
     '''
     
@@ -107,7 +107,10 @@ class PoloidalVolumeGrid:
 
         self.vertices = vertices.copy()
         self.cells = cells.copy()
-        self.wall_contour = wall_contour.copy()
+        if wall_contour is not None:
+            self.wall_contour = wall_contour.copy()
+        else:
+            self.wall_contour = None
         self.origin = np.array(origin,dtype=float)
         self.zaxis3d = np.array(zaxis,dtype=float)
         
