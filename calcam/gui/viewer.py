@@ -413,33 +413,30 @@ class Viewer(CalcamGUIWindow):
 
 
     def delete_saved_coord(self):
-
         if self.saved_coords_item.checkState() == qt.Qt.Checked:
             self.saved_coords_item.setCheckState(qt.Qt.Unchecked)
             reenable = True
         else:
             reenable = False
-
         if self.cursor_coords_table.currentRow() > -1:
             actor = self.line_actors[self.saved_coords_item]
-            actor.coords = np.delete(actor.coords,self.cursor_coords_table.currentRow(),axis=0)
 
             self.cursor_coords_table.removeRow(self.cursor_coords_table.currentRow())
-
             if self.line_actors[self.saved_coords_item].coords.shape[0] > 0:
 
-                if self.line_actors[self.saved_coords_item].coords.shape[0] == 1 and actor.markersize == 0:
+                if self.line_actors[self.saved_coords_item].coords.shape[0]-1 == 1 and actor.markersize == 0:
                     actor.linewidth = 0
                     actor.frustrumsize = (0,0)
                     actor.markersize = self.marker_diameter_box.value() * 0.01
-
-                if reenable:
-                    self.saved_coords_item.setCheckState(qt.Qt.Checked)
 
             else:
                 self.lines_3d_list.takeItem(self.lines_3d_list.row(self.saved_coords_item))
                 del self.line_actors[self.saved_coords_item]
                 self.saved_coords_item = None
+
+            actor.coords = np.delete(actor.coords, self.cursor_coords_table.currentRow(), axis=0)
+            if reenable:
+                self.saved_coords_item.setCheckState(qt.Qt.Checked)
 
             self.refresh_3d()
 
@@ -728,6 +725,11 @@ class Viewer(CalcamGUIWindow):
                     self.lines_frustrum_d0_box.setEnabled(True)
                     self.lines_frustrum_angle_label.setEnabled(True)
                     self.lines_frustrum_angle_box.setEnabled(True)
+                if lines_actor.coords.shape[0] < 2:
+                    self.lines_lines_rb.setEnabled(False)
+                else:
+                    self.lines_lines_rb.setEnabled(True)
+
 
         else:
             self.lines_appearance_box.setEnabled(False)
@@ -1032,7 +1034,7 @@ class Viewer(CalcamGUIWindow):
                     temp_actors.append( self.interactor3d.cursors[0]['actor'] )
 
             for actor in temp_actors:
-                self.renderer_3d.RemoveActor(actor)
+                self.renderer_3d.RemoveViewProp(actor)
             # -------------------------------------------------------------------------
 
             # Do the render
@@ -1040,7 +1042,7 @@ class Viewer(CalcamGUIWindow):
 
             # Add back the temporarily removed actors
             for actor in temp_actors:
-                self.renderer_3d.AddActor(actor)
+                self.renderer_3d.AddViewProp(actor)
 
         # Render a calibrated camera's point of view
         elif self.render_cam_view.isChecked():

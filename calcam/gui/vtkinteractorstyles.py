@@ -358,14 +358,14 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
 
         if actor not in self.extra_actors:
             self.extra_actors.append(actor)
-            self.renderer.AddActor(actor)
+            self.renderer.AddViewProp(actor)
 
 
     def remove_extra_actor(self,actor):
 
         if actor in self.extra_actors:
             self.extra_actors.remove(actor)
-            self.renderer.RemoveActor(actor)
+            self.renderer.RemoveViewProp(actor)
 
 
     def update_clipping(self):
@@ -396,7 +396,7 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
         clickcoords = self.interactor.GetEventPosition()
         
         for actor in self.extra_actors:
-            self.renderer.RemoveActor(actor)
+            self.renderer.RemoveViewProp(actor)
         
         retval = self.picker.Pick(clickcoords[0],clickcoords[1],0,self.renderer)
 
@@ -465,7 +465,7 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
 
 
         for actor in self.extra_actors:
-            self.renderer.AddActor(actor)
+            self.renderer.AddViewProp(actor)
 
             if self.refresh_callback is not None:
                 self.refresh_callback()
@@ -553,7 +553,7 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
         self.cursors[new_cursor_id]['actor'].SetMapper(mapper)
 
         # Add new cursor to screen
-        self.renderer.AddActor(self.cursors[new_cursor_id]['actor'])
+        self.renderer.AddViewProp(self.cursors[new_cursor_id]['actor'])
 
         self.update_cursor_style()
 
@@ -564,7 +564,7 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
 
         try:
             cursor = self.cursors.pop(cursor_id)
-            self.renderer.RemoveActor(cursor['actor'])
+            self.renderer.RemoveViewProp(cursor['actor'])
             if cursor_id == self.focus_cursor:
                 self.focus_cursor = None
                 self.update_cursor_style()
@@ -631,7 +631,7 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
     def set_legend(self,legend_items):
 
         if self.legend is not None:
-            self.renderer.RemoveActor(self.legend)
+            self.renderer.RemoveViewProp(self.legend)
             self.legend = None
 
         if len(legend_items) > 0:
@@ -656,7 +656,7 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
             legend.SetPadding(9)
             self.legend = legend
 
-            self.renderer.AddActor(self.legend)
+            self.renderer.AddViewProp(self.legend)
 
             self.on_resize()
 
@@ -740,7 +740,7 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
     def set_overlay_image(self,im_array):
 
         if self.image_actor is not None:
-            self.renderer.RemoveActor(self.image_actor)
+            self.renderer.RemoveViewProp(self.image_actor)
             self.image_actor = None
             self.image_resizer = None
             self.im_aspect = None
@@ -751,7 +751,7 @@ class CalcamInteractorStyle3D(vtk.vtkInteractorStyleTerrain):
         self.im_aspect = float(im_array.shape[0]) / float(im_array.shape[1])
         self.image_actor,self.image_resizer = get_image_actor(im_array,actortype='vtkActor2D')
 
-        self.renderer.AddActor(self.image_actor)
+        self.renderer.AddViewProp(self.image_actor)
         self.on_resize()
 
 
@@ -844,11 +844,11 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
             # If removing the image entirely or changing image dimensions, remove any overlays
             if image is None or image.shape[:2] != self.image_actor.image.shape[:2]:
                 for actor in self.overlay_actors:
-                    self.renderer.RemoveActor(actor)
+                    self.renderer.RemoveViewProp(actor)
                 self.overlay_actors = []
 
             # Remove existing image
-            self.renderer.RemoveActor(self.image_actor)
+            self.renderer.RemoveViewProp(self.image_actor)
             self.image_actor = None
 
         if image is not None:
@@ -861,7 +861,7 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
 
             self.image_actor = get_image_actor(image)
 
-            self.renderer.AddActor2D(self.image_actor)
+            self.renderer.AddViewProp(self.image_actor)
 
             bounds = self.image_actor.GetBounds()
             xc = bounds[0] + bounds[1] / 2
@@ -897,7 +897,7 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
                 if coords[n_old] is not None:
                     new_subview = self.subview_lookup(coords[n_old][0],coords[n_old][1])
                     new_actor_list[new_subview] = self.active_cursors[cursor_id]['actors'][n_old]
-                    self.renderer.RemoveActor(new_actor_list[new_subview])
+                    self.renderer.RemoveViewProp(new_actor_list[new_subview])
                     new_cursor3d_list[new_subview] = self.active_cursors[cursor_id]['cursor3ds'][n_old]
             self.active_cursors[cursor_id] = {'cursor3ds':new_cursor3d_list,'actors':new_actor_list}
 
@@ -906,12 +906,12 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
         for active_cursor in self.active_cursors.values():
             for actor in active_cursor['actors']:
                 if actor is not None:
-                    self.renderer.AddActor(actor)
+                    self.renderer.AddViewProp(actor)
 
 
         for passive_cursor in self.passive_cursors.values():
-                self.renderer.RemoveActor(passive_cursor['actor'])
-                self.renderer.AddActor(passive_cursor['actor'])           
+                self.renderer.RemoveViewProp(passive_cursor['actor'])
+                self.renderer.AddViewProp(passive_cursor['actor'])           
 
 
         if self.refresh_callback is not None:
@@ -938,7 +938,7 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
                 if coords[n_old] is not None:
                     new_subview = self.subview_lookup(coords[n_old][0],coords[n_old][1])
                     new_actor_list[new_subview] = self.active_cursors[cursor_id]['actors'][n_old]
-                    self.renderer.RemoveActor(new_actor_list[new_subview])
+                    self.renderer.RemoveViewProp(new_actor_list[new_subview])
                     new_cursor3d_list[new_subview] = self.active_cursors[cursor_id]['cursor3ds'][n_old]
             self.active_cursors[cursor_id] = {'cursor3ds':new_cursor3d_list,'actors':new_actor_list}
 
@@ -946,7 +946,7 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
         for active_cursor in self.active_cursors.values():
             for actor in active_cursor['actors']:
                 if actor is not None:
-                    self.renderer.AddActor(actor)
+                    self.renderer.AddViewProp(actor)
 
 
     def get_n_cursors(self):
@@ -968,7 +968,7 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
             overlay_image = [overlay_image]
         
         for actor in self.overlay_actors:
-            self.renderer.RemoveActor(actor)
+            self.renderer.RemoveViewProp(actor)
         self.overlay_actors = []
 
         for i,image in enumerate(overlay_image):
@@ -979,7 +979,7 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
             actor = get_image_actor(image,scaling=scaling[0])
             actor.SetPosition(0,0,0.01*(i+1))
             actor.GetProperty().SetOpacity(self.overlay_alpha)
-            self.renderer.AddActor2D(actor)
+            self.renderer.AddViewProp(actor)
             self.overlay_actors.append(actor)
 
         if self.refresh_callback is not None:
@@ -1295,7 +1295,7 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
 
 
         # Add new cursor to screen
-        self.renderer.AddActor(actor)
+        self.renderer.AddViewProp(actor)
 
         self.update_cursor_style()
 
@@ -1314,7 +1314,7 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
         cursor = self.active_cursors.pop(cursor_id)
 
         for actor in cursor['actors']:
-            self.renderer.RemoveActor(actor)
+            self.renderer.RemoveViewProp(actor)
 
         if self.focus_cursor == cursor_id:
             self.focus_cursor = None
@@ -1396,7 +1396,7 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
         self.passive_cursors[new_cursor_id] = {'cursor3d':new_cursor,'actor': actor}
 
         # Add new cursor to screen
-        self.renderer.AddActor(actor)
+        self.renderer.AddViewProp(actor)
 
         self.update_cursor_style()
 
@@ -1413,7 +1413,7 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
 
         cursor = self.passive_cursors.pop(cursor_id)
 
-        self.renderer.RemoveActor(cursor['actor'])
+        self.renderer.RemoveViewProp(cursor['actor'])
 
         if self.refresh_callback is not None:
             self.refresh_callback()
@@ -1422,7 +1422,7 @@ class CalcamInteractorStyle2D(vtk.vtkInteractorStyleTerrain):
     def clear_passive_cursors(self):
 
         for cursor in self.passive_cursors.values():
-            self.renderer.RemoveActor(cursor['actor'])
+            self.renderer.RemoveViewProp(cursor['actor'])
 
         self.passive_cursors = {}
 

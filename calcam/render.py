@@ -569,7 +569,7 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
         else:
             actor.GetProperty().SetLineWidth( actor.GetProperty().GetLineWidth() * aa)
 
-        renderer.AddActor(actor)
+        renderer.AddViewProp(actor)
 
     # We need a field mask the same size as the output
     fieldmask = cv2.resize(calibration.get_subview_mask(coords='Display'),(int(x_pixels*oversampling),int(y_pixels*oversampling)),interpolation=cv2.INTER_NEAREST)
@@ -715,7 +715,7 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
                     break
         else:
             actor.GetProperty().SetLineWidth( actor.GetProperty().GetLineWidth() / aa )
-        renderer.RemoveActor(actor)
+        renderer.RemoveViewProp(actor)
 
     renwin.Finalize()
 
@@ -746,7 +746,7 @@ def render_hires(renderer,oversampling=1,aa=1,transparency=False,legendactor=Non
     actor = actorcollection.GetNextItemAsObject()
 
     if legendactor is not None:
-        renderer.RemoveActor(legendactor)
+        renderer.RemoveViewProp(legendactor)
 
     while actor is not None:
         actor.GetProperty().SetLineWidth( actor.GetProperty().GetLineWidth() * aa )
@@ -781,7 +781,7 @@ def render_hires(renderer,oversampling=1,aa=1,transparency=False,legendactor=Non
         renwin.SetSize(im.shape[1]//downscale,im.shape[0]//downscale)
         legendrenderer = vtk.vtkRenderer()
         renwin.AddRenderer(legendrenderer)
-        legendrenderer.AddActor(legendactor)
+        legendrenderer.AddViewProp(legendactor)
 
         renwin.Render()
         vtk_win_im = vtk.vtkWindowToImageFilter()
@@ -791,14 +791,14 @@ def render_hires(renderer,oversampling=1,aa=1,transparency=False,legendactor=Non
         vtk_array = vtk_image.GetPointData().GetScalars()
         dims = vtk_image.GetDimensions()
         del vtk_win_im
-        legendrenderer.RemoveActor(legendactor)
+        legendrenderer.RemoveViewProp(legendactor)
         renwin.Finalize()
         legendim = np.flipud(vtk_to_numpy(vtk_array).reshape(dims[1], dims[0], 3))
         legendim = cv2.resize(legendim,(im.shape[1],im.shape[0]))
         legendmask = np.tile( (legendim.sum(axis=2) > 0)[:,:,np.newaxis],[1,1,3])
         im[legendmask] = legendim[legendmask]
 
-        renderer.AddActor(legendactor)
+        renderer.AddViewProp(legendactor)
 
     if transparency:
         alpha = 255 * np.ones([np.shape(im)[0],np.shape(im)[1]],dtype='uint8')
@@ -1570,10 +1570,10 @@ def render_unfolded_wall(cadmodel,calibrations=[],labels = [],colours=None,cal_o
     cadmodel.add_to_renderer(renderer)
 
     for actor in extra_actors:
-        renderer.AddActor(actor)
+        renderer.AddViewProp(actor)
 
     for actor in cal_actors:
-        renderer.AddActor(actor)
+        renderer.AddViewProp(actor)
 
     # Initialise an array for the output image.
     out_im = np.empty((0,w,3),dtype=np.uint8)
@@ -1661,10 +1661,10 @@ def render_unfolded_wall(cadmodel,calibrations=[],labels = [],colours=None,cal_o
 
     cadmodel.remove_from_renderer(renderer)
     for cal_actor in cal_actors:
-        renderer.RemoveActor(cal_actor)
+        renderer.RemoveViewProp(cal_actor)
 
     for actor in extra_actors:
-        renderer.RemoveActor(actor)
+        renderer.RemoveViewProp(actor)
 
     if len(legend_items) > 0 and not cancel():
 
@@ -1694,7 +1694,7 @@ def render_unfolded_wall(cadmodel,calibrations=[],labels = [],colours=None,cal_o
 
         legend.GetPositionCoordinate().SetValue(0,0)
 
-        renderer.AddActor(legend)
+        renderer.AddViewProp(legend)
         renwin.SetSize(legend_width,abs_height)
         renwin.Render()
         vtk_win_im = vtk.vtkWindowToImageFilter()
