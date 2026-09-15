@@ -10,6 +10,7 @@ Fixes / Compatibility:
 * Fixed bug which raised exceptions if instantiating PoloidalVolumeGrid with wall_contour=None (#185)
 
 
+
 Point Release 2.18.0 (June 2026)
 --------------------------------
 
