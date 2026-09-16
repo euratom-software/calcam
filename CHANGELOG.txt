@@ -1,6 +1,14 @@
 Calcam Changelog
 ================
 
+Changes on master branch since 2.18.1 (labeled 2.18.2.dev)
+----------------------------------------------------------
+
+Fixes / Compatibility:
+* Fixed a bug in render_cam_view() which could raise exceptions if 3D coordinates were included in the scene (affected 3D viewer tool)
+
+
+
 Patch Release 2.18.1 (September 2026)
 -------------------------------------
 
