@@ -1,11 +1,16 @@
 Calcam Changelog
 ================
 
-Changes on master branch since 2.18.1 (labeled 2.18.2.dev)
-----------------------------------------------------------
 
-Fixes / Compatibility:
+
+Changes on master branch since 2.18.1 (labeled 2.19.dev)
+--------------------------------------------------------
+
+Fixes:
 * Fixed a bug in render_cam_view() which could raise exceptions if 3D coordinates were included in the scene (affected 3D viewer tool)
+
+Compatibility / Dependencies:
+* Remove dependency on triangle package in favour of meshpy (note: different wrapper for the same algorithm), since the maintenance status of triangle looks quite questionable. Addresses #122.
 
 
 

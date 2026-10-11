@@ -7,11 +7,6 @@ Calcam runs under Python 3.7 or newer on Windows, Linux or MaxOS.
 
 You can download Python installers for Windows or MacOS from `Python.org <https://www.python.org/downloads/>`_ ; get it from your favourite software repository on Linux; get it from the Microsoft Store on Windows; or use a python environment manager such as `Anaconda <https://www.anaconda.com>`_.
 
-.. note::
-    As of March 2026, Python 3.12 or older is recommended, because:
-
-    * There are multiple known compatibility issues with Calcam and Python 3.13 on multiple platforms (see `GitHub issues page <https://github.com/euratom-software/calcam/issues>`_)
-    * One of the dependencies (triangle) can cause errors in the installation process with Python 3.14. Calcam can still be installed in this case if you do not need to use :func:`calcam.gm.trigrid()`, however it is more work since you will have to install with the `--no-deps` option and install the other dependencies manually.
 
 Installing using pip
 --------------------
@@ -176,7 +171,7 @@ The most common reason for errors or problems getting Calcam up and running are 
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | h5py                | Tested with 3.15.1. Used for MATLAB 7.3 file support in calcam.gm.GeometryMatrix.                                                                                  |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| triangle            | Tested with 20230923. Used for triangular meshing in calcam.gm module. Can cause install errors on apple silicon or Python 3.14 (see GitHub issue #122)            |
+| meshpy              | Tested with 2026.1.1. Used for triangular meshing in calcam.gm module.                                                                                             |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 Also check the  `GitHub issues page <https://github.com/euratom-software/calcam/issues>`_ for any more known compatibility issues not yet updated here.
@@ -198,7 +193,6 @@ If it is not clear that a dependency is the problem, or which it might be, open 
     from scipy import __version__
     import matplotlib.pyplot
     import h5py
-    import triangle
 
 In addition to these, at least one of the following PyQt imports must work for the Calcam GUI to be available ( it doesn't matter which - as long as one works Calcam will be able to use it):
 

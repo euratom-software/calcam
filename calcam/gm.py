@@ -1,5 +1,5 @@
 '''
-* Copyright 2015-2025 European Atomic Energy Community (EURATOM)
+* Copyright 2015-2026 European Atomic Energy Community (EURATOM)
 *
 * Licensed under the EUPL, Version 1.1 or - as soon they
   will be approved by the European Commission - subsequent
@@ -37,12 +37,9 @@ import scipy.sparse
 import scipy.io
 import h5py
 
-# This is a workaround for Anaconda, where
-# the triangle package distribution appears to be broken.
-# Thanks Anaconda!
 try:
-    import triangle
-except:
+    from meshpy import triangle
+except Exception:
     trignale = None
 
 import matplotlib.pyplot as plt
@@ -1597,7 +1594,7 @@ def squaregrid(wall_contour,cell_size,rmin=None,rmax=None,zmin=None,zmax=None,za
 
 
 
-def trigrid(wall_contour,max_cell_scale,rmin=None,rmax=None,zmin=None,zmax=None,triopts=[],zaxis=(0,0,1),origin=(0,0,0)):
+def trigrid(wall_contour,max_cell_scale,rmin=None,rmax=None,zmin=None,zmax=None,zaxis=(0,0,1),origin=(0,0,0)):
     '''
     Create a reconstruction grid with triangular grid cells conforming to the 
     wall contour, using Jonathan Richard Shewchuk’s "triangle" triangulation library.
@@ -1615,9 +1612,6 @@ def trigrid(wall_contour,max_cell_scale,rmin=None,rmax=None,zmin=None,zmax=None,
                                               Any combination of these may or may not be given; if none \
                                               are given the entire wall contour interior is gridded.
 
-        trioppts (list of str)              : List of string options to pass to triangle.triangulate(), see the \
-                                              `triangle documentation page <https://rufat.be/triangle/API.html>`_ for possible options.
-
         zaxis (sequence)                    : 3D vector (x,y,z) in CAD model coordinate system defining the \
                                               +Z axis direction of the grid. This must be the axisymmetry axis \
                                               of the plasma / device. Default is (0,0,1) i.e. matching the CAD \
@@ -1634,7 +1628,9 @@ def trigrid(wall_contour,max_cell_scale,rmin=None,rmax=None,zmin=None,zmax=None,
     '''
 
     if triangle is None:
-        raise ImportError('"triangle" Python package not available; cannot create triangular grid. Please try installing triangle using pip then try again.')
+        raise ModuleNotFoundError('Creating triangular grids requires the meshpy Python module which is not available. Please install meshpy to use this feature.')
+
+    geometry = triangle.MeshInfo()
 
     # If given a machine name for the wall contour, get the R,Z contour
     if type(wall_contour) is str:
@@ -1703,21 +1699,18 @@ def trigrid(wall_contour,max_cell_scale,rmin=None,rmax=None,zmin=None,zmax=None,
         inds =  np.logical_xor( bbox_path.contains_points(holecoords) , wall_path.contains_points(holecoords) )
         holecoords = holecoords[inds,:]
 
-        geometry = {'vertices' : np.vstack( (verts,bbox_verts) ) , 'segments' : np.vstack( (segments,bbox_segments) ), 'holes': holecoords}
+        geometry.set_points(np.vstack( (verts,bbox_verts) ))
+        geometry.set_facets(np.vstack( (segments,bbox_segments) ))
+        geometry.set_holes(holecoords)
 
     else:
+        geometry.set_points(verts)
+        geometry.set_facets(segments)
 
-        geometry = {'vertices': verts, 'segments' : segments}
+    mesh = triangle.build(geometry,max_volume=max_cell_area,quality_meshing=False)
 
-    opts = 'pa{:.6f}'.format(max_cell_area)
+    return PoloidalVolumeGrid(np.array(mesh.points), np.array(mesh.elements), wall_contour, src='Wall-conforming triangular mesh with ~{:.1f}cm cells generated with trigrid()'.format(max_cell_scale*1e2),zaxis=zaxis, origin=origin)
 
-    for user_opt in triopts:
-        if not (user_opt.startswith('p') or user_opt.startswith('a')):
-            opts = opts + user_opt
-
-    mesh = triangle.triangulate(geometry,opts)
-
-    return PoloidalVolumeGrid(mesh['vertices'], mesh['triangles'], wall_contour, src='Wall-conforming triangular mesh with ~{:.1f}cm cells generated with trigrid()'.format(max_cell_scale*1e2),zaxis=zaxis, origin=origin)
 
 
 def solps_grid(solps_file,wall_contour,rmin=None,rmax=None,zmin=None,zmax=None,cell_attrs=False):
@@ -1844,49 +1837,6 @@ def _get_ccm_wall(model_name):
                 raise Exception('CAD model "{:s}" does not define a wall contour!'.format(model_name))
 
     return wall_contour
-
-
-
-def _run_triangle_python(geometry,queue,**kwargs):
-    '''
-    Run triangular mesh generation with the triangle library via MeshPy module.
-    See MeshPy documentation.
-
-    This function is designed to be used from a multiprocessing call, to avoid
-    errors in the underlying triangle code from dragging down the main Python process
-    (seen on Windows 10 / Py3.5.)
-
-    Parameters:
-
-        geometry (dict)               : Dictionary defining the bounding geometry, see triangle \
-                                        manual.
-
-        queue (multiprocessing.Queue) : Multiprocessing queue on which to place the result.
-        
-    Any keyword arguments are all passed to meshpy.triangle.build()
-
-    '''
-    # Re-arrange the input geometry and mesher arguments. This
-    # is all done here because MeshPy crashes silently otherwise,
-    # it appears to be highly not process-safe.
-
-    # Put the input geometry in to a meshpy object
-    boundary_geom = meshpy.triangle.MeshInfo()
-    boundary_geom.set_points(geometry['vertices'])
-    boundary_geom.set_facets(geometry['segments'])
-    if 'holes' in geometry:
-        boundary_geom.set_holes(geometry['holes'])
-
-    # Don't just pass the kwargs straight to MeshPy or it crashes.
-    mesher_args = dict(kwargs)
-
-    try:
-        # Run triangle and send the results back to the calling thread.
-        mesh = meshpy.triangle.build(boundary_geom,**mesher_args)
-        queue.put( {'vertices':np.array(mesh.points), 'cells':np.array(mesh.elements)}  )
-    except Exception as e:
-        queue.put(e)
-
 
 
 
