@@ -36,6 +36,7 @@ import numpy as np
 import scipy.sparse
 import scipy.io
 import h5py
+import numba as nb
 
 try:
     from meshpy import triangle
@@ -164,7 +165,6 @@ class PoloidalVolumeGrid:
 
 
 
-
     def get_cell_intersections(self,ray_start,ray_end,plot=False):
         '''
         Get the intersections of a ray, i.e. a straight line in 3D space, with the grid cell boundaries.
@@ -197,109 +197,12 @@ class PoloidalVolumeGrid:
         # have some dividing by zero and such in here, but it's harmless.
         with np.errstate(divide='ignore',invalid='ignore'):
 
-            # Put ray_start and ray_end in to the coordinate system of the grid and its symmetry
-            sx = ray_start[0] - self.origin[0]
-            sy = ray_start[1] - self.origin[1]
-            sz = ray_start[2] - self.origin[2]
-            ray_start = np.array([self._rmat[0,0]*sx + self._rmat[0,1]*sy + self._rmat[0,2]*sz,
-                                  self._rmat[1,0]*sx + self._rmat[1,1]*sy + self._rmat[1,2]*sz,
-                                  self._rmat[2,0]*sx + self._rmat[2,1]*sy + self._rmat[2,2]*sz])
-
-
-            ex = ray_end[0] - self.origin[0]
-            ey = ray_end[1] - self.origin[1]
-            ez = ray_end[2] - self.origin[2]
-            ray_end = np.array([self._rmat[0,0]*ex + self._rmat[0,1]*ey + self._rmat[0,2]*ez,
-                                  self._rmat[1,0]*ex + self._rmat[1,1]*ey + self._rmat[1,2]*ez,
-                                  self._rmat[2,0]*ex + self._rmat[2,1]*ey + self._rmat[2,2]*ez])
-            
-            ray_length = np.sqrt( np.sum( (ray_end - ray_start)**2 ) )
-            
-            # Parametric coefficients for ray
-            pax,pay,paz = ray_start
-            dpx,dpy,dpz = (ray_end - ray_start) / ray_length
-            
-            # Parametric coefficients for grid segments
-            lar = self.vertices[self.segments[:,0],0]
-            laz = self.vertices[self.segments[:,0],1]
-            dlr = self.vertices[self.segments[:,1],0] - lar
-            dlz = self.vertices[self.segments[:,1],1] - laz
-    
-            a = -dlz**2*dpx**2 - dlz**2*dpy**2 + dlr**2*dpz**2
-            b = 2*dlr*dlz*dpz*lar - 2*dlr**2*dpz*laz - 2*dlz**2*dpx*pax - 2*dlz**2*dpy*pay + 2*dlr**2*dpz*paz
-            c = (dlz**2*lar**2 - 2*dlr*dlz*lar*laz + dlr**2*laz**2 - dlz**2*pax**2 - dlz**2*pay**2 + 2*dlr*dlz*lar*paz - 2*dlr**2*laz*paz + dlr**2*paz**2)
-            
-            # These will be the intersection positions
-            t_ray0 = np.zeros(self.n_segments) - 1.
-            t_seg0 = np.zeros(self.n_segments) - 1.
-            t_ray1 = np.zeros(self.n_segments) - 1.
-            t_seg1 = np.zeros(self.n_segments) - 1.
-    
-            # The magic number!
-            d = b**2 - 4*a*c
-    
-            # d > 0 means two real solutions and hence two intersections
-            indx = np.where(d > 0)
-            if len(indx) > 0:
-                q = -0.5 * (b[indx] + np.sign(b[indx]) * np.sqrt(d[indx]))
-                t_ray0[indx] = q/a[indx]
-                t_seg0[indx] = (-laz[indx] + paz + dpz * t_ray0[indx])/dlz[indx]
-                t_ray1[indx] = c[indx] / q
-                t_seg1[indx] = (-laz[indx] + paz + dpz * t_ray1[indx])/dlz[indx]
-    
-            # d == 0 means one real solution so one intersection
-            indx = np.where(d == 0)
-            if len(indx) > 0:
-                q = -0.5 * (b[indx] + np.sign(b[indx]) * np.sqrt(d[indx]))
-                t_ray0[indx] = q / a[indx]
-                t_seg0[indx] = (-laz[indx] + paz + dpz * t_ray0[indx])/dlz[indx]
-            
-            # Special case for exactly horizontal rays.
-            indx = np.where(np.abs(dlz) <1e-14)
-            if len(indx) > 0:
-                t_ray0[indx] = (-paz + laz[indx])/dpz
-                hitr = np.sqrt((pax+t_ray0[indx]*dpx)**2+(pay+t_ray0[indx]*dpy)**2)
-                t_seg0[indx] = (-lar[indx] + hitr)/dlr[indx]
-                
-            
-            # Valid intersections are ones within the line segment length and 
-            # within the ray length
-            valid_inds0 = (t_seg0 >= 0.) & (t_seg0 <= 1.) & (t_ray0 >= 0.) & (t_ray0 <= ray_length)
-            valid_inds1 = (t_seg1 >= 0.) & (t_seg1 <= 1.) & (t_ray1 >= 0.) & (t_ray1 <= ray_length)
-            
-
-            # Full list of intersection distance and segment index
-            t_ray = np.concatenate( (t_ray0[valid_inds0],t_ray1[valid_inds1]) )     
-            seg_inds = np.arange(self.n_segments,dtype=np.uint32)
-            seg_inds = np.concatenate( (seg_inds[valid_inds0],seg_inds[valid_inds1]) )
-    
-            
-            # Sort the intersections by length along the sight-line.
-            # Also round t_ray to 9 figures because we'll want to find unique values
-            # of it shortly, so round to something slightly larger than the expected precision.
-            sort_order = np.argsort(t_ray)
-            t_ray = t_ray[sort_order].round(decimals=9)
-            seg_inds = seg_inds[sort_order]
-            
-            # This will be the output list of cell indices
-            cell_inds = []
-            
-            # Check which cells the intersected line segments belong to.
-            for intersection_pos in np.unique( t_ray ):
-                
-                segs = seg_inds[t_ray == intersection_pos]
-                
-                cells = set()
-                for seg in seg_inds[ t_ray == intersection_pos]:
-                    cells.update( np.where(self.cell_sides == seg)[0] )
-                
-                cell_inds.append(list(cells))
-            
-            # We only want to return the unique intersection lengths
-            t_ray = np.unique(t_ray)
+            cell_inds,t_ray = get_cell_intersections(ray_start,ray_end,self.origin,self._rmat,self.vertices,self.segments,self.n_segments,self.cell_sides)
 
             # If we're asked to, plot the sight line and intersection points.
             if plot:
+
+                ray_length = np.sqrt( np.sum( (ray_end - ray_start)**2 ) )
                 
                 # Plot the sight line
                 ray_dir = (ray_end - ray_start) / ray_length
@@ -692,16 +595,17 @@ class GeometryMatrix:
             rowinds = []
             data = []
 
-            with multiprocessing.Pool( config.n_cpus ) as cpupool:
-                calc_status_callback(0.)
-                for i , row_data in enumerate( cpupool.imap( self._calc_row_volume, np.hstack((ray_start_coords[inds,:],ray_end_coords[inds,:])) , 10 ) ):          
-                    rowinds.append(np.zeros(row_data[0].shape,dtype=np.uint32) + inds[i])                    
-                    colinds.append(row_data[0])
-                    data.append(row_data[1])
-                    
-                    if time.time() - last_status_update > 1. and calc_status_callback is not None:
-                        calc_status_callback(float(i) / n_los)
-                        last_status_update = time.time()
+            #with multiprocessing.Pool( config.n_cpus ) as cpupool:
+            calc_status_callback(0.)
+            for i in range(n_los):
+                row_data = self._calc_row_volume(ray_start_coords[i],ray_end_coords[i]) 
+                rowinds.append(np.zeros(row_data[0].shape,dtype=np.uint32) + inds[i])                    
+                colinds.append(row_data[0])
+                data.append(row_data[1])
+                
+                if time.time() - last_status_update > 1. and calc_status_callback is not None:
+                    calc_status_callback(float(i) / n_los)
+                    last_status_update = time.time()
 
             # Build the matrix!
             self.data = scipy.sparse.csr_matrix((np.concatenate(data),(np.concatenate(rowinds),np.concatenate(colinds))),shape=(n_los,n_cells))            
@@ -1041,7 +945,7 @@ class GeometryMatrix:
         return im_out
 
 
-    def _calc_row_volume(self,ray_endpoints):
+    def _calc_row_volume(self,ray_start_coords,ray_end_coords):
         '''
         Calculate a matrix row given the sight-line start and end in 3D,
         for volume type grids (i.e. quantities constant within grid cell volume).
@@ -1056,15 +960,15 @@ class GeometryMatrix:
             
             tuple : Calculated row elements: \
             
-                    * numpy.ndarray containing row indices of non-zero elements \
-                      in the column.
+                    * numpy.ndarray containing column indices of non-zero elements \
+                      in the row.
 
                     * numpy.ndarray containing the values of the matrix elements at \
-                      those row indices.
+                      those column indices.
 
         '''
-        ray_start_coords = np.array(ray_endpoints[:3])
-        ray_end_coords = np.array(ray_endpoints[3:])
+        #ray_start_coords = np.array(ray_endpoints[:3])
+        #ray_end_coords = np.array(ray_endpoints[3:])
         
         # Total length of the ray
         ray_length = np.sqrt( np.sum( (ray_end_coords - ray_start_coords)**2 ) )
@@ -1845,3 +1749,109 @@ def _bin_image(image,bin_factor,bin_func=np.mean):
     newshape = ( image.shape[0] // bin_factor, bin_factor, image.shape[1] // bin_factor, bin_factor )
     newshape = np.array(newshape,dtype=int)
     return bin_func( bin_func( image.reshape(newshape),axis=3 ) ,axis=1 )
+
+
+@nb.jit(parallel=True)
+def get_cell_intersections(ray_start,ray_end,grid_origin,grid_rmat,grid_vertices,grid_segments,n_segments,grid_cell_sides):
+        # Put ray_start and ray_end in to the coordinate system of the grid and its symmetry
+        sx = ray_start[0] - grid_origin[0]
+        sy = ray_start[1] - grid_origin[1]
+        sz = ray_start[2] - grid_origin[2]
+        ray_start = np.array([grid_rmat[0,0]*sx + grid_rmat[0,1]*sy + grid_rmat[0,2]*sz,
+                                grid_rmat[1,0]*sx + grid_rmat[1,1]*sy + grid_rmat[1,2]*sz,
+                                grid_rmat[2,0]*sx + grid_rmat[2,1]*sy + grid_rmat[2,2]*sz])
+
+
+        ex = ray_end[0] - grid_origin[0]
+        ey = ray_end[1] - grid_origin[1]
+        ez = ray_end[2] - grid_origin[2]
+        ray_end = np.array([grid_rmat[0,0]*ex + grid_rmat[0,1]*ey + grid_rmat[0,2]*ez,
+                                grid_rmat[1,0]*ex + grid_rmat[1,1]*ey + grid_rmat[1,2]*ez,
+                                grid_rmat[2,0]*ex + grid_rmat[2,1]*ey + grid_rmat[2,2]*ez])
+        
+        ray_length = np.sqrt( np.sum( (ray_end - ray_start)**2 ) )
+        
+        # Parametric coefficients for ray
+        pax,pay,paz = ray_start
+        dpx,dpy,dpz = (ray_end - ray_start) / ray_length
+        
+        # Parametric coefficients for grid segments
+        lar = grid_vertices[grid_segments[:,0],0]
+        laz = grid_vertices[grid_segments[:,0],1]
+        dlr = grid_vertices[grid_segments[:,1],0] - lar
+        dlz = grid_vertices[grid_segments[:,1],1] - laz
+
+        a = -dlz**2*dpx**2 - dlz**2*dpy**2 + dlr**2*dpz**2
+        b = 2*dlr*dlz*dpz*lar - 2*dlr**2*dpz*laz - 2*dlz**2*dpx*pax - 2*dlz**2*dpy*pay + 2*dlr**2*dpz*paz
+        c = (dlz**2*lar**2 - 2*dlr*dlz*lar*laz + dlr**2*laz**2 - dlz**2*pax**2 - dlz**2*pay**2 + 2*dlr*dlz*lar*paz - 2*dlr**2*laz*paz + dlr**2*paz**2)
+        
+        # These will be the intersection positions
+        t_ray0 = np.zeros(n_segments) - 1.
+        t_seg0 = np.zeros(n_segments) - 1.
+        t_ray1 = np.zeros(n_segments) - 1.
+        t_seg1 = np.zeros(n_segments) - 1.
+
+        # The magic number!
+        d = b**2 - 4*a*c
+
+        # d > 0 means two real solutions and hence two intersections
+        indx = np.where(d > 0)
+        if len(indx) > 0:
+            q = -0.5 * (b[indx] + np.sign(b[indx]) * np.sqrt(d[indx]))
+            t_ray0[indx] = q/a[indx]
+            t_seg0[indx] = (-laz[indx] + paz + dpz * t_ray0[indx])/dlz[indx]
+            t_ray1[indx] = c[indx] / q
+            t_seg1[indx] = (-laz[indx] + paz + dpz * t_ray1[indx])/dlz[indx]
+
+        # d == 0 means one real solution so one intersection
+        indx = np.where(d == 0)
+        if len(indx) > 0:
+            q = -0.5 * (b[indx] + np.sign(b[indx]) * np.sqrt(d[indx]))
+            t_ray0[indx] = q / a[indx]
+            t_seg0[indx] = (-laz[indx] + paz + dpz * t_ray0[indx])/dlz[indx]
+        
+        # Special case for exactly horizontal rays.
+        indx = np.where(np.abs(dlz) <1e-14)
+        if len(indx) > 0:
+            t_ray0[indx] = (-paz + laz[indx])/dpz
+            hitr = np.sqrt((pax+t_ray0[indx]*dpx)**2+(pay+t_ray0[indx]*dpy)**2)
+            t_seg0[indx] = (-lar[indx] + hitr)/dlr[indx]
+            
+        
+        # Valid intersections are ones within the line segment length and 
+        # within the ray length
+        valid_inds0 = (t_seg0 >= 0.) & (t_seg0 <= 1.) & (t_ray0 >= 0.) & (t_ray0 <= ray_length)
+        valid_inds1 = (t_seg1 >= 0.) & (t_seg1 <= 1.) & (t_ray1 >= 0.) & (t_ray1 <= ray_length)
+        
+
+        # Full list of intersection distance and segment index
+        t_ray = np.concatenate( (t_ray0[valid_inds0],t_ray1[valid_inds1]) )     
+        seg_inds = np.arange(n_segments,dtype=np.uint32)
+        seg_inds = np.concatenate( (seg_inds[valid_inds0],seg_inds[valid_inds1]) )
+
+        
+        # Sort the intersections by length along the sight-line.
+        # Also round t_ray to 9 figures because we'll want to find unique values
+        # of it shortly, so round to something slightly larger than the expected precision.
+        sort_order = np.argsort(t_ray)
+        t_ray = np.round(t_ray[sort_order],decimals=9)
+        seg_inds = seg_inds[sort_order]
+        
+        # This will be the output list of cell indices
+        cell_inds = []
+        
+        # Check which cells the intersected line segments belong to.
+        for intersection_pos in np.unique( t_ray ):
+            
+            segs = seg_inds[t_ray == intersection_pos]
+            
+            cells = set()
+            for seg in seg_inds[ t_ray == intersection_pos]:
+                cells.update( np.where(grid_cell_sides == seg)[0] )
+            
+            cell_inds.append(list(cells))
+        
+        # We only want to return the unique intersection lengths
+        t_ray = np.unique(t_ray)
+
+        return cell_inds,t_ray
