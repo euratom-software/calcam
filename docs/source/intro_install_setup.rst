@@ -160,6 +160,7 @@ The most common reason for errors or problems getting Calcam up and running are 
 |                     | Fisheye camera model only available if using 3.x or newer.                                                                                                         |
 |                     |                                                                                                                                                                    |
 |                     | If running under OSX older than 10.12, versions of OpenCV newer than 3.2 may cause crashes on import (downgrade to OpenCV < 3.3 to fix this).                      |
+|                     |                                                                                                                                                                    |
 |                     | Calcam versions older than 2.19 will not be able to correctly load chessboard calibration images if using OpenCV 5.0 or newer.                                     |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | VTK                 | Requires version =>7, tested up to 9.7.1. Note Versions 9.1.x cause crashes when setting large CAD models to wireframe rendering.                                  |
