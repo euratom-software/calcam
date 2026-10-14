@@ -1,5 +1,5 @@
 '''
-* Copyright 2015-2025 European Atomic Energy Community (EURATOM)
+* Copyright 2015-2026 European Atomic Energy Community (EURATOM)
 *
 * Licensed under the EUPL, Version 1.1 or - as soon they
   will be approved by the European Commission - subsequent
@@ -531,7 +531,7 @@ class CalcamGUIWindow(qt.QMainWindow):
 
         self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
         objs = []
-        
+
         for path in [str(p) for p in selected_paths]:
 
             if obj_type.lower() == 'calibration':
@@ -1497,7 +1497,7 @@ class ChessboardDialog(qt.QDialog):
             self.fisheye_model.setToolTip('Requires OpenCV 3')
 
         # Set up VTK
-        self.qvtkwidget = qt.QVTKRenderWindowInteractor(self.image_frame)
+        self.qvtkwidget = qt.QVTKRenderWindowInteractor()
         self.image_frame.layout().addWidget(self.qvtkwidget)
         self.interactor = CalcamInteractorStyle2D(refresh_callback=self.refresh_vtk)
         self.qvtkwidget.SetInteractorStyle(self.interactor)
@@ -1518,9 +1518,10 @@ class ChessboardDialog(qt.QDialog):
 
         # Start the GUI!
         self.show()
+        self.vtkInteractor.Initialize()
         self.interactor.init()
         self.renderer.Render()
-        self.vtkInteractor.Initialize()
+
 
         if current_chessboards is not None:
             self.populate_from_existing(current_chessboards,existing_history)
@@ -1622,7 +1623,7 @@ class ChessboardDialog(qt.QDialog):
                 
                 # OpenCV loads colour channels in BGR order.
                 if len(im.shape) == 3:
-                    im[:,:,:3] = im[:,:,3::-1]
+                    im[:,:,:3] = im[:,:,2::-1]
 
                 self.images.append(im)
 
@@ -1693,8 +1694,9 @@ class ChessboardDialog(qt.QDialog):
             status,points = cv2.findChessboardCorners( self.images[imnum], self.n_chessboard_points, flags=cv2.CALIB_CB_ADAPTIVE_THRESH )
             self.chessboard_status.append(not status)
             if status:
+                points = np.squeeze(points)
                 for j,point in enumerate(points):
-                    self.chessboard_points_2D[imnum][j,:] = point[0]
+                    self.chessboard_points_2D[imnum][j,:] = point[:]
         self.status_text.setText('')
         self.parent.app.restoreOverrideCursor()        
         if np.all(self.chessboard_status):
@@ -1855,8 +1857,8 @@ class ChessboardDialog(qt.QDialog):
             # Case where the requested crop has parts outside the original image
             # Note this case may not have been thoroughly tested
             if dx > 0 or dy > 0 or self.image_transformer.offset[0] + self.image_transformer.get_image_shape(coords='Original')[0] < parent_shape[0]+parent_offset[0] or self.image_transformer.offset[1] + self.image_transformer.get_image_shape(coords='Original')[1] < parent_shape[1]+parent_offset[1]:
-                padded_im = np.zeros(max(self.image_transformer.offset[1] + self.image_transformer.get_image_shape(coords='Original')[1], parent_shape[1]+parent_offset[1]),max(self.image_transformer.offset[0] + self.image_transformer.get_image_shape(coords='Original')[0], parent_shape[0]+parent_offset[0]),original_image.shape[2], original_image.dtype)
-                padded_im[self.image_transformer.offset[1]:self.image_transformer.offset[1]+self.image_transformer.get_original_shape()[1],self.image_transformer.offset[0]:self.image_transformer.offset[0] + self.image_transformer.get_original_shape()[0], :] = self.native_image[:, :, :]
+                padded_im = np.zeros((max(self.image_transformer.offset[1] + self.image_transformer.get_image_shape(coords='Original')[1], parent_shape[1]+parent_offset[1]),max(self.image_transformer.offset[0] + self.image_transformer.get_image_shape(coords='Original')[0], parent_shape[0]+parent_offset[0]),original_image.shape[2]), original_image.dtype)
+                padded_im[self.image_transformer.offset[1]:self.image_transformer.offset[1]+self.image_transformer.get_original_shape()[1],self.image_transformer.offset[0]:self.image_transformer.offset[0] + self.image_transformer.get_original_shape()[0], :] = original_image[:, :, :]
                 original_image = padded_im[parent_offset[1]:parent_offset[1]+parent_shape[1], parent_offset[0]:parent_offset[0]+parent_shape[0]]
 
             else:
@@ -1937,7 +1939,7 @@ class ImageMaskDialog(qt.QDialog):
         self.parent = parent
         
         # Set up VTK
-        self.qvtkwidget = qt.QVTKRenderWindowInteractor(self.vtkframe)
+        self.qvtkwidget = qt.QVTKRenderWindowInteractor()
         self.vtkframe.layout().addWidget(self.qvtkwidget)
         self.interactor = CalcamInteractorStyle2D(refresh_callback = self.refresh_2d,newpick_callback=self.on_pick,cursor_move_callback=self.update_fieldmask)
         self.qvtkwidget.SetInteractorStyle(self.interactor)

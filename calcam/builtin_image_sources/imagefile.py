@@ -1,5 +1,5 @@
 '''
-* Copyright 2015-2025 European Atomic Energy Community (EURATOM)
+* Copyright 2015-2026 European Atomic Energy Community (EURATOM)
 *
 * Licensed under the EUPL, Version 1.1 or - as soon they
   will be approved by the European Commission - subsequent
@@ -32,12 +32,9 @@ def get_image(filename,coords,offset_x=0,offset_y=0):
     if dat is None:
         raise UserWarning('Could not read specified image file "' + filename + '"')
 
-    # If it's a colour image, fix the colour channel order (openCV loads BGRA, for some reason)
     if len(dat.shape) == 3:
-
-        # If we have a colour image swap the G and B channels, since OpenCV loads them in the wrong order.
-        if dat.shape[2] == 3:
-          
+        # If it's a colour image, change the colour channel order to RGB[A] (openCV loads as BGR[A] by default)
+        if len(dat.shape) == 3:
             dat[:,:,:3] = dat[:,:,2::-1]
 
             # If R, G and B channels are all the same, just return a monochrome image
