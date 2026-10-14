@@ -155,13 +155,14 @@ The most common reason for errors or problems getting Calcam up and running are 
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | MatPlotLib          | Tested up to v3.11.0                                                                                                                                               |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| OpenCV (a.k.a. cv2) | Tested up to to v4.13                                                                                                                                              |
+| OpenCV (a.k.a. cv2) | Tested up to to v5.0                                                                                                                                               |
 |                     |                                                                                                                                                                    |
 |                     | Fisheye camera model only available if using 3.x or newer.                                                                                                         |
 |                     |                                                                                                                                                                    |
 |                     | If running under OSX older than 10.12, versions of OpenCV newer than 3.2 may cause crashes on import (downgrade to OpenCV < 3.3 to fix this).                      |
+|                     | Calcam versions older than 2.19 will not be able to correctly load chessboard calibration images if using OpenCV 5.0 or newer.                                     |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| VTK                 | Requires version =>7, somewhat tested up to 9.7.0. Note Versions 9.1.x cause crashes when setting large CAD models to wireframe rendering.                         |
+| VTK                 | Requires version =>7, tested up to 9.7.1. Note Versions 9.1.x cause crashes when setting large CAD models to wireframe rendering.                                  |
 +---------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | PyQt                | Works with PyQt4; PyQt5 or PyQt6; PyQt6 or 5 are recommended; pip will try to install PyQt5 because it has better success installing on different platforms.       |
 |                     |                                                                                                                                                                    |
