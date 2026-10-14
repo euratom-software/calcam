@@ -415,10 +415,6 @@ class RectilinearViewModel(ViewModel):
 
             xp = xlocal/zlocal
             yp = ylocal/zlocal
-            r = np.sqrt(xp**2+yp**2)
-
-            # deriv_x = k1*r**2 + k2*r**4 + k3*r**6 + 2*p1*yp + 6*p2*xp + xp*(2*k1*xp + 4*k2*xp*r**2+6*k3*xp*r**4) + 1
-            # deriv_y = k1*r**2 + k2*r**4 + k3*r**6 + 2*p2*xp + 6*p1*yp + yp*(2*k1*yp + 4*k2*yp*r**2+6*k3*yp*r**4) + 1
 
             d_xyp = distortion_transform_derivatives(np.stack([xp,yp], axis=-1), [k1,k2,p1,p2,k3,k4,k5,k6,s1,s2,s3,s4,taux,tauy])
             deriv_x, deriv_y = d_xyp[...,0], d_xyp[...,1]
@@ -3054,11 +3050,3 @@ def undistort_model_residual(params,xd,xn,radial_order=2,include_tangential=True
     x_out = distortion_transform(xd, distortion_coeffs=distortion_coeffs)
 
     return np.sum(np.linalg.norm(x_out - xn, axis=-1, ord=2))
-
-    # for i in range(xd.shape[0]):
-    #     r = np.sqrt(np.sum(xd[i,:]**2))
-    #     x_out = xd[i,0]*(1 + k1*r**2 + k2*r**4 + k3*r**6) + 2*p1*np.prod(xd[i,:]) + p2*(r**2 + 2*xd[i,0]**2)
-    #     y_out = xd[i,1]*(1 + k1*r**2 + k2*r**4 + k3*r**6) + p1*(r**2+2*xd[i,1]**2) + 2*p2*np.prod(xd[i,:])
-    #     delta = delta + ((x_out - xn[i,0])**2 + (y_out - xn[i,1])**2)/xd.shape[0]
-
-    # return np.sqrt(delta)
