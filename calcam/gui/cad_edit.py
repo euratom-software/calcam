@@ -1169,7 +1169,7 @@ class CADEdit(CalcamGUIWindow):
             try:
                 self.interactor3d.remove_extra_actor(self.contour_actor)
             except:
-                self.renderer_3d.RemoveActor(self.contour_actor)
+                self.renderer_3d.RemoveViewProp(self.contour_actor)
             self.contour_actor = None
 
         if self.show_contour_checkbox.isChecked():

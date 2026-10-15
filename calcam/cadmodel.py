@@ -246,7 +246,7 @@ class CADModel():
             for feature in self.features.values():
                 actors = feature.get_vtk_actors()
                 for actor in actors:
-                    renderer.AddActor(actor)
+                    renderer.AddViewProp(actor)
 
             self.renderers.append(renderer)
 
@@ -399,7 +399,7 @@ class CADModel():
             for feature in self.features.values():
                 actors = feature.get_vtk_actors()
                 for actor in actors:
-                    renderer.RemoveActor(actor)
+                    renderer.RemoveViewProp(actor)
 
             self.renderers.remove(renderer)
 
@@ -1150,12 +1150,12 @@ class ModelFeature():
 
             for renderer in self.parent.renderers:
                 for actor in self.get_vtk_actors():
-                    renderer.AddActor(actor)
+                    renderer.AddViewProp(actor)
 
         elif self.enabled and not enable:
             for renderer in self.parent.renderers:
                 for actor in self.get_vtk_actors():
-                    renderer.RemoveActor(actor)
+                    renderer.RemoveViewProp(actor)
 
             self.enabled = False       
 

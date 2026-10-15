@@ -23,7 +23,7 @@ requirements:
     - scipy
     - vtk !=9.1.*,>=7
     - h5py
-    - triangle
+    - meshpy
   run_constrained:
     - libstdcxx-ng >=13
     

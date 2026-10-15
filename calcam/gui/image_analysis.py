@@ -235,9 +235,9 @@ class ImageAnalyser(CalcamGUIWindow):
                 for actor in self.interactor2d.active_cursors[self.interactor2d.focus_cursor]['actors']:
                     c2d.append(actor)
 
-            self.renderer_3d.RemoveActor(c3d)
+            self.renderer_3d.RemoveViewProp(c3d)
             for actor in c2d:
-                self.renderer_2d.RemoveActor(actor)
+                self.renderer_2d.RemoveViewProp(actor)
 
         oversampling = 2 ** (self.render_resolution.currentIndex())
 
@@ -253,9 +253,9 @@ class ImageAnalyser(CalcamGUIWindow):
         self.save_image(im,filename)
 
         if c3d is not None:
-            self.renderer_3d.AddActor(c3d)
+            self.renderer_3d.AddViewProp(c3d)
         for actor in c2d:
-            self.renderer_2d.AddActor(actor)
+            self.renderer_2d.AddViewProp(actor)
 
         self.app.restoreOverrideCursor()
         self.statusbar.clearMessage()
@@ -455,7 +455,7 @@ class ImageAnalyser(CalcamGUIWindow):
             return
 
         if self.im_projection is not None:
-            self.renderer_3d.RemoveActor(self.im_projection)
+            self.renderer_3d.RemoveViewProp(self.im_projection)
 
         if self.im_mapping_checkbox.isChecked():
             self.app.setOverrideCursor(qt.QCursor(qt.Qt.WaitCursor))
@@ -479,7 +479,7 @@ class ImageAnalyser(CalcamGUIWindow):
                 actor.GetProperty().SetOpacity(self.mapped_im_opacity_slider.value() / 100)
                 self.im_projection = actor
 
-            self.renderer_3d.AddActor(self.im_projection)
+            self.renderer_3d.AddViewProp(self.im_projection)
             self.mapped_im_opacity_slider.show()
             self.mapped_im_opacity_label.show()
             self.app.restoreOverrideCursor()

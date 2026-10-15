@@ -114,14 +114,6 @@
 <h1>Getting Up &amp; Running<a class="headerlink" href="#getting-up-running" title="Link to this heading"></a></h1>
 <p>Calcam runs under Python 3.7 or newer on Windows, Linux or MaxOS.</p>
 <p>You can download Python installers for Windows or MacOS from <a class="reference external" href="https://www.python.org/downloads/">Python.org</a> ; get it from your favourite software repository on Linux; get it from the Microsoft Store on Windows; or use a python environment manager such as <a class="reference external" href="https://www.anaconda.com">Anaconda</a>.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>As of March 2026, Python 3.12 or older is recommended, because:</p>
-<ul class="simple">
-<li><p>There are multiple known compatibility issues with Calcam and Python 3.13 on multiple platforms (see <a class="reference external" href="https://github.com/euratom-software/calcam/issues">GitHub issues page</a>)</p></li>
-<li><p>One of the dependencies (triangle) can cause errors in the installation process with Python 3.14. Calcam can still be installed in this case if you do not need to use <a class="reference internal" href="api_geom_matrix.html#calcam.gm.trigrid" title="calcam.gm.trigrid"><code class="xref py py-func docutils literal notranslate"><span class="pre">calcam.gm.trigrid()</span></code></a>, however it is more work since you will have to install with the <cite>–no-deps</cite> option and install the other dependencies manually.</p></li>
-</ul>
-</div>
 <section id="installing-using-pip">
 <h2>Installing using pip<a class="headerlink" href="#installing-using-pip" title="Link to this heading"></a></h2>
 <p>Once you have Python installed, the recommended way to install Calcam is to use <code class="docutils literal notranslate"><span class="pre">pip</span></code> (unless you are using Anaconda, in which case see <a class="reference internal" href="#conda-install"><span class="std std-ref">below</span></a>), which on most configurations should come installed with Python as standard . If not, documentation for how to get <code class="docutils literal notranslate"><span class="pre">pip</span></code> can be found <a class="reference external" href="https://pip.pypa.io/en/stable/installing/">here</a>.</p>
@@ -255,13 +247,14 @@
 <td><p>Tested up to v3.11.0</p></td>
 </tr>
 <tr class="row-odd"><td><p>OpenCV (a.k.a. cv2)</p></td>
-<td><p>Tested up to to v4.13</p>
+<td><p>Tested up to to v5.0</p>
 <p>Fisheye camera model only available if using 3.x or newer.</p>
 <p>If running under OSX older than 10.12, versions of OpenCV newer than 3.2 may cause crashes on import (downgrade to OpenCV &lt; 3.3 to fix this).</p>
+<p>Calcam versions older than 2.19 will not be able to correctly load chessboard calibration images if using OpenCV 5.0 or newer.</p>
 </td>
 </tr>
 <tr class="row-even"><td><p>VTK</p></td>
-<td><p>Requires version =&gt;7, somewhat tested up to 9.6.0. Note Versions 9.1.x cause crashes when setting large CAD models to wireframe rendering.</p></td>
+<td><p>Requires version =&gt;7, tested up to 9.7.1. Note Versions 9.1.x cause crashes when setting large CAD models to wireframe rendering.</p></td>
 </tr>
 <tr class="row-odd"><td><p>PyQt</p></td>
 <td><p>Works with PyQt4; PyQt5 or PyQt6; PyQt6 or 5 are recommended; pip will try to install PyQt5 because it has better success installing on different platforms.</p>
@@ -272,8 +265,8 @@
 <tr class="row-even"><td><p>h5py</p></td>
 <td><p>Tested with 3.15.1. Used for MATLAB 7.3 file support in calcam.gm.GeometryMatrix.</p></td>
 </tr>
-<tr class="row-odd"><td><p>triangle</p></td>
-<td><p>Tested with 20230923. Used for triangular meshing in calcam.gm module. Can cause install errors on apple silicon or Python 3.14 (see GitHub issue #122)</p></td>
+<tr class="row-odd"><td><p>meshpy</p></td>
+<td><p>Tested with 2026.1.1. Used for triangular meshing in calcam.gm module.</p></td>
 </tr>
 </tbody>
 </table>
@@ -291,7 +284,6 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">__version__</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">h5py</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">triangle</span>
 </pre></div>
 </div>
 <p>In addition to these, at least one of the following PyQt imports must work for the Calcam GUI to be available ( it doesn’t matter which - as long as one works Calcam will be able to use it):</p>
@@ -306,7 +298,7 @@
 <section id="black-screen-corrupted-graphics">
 <h3>Black screen / corrupted graphics<a class="headerlink" href="#black-screen-corrupted-graphics" title="Link to this heading"></a></h3>
 <p>If you get blank / black displays in Calcam where the CAD model and image are supposed to be displayed, or get a corrupted view of the CAD model, this could be an issue with VTK (the OpenGL visualisation library which Calcam uses to display the CAD and some images). To confirm if your VTK installation is working, you can try running the VTK example code on <a class="reference external" href="https://kitware.github.io/vtk-examples/site/Python/GeometricObjects/CylinderExample/">this page</a> to check if it gives a result like the picture. If you get correct display testing VTK on its own but not in Calcam, it could be caused by your particilar combination of VTK, PyQt and graphics drivers - see the above section about dependencies. If you do have a problem with VTK, the easiest thing to try is installing a different version (you can check the current version of VTK in the calcam <a class="reference internal" href="gui_settings.html"><span class="doc">Calcam Settings</span></a> interface). You can try installing different versions using <cite>pip</cite>, for example if VTK 9 is causing issues, you can install an older version with the command:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>pip install &quot;vtk&lt;9&quot;
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>pip install "vtk&lt;9"
 </pre></div>
 </div>
 <p>If you cannot get VTK working properly, you may need to try using Calcam on a different computer with a different graphics hardware / software environment.</p>

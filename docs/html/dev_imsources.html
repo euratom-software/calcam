@@ -409,11 +409,11 @@
 <section id="example">
 <h2>Example<a class="headerlink" href="#example" title="Link to this heading"></a></h2>
 <p>Below is a minimal example: an image source for loading images from standard format image files (this is a previous version of the image source built-in to Calcam).</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="sd">&#39;&#39;&#39;</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="sd">'''</span>
 <span class="sd">Built-in Calcam image source for loading images from an image file.</span>
 
 <span class="sd">Loads images using OpenCV.</span>
-<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">'''</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">cv2</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
@@ -424,9 +424,9 @@
     <span class="c1"># Get the image data from a file</span>
     <span class="n">dat</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">dat</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">UserWarning</span><span class="p">(</span><span class="s1">&#39;Could not read specified image file &quot;&#39;</span> <span class="o">+</span> <span class="n">filename</span> <span class="o">+</span> <span class="s1">&#39;&quot;&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">UserWarning</span><span class="p">(</span><span class="s1">'Could not read specified image file "'</span> <span class="o">+</span> <span class="n">filename</span> <span class="o">+</span> <span class="s1">'"'</span><span class="p">)</span>
 
-    <span class="c1"># If it&#39;s a colour image, note OpenCV loads images in BGR.</span>
+    <span class="c1"># If it's a colour image, note OpenCV loads images in BGR.</span>
     <span class="c1"># Here we change the channel order to RGB.</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dat</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
 
@@ -440,15 +440,15 @@
 
     <span class="c1"># Minimal return dictionary.</span>
     <span class="n">return_dict</span> <span class="o">=</span> <span class="p">{</span>
-                    <span class="s1">&#39;image_data&#39;</span><span class="p">:</span> <span class="n">dat</span><span class="p">,</span>
-                    <span class="s1">&#39;source&#39;</span><span class="p">:</span> <span class="s1">&#39;Loaded from image file </span><span class="si">{:s}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">filename</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                    <span class="s1">'image_data'</span><span class="p">:</span> <span class="n">dat</span><span class="p">,</span>
+                    <span class="s1">'source'</span><span class="p">:</span> <span class="s1">'Loaded from image file </span><span class="si">{:s}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">filename</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
                     <span class="p">}</span>
 
     <span class="k">return</span> <span class="n">return_dict</span>
 
 
 <span class="c1"># Display name</span>
-<span class="n">display_name</span> <span class="o">=</span> <span class="s1">&#39;Image File&#39;</span>
+<span class="n">display_name</span> <span class="o">=</span> <span class="s1">'Image File'</span>
 
 <span class="c1"># Point calcam to the get_image function</span>
 <span class="n">get_image_function</span> <span class="o">=</span> <span class="n">get_image</span>
@@ -457,10 +457,10 @@
 <span class="c1"># In this example the only input is the file path of the image to be loaded.</span>
 <span class="n">get_image_arguments</span> <span class="o">=</span>  <span class="p">[</span>
                             <span class="p">{</span>
-                            <span class="s1">&#39;arg_name&#39;</span><span class="p">:</span><span class="s1">&#39;filename&#39;</span><span class="p">,</span>
-                            <span class="s1">&#39;gui_label&#39;</span><span class="p">:</span> <span class="s1">&#39;File Name&#39;</span> <span class="p">,</span>
-                            <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;filename&#39;</span> <span class="p">,</span>
-                            <span class="s1">&#39;filter&#39;</span><span class="p">:</span><span class="s1">&#39;Image Files (*.png *.jpg *.jpeg *.bmp *.jp2 *.tiff *.tif)&#39;</span>
+                            <span class="s1">'arg_name'</span><span class="p">:</span><span class="s1">'filename'</span><span class="p">,</span>
+                            <span class="s1">'gui_label'</span><span class="p">:</span> <span class="s1">'File Name'</span> <span class="p">,</span>
+                            <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'filename'</span> <span class="p">,</span>
+                            <span class="s1">'filter'</span><span class="p">:</span><span class="s1">'Image Files (*.png *.jpg *.jpeg *.bmp *.jp2 *.tiff *.tif)'</span>
                             <span class="p">},</span>
                         <span class="p">]</span>
 </pre></div>
