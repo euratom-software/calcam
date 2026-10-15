@@ -563,7 +563,7 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
             while True:
                 part = actors.GetNextProp3D()
                 if part is not None:
-                    part.GetProperty().SetLineWidth( actor.GetProperty().GetLineWidth() * aa)
+                    part.GetProperty().SetLineWidth( part.GetProperty().GetLineWidth() * aa)
                 else:
                     break
         else:
@@ -710,7 +710,7 @@ def render_cam_view(cadmodel,calibration,extra_actors=[],filename=None,oversampl
             while True:
                 part = actors.GetNextProp3D()
                 if part is not None:
-                    part.GetProperty().SetLineWidth( actor.GetProperty().GetLineWidth() / aa )
+                    part.GetProperty().SetLineWidth( part.GetProperty().GetLineWidth() / aa )
                 else:
                     break
         else:

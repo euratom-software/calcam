@@ -10,4 +10,5 @@ Calcam.egg-info/*
 build/
 dist/
 .idea/
+.vscode/
 error logs/
