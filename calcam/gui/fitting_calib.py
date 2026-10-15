@@ -760,6 +760,14 @@ class FittingCalib(CalcamGUIWindow):
             fitter.fix_k3(value)
         elif param == 'fix_k4':
             fitter.fix_k4(value)
+        elif param == 'fix_k5':
+            fitter.fix_k5(value)
+        elif param == 'fix_k6':
+            fitter.fix_k6(value)
+        elif param == 'fix_s[1-4]':
+            fitter.fix_s1s2s3s4(value)
+        elif param == 'fix_𝜏[xy]':
+            fitter.fix_tau_xy(value)
         elif param == 'fix_tangential':
             fitter.fix_tangential(value)
         elif param == 'fix_cc':
@@ -944,6 +952,18 @@ class FittingCalib(CalcamGUIWindow):
             widgetlist[-1].setChecked(self.fitters[field].disabletangentialdist)
             widgetlist[-1].toggled.connect(lambda state,field=field: self.change_fit_params(field,'fix_tangential',state))
 
+            label_func_name_pairs = [
+                ('Disable k4', 'fix_k4', 'fixk4'),
+                ('Disable k5', 'fix_k5', 'fixk5'),
+                ('Disable k6', 'fix_k6', 'fixk6'),
+                ('Disable s[1-4]', 'fix_s[1-4]', 'fixs1s2s3s4'),
+                ('Disable 𝜏[xy]', 'fix_𝜏[xy]', 'fixtauxy'),
+            ]
+            for lbl, field_name, attr_name in label_func_name_pairs:
+                widgetlist.append(qt.QCheckBox(lbl))
+                perspective_settings_layout.addWidget(widgetlist[-1])
+                widgetlist[-1].setChecked(getattr(self.fitters[field], attr_name))
+                widgetlist[-1].toggled.connect(lambda state,field=field,field_name=field_name: self.change_fit_params(field,field_name,state))
 
             # ------- End of perspective settings -----------------
 
@@ -1425,35 +1445,72 @@ class FittingCalib(CalcamGUIWindow):
                                                     'Field of view',
                                                     'Focal length' ,
                                                     'Optical centre' ,
-                                                    'Distortion coeff. k1' ,
-                                                    'Distortion coeff. k2' ,
-                                                    'Distortion coeff. k3' ,
-                                                    'Distortion coeff. p1' ,
-                                                    'Distortion coeff. p2' ,
+                                                    'Distortion k1' ,
+                                                    'Distortion k2' ,
+                                                    'Distortion k3' ,
+                                                    'Distortion p1' ,
+                                                    'Distortion p2' ,
+                                                    'Distortion k4' ,
+                                                    'Distortion k5' ,
+                                                    'Distortion k6' ,
+                                                    'Distortion s[1-4]' ,
+                                                    'Distortion 𝜏[xy]' ,
                                                     ''
                                                     ] ) )
                 if self.calibration.pixel_size is not None:
                     fx = params.cam_matrix[0,0] * self.calibration.pixel_size*1e3
                     fy = params.cam_matrix[1,1] * self.calibration.pixel_size*1e3
+                    if params.kc_uncertainty is not None:
+                        fx_uncertainty = params.fxfy_uncertainty[0] * self.calibration.pixel_size*1e3
+                        fy_uncertainty = params.fxfy_uncertainty[1] * self.calibration.pixel_size*1e3
                     fl_units = 'mm'
                 else:
                     fx = params.cam_matrix[0,0]
                     fy = params.cam_matrix[1,1]
+                    if params.kc_uncertainty is not None:
+                        fx_uncertainty = params.fxfy_uncertainty[0]
+                        fy_uncertainty = params.fxfy_uncertainty[1]
                     fl_units = 'px'
 
 
-                widgets[2].setText( '<br>'.join( [ '( {: .3f} , {: .3f} , {: .3f} ) m'.format(pupilpos[0],pupilpos[1],pupilpos[2]).replace(' ','&nbsp;') ,
-                                                '( {: .3f} , {: .3f} , {: .3f} )'.format(los_centre[0],los_centre[1],los_centre[2]).replace(' ','&nbsp;') ,
-                                                '{:.1f}\xb0 x {:.1f}\xb0 '.format(fov[0],fov[1]).replace(' ','&nbsp;') ,
-                                                "{0:.1f} {2:s} x {1:.1f} {2:s}".format(fx,fy,fl_units).replace(' ','&nbsp;') ,
-                                                "( {: .0f} , {: .0f} )".format(params.cam_matrix[0,2], params.cam_matrix[1,2]).replace(' ','&nbsp;') ,
-                                                "{: 5.4f}".format(params.kc[0][0]).replace(' ','&nbsp;') ,
-                                                "{: 5.4f}".format(params.kc[0][1]).replace(' ','&nbsp;') ,
-                                                "{: 5.4f}".format(params.kc[0][4]).replace(' ','&nbsp;') ,
-                                                "{: 5.4f}".format(params.kc[0][2]).replace(' ','&nbsp;') ,
-                                                "{: 5.4f}".format(params.kc[0][3]).replace(' ','&nbsp;') ,
-                                                ''
-                                                ] ) )
+                if params.kc_uncertainty is not None:
+                    pupilpos_uncertainty = params.get_pupilpos_uncertainty()**0.5
+                    los_centre_uncertainty = params.get_los_direction_uncertainty(xpx,ypx)[0]**0.5
+                    widgets[2].setText( '<br>'.join( [ '( {: .3f} , {: .3f} , {: .3f} )±( {: .3f} , {: .3f} , {: .3f} ) m'.format(pupilpos[0],pupilpos[1],pupilpos[2],pupilpos_uncertainty[0,0],pupilpos_uncertainty[1,1],pupilpos_uncertainty[2,2]).replace(' ','&nbsp;') ,
+                                                    '( {: .3f} , {: .3f} , {: .3f} )±( {: .3f} , {: .3f} , {: .3f} )'.format(los_centre[0],los_centre[1],los_centre[2],los_centre_uncertainty[0,0],los_centre_uncertainty[1,1],los_centre_uncertainty[2,2]).replace(' ','&nbsp;') ,
+                                                    '{:.1f}\xb0 x {:.1f}\xb0 '.format(fov[0],fov[1]).replace(' ','&nbsp;') ,
+                                                    "{0:.1f}(±{1: 5.4f}) {4:s} x {2:.1f}(±{3: 5.4f}) {4:s}".format(fx,fx_uncertainty,fy,fy_uncertainty,fl_units).replace(' ','&nbsp;') ,
+                                                    "( {: .0f}±{: .2f} , {: .0f}±{: .2f} )".format(params.cam_matrix[0,2],params.cxcy_uncertainty[0], params.cam_matrix[1,2],params.cxcy_uncertainty[1]).replace(' ','&nbsp;') ,
+                                                    "{: 5.4f}±{: 5.4f}".format(params.kc[0][0], params.kc_uncertainty[0][0]).replace(' ','&nbsp;') ,
+                                                    "{: 5.4f}±{: 5.4f}".format(params.kc[0][1], params.kc_uncertainty[0][1]).replace(' ','&nbsp;') ,
+                                                    "{: 5.4f}±{: 5.4f}".format(params.kc[0][4], params.kc_uncertainty[0][4]).replace(' ','&nbsp;') ,
+                                                    "{: 5.4f}±{: 5.4f}".format(params.kc[0][2], params.kc_uncertainty[0][2]).replace(' ','&nbsp;') ,
+                                                    "{: 5.4f}±{: 5.4f}".format(params.kc[0][3], params.kc_uncertainty[0][3]).replace(' ','&nbsp;') ,
+                                                    "{: 5.4f}±{: 5.4f}".format(params.kc[0][5], params.kc_uncertainty[0][5]).replace(' ','&nbsp;') ,
+                                                    "{: 5.4f}±{: 5.4f}".format(params.kc[0][6], params.kc_uncertainty[0][6]).replace(' ','&nbsp;') ,
+                                                    "{: 5.4f}±{: 5.4f}".format(params.kc[0][7], params.kc_uncertainty[0][7]).replace(' ','&nbsp;') ,
+                                                    "[{: 5.4f},{: 5.4f},{: 5.4f},{: 5.4f}]±[{: 5.4f},{: 5.4f},{: 5.4f},{: 5.4f}]".format(params.kc[0][8], params.kc[0][9], params.kc[0][10], params.kc[0][11], params.kc_uncertainty[0][8], params.kc_uncertainty[0][9], params.kc_uncertainty[0][10], params.kc_uncertainty[0][11]).replace(' ','&nbsp;') ,
+                                                    "[{: 5.4f},{: 5.4f}]±[{: 5.4f},{: 5.4f}]".format(params.kc[0][12], params.kc[0][13],params.kc_uncertainty[0][12], params.kc_uncertainty[0][13]).replace(' ','&nbsp;') ,
+                                                    ''
+                                                    ] ) )
+                else:
+                    widgets[2].setText( '<br>'.join( [ '( {: .3f} , {: .3f} , {: .3f} ) m'.format(pupilpos[0],pupilpos[1],pupilpos[2]).replace(' ','&nbsp;') ,
+                                                    '( {: .3f} , {: .3f} , {: .3f} )'.format(los_centre[0],los_centre[1],los_centre[2]).replace(' ','&nbsp;') ,
+                                                    '{:.1f}\xb0 x {:.1f}\xb0 '.format(fov[0],fov[1]).replace(' ','&nbsp;') ,
+                                                    "{0:.1f} {2:s} x {1:.1f} {2:s}".format(fx,fy,fl_units).replace(' ','&nbsp;') ,
+                                                    "( {: .0f} , {: .0f} )".format(params.cam_matrix[0,2], params.cam_matrix[1,2]).replace(' ','&nbsp;') ,
+                                                    "{: 5.4f}".format(params.kc[0][0]).replace(' ','&nbsp;') ,
+                                                    "{: 5.4f}".format(params.kc[0][1]).replace(' ','&nbsp;') ,
+                                                    "{: 5.4f}".format(params.kc[0][4]).replace(' ','&nbsp;') ,
+                                                    "{: 5.4f}".format(params.kc[0][2]).replace(' ','&nbsp;') ,
+                                                    "{: 5.4f}".format(params.kc[0][3]).replace(' ','&nbsp;') ,
+                                                    "{: 5.4f}".format(params.kc[0][5]).replace(' ','&nbsp;') ,
+                                                    "{: 5.4f}".format(params.kc[0][6]).replace(' ','&nbsp;') ,
+                                                    "{: 5.4f}".format(params.kc[0][7]).replace(' ','&nbsp;') ,
+                                                    "[{: 5.4f},{: 5.4f},{: 5.4f},{: 5.4f}]".format(params.kc[0][8], params.kc[0][9], params.kc[0][10], params.kc[0][11]).replace(' ','&nbsp;') ,
+                                                    "[{: 5.4f},{: 5.4f}]".format(params.kc[0][12], params.kc[0][13]).replace(' ','&nbsp;') ,
+                                                    ''
+                                                    ] ) )
             elif params.model == 'fisheye':
                 widgets[0].setText( '<b>Fisheye lens fit<br>RMS Fit Residual: {: .1f} pixels<b>'.format(params.reprojection_error) )
                 widgets[1].setText( ' : <br>'.join( [  'Pupil position' ,
@@ -1461,10 +1518,10 @@ class FittingCalib(CalcamGUIWindow):
                                                     'Field of view',
                                                     'Focal length' ,
                                                     'Optical centre' ,
-                                                    'Distortion coeff. k1' ,
-                                                    'Distortion coeff. k2' ,
-                                                    'Distortion coeff. k3' ,
-                                                    'Distortion coeff. k4' ,
+                                                    'Distortion k1' ,
+                                                    'Distortion k2' ,
+                                                    'Distortion k3' ,
+                                                    'Distortion k4' ,
                                                     ''
                                                     ] ) )
                 if self.calibration.pixel_size is not None:

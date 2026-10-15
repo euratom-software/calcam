@@ -25,6 +25,11 @@ import os
 import json
 import copy
 import warnings
+try:
+    import sympy
+except ImportError:
+    warnings.warn("Sympy not available, cannot estimate uncertainty in pupil position and line-of-sight.")
+    sympy = None
 
 from scipy.ndimage import center_of_mass as CoM
 from scipy.optimize import minimize
@@ -50,8 +55,6 @@ class NoSubviews(Exception):
 
 # Superclass for camera models.
 class ViewModel():
-
-
     # Factory method for loading saved view model from a dictionary
     @staticmethod
     def from_dict(coeffs_dict):
@@ -70,6 +73,42 @@ class ViewModel():
 
         return np.array([cam_pos[0][0],cam_pos[1][0],cam_pos[2][0]])
 
+    # Get the pupil position
+    def get_pupilpos_uncertainty(self):
+        if sympy is not None:
+            rx,ry,rz,tx,ty,tz = sympy.symbols('r_x r_y r_z t_x t_y t_z', real=True)
+
+            rvec = sympy.Matrix([rx, ry, rz])
+            theta = sympy.sqrt(sum(i*i for i in rvec))
+            kvec = rvec / theta
+            kmat = sympy.Matrix([
+                [0.0, -kvec[2], kvec[1]],
+                [kvec[2], 0.0, -kvec[0]],
+                [-kvec[1], kvec[0], 0.0]
+            ])
+            rmat = sympy.eye(3) + sympy.sin(theta)*kmat + (1 - sympy.cos(theta))*kmat**2
+            tvec = sympy.Matrix([[tx, ty, tz]]).T
+
+            pupil_position = -rmat @ tvec
+            covariance_matrix = np.diag(np.concatenate([self.rvec_uncertainty, self.tvec_uncertainty], axis=0)[:,0]**2)
+
+            jacobian_pupil_position = sympy.Matrix([
+                sympy.diff(pupil_position, i).T for i in [rx, ry, rz, tx, ty, tz]
+            ]).T
+
+            jacobian_pupil_position = np.array(jacobian_pupil_position.subs({
+                tx: self.tvec[0,0],
+                ty: self.tvec[1,0], 
+                tz: self.tvec[2,0],
+                rx: self.rvec[0,0],
+                ry: self.rvec[1,0],
+                rz: self.rvec[2,0]
+            }).evalf()).astype(np.float64)
+
+            return jacobian_pupil_position @ covariance_matrix @ jacobian_pupil_position.mT
+        else:
+            return np.zeros_like(self.get_pupilpos())
+
 
     # Get the sight-line direction(s) for given pixel coordinates, as unit vector(s) in the lab frame.
     def get_los_direction(self,x,y):
@@ -77,7 +116,7 @@ class ViewModel():
         if np.shape(x) != np.shape(y):
             raise ValueError("X pixels array and Y pixels array must be the same size!")
 
-        # Flatten everything and create output array        
+        # Flatten everything and create output array
         oldshape = np.shape(x)
         x = np.reshape(x,np.size(x),order='F')
         y = np.reshape(y,np.size(y),order='F')
@@ -102,7 +141,63 @@ class ViewModel():
         # Return an array the same shape as the input x and y pixel arrays + an extra dimension
         out = np.concatenate([np.expand_dims(x,-1),np.expand_dims(y,-1),np.expand_dims(z,-1)],axis=-1)
 
-        return np.reshape(out,oldshape + (3,),order='F')
+        return np.reshape(out, oldshape + (3,), order='F')
+
+    # Get the pupil position
+    def get_los_direction_uncertainty(self, x, y):
+        if sympy is not None:
+            if np.shape(x) != np.shape(y):
+                raise ValueError("X pixels array and Y pixels array must be the same size!")
+
+            # Flatten everything and create output array
+            oldshape = np.shape(x)
+            x = np.reshape(x,np.size(x),order='F')
+            y = np.reshape(y,np.size(y),order='F')
+
+            # Get the normalised 2D coordinates including distortion
+            x_norm,y_norm = self.normalise(x,y)
+
+            # Normalise them to 3D unit vectors
+            vect_length = np.sqrt(x_norm**2 + y_norm**2 + 1)
+            x_norm = x_norm / vect_length
+            y_norm = y_norm / vect_length
+            z_norm = np.ones(x_norm.shape) / vect_length
+            
+            rx,ry,rz = sympy.symbols('r_x r_y r_z', real=True)
+
+            rvec = sympy.Matrix([rx, ry, rz])
+            theta = sympy.sqrt(sum(i*i for i in rvec))
+            kvec = rvec / theta
+            kmat = sympy.Matrix([
+                [0.0, -kvec[2], kvec[1]],
+                [kvec[2], 0.0, -kvec[0]],
+                [-kvec[1], kvec[0], 0.0]
+            ])
+            rmat = sympy.eye(3) + sympy.sin(theta)*kmat + (1 - sympy.cos(theta))*kmat**2
+
+            x = rmat[0,0]*x_norm + rmat[0,1]*y_norm + rmat[0,2]*z_norm
+            y = rmat[1,0]*x_norm + rmat[1,1]*y_norm + rmat[1,2]*z_norm
+            z = rmat[2,0]*x_norm + rmat[2,1]*y_norm + rmat[2,2]*z_norm
+
+            covariance_matrix = np.diag(self.rvec_uncertainty[:,0]**2)
+            subs_dict = {
+                rx: self.rvec[0,0],
+                ry: self.rvec[1,0],
+                rz: self.rvec[2,0]
+            }
+
+            def diff_eval_sympy(f, d):
+                return np.array(sympy.diff(f, d).subs(subs_dict).evalf()).astype(np.float64)
+
+            jacobian_los_vec = np.stack([
+               np.stack([
+                   np.vectorize(diff_eval_sympy, excluded={1})(x, i), np.vectorize(diff_eval_sympy, excluded={1})(y, i), np.vectorize(diff_eval_sympy, excluded={1})(z, i)
+               ], axis=-1) for i in [rx, ry, rz]
+            ], axis=-1)
+
+            return np.einsum("...ij,jk,...km->...im", jacobian_los_vec, covariance_matrix, jacobian_los_vec.mT)
+        else:
+            return np.zeros_like(self.get_los_direction(x, y))
 
 
     # Get a dictionary of the model coeffs
@@ -116,8 +211,13 @@ class ViewModel():
                         'cx':self.cam_matrix[0,2],
                         'cy':self.cam_matrix[1,2],
                         'dist_coeffs':list(np.squeeze(self.kc)),
+                        'dist_coeffs_uncertainty':list(np.squeeze(self.kc_uncertainty)),
+                        'fxfy_uncertainty':list(np.squeeze(self.fxfy_uncertainty)),
+                        'cxcy_uncertainty':list(np.squeeze(self.cxcy_uncertainty)),
                         'rvec':list(np.squeeze(self.rvec)),
                         'tvec':list(np.squeeze(self.tvec)),
+                        'rvec_uncertainty':list(np.squeeze(self.rvec_uncertainty)),
+                        'tvec_uncertainty':list(np.squeeze(self.tvec_uncertainty)),
                         'fit_options':self.fit_options
                     }
 
@@ -129,7 +229,6 @@ class ViewModel():
         rotation_matrix = np.matrix(cv2.Rodrigues(self.rvec)[0])
 
         return rotation_matrix.transpose()
-
 
 
     def get_cam_roll(self,x=None,y=None):
@@ -172,12 +271,25 @@ class RectilinearViewModel(ViewModel):
         self.fit_options = []
 
         if cv2_output is not None:
-
             self.reprojection_error = cv2_output[0]
             self.cam_matrix = cv2_output[1]
-            self.kc = cv2_output[2]
+            self.kc = np.zeros([1,14])
+            self.kc[0,:len(np.squeeze(cv2_output[2]))] = np.squeeze(cv2_output[2])
             self.rvec = cv2_output[3][0]
-            self.tvec = cv2_output[4][0]        
+            self.tvec = cv2_output[4][0]
+            if len(cv2_output) > 5:
+                self.fxfy_uncertainty = np.squeeze(cv2_output[5][:2])
+                self.cxcy_uncertainty = np.squeeze(cv2_output[5][2:4])
+                self.kc_uncertainty = np.zeros([1,14])
+                self.kc_uncertainty[0,:len(np.squeeze(cv2_output[5][4:]))] = np.squeeze(cv2_output[5][4:])
+                self.rvec_uncertainty = cv2_output[6][:3]
+                self.tvec_uncertainty = cv2_output[6][3:6]
+            else:
+                self.fxfy_uncertainty = np.zeros((2,))
+                self.cxcy_uncertainty = np.zeros((2,))
+                self.rvec_uncertainty = np.zeros_like(self.rvec)
+                self.tvec_uncertainty = np.zeros_like(self.tvec)
+                self.kc_uncertainty = np.zeros((1,14))
 
         elif coeffs_dict is not None:
             self.load_from_dict(coeffs_dict)
@@ -199,8 +311,8 @@ class RectilinearViewModel(ViewModel):
         self.cam_matrix[1,2] = coeffs_dict['cy']
         self.cam_matrix[2,2] = 1.
 
-        self.kc = np.zeros([1,len(coeffs_dict['dist_coeffs'])])
-        self.kc[0,:] = coeffs_dict['dist_coeffs']
+        self.kc = np.zeros([1,14])
+        self.kc[0,:len(coeffs_dict['dist_coeffs'])] = coeffs_dict['dist_coeffs']
         
         if 'rvec' in coeffs_dict and 'tvec' in coeffs_dict:
             self.rvec = np.zeros([3,1])
@@ -213,6 +325,21 @@ class RectilinearViewModel(ViewModel):
         else:
             self.fit_options = ['']
 
+        self.rvec_uncertainty = np.zeros((3,1))
+        if 'rvec_uncertainty' in coeffs_dict:
+            self.rvec_uncertainty[:,0] = coeffs_dict.get('rvec_uncertainty')
+        self.tvec_uncertainty = np.zeros((3,1))
+        if 'tvec_uncertainty' in coeffs_dict:
+            self.tvec_uncertainty[:,0] = coeffs_dict.get('tvec_uncertainty')
+        self.kc_uncertainty = np.zeros([1,14])
+        if 'dist_coeffs_uncertainty' in coeffs_dict:
+            self.kc_uncertainty[0,:len(coeffs_dict['dist_coeffs_uncertainty'])] = coeffs_dict['dist_coeffs_uncertainty']
+        self.fxfy_uncertainty = np.zeros((2,))
+        if 'fxfy_uncertainty' in coeffs_dict:
+            self.fxfy_uncertainty[:] = coeffs_dict.get('fxfy_uncertainty')
+        self.cxcy_uncertainty = np.zeros((2,))
+        if 'cxcy_uncertainty' in coeffs_dict:
+            self.cxcy_uncertainty[:] = coeffs_dict.get('cxcy_uncertainty')
 
 
 
@@ -241,9 +368,8 @@ class RectilinearViewModel(ViewModel):
         return np.reshape(undistorted[:,0],oldshape,order='F') , np.reshape(undistorted[:,1],oldshape,order='F')
 
 
-
     # Get list of 2D coordinates based on 3D point coordinates
-    def project_points(self,points,include_distortion=True):
+    def project_points(self,points,include_distortion=True,mask_invalid=True):
 
         # Check the input points are in a suitable format
         points = np.array(points, dtype='float32')
@@ -253,10 +379,24 @@ class RectilinearViewModel(ViewModel):
         if include_distortion:
             kc = self.kc
             k1, k2, p1, p2 = kc[0][:4]
-            if len(kc[0]) == 5:
+            if len(kc[0]) >= 5:
                 k3 = kc[0][4]
+            else:
+                k3 = 0.0
+            if len(kc[0]) >= 8:
+                k4,k5,k6 = kc[0][5:8]
+            else:
+                k4,k5,k6 = [0.0]*3
+            if len(kc[0]) >= 12:
+                s1,s2,s3,s4 = kc[0][8:12]
+            else:
+                s1,s2,s3,s4 = [0.0]*4
+            if len(kc[0]) == 14:
+                taux, tauy = kc[0][12:]
+            else:
+                taux,tauy = [0.0]*2
         else:
-            kc = np.zeros(4)
+            kc = np.zeros(14)
 
         # Do reprojection
         proj_points,_ = cv2.projectPoints(points,self.rvec,self.tvec,self.cam_matrix,kc)
@@ -266,8 +406,7 @@ class RectilinearViewModel(ViewModel):
         # This is where the derivatives of the distorted coordinates wrt the undistorted coordinates are positive.
         # Not doing this can lead to returning spurious re-projected points in some calibrations because we go in to
         # a range of coordinates where the model is not valid.
-        if include_distortion:
-
+        if include_distortion and mask_invalid:
             r_matrix = self.get_cam_to_lab_rotation().T
 
             xlocal = r_matrix[0,0]*points[0][:,0] + r_matrix[0,1]*points[0][:,1] + r_matrix[0,2]*points[0][:,2] + self.tvec[0]
@@ -276,10 +415,9 @@ class RectilinearViewModel(ViewModel):
 
             xp = xlocal/zlocal
             yp = ylocal/zlocal
-            r = np.sqrt(xp**2+yp**2)
 
-            deriv_x = k1*r**2 + k2*r**4 + k3*r**6 + 2*p1*yp + 6*p2*xp + xp*(2*k1*xp + 4*k2*xp*r**2+6*k3*xp*r**4) + 1
-            deriv_y = k1*r**2 + k2*r**4 + k3*r**6 + 2*p2*xp + 6*p1*yp + yp*(2*k1*yp + 4*k2*yp*r**2+6*k3*yp*r**4) + 1
+            d_xyp = distortion_transform_derivatives(np.stack([xp,yp], axis=-1), [k1,k2,p1,p2,k3,k4,k5,k6,s1,s2,s3,s4,taux,tauy])
+            deriv_x, deriv_y = d_xyp[...,0], d_xyp[...,1]
 
             if proj_points.ndim == 2:
                 proj_points[(deriv_x < 0) | (deriv_y < 0),:] = np.nan
@@ -290,12 +428,9 @@ class RectilinearViewModel(ViewModel):
         return proj_points
 
 
-
     # Un-distort an image based on the calibration
     def undistort_image(self,image):
-
         return cv2.undistort(image,self.cam_matrix,self.kc)
-
 
 
 
@@ -379,7 +514,7 @@ class FisheyeeViewModel(ViewModel):
 
 
     # Get list of 2D coordinates based on 3D point coordinates
-    def project_points(self,points,include_distortion=True):
+    def project_points(self,points,include_distortion=True,mask_invalid=True):
 
         # Check the input points are in a suitable format
         if np.ndim(points) == 3:
@@ -391,7 +526,7 @@ class FisheyeeViewModel(ViewModel):
         if include_distortion:
             kc = self.kc
         else:
-            kc = np.zeros(4)
+            kc = np.zeros(14)
 
         # Do reprojection
         points,_ = cv2.fisheye.projectPoints(points,self.rvec,self.tvec,self.cam_matrix,kc)
@@ -1166,6 +1301,18 @@ class Calibration():
                 if self.view_models[nview] is not None:
                     with save_file.open_file('calib_params_{:d}.json'.format(nview),'w') as f:
                         json.dump(self.view_models[nview].get_dict(),f,indent=4,sort_keys=True)
+                    with save_file.open_file('reprojection_errors_{:d}.json'.format(nview),'w') as f:
+                        obj_points_in_subview, im_points_in_subview = self.pointpairs.get_pointpairs(subview=nview)
+                        obj_points_in_subview = np.asarray(obj_points_in_subview)
+                        im_points_in_subview = np.asarray(im_points_in_subview)
+                        proj_obj_points_in_subview = np.asarray(self.view_models[nview].project_points(obj_points_in_subview,include_distortion=True,mask_invalid=False))
+                        json.dump({
+                            "Error PX": (proj_obj_points_in_subview[...,0] - im_points_in_subview[...,0]).tolist(),
+                            "Error PY": (proj_obj_points_in_subview[...,1] - im_points_in_subview[...,1]).tolist(),
+                            "Object Points": obj_points_in_subview.tolist(),
+                            "Image Points": im_points_in_subview.tolist(),
+                            "Projected Object Points": proj_obj_points_in_subview.tolist()
+                        },f,indent=4,sort_keys=True)
 
 
             with save_file.open_file('calibration.json','w') as f:
@@ -1983,7 +2130,7 @@ class Calibration():
             self.history['extrinsics'] = src
 
 
-    def get_undistort_coeffs(self,radial_terms=None,include_tangential=None,subview=None):
+    def get_undistort_coeffs(self,radial_terms=None,include_tangential=None,include_rational_model=None,include_thin_prism=None,include_tilt_shift=None,subview=None):
         '''
         Get a set of parameters which can be used to analytically calculate image coordinate un-distortion.
         This can be useful if you need to calculate point un-distortion faster than the usual numerical method.
@@ -2026,7 +2173,7 @@ class Calibration():
                 if 'Disable k2' in self.view_models[subview].fit_options:
                     radial_terms = 1
                 else:
-                    rdial_terms = 2
+                    radial_terms = 2
             else:
                 radial_terms = 3
 
@@ -2036,6 +2183,23 @@ class Calibration():
             else:
                 include_tangential = True
 
+        if include_rational_model is None:
+            if 'Disable Rational Model' in self.view_models[subview].fit_options:
+                include_rational_model = False
+            else:
+                include_rational_model = True
+
+        if include_thin_prism is None:
+            if 'Disable Thin Prism' in self.view_models[subview].fit_options:
+                include_thin_prism = False
+            else:
+                include_thin_prism = True
+
+        if include_tilt_shift is None:
+            if 'Disable Tilt Shift' in self.view_models[subview].fit_options:
+                include_tilt_shift = False
+            else:
+                include_tilt_shift = True
 
         # First we make a 32x32 array of points over the image (these are our distorted points)
         px,py = np.meshgrid(np.linspace(0,self.geometry.get_display_shape()[0]-1,32),np.linspace(0,self.geometry.get_display_shape()[1]-1,32))
@@ -2049,9 +2213,17 @@ class Calibration():
         xd[:,0] = (xd[:,0] - self.view_models[subview].cam_matrix[0,2]) / self.view_models[subview].cam_matrix[0,0]
         xd[:,1] = (xd[:,1] - self.view_models[subview].cam_matrix[1,2]) / self.view_models[subview].cam_matrix[1,1]
 
+        # fx,fy,cx,cy,k1,k2,p1,p2,k3,k4,k5,k6,s1,s2,s3,s4,τx,τy
+
         # Now fit the model!
         x0 = [0] * radial_terms + [0,0] * include_tangential
-        opt_result = minimize(undistort_model_residual,x0,args=(xd,xn,radial_terms,include_tangential))
+        if include_rational_model:
+            x0 = x0 + [0,0,0]
+        if include_thin_prism:
+            x0 = x0 + [0,0,0,0]
+        if include_tilt_shift:
+            x0 = x0 + [0,0,0,0]
+        opt_result = minimize(undistort_model_residual,x0,args=(xd,xn,radial_terms,include_tangential,include_rational_model,include_thin_prism,include_tilt_shift))
 
         # Put the results in to a friendly dictionary
         res = {'k1':opt_result.x[0]}
@@ -2074,6 +2246,21 @@ class Calibration():
         else:
             res['p1'] = 0.
             res['p2'] = 0.
+        if include_rational_model:
+            res['k4'],res['k5'],res['k6'] = opt_result.x[param_ind:param_ind+3]
+            param_ind += 3
+        else:
+            res['k4'],res['k5'],res['k6'] = [0.0]*3
+        if include_thin_prism:
+            res['s1'],res['s2'],res['s3'],res['s4'] = opt_result.x[param_ind:param_ind+4]
+            param_ind += 4
+        else:
+            res['s1'],res['s2'],res['s3'],res['s4'] = [0.0]*4
+        if include_tilt_shift:
+            res['taux'],res['tauy'] = opt_result.x[param_ind:param_ind+2]
+            param_ind += 2
+        else:
+            res['taux'],res['tauy'] = [0.0]*2
 
         res['rms_error'] = opt_result.fun * (self.view_models[subview].cam_matrix[0,0] + self.view_models[subview].cam_matrix[1,1])/2.
 
@@ -2249,8 +2436,9 @@ class Calibration():
             
         msg = msg + 'Lens Type:                   {:s}\n'.format(model.model.capitalize())
         if model.model == 'rectilinear':
-            msg = msg + 'Radial dist. (k) coeffs:     ( {:.4f}, {:.4f}, {:.4f} ) \n'.format(model.kc[0][0],model.kc[0][1],model.kc[0][4])
+            msg = msg + 'Radial dist. (k) coeffs:     ( {:.4f}, {:.4f}, {:.4f}, {:.4f}, {:.4f}, {:.4f} ) \n'.format(model.kc[0][0],model.kc[0][1],model.kc[0][4],model.kc[0][5],model.kc[0][6],model.kc[0][7])
             msg = msg + 'Decentring dist. (p) coeffs: ( {:.4f}, {:.4f} )\n\n'.format(model.kc[0][2],model.kc[0][3])
+            msg = msg + 'Thin Prism (s) coeffs:       ( {:.4f}, {:.4f}, {:.4f}, {:.4f} )\n\n'.format(model.kc[0][8],model.kc[0][9],model.kc[0][10],model.kc[0][11])
         elif model.model == 'fisheye':
             msg = msg + 'Radial dist. (k) coeffs:     ( {:.4f}, {:.4f}, {:.4f}, {:.4f} ) \n'.format(model.kc[0],model.kc[1],model.kc[2],model.kc[3])
 
@@ -2358,6 +2546,10 @@ class Fitter:
         self.fixk2 = False
         self.fixk3 = True
         self.fixk4 = True
+        self.fixk5 = True
+        self.fixk6 = True
+        self.fixs1s2s3s4 = True
+        self.fixtauxy = True
         self.fixskew = True
         self.disabletangentialdist=False
         self.fixcc = False
@@ -2388,7 +2580,7 @@ class Fitter:
     def get_fitflags(self):
 
         if self.model == 'rectilinear':
-            fitflags = cv2.CALIB_USE_INTRINSIC_GUESS
+            fitflags = cv2.CALIB_USE_INTRINSIC_GUESS + cv2.CALIB_RATIONAL_MODEL + cv2.CALIB_THIN_PRISM_MODEL + cv2.CALIB_TILTED_MODEL
 
             if self.fixaspectratio:
                 fitflags = fitflags + cv2.CALIB_FIX_ASPECT_RATIO
@@ -2398,6 +2590,16 @@ class Fitter:
                 fitflags = fitflags + cv2.CALIB_FIX_K2
             if self.fixk3:
                 fitflags = fitflags + cv2.CALIB_FIX_K3
+            if self.fixk4:
+                fitflags = fitflags + cv2.CALIB_FIX_K4
+            if self.fixk5:
+                fitflags = fitflags + cv2.CALIB_FIX_K5
+            if self.fixk6:
+                fitflags = fitflags + cv2.CALIB_FIX_K6
+            if self.fixs1s2s3s4:
+                fitflags = fitflags + cv2.CALIB_FIX_S1_S2_S3_S4
+            if self.fixtauxy:
+                fitflags = fitflags + cv2.CALIB_FIX_TAUX_TAUY
             if self.disabletangentialdist:
                 fitflags = fitflags + cv2.CALIB_ZERO_TANGENT_DIST
             if self.fixcc:
@@ -2453,12 +2655,22 @@ class Fitter:
             Output.append('Disable k2')
         if self.fixk3:    
             Output.append('Disable k3')
-
-        if self.model == 'fisheye' and self.fixk4:
+        if self.fixk4:    
             Output.append('Disable k4')
 
-        if self.model == 'rectilinear' and self.disabletangentialdist:
-            Output.append('Disable Tangential Distortion')
+        if self.model == 'rectilinear':
+            if self.disabletangentialdist:
+                Output.append('Disable Tangential Distortion')
+            if self.fixk5:
+                Output.append('Disable k5')
+            if self.fixk6:
+                Output.append('Disable k6')
+            if all([self.fixk4, self.fixk5, self.fixk6]):
+                Output.append('Disable Rational Model')
+            if self.fixs1s2s3s4:
+                Output.append('Disable Thin Prism')
+            if self.fixtauxy:
+                Output.append('Disable Tilt Shift')
 
         return Output
 
@@ -2471,6 +2683,10 @@ class Fitter:
         self.fixk2 = False
         self.fixk3 = False
         self.fixk4 = False
+        self.fixk5 = False
+        self.fixk6 = False
+        self.fixs1s2s3s4 = False
+        self.fixtauxy = False
         self.fixskew = True
         self.disabletangentialdist=False
         self.fixcc = False
@@ -2492,6 +2708,18 @@ class Fitter:
                 self.fixk3 = True
             elif string == 'Disable k4':
                 self.fixk4 = True
+            elif string == 'Disable k5':
+                self.fixk5 = True
+            elif string == 'Disable k6':
+                self.fixk6 = True
+            elif string == 'Disable Rational Model':
+                self.fixk4 = True
+                self.fixk5 = True
+                self.fixk6 = True
+            elif string == 'Disable Thin Prism':
+                self.fixs1s2s3s4 = True
+            elif string == 'Disable Tilt Shift':
+                self.fixtauxy = True
 
 
     def fix_cc(self,fix,Cx=None,Cy=None):
@@ -2520,21 +2748,31 @@ class Fitter:
     def fix_k6(self,fix):
         self.fixk6 = fix
 
+    def fix_s1s2s3s4(self,fix):
+        self.fixs1s2s3s4 = fix
+
+    def fix_tau_xy(self,fix):
+        self.fixtauxy = fix
+
     def fix_tangential(self,fix):
         self.disabletangentialdist = fix
 
     def fix_aspect(self,fix):
         self.fixaspectratio = fix
 
-
     def get_n_params(self):
         
         # If we're doing a perspective fit...
         if self.model == 'rectilinear':
-            free_params = 15
+            free_params = 24
             free_params = free_params - self.fixk1
             free_params = free_params - self.fixk2
             free_params = free_params - self.fixk3
+            free_params = free_params - self.fixk4
+            free_params = free_params - self.fixk5
+            free_params = free_params - self.fixk6
+            free_params = free_params - 4*self.fixs1s2s3s4
+            free_params = free_params - 2*self.fixtauxy
             free_params = free_params - 2*self.disabletangentialdist
             free_params = free_params - self.fixaspectratio
             free_params = free_params - 2*self.fixcc
@@ -2617,20 +2855,19 @@ class Fitter:
         # Do the fit!
         if self.model == 'rectilinear':
             if int(cv2.__version__[0]) > 2:
-                fit_output = cv2.calibrateCamera(obj_points,img_points,self.image_display_shape,initial_matrix,None,flags=self.get_fitflags())
+                fit_output = cv2.calibrateCameraExtended(obj_points,img_points,self.image_display_shape,initial_matrix,None,flags=self.get_fitflags())
             else:
-                fit_output = cv2.calibrateCamera(obj_points,img_points,self.image_display_shape,initial_matrix,flags=self.get_fitflags())
+                fit_output = cv2.calibrateCameraExtended(obj_points,img_points,self.image_display_shape,initial_matrix,flags=self.get_fitflags())
 
             fitted_model = RectilinearViewModel(cv2_output = fit_output)
             fitted_model.fit_options = self.get_fitflags_strings()
             
             if not self.ignore_upside_down and fitted_model.get_cam_to_lab_rotation()[2,1] > 0:
-                    raise ImageUpsideDown()
+                raise ImageUpsideDown()
             
             return fitted_model
 
         elif self.model == 'fisheye':
-
             # Prepare input arrays in the annoying, strange way OpenCV requires them...
             if obj_points.dtype == object:
                 obj_points = np.array([np.expand_dims(arr,1) for arr in obj_points],dtype=object)
@@ -2652,7 +2889,7 @@ class Fitter:
             fitted_model.fit_options = self.get_fitflags_strings()
             
             if not self.ignore_upside_down and fitted_model.get_cam_to_lab_rotation()[2,1] > 0:
-                    raise ImageUpsideDown()
+                raise ImageUpsideDown()
                     
             return fitted_model
 
@@ -2667,30 +2904,102 @@ class Fitter:
 
 
     def set_image_shape(self,im_shape):
-
         self.image_display_shape = tuple(im_shape)
         
 
-
-
-
-
     def add_intrinsics_pointpairs(self,pointpairs,subview=0):
-        
         self.pointpairs.append( (pointpairs,subview) )
 
 
     def clear_intrinsics_pointpairs(self):
         del self.pointpairs[1:]
-        
 
 
+def tilt_shift_R_matrix(taux, tauy):
+    c_taux, s_taux = np.cos(taux), np.sin(taux)
+    c_tauy, s_tauy = np.cos(tauy), np.sin(tauy)
+    __R = np.stack([
+        np.stack([c_tauy, s_tauy*s_taux, -s_tauy*c_taux], axis=-1),
+        np.stack([np.zeros_like(c_tauy), c_taux, s_taux], axis=-1),
+        np.stack([s_tauy, -c_tauy*s_taux, c_tauy*c_taux], axis=-1),
+    ], axis=-1)
+    return np.stack([
+        np.stack([__R[2,2], np.zeros_like(__R[0,0]), -__R[0,2]], axis=-1),
+        np.stack([np.zeros_like(__R[0,0]), __R[2,2], -__R[1,2]], axis=-1),
+        np.stack([np.zeros_like(__R[0,0]), np.zeros_like(__R[0,0]), np.ones_like(__R[0,0])], axis=-1),
+    ], axis=-1) @ __R
 
-def undistort_model_residual(params,xd,xn,radial_order=2,include_tangential=True):
 
+def distortion_transform(xd, distortion_coeffs):
+    k1,k2,p1,p2,k3,k4,k5,k6,s1,s2,s3,s4,taux,tauy = distortion_coeffs
+
+    r = np.linalg.norm(xd, axis=-1, ord=2)
+    r2 = r*r
+    r4 = r2*r2
+    r6 = r2*r4
+
+    xy_cross = xd[...,0] * xd[..., 1]
+    radial_distortion = (1 + k1*r2 + k2*r4 + k3*r6) / (1 + k4*r2 + k5*r4 + k6*r6)
+
+    tang_distort_coeff = np.stack([p1, p2], axis=-1)
+    tang_distort_coeff_rev = np.stack([p2, p1], axis=-1)
+
+    tang_distortion = 2*tang_distort_coeff*xy_cross[...,None] + tang_distort_coeff_rev*(r2[...,None] + 2*np.square(xd))
+    thin_prism_distortion = np.stack([
+        s1*r2 + s2*r4,
+        s3*r2 + s4*r4
+    ], axis=-1)
+
+    x_out = xd*radial_distortion[...,None] + tang_distortion + thin_prism_distortion
+
+    R_matrix = tilt_shift_R_matrix(taux, tauy)
+
+    x_out = np.einsum('ij, ...bj->...bi', R_matrix, np.concatenate([x_out, np.zeros_like(x_out[...,:1])], axis=-1))[...,:2]
+    
+    return x_out
+
+
+def distortion_transform_derivatives(xd, distortion_coeffs):
+    k1,k2,p1,p2,k3,k4,k5,k6,s1,s2,s3,s4,taux,tauy = distortion_coeffs
+
+    r = np.linalg.norm(xd, axis=-1, ord=2)
+    r2 = r*r
+    dr2 = 2*xd
+    r4 = r2*r2
+    dr4 = 4*xd*r2[...,None]
+    r6 = r2*r4
+
+    radial_distortion_numerator   = (1 + k1*r2 + k2*r4 + k3*r6)
+    radial_distortion_denominator = (1 + k4*r2 + k5*r4 + k6*r6)
+
+    d_radial_distortion = np.stack([
+        xd[...,0]**2*((2*k1 + 4*k2*r2 + 6*k3*r4)/radial_distortion_denominator + radial_distortion_numerator*(-2*k4 - 4*k5*r2 - 6*k6*r4)/radial_distortion_denominator**2) + radial_distortion_numerator/radial_distortion_denominator,
+        xd[...,1]**2*((2*k1 + 4*k2*r2 + 6*k3*r4)/radial_distortion_denominator + radial_distortion_numerator*(-2*k4 - 4*k5*r2 - 6*k6*r4)/radial_distortion_denominator**2) + radial_distortion_numerator/radial_distortion_denominator
+    ], axis=-1)
+
+    d_tang_distortion = np.stack([
+        2*p1*xd[...,1] + 6*p2*xd[...,0],
+        2*p2*xd[...,0] + 6*p1*xd[...,1],
+    ], axis=-1)
+
+    d_thin_prism_distortion = np.stack([
+        s1*dr2[...,0] + s2*dr4[...,0],
+        s3*dr2[...,1] + s4*dr4[...,1]
+    ], axis=-1)
+
+    d_x_out = d_radial_distortion + d_tang_distortion + d_thin_prism_distortion
+
+    R_matrix = tilt_shift_R_matrix(taux, tauy)
+
+    d_x_out = np.einsum('ij, ...bj->...bi', R_matrix, np.concatenate([d_x_out, np.zeros_like(d_x_out[...,:1])], axis=-1))[...,:2]
+    
+    return d_x_out
+
+
+def undistort_model_residual(params,xd,xn,radial_order=2,include_tangential=True,include_rational_model=False,include_thin_prism=False,include_tilt_shift=False):
     if radial_order < 1 or radial_order > 3:
-        raise ValueError('Order must be between 1 and 3!')
-
+            raise ValueError('Order must be between 1 and 3!')
+    
     params_index = 1
     k1 = params[0]
     if radial_order > 1:
@@ -2713,14 +3022,31 @@ def undistort_model_residual(params,xd,xn,radial_order=2,include_tangential=True
         p1 = 0.
         p2 = 0.
 
+    if include_rational_model:
+        k4, k5, k6 = params[params_index:params_index+3]
+        params_index += 3
+    else:
+        k4, k5, k6 = 0.0, 0.0, 0.0
+
+    if include_thin_prism:
+        s1, s2, s3, s4 = params[params_index:params_index+4]
+        params_index += 4
+    else:
+        s1, s2, s3, s4 = 0.0, 0.0, 0.0, 0.0
+
+    if include_tilt_shift:
+        taux,tauy = params[params_index:params_index+2]
+        params_index += 2
+    else:
+        taux,tauy = 0.0, 0.0
+
     if params_index < params.size  - 1:
-        raise ValueError('Too many parameters givem!')
+        raise ValueError('Too many parameters given!')
 
-    delta = 0.
-    for i in range(xd.shape[0]):
-        r = np.sqrt(np.sum(xd[i,:]**2))
-        x_out = xd[i,0]*(1 + k1*r**2 + k2*r**4 + k3*r**6) + 2*p1*np.prod(xd[i,:]) + p2*(r**2 + 2*xd[i,0]**2)
-        y_out = xd[i,1]*(1 + k1*r**2 + k2*r**4 + k3*r**6) + p1*(r**2+2*xd[i,1]**2) + 2*p2*np.prod(xd[i,:])
-        delta = delta + ((x_out - xn[i,0])**2 + (y_out - xn[i,1])**2)/xd.shape[0]
+    distortion_coeffs = [
+        k1,k2,p1,p2,k3,k4,k5,k6,s1,s2,s3,s4,taux,tauy
+    ]
 
-    return np.sqrt(delta)
+    x_out = distortion_transform(xd, distortion_coeffs=distortion_coeffs)
+
+    return np.sum(np.linalg.norm(x_out - xn, axis=-1, ord=2))

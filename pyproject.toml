@@ -32,7 +32,8 @@ dependencies = [
     "PyQt5",
     "opencv-python-headless",
     "h5py",
-    "meshpy"
+    "meshpy",
+    "sympy"
 ]
 
 dynamic = ["version"]
