@@ -1,16 +1,19 @@
 Calcam Changelog
 ================
 
-
-
-Changes on master branch since 2.18.1 (labeled 2.19.dev)
---------------------------------------------------------
+Point Release 2.19.0 (October 2026)
+-----------------------------------
 
 Fixes:
 * Fixed a bug in render_cam_view() which could raise exceptions if 3D coordinates were included in the scene (affected 3D viewer tool)
+* Fixed a bug when loading RGBA images the calibration GUI tools, which resulted in swapped red and blue colour channels.
+* Fixed a bug which could raise exceptions when loading chessboard images with a smaller detector window than the calibrated image
+* Fixed (or at least worked around) a bug which could raise exceptions in the fitting calibration GUI after using the chessboard or image masking diaglogs due to VTK cleanup issues.
 
 Compatibility / Dependencies:
-* Remove dependency on triangle package in favour of meshpy (note: different wrapper for the same algorithm), since the maintenance status of triangle looks quite questionable. Addresses #122.
+* Fixed compatibility issue with OpenCV 5.0 which caused chessboard corner position detection to break.
+* Remove dependency on triangle package in favour of meshpy (this is a different wrapper for the same C algorithm), since the maintenance status of triangle looks quite questionable. Addresses #122 and should avoid further compatibility issues.
+  (Note that this breaks strict semantic versioning because the optional `triopts` argument has been removed from calcam.gm.trigrid(). However given the scope of this function within the Calcam functionality and likely very niche usage, I don't think this is worth a major version number bump, so this is still a point release.)
 
 
 
